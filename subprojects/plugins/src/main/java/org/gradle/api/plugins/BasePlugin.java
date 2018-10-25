@@ -114,7 +114,7 @@ public class BasePlugin implements Plugin<Project> {
                     }
                 }));
 
-                task.getArtifactBaseName().set(project.provider(new Callable<String>() {
+                task.getArchiveBaseName().set(project.provider(new Callable<String>() {
                     public String call() {
                         return pluginConvention.getArchivesBaseName();
                     }

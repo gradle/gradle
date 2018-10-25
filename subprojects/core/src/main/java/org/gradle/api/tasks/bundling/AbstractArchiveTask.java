@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -43,61 +44,48 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
-    private final DirectoryProperty archiveDestinationDirectory = getProject().getObjects().directoryProperty();
-    private final RegularFileProperty archiveFile = getProject().getObjects().fileProperty();
-    private final Property<String> archiveCustomName = createStringProperty();
-    private final Property<String> archiveBaseName = createStringProperty();
-    private final Property<String> archiveAppendix = createStringProperty();
-    private final Property<String> archiveVersion = createStringProperty();
-    private final Property<String> archiveExtension = createStringProperty();
-    private final Property<String> archiveClassifier = createProperty(String.class, "");
-    private final Property<Boolean> archivePreserveFileTimestamps = createProperty(Boolean.class, true);
-    private final Property<Boolean> archiveReproducibleFileOrder = createProperty(Boolean.class, false);
+    private final DirectoryProperty archiveDestinationDirectory;
+    private final RegularFileProperty archiveFile;
+    private final Property<String> archiveName;
+    private final Property<String> archiveBaseName;
+    private final Property<String> archiveAppendix;
+    private final Property<String> archiveVersion;
+    private final Property<String> archiveExtension;
+    private final Property<String> archiveClassifier;
+    private final Property<Boolean> archivePreserveFileTimestamps;
+    private final Property<Boolean> archiveReproducibleFileOrder;
 
     protected AbstractArchiveTask() {
-        archiveFile.set(archiveDestinationDirectory.file(getProject().provider(new Callable<CharSequence>() {
+        ObjectFactory objectFactory = getProject().getObjects();
+
+        archiveDestinationDirectory = objectFactory.directoryProperty();
+        archiveBaseName = objectFactory.property(String.class);
+        archiveAppendix = objectFactory.property(String.class);
+        archiveVersion = objectFactory.property(String.class);
+        archiveExtension = objectFactory.property(String.class);
+        archiveClassifier = objectFactory.property(String.class);
+
+        archiveName = objectFactory.property(String.class);
+        archiveName.set(getProject().provider(new Callable<String>() {
             @Override
-            public CharSequence call() {
-                return getArchiveName();
+            public String call() throws Exception {
+                // [baseName]-[appendix]-[version]-[classifier].[extension]
+                String name = GUtil.elvis(archiveBaseName.getOrNull(), "");
+                name += maybe(name, archiveAppendix.getOrNull());
+                name += maybe(name, archiveVersion.getOrNull());
+                name += maybe(name, archiveClassifier.getOrNull());
+
+                String extension = archiveExtension.getOrNull();
+                name += GUtil.isTrue(extension) ? "." + extension : "";
+                return name;
             }
-        })));
-    }
+        }));
 
-    private Property<String> createStringProperty() {
-        return getProject().getObjects().property(String.class);
-    }
+        archiveFile = objectFactory.fileProperty();
+        archiveFile.set(archiveDestinationDirectory.file(archiveName));
 
-    private <T> Property<T> createProperty(final Class<T> clazz, final T defaultValue) {
-        final Property<T> prop = getProject().getObjects().property(clazz);
-        prop.set(defaultValue);
-        return prop;
-    }
-
-    /**
-     * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
-     *
-     * @return the archive name.
-     */
-    @Internal("Represented as part of archiveFile")
-    public String getArchiveName() {
-        if (archiveCustomName.isPresent()) {
-            return archiveCustomName.get();
-        }
-        String name = GUtil.elvis(getBaseName(), "") + maybe(getBaseName(), getAppendix());
-        name += maybe(name, getVersion());
-        name += maybe(name, getClassifier());
-        name += GUtil.isTrue(getExtension()) ? "." + getExtension() : "";
-        return name;
-    }
-
-    /**
-     * Sets the archive name.
-     *
-     * @param name the archive name.
-     */
-    public void setArchiveName(String name) {
-        archiveCustomName.set(name);
+        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).value(true);
+        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).value(false);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
@@ -112,10 +100,48 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
+     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     *
+     * @return the archive name.
+     * @deprecated Use {@link #getArchiveFileName()}
+     */
+    @Deprecated
+    @Internal("Represented as part of archiveFile")
+    public String getArchiveName() {
+        return archiveName.get();
+    }
+
+    /**
+     * Sets the archive name.
+     *
+     * @param name the archive name.
+     * @deprecated Use {@link #getArchiveFileName()}
+     */
+    @Deprecated
+    public void setArchiveName(String name) {
+        archiveName.set(name);
+    }
+
+    /**
+     * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
+     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     *
+     * @return the archive name.
+     * @since 5.1
+     */
+    @Internal("Represented as part of archiveFile")
+    public Property<String> getArchiveFileName() {
+        return archiveName;
+    }
+
+    /**
      * The path where the archive is constructed. The path is simply the {@code destinationDir} plus the {@code archiveName}.
      *
      * @return a File object with the path to the archive
+     * @deprecated Use {@link #getArchiveFile()}
      */
+    @Deprecated
     @Internal("Represented as a part of the archiveFile")
     public File getArchivePath() {
         return getArchiveFile().get().getAsFile();
@@ -146,12 +172,18 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the directory where the archive is generated into.
      *
      * @return the directory
+     * @deprecated Use {@link #getDestinationDirectory()}
      */
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public File getDestinationDir() {
         return archiveDestinationDirectory.getAsFile().get();
     }
 
+    /**
+     * @deprecated Use {@link #getDestinationDirectory()}
+     */
+    @Deprecated
     public void setDestinationDir(File destinationDir) {
         archiveDestinationDirectory.set(destinationDir);
     }
@@ -168,13 +200,19 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the base name of the archive.
      *
      * @return the base name. May be null.
+     * @deprecated Use {@link #getArchiveBaseName()}
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public String getBaseName() {
         return archiveBaseName.getOrNull();
     }
 
+    /**
+     * @deprecated Use {@link #getArchiveBaseName()}
+     */
+    @Deprecated
     public void setBaseName(@Nullable String baseName) {
         this.archiveBaseName.set(baseName);
     }
@@ -183,9 +221,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the base name of the archive.
      *
      * @return the base name. Internal property may be null.
+     * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArtifactBaseName() {
+    public Property<String> getArchiveBaseName() {
         return archiveBaseName;
     }
 
@@ -193,28 +232,50 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the appendix part of the archive name, if any.
      *
      * @return the appendix. May be null
+     * @deprecated Use {@link #getArchiveAppendix()}
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public String getAppendix() {
         return archiveAppendix.getOrNull();
     }
 
+    /**
+     * @deprecated Use {@link #getArchiveAppendix()}
+     */
+    @Deprecated
     public void setAppendix(@Nullable String appendix) {
         this.archiveAppendix.set(appendix);
+    }
+
+    /**
+     * Returns the appendix part of the archive name, if any.
+     *
+     * @return the appendix. May be null
+     * @since 5.1
+     */
+    public Property<String> getArchiveAppendix() {
+        return archiveAppendix;
     }
 
     /**
      * Returns the version part of the archive name, if any.
      *
      * @return the version. May be null.
+     * @deprecated Use {@link #getArchiveVersion()}
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public String getVersion() {
         return archiveVersion.getOrNull();
     }
 
+    /**
+     * @deprecated Use {@link #getArchiveVersion()}
+     */
+    @Deprecated
     public void setVersion(@Nullable String version) {
         this.archiveVersion.set(version);
     }
@@ -223,6 +284,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the version part of the archive name.
      *
      * @return the version. Internal property may be null.
+     * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
     public Property<String> getArchiveVersion() {
@@ -231,20 +293,26 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the extension part of the archive name.
+     * @deprecated Use {@link #getArchiveExtension()}
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public String getExtension() {
         return archiveExtension.getOrNull();
     }
 
+    /**
+     * @deprecated Use {@link #getArchiveExtension()}
+     */
+    @Deprecated
     public void setExtension(@Nullable String extension) {
         this.archiveExtension.set(extension);
     }
 
-
     /**
      * Returns the extension part of the archive name.
+     * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
     public Property<String> getArchiveExtension() {
@@ -255,22 +323,29 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the classifier part of the archive name, if any.
      *
      * @return The classifier. May be null.
+     * @deprecated Use {@link #getArchiveClassifier()}
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
+    @Deprecated
     public String getClassifier() {
         return archiveClassifier.getOrNull();
     }
 
+    /**
+     * @deprecated Use {@link #getArchiveClassifier()}
+     */
+    @Deprecated
     public void setClassifier(@Nullable String classifier) {
         this.archiveClassifier.set(classifier);
     }
-
 
     /**
      * Returns the classifier part of the archive name, if any.
      *
      * @return The classifier. Internal property may be null.
+     *
+     * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
     public Property<String> getArchiveClassifier() {
@@ -280,7 +355,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies the destination directory *inside* the archive for the files.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
+     * Don't mix it up with {@link #getDestinationDirectory()} which specifies the output directory for the archive.
      *
      * @param destPath destination directory *inside* the archive for the files
      * @return this
@@ -294,7 +369,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Creates and configures a child {@code CopySpec} with a destination directory *inside* the archive for the files.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
+     * Don't mix it up with {@link #getDestinationDirectory()} which specifies the output directory for the archive.
      *
      * @param destPath destination directory *inside* the archive for the files
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
@@ -310,7 +385,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Creates and configures a child {@code CopySpec} with a destination directory *inside* the archive for the files.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
+     * Don't mix it up with {@link #getDestinationDirectory()} which specifies the output directory for the archive.
      *
      * @param destPath destination directory *inside* the archive for the files
      * @param copySpec The closure to use to configure the child {@code CopySpec}.
