@@ -33,11 +33,12 @@ public class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;
 
     public Tar() {
-        getConventionMapping().map("extension", new Callable<Object>(){
-            public Object call() throws Exception {
+        getArchiveExtension().set(getProject().provider(new Callable<String>() {
+            @Override
+            public String call()  {
                 return getCompression().getDefaultExtension();
             }
-        });
+        }));
     }
 
     @Override

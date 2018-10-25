@@ -58,7 +58,7 @@ public class Ear extends Jar {
     private CopySpec lib;
 
     public Ear() {
-        setExtension(EAR_EXTENSION);
+        getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>() {
             public String call() {

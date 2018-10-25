@@ -99,28 +99,6 @@ class TestUtil {
         return createTask(type, createRootProject(this.rootDir))
     }
 
-    public <T extends Task> T task(Class<T> type, Map taskFields) {
-        def task = createTask(type, createRootProject(rootDir))
-        hackInTaskProperties(type, task, taskFields)
-        return task
-    }
-
-    private static void hackInTaskProperties(Class type, Task task, Map args) {
-        args.each { k, v ->
-            def field = type.getDeclaredFields().find { it.name == k }
-            if (!field) {
-                field = type.getSuperclass().getDeclaredFields().find { it.name == k }
-            }
-            if (field) {
-                field.setAccessible(true)
-                field.set(task, v)
-            } else {
-                //I'm feeling lucky
-                task."$k" = v
-            }
-        }
-    }
-
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
         return createTask(type, project, 'name')
     }

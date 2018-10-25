@@ -49,7 +49,7 @@ public class Jar extends Zip {
     private final CopySpecInternal metaInf;
 
     public Jar() {
-        setExtension(DEFAULT_EXTENSION);
+        getArchiveExtension().set(DEFAULT_EXTENSION);
         setMetadataCharset("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());

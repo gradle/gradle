@@ -210,10 +210,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             @Override
                             public void execute(Zip headersZip) {
                                 headersZip.from(library.getPublicHeaderFiles());
-                                // TODO - should track changes to build directory
-                                headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
-                                headersZip.setClassifier("cpp-api-headers");
-                                headersZip.setArchiveName("cpp-api-headers.zip");
+                                headersZip.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
+                                headersZip.getArchiveClassifier().set("cpp-api-headers");
+                                headersZip.getArchiveFileName().set("cpp-api-headers.zip");
                             }
                         });
                         mainVariant.addArtifact(new LazyPublishArtifact(headersZip));
