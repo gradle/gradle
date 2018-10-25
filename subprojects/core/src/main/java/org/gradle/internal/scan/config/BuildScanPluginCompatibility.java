@@ -29,9 +29,8 @@ class BuildScanPluginCompatibility {
     // Used just to test the mechanism
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
-    public static final String KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE = "org.gradle.kotlin.dsl.caching.buildcache";
 
-    String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
+    String unsupportedReason(VersionNumber pluginVersion) {
         if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
             return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
         }
@@ -47,7 +46,4 @@ class BuildScanPluginCompatibility {
         return pluginVersion.compareTo(minSupportedVersion) < 0;
     }
 
-    UnsupportedBuildScanPluginVersionException unsupportedVersionException() {
-        return new UnsupportedBuildScanPluginVersionException(UNSUPPORTED_PLUGIN_VERSION_MESSAGE);
-    }
 }
