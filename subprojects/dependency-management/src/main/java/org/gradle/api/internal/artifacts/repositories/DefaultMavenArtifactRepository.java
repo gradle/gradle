@@ -23,6 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.FeaturePreviews;
@@ -239,6 +241,20 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         configureAction.execute(metadataSources);
     }
 
+    @Override
+    public void setKind(RepositoryKind kind) {
+        Action<? super ArtifactResolutionDetails> filter = null;
+        switch (kind) {
+            case RELEASES_ONLY:
+                filter = ReleasesOnly.INSTANCE;
+                break;
+            case SNAPSHOTS_ONLY:
+                filter = SnapshotsOnly.INSTANCE;
+                break;
+        }
+        setContentFilter(filter);
+    }
+
     ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
@@ -354,4 +370,29 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
+    private static class SnapshotsOnly implements Action<ArtifactResolutionDetails> {
+        public final static SnapshotsOnly INSTANCE = new SnapshotsOnly();
+        @Override
+        public void execute(ArtifactResolutionDetails artifactResolutionDetails) {
+            if (!artifactResolutionDetails.isVersionListing()) {
+                ModuleComponentIdentifier componentId = artifactResolutionDetails.getComponentId();
+                if (!componentId.getVersion().endsWith("-SNAPSHOT")) {
+                    artifactResolutionDetails.notFound();
+                }
+            }
+        }
+    }
+
+    private static class ReleasesOnly implements Action<ArtifactResolutionDetails> {
+        public final static ReleasesOnly INSTANCE = new ReleasesOnly();
+        @Override
+        public void execute(ArtifactResolutionDetails artifactResolutionDetails) {
+            if (!artifactResolutionDetails.isVersionListing()) {
+                ModuleComponentIdentifier componentId = artifactResolutionDetails.getComponentId();
+                if (componentId.getVersion().endsWith("-SNAPSHOT")) {
+                    artifactResolutionDetails.notFound();
+                }
+            }
+        }
+    }
 }

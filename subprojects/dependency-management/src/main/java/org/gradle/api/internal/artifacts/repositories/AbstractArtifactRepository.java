@@ -113,6 +113,10 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         }
     }
 
+    void setContentFilter(@Nullable Action<? super ArtifactResolutionDetails> spec) {
+        contentFilter = spec;
+    }
+
     @Nullable
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
         return contentFilter;
