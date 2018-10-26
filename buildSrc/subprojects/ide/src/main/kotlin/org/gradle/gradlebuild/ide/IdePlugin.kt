@@ -41,9 +41,7 @@ import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jetbrains.gradle.ext.Application
-import org.jetbrains.gradle.ext.CodeStyleConfig
 import org.jetbrains.gradle.ext.CopyrightConfiguration
-import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
 import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
 import org.jetbrains.gradle.ext.Inspection
@@ -219,7 +217,6 @@ open class IdePlugin : Plugin<Project> {
                 settings {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
-                    configureCodeStyle()
                     // TODO The idea-ext plugin does not yet support customizing inspections.
                     // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
                     // configureInspections()
@@ -595,9 +592,6 @@ fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.()
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
 fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
@@ -713,39 +707,6 @@ fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled
         .attr("enabled", enabled.toString())
         .attr("level", level)
         .attr("enabled_by_default", "false")
-}
-
-
-private
-fun ProjectSettings.configureCodeStyle() {
-    codeStyle {
-        @Suppress("DEPRECATION")
-        USE_SAME_INDENTS = true // deprecated!
-        hardWrapAt = 200
-        java {
-            classCountToUseImportOnDemand = 999
-            alignParameterDescriptions = false
-            alignThrownExceptionDescriptions = false
-            keepEmptyParamTags = false
-            keepEmptyThrowsTags = false
-            keepEmptyReturnTags = false
-            wrapCommentsAtRightMargin = true
-            keepControlStatementInOneLine = false
-            generatePTagOnEmptyLines = false
-            ifForceBraces = FORCE_BRACES_ALWAYS
-            doWhileForceBraces = FORCE_BRACES_ALWAYS
-            whileForceBraces = FORCE_BRACES_ALWAYS
-            forForceBraces = FORCE_BRACES_ALWAYS
-        }
-        groovy {
-            classCountToUseImportOnDemand = 999
-            alignMultilineNamedArguments = false
-            ifForceBraces = FORCE_BRACES_ALWAYS
-            doWhileForceBraces = FORCE_BRACES_ALWAYS
-            whileForceBraces = FORCE_BRACES_ALWAYS
-            forForceBraces = FORCE_BRACES_ALWAYS
-        }
-    }
 }
 
 
