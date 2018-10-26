@@ -134,7 +134,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: scenarioResult.buildResult.webUrl.toString(),
-                successful: scenarioResult.buildResult.status == 'SUCCESS',
+                status: scenarioResult.buildResult.status.toString(),
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }

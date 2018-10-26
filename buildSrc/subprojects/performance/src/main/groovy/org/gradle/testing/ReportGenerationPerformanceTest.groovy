@@ -78,6 +78,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
         String scenarioName
         String webUrl
         String testFailure
-        boolean successful
+        // SUCCESS/FAILURE/UNKNOWN
+        String status
     }
 }

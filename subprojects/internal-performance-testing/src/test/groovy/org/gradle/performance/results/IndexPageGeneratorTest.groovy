@@ -55,7 +55,7 @@ class IndexPageGeneratorTest extends Specification {
     }
 
     private ScenarioBuildResultData createFailedData() {
-        return new ScenarioBuildResultData(scenarioName: 'failed', successful: false, currentBuildExecutions: [Mock(ScenarioBuildResultData.ExecutionData)])
+        return new ScenarioBuildResultData(scenarioName: 'failed', status: 'FAILURE', currentBuildExecutions: [Mock(ScenarioBuildResultData.ExecutionData)])
     }
 
     private ScenarioBuildResultData createHighConfidenceImprovedData() {
@@ -82,7 +82,7 @@ class IndexPageGeneratorTest extends Specification {
         MeasuredOperationList baseVersion = experiment(baseVersionResult)
         MeasuredOperationList currentVersion = experiment(currentVersionResult)
         ScenarioBuildResultData.ExecutionData execution = new ScenarioBuildResultData.ExecutionData(new Date().getTime(), '', baseVersion, currentVersion)
-        return new ScenarioBuildResultData(scenarioName: name, successful: true, currentBuildExecutions: [execution])
+        return new ScenarioBuildResultData(scenarioName: name, status: 'SUCCESS', currentBuildExecutions: [execution])
     }
 
     private MeasuredOperationList experiment(List<Integer> values) {

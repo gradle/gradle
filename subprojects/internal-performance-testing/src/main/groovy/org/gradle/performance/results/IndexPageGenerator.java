@@ -66,6 +66,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     Set<ScenarioBuildResultData> sortBuildResultData(Stream<ScenarioBuildResultData> data) {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
+            .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::isCrossBuild).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
@@ -194,7 +195,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
-                if (!scenario.isSuccessful()) {
+                if(scenario.isUnknown()) {
+                    return "alert-dark";
+                } else if (!scenario.isSuccessful()) {
                     return "alert-danger";
                 } else if (scenario.isAboutToRegress()) {
                     return "alert-warning";
@@ -311,6 +314,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
+        UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
         UNTAGGED("UNTAGGED", null, null);
 
         private String name;
@@ -339,9 +343,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             if (scenario.isCrossBuild()) {
                 result.add(CROSS_BUILD);
             }
-            if (scenario.isBuildFailed()) {
+            if(scenario.isUnknown()) {
+                result.add(UNKNOWN);
+            } else if (scenario.isBuildFailed()) {
                 result.add(FAILED);
-            } else if (!scenario.isSuccessful()) {
+            } else if (scenario.isRegressed()) {
                 result.add(REGRESSED);
             } else if (scenario.isAboutToRegress()) {
                 result.add(NEARLY_FAILED);

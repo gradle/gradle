@@ -26,7 +26,7 @@ class ScenarioBuildResultData {
     String scenarioName
     String webUrl
     String testFailure
-    boolean successful
+    String status
     boolean crossBuild
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
@@ -39,12 +39,24 @@ class ScenarioBuildResultData {
         return !crossBuild && executionsToDisplayInRow.every { it.confidentToSayBetter() }
     }
 
+    boolean isUnknown() {
+        return status == 'UNKNOWN'
+    }
+
+    boolean isSuccessful() {
+        return status == 'SUCCESS'
+    }
+
     boolean isBuildFailed() {
-        return !successful && currentBuildExecutions.empty
+        return status == 'FAILURE'  && currentBuildExecutions.empty
+    }
+
+    boolean isRegressed() {
+        return status == 'FAILURE' && !currentBuildExecutions.empty
     }
 
     boolean isFromCache() {
-        return successful && currentBuildExecutions.empty
+        return status == 'SUCCESS' && currentBuildExecutions.empty
     }
 
     double getDifferenceSortKey() {
