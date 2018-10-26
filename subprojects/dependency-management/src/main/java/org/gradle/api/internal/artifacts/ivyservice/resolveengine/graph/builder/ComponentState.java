@@ -25,6 +25,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -442,7 +443,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         @Override
         public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal descriptor) {
-            if (rejectedBySelectors != null) {
+            if (rejectedBySelectors != null &&
+                    (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT)) {
                 Collection<String> rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRejectedSelector());
                 if (!rejectedByThisSelector.isEmpty()) {
                     descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedByThisSelector, descriptor));
@@ -452,6 +454,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                         descriptor = descriptor.withReason(new UnmatchedVersionsReason(rejectedByThisSelector, descriptor));
                     }
                 }
+
             }
             return descriptor;
         }

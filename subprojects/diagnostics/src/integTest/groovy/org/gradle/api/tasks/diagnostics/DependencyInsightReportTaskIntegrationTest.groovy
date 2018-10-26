@@ -619,6 +619,47 @@ org:leaf:2.0 -> 1.0
 """
     }
 
+    def "shows forced dynamic version"() {
+        given:
+        mavenRepo.module("org", "leaf", "1").publish()
+        mavenRepo.module("org", "leaf", "2").publish()
+        mavenRepo.module("org", "leaf", "3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf('org:leaf:[1,2]') {
+                    because 'testing stuff'
+                    force true
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:2
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Was requested : didn't match version 3 because testing stuff
+      - Forced
+
+org:leaf:[1,2] -> 2
+\\--- conf
+"""
+    }
+
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
