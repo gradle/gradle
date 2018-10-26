@@ -324,7 +324,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File primaryInput) {
-        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.transform(file, outputDirectory) }
     }
 
     static class TestArtifactTransform extends ArtifactTransform {
