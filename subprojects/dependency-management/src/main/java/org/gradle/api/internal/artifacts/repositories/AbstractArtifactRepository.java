@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -104,11 +105,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public void contentFilter(Action<? super ArtifactResolutionDetails> spec) {
+    public void contentFilter(Action<? super ArtifactResolutionDetails> action) {
         if (contentFilter == null) {
-            contentFilter = spec;
+            contentFilter = action;
         } else {
-            contentFilter = Actions.composite(contentFilter, spec);
+            contentFilter = Actions.composite(contentFilter, action);
         }
     }
 
