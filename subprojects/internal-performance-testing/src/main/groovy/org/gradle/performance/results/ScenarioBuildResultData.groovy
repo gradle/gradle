@@ -31,6 +31,10 @@ class ScenarioBuildResultData {
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
 
+    boolean isCrossVersion() {
+        return !crossBuild
+    }
+
     boolean isAboutToRegress() {
         return !crossBuild && executions.any { it.confidentToSayWorse() }
     }

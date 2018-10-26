@@ -39,6 +39,8 @@ plugins {
     id("org.gradle.ci.tag-single-build")
 }
 
+Thread.sleep(1000)
+
 defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
