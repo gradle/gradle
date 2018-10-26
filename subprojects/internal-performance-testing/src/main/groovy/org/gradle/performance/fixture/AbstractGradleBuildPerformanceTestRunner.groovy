@@ -119,4 +119,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     protected static String determineChannel() {
         ResultsStoreHelper.determineChannel()
     }
+
+    protected static String determineTeamCityBuildId() {
+        ResultsStoreHelper.determineTeamCityBuildId()
+    }
 }

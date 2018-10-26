@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     public static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90;
@@ -76,11 +77,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId())).collect(toList());
         if (currentCommitExecutions.isEmpty()) {
             scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         } else {
-            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
+            scenario.setCurrentBuildExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         }
 
         scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);

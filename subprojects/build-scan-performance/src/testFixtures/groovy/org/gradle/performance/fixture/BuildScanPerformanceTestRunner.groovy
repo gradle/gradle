@@ -46,7 +46,8 @@ class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId, pluginCommitSha],
             startTime: clock.getCurrentTime(),
-            channel: determineChannel()
+            channel: determineChannel(),
+            teamCityBuildId: determineTeamCityBuildId()
         )
     }
 

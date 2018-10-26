@@ -22,12 +22,13 @@ import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
+    String teamCityBuildId
     String scenarioName
     String webUrl
     String testFailure
     boolean successful
     boolean crossBuild
-    List<ExecutionData> currentCommitExecutions = []
+    List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
 
     boolean isAboutToRegress() {
@@ -39,11 +40,11 @@ class ScenarioBuildResultData {
     }
 
     boolean isBuildFailed() {
-        return !successful && currentCommitExecutions.empty
+        return !successful && currentBuildExecutions.empty
     }
 
     boolean isFromCache() {
-        return successful && currentCommitExecutions.empty
+        return successful && currentBuildExecutions.empty
     }
 
     double getDifferenceSortKey() {
@@ -63,7 +64,7 @@ class ScenarioBuildResultData {
     }
 
     List<ExecutionData> getExecutions() {
-        return currentCommitExecutions.isEmpty() ? recentExecutions : currentCommitExecutions
+        return currentBuildExecutions.isEmpty() ? recentExecutions : currentBuildExecutions
     }
 
     List<ExecutionData> getExecutionsToDisplayInRow() {

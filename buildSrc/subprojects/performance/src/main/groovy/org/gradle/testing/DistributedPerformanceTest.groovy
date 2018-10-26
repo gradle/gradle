@@ -131,6 +131,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
+                teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: scenarioResult.buildResult.webUrl.toString(),
                 successful: scenarioResult.buildResult.status == 'SUCCESS',
