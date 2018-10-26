@@ -2134,7 +2134,7 @@ org:foo:${displayVersion} -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
-    def "doesn't report duplicate reasins"() {
+    def "doesn't report duplicate reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()
