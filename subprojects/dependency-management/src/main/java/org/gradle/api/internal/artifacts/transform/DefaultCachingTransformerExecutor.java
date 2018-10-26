@@ -272,7 +272,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void execute(final File outputDir) {
-            UpToDateResult result = workExecutor.execute(new TransformerExecution(primarInput, outputDir, transformer, (files) -> this.result = files));
+            UpToDateResult result = workExecutor.execute(new TransformerExecution(primarInput, outputDir, transformer, files -> this.result = files));
             if (result.getFailure() != null) {
                 throw UncheckedException.throwAsUncheckedException(result.getFailure());
             }

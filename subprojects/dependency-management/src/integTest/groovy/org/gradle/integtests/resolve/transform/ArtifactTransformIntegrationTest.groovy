@@ -45,21 +45,26 @@ allprojects {
     }
 }
 
-class FileSizer extends ArtifactTransform {
-    FileSizer() {
-        println "Creating FileSizer"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
+$fileSizer
 """
+    }
+
+    private static String getFileSizer() {
+        """
+            class FileSizer extends org.gradle.api.artifacts.transform.ArtifactTransform {
+                FileSizer() {
+                    println "Creating FileSizer"
+                }
+                
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+        """
     }
 
     def "applies transforms to artifacts for external dependencies matching on implicit format attribute"() {
@@ -103,6 +108,47 @@ class FileSizer extends ArtifactTransform {
 
         then:
         output.count("Transforming") == 0
+    }
+
+    def "can use transformations in build script dependencies"() {
+        file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
+
+        file("script-with-buildscript-block.gradle") << """   
+            buildscript {
+
+                def artifactType = Attribute.of('artifactType', String)
+                dependencies {
+
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                        artifactTransform(FileSizer)
+                    }
+
+                    classpath 'org.apache.commons:commons-math3:3.6.1'
+                }
+                repositories { jcenter() }
+                println(
+                    configurations.classpath.incoming.artifactView {
+                            attributes.attribute(artifactType, "size")
+                        }.artifacts.artifactFiles.files
+                )                                   
+                println(
+                    configurations.classpath.incoming.artifactView {
+                            attributes.attribute(artifactType, "size")
+                        }.artifacts.artifactFiles.files
+                )                                   
+            }
+        """
+
+        buildFile << """
+            apply from: 'script-with-buildscript-block.gradle'
+        """
+
+        expect:
+        succeeds("help")
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming commons-math3") == 1
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {

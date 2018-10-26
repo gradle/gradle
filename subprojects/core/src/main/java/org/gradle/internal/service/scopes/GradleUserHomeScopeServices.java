@@ -51,6 +51,7 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -62,8 +63,24 @@ import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
+import org.gradle.internal.execution.impl.steps.Context;
+import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
+import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
+import org.gradle.internal.execution.impl.steps.ExecuteStep;
+import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
+import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.impl.steps.TimeoutStep;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -72,6 +89,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -250,5 +268,62 @@ public class GradleUserHomeScopeServices {
 
     FileAccessTimeJournal createFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         return new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory);
+    }
+
+    TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
+        return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
+    }
+
+    /**
+     * Work executer for usage above Gradle scope
+     *
+     * Currently used for running artifact transformations in buildscript blocks.
+     */
+    WorkExecutor<UpToDateResult> createWorkExecutor(
+        TimeoutHandler timeoutHandler
+    ) {
+        // TODO: Do we need to invalidate some caches here?
+        OutputChangeListener noopOutputChangeListener = new OutputChangeListener() {
+            @Override
+            public void beforeOutputChange() {
+
+            }
+        };
+        // TODO: Should we support cancellation?
+        BuildCancellationToken noopCancellationToken = new BuildCancellationToken() {
+            @Override
+            public boolean isCancellationRequested() {
+                return false;
+            }
+
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public boolean addCallback(Runnable cancellationHandler) {
+                return false;
+            }
+
+            @Override
+            public void removeCallback(Runnable cancellationHandler) {
+            }
+        };
+        return new DefaultWorkExecutor<UpToDateResult>(
+            new SkipUpToDateStep<Context>(
+                new PrepareCachingStep<Context, CurrentSnapshotResult>(
+                    // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
+                    new SnapshotOutputStep<Context>(UniqueId.generate(),
+                        new CreateOutputsStep<Context, Result>(
+                            new CatchExceptionStep<Context>(
+                                new TimeoutStep<Context>(timeoutHandler,
+                                    new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
     }
 }
