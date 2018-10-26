@@ -88,7 +88,7 @@ class ResolveIvyFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured" () {
         when:
-        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
+        def resolver = resolveIvyFactory.create("test", Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         resolver instanceof NoRepositoriesResolver
