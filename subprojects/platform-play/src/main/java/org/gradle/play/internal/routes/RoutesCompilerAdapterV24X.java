@@ -128,7 +128,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
 
             // Convert Scala Seq[RoutesCompilationError] -> Java List<RoutesCompilationError>
             ClassLoader resultCl = result.getClass().getClassLoader();
-            ScalaMethod seqAsJavaList = ScalaReflectionUtil.scalaMethod(resultCl, "scala.collection.JavaConverters", "seqAsJavaList", resultCl.loadClass("scala.collection.Seq"));
+            ScalaMethod seqAsJavaList = ScalaReflectionUtil.scalaMethod(resultCl, "scala.collection.JavaConversions", "seqAsJavaList", resultCl.loadClass("scala.collection.Seq"));
             List<Object> errors = Cast.uncheckedCast(seqAsJavaList.invoke(errorSeq));
             
             RoutesCompilationErrorAdapter errorAdapter = new RoutesCompilationErrorAdapter(
