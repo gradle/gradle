@@ -101,7 +101,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         given:
         repositories {
             maven("""contentFilter { details ->
-                if (details.id.name == 'foo') { 
+                if (details.moduleId.name == 'foo') { 
                    details.notFound() 
                 }
             }""")
@@ -260,6 +260,38 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
+    def "can filter by module version"() {
+        def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
+        def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""contentFilter { details ->
+                if (details.componentId.version == '1.1') { 
+                   details.notFound() 
+                }
+            }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.1"
+            }
+        """
+
+        when:
+        modIvy.ivy.expectGet()
+        modIvy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.1')
+            }
+        }
+    }
 
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies

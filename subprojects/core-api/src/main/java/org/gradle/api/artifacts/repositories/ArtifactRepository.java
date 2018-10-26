@@ -16,8 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -47,32 +46,16 @@ public interface ArtifactRepository {
      */
     void setName(String name);
 
-    void contentFilter(Action<? super ArtifactResolutionDetails> spec);
+    /**
+     * Sets the content filter for this repository. A content filter can be used to
+     * avoid lookups on remote repositories whenever we know that a module will not
+     * be found.
+     *
+     * @param action the action to configure filtering
+     *
+     * @since 5.1
+     */
+    @Incubating
+    void contentFilter(Action<? super ArtifactResolutionDetails> action);
 
-    @HasInternalProtocol
-    interface ArtifactResolutionDetails {
-        /**
-         * The identifier of the module being looked for in this repository
-         * @return the module identifier
-         */
-        ModuleIdentifier getId();
-
-        /**
-         * The attributes of the consumer looking for this module
-         * @return the consumer attributes
-         */
-        AttributeContainer getConsumerAttributes();
-
-        /**
-         * The name of the consumer. Usually corresponds to the name of the configuration being
-         * resolved.
-         * @return the consumer name
-         */
-        String getConsumerName();
-
-        /**
-         * Declares that this artifact will not be found on this repository
-         */
-        void notFound();
-    }
 }
