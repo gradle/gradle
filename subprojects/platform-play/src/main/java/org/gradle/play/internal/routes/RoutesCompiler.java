@@ -67,7 +67,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
         try {
             ClassLoader cl = getClass().getClassLoader();
             ScalaMethod compile = adapter.getCompileMethod(cl);
-            return adapter.interpretResult(cl, compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getDestinationDir(), spec.isJavaProject(), spec.isNamespaceReverseRouter(), spec.isGenerateReverseRoutes(), spec.isInjectedRoutesGenerator(), spec.getAdditionalImports())));
+            return adapter.interpretResult(compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getDestinationDir(), spec.isJavaProject(), spec.isNamespaceReverseRouter(), spec.isGenerateReverseRoutes(), spec.isInjectedRoutesGenerator(), spec.getAdditionalImports())));
         } catch (Exception e) {
             throw new RuntimeException("Error invoking the Play routes compiler.", e);
         }

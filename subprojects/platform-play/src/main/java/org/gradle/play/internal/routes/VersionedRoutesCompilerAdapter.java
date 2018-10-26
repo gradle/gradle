@@ -32,5 +32,5 @@ public interface VersionedRoutesCompilerAdapter extends Serializable {
 
     Iterable<String> getClassLoaderPackages();
 
-    Boolean interpretResult(ClassLoader cl, Object result);
+    Boolean interpretResult(Object result) throws ClassNotFoundException;
 }

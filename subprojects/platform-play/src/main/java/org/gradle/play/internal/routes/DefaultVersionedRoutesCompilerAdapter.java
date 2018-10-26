@@ -16,8 +16,6 @@
 
 package org.gradle.play.internal.routes;
 
-import org.gradle.internal.Cast;
-
 import java.util.Arrays;
 
 abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesCompilerAdapter {
@@ -42,10 +40,5 @@ abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesC
     @Override
     public Iterable<String> getClassLoaderPackages() {
         return SHARED_PACKAGES;
-    }
-
-    @Override
-    public Boolean interpretResult(ClassLoader cl, Object result) {
-        return Cast.cast(Boolean.class, result);
     }
 }

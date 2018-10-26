@@ -97,4 +97,16 @@ model {
             text = text.replaceFirst(/object/, "class")
         }
     }
+
+
+    def "failure to generate routes fails the build"() {
+        given:
+        file("conf/routes") << """
+# This will cause route compilation failure since overload is not supported.
+GET        /        com.foobar.HelloController.index()
+GET        /*path   com.foobar.HelloController.index(path)
+        """
+        expect:
+        fails("compilePlayBinaryPlayRoutes")
+    }
 }
