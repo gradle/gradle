@@ -74,6 +74,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
 
     // Modify this class with care, see class org.gradle.performance.results.ScenarioBuildResultData
     static class ScenarioBuildResultData {
+        String teamCityBuildId
         String scenarioName
         String webUrl
         String testFailure
