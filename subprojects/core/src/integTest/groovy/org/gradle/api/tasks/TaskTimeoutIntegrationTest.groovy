@@ -90,10 +90,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('src/main/java/Block.java') << """ 
             import java.util.concurrent.CountDownLatch;
+            import java.util.concurrent.TimeUnit;
 
             public class Block {
                 public static void main(String[] args) throws InterruptedException {
-                    new CountDownLatch(1).await();
+                    new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                 }
             }
         """
@@ -118,12 +119,13 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         (1..100).each { i ->
             file("src/test/java/Block${i}.java") << """ 
                 import java.util.concurrent.CountDownLatch;
+                import java.util.concurrent.TimeUnit;
                 import org.junit.Test;
     
                 public class Block${i} {
                     @Test
                     public void test() throws InterruptedException {
-                        new CountDownLatch(1).await();
+                        new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                     }
                 }
             """
@@ -152,6 +154,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import java.util.concurrent.CountDownLatch;
+            import java.util.concurrent.TimeUnit;
             import javax.inject.Inject;
             
             task block(type: WorkerTask) {
@@ -181,7 +184,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public void run() {
-                    new CountDownLatch(1).await();
+                    new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                 }
             }
             """
