@@ -29,7 +29,11 @@ toc::[]
 
 include::overview.adoc[leveloffset=+2]
 
+include::what_is_gradle.adoc[leveloffset=+2]
+
 == Getting Started
+
+include::getting_started.adoc[leveloffset=2]
 
 include::installation.adoc[leveloffset=+2]
 
@@ -204,11 +208,11 @@ include::pmd_plugin.adoc[leveloffset=+2]
 
 == Java Web Projects
 
+include::war_plugin.adoc[leveloffset=+2]
+
 include::ear_plugin.adoc[leveloffset=+2]
 
 include::play_plugin.adoc[leveloffset=+2]
-
-include::war_plugin.adoc[leveloffset=+2]
 
 
 == Scala Projects
@@ -233,6 +237,11 @@ include::java_gradle_plugin.adoc[leveloffset=+2]
 
 include::lazy_configuration.adoc[leveloffset=+2]
 
+== Reference
+
+include::plugin_reference.adoc[leveloffset=2]
+
+include::third_party_integration.adoc[leveloffset=2]
 
 == Licenses
 
