@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -32,12 +31,10 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.execution.CacheHandler;
@@ -50,24 +47,20 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.FileStoreAddActionException;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -81,22 +74,20 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
     private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
 
-    private final PersistentCache cache;
-    private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
-    private final FileStore<String> fileStore;
-    private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
-    private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final FileAccessTracker fileAccessTracker;
     private final WorkExecutor<UpToDateResult> workExecutor;
+    private final File filesOutputDirectory;
+    private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
+    private final PersistentCache cache;
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                              FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
+        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
-        fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
         cache = cacheRepository
             .cache(transformsStoreDirectory)
             .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
@@ -128,76 +119,29 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
     @Override
     public void beforeComplete() {
-        // Discard cached results between builds
-        resultHashToResult.clear();
     }
 
     @Override
     public boolean contains(File absoluteFile, HashCode inputsHash) {
-        return resultHashToResult.containsKey(getCacheKey(absoluteFile, inputsHash));
+        return false;
     }
 
     @Override
     public List<File> getResult(File primaryInput, Transformer transformer) {
-        File absolutePrimaryInput = primaryInput.getAbsoluteFile();
-        CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformer);
-        List<File> transformedFiles = resultHashToResult.get(cacheKey);
-        if (transformedFiles != null) {
-            return transformedFiles;
+        return transform(primaryInput, transformer);
+    }
+
+
+    private List<File> transform(File primaryInput, Transformer transformer) {
+        TransformerExecution execution = new TransformerExecution(primaryInput, transformer);
+        UpToDateResult result = workExecutor.execute(execution);
+        if (result.getFailure() != null) {
+            throw UncheckedException.throwAsUncheckedException(result.getFailure());
         }
-        return loadIntoCache(absolutePrimaryInput, cacheKey, transformer);
+
+        return execution.getResult().get();
     }
 
-    /**
-     * Loads the transformed files from the file system cache into memory. Creates them if they are not present yet.
-     * This makes sure that only one thread tries to load a result for a given key.
-     */
-    private List<File> loadIntoCache(final File inputFile, final CacheKey cacheKey, final Transformer transformer) {
-        return producing.guardByKey(cacheKey, new Factory<List<File>>() {
-            @Override
-            public List<File> create() {
-                List<File> files = resultHashToResult.get(cacheKey);
-                if (files != null) {
-                    return files;
-                }
-                files = cache.withFileLock(new Factory<List<File>>() {
-                    @Override
-                    public List<File> create() {
-                        HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
-                        List<File> files = indexedCache.get(persistentCacheKey);
-                        if (files != null) {
-                            boolean allExist = true;
-                            for (File file : files) {
-                                if (!file.exists()) {
-                                    allExist = false;
-                                    break;
-                                }
-                            }
-                            if (allExist) {
-                                return files;
-                            }
-                        }
-
-                        String key = inputFile.getName() + "/" + persistentCacheKey;
-                        TransformAction action = new TransformAction(transformer, inputFile);
-                        try {
-                            fileStore.add(key, action);
-                        } catch (FileStoreAddActionException e) {
-                            throw UncheckedException.throwAsUncheckedException(e.getCause());
-                        }
-
-                        indexedCache.put(persistentCacheKey, action.result);
-                        return action.result;
-                    }
-                });
-
-                fileAccessTracker.markAccessed(files);
-                resultHashToResult.put(cacheKey, files);
-                return files;
-            }
-        });
-    }
-    
     private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
         return getCacheKey(primaryInput, transformer.getSecondaryInputHash());
     }
@@ -260,43 +204,35 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
     }
 
-    private class TransformAction implements Action<File> {
-        private final Transformer transformer;
-        private final File primarInput;
-        private ImmutableList<File> result;
-
-        public TransformAction(Transformer transformer, File primarInput) {
-            this.transformer = transformer;
-            this.primarInput = primarInput;
-        }
-
-        @Override
-        public void execute(final File outputDir) {
-            UpToDateResult result = workExecutor.execute(new TransformerExecution(primarInput, outputDir, transformer, files -> this.result = files));
-            if (result.getFailure() != null) {
-                throw UncheckedException.throwAsUncheckedException(result.getFailure());
-            }
-        }
-    }
-
     private class TransformerExecution implements UnitOfWork {
         private final File primaryInput;
         private final File outputDir;
         private final Transformer transformer;
-        private final Consumer<ImmutableList<File>> resultHandler;
+        private final HashCode persistentCacheKey;
+        private List<File> result;
 
-        public TransformerExecution(File primaryInput, File outputDir, Transformer transformer, Consumer<ImmutableList<File>> resultHandler) {
+        public TransformerExecution(File primaryInput, Transformer transformer) {
             this.primaryInput = primaryInput;
-            this.outputDir = outputDir;
             this.transformer = transformer;
-            this.resultHandler = resultHandler;
+            this.persistentCacheKey = getCacheKey(primaryInput, transformer).getPersistentCacheKey();
+            String outputPath = primaryInput.getName() + "/" + persistentCacheKey;
+            this.outputDir = new File(filesOutputDirectory, outputPath);
         }
 
         @Override
         public boolean execute() {
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
-            resultHandler.accept(result);
+            Optional<List<File>> resultFiles = Optional.ofNullable(indexedCache.get(persistentCacheKey));
+            this.result = resultFiles.filter(result -> result.stream().allMatch(File::exists)).orElseGet(() -> {
+                    GFileUtils.cleanDirectory(outputDir);
+                    return ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
+                }
+            );
+            fileAccessTracker.markAccessed(result);
             return true;
+        }
+
+        public Optional<List<File>> getResult() {
+            return Optional.ofNullable(result);
         }
 
         @Override
@@ -349,6 +285,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+            getResult().ifPresent(result -> indexedCache.put(persistentCacheKey, result));
             return ImmutableSortedMap.of();
         }
 
