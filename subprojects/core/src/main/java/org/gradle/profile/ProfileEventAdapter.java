@@ -138,16 +138,20 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     @Override
     public void beforeTransformerInvocation(Describable transformer, Describable subject) {
-        long now = clock.getCurrentTime();
-        String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
-        FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
-        currentTransformation.set(transformationProfile.start(now));
+        if (buildProfile != null) {
+            long now = clock.getCurrentTime();
+            String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
+            FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
+            currentTransformation.set(transformationProfile.start(now));
+        }
     }
 
     @Override
     public void afterTransformerInvocation(Describable transformer, Describable subject) {
-        long now = clock.getCurrentTime();
-        currentTransformation.get().setFinish(now);
-        currentTransformation.remove();
+        if (buildProfile != null) {
+            long now = clock.getCurrentTime();
+            currentTransformation.get().setFinish(now);
+            currentTransformation.remove();
+        }
     }
 }
