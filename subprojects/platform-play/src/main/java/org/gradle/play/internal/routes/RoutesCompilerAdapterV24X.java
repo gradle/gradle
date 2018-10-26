@@ -100,28 +100,33 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
         if (successful) {
             // extract the files that were generated
             /*
-                val seq = result.toSeq()
-                val empty = seq.isEmpty()
+                val rightResult = result.right()
+                val generatedFiles = right.get()
+                val empty = generatedFiles.isEmpty()
                 empty.booleanValue()
              */
-            JavaMethod<Object, Object> toSeq = JavaReflectionUtil.method(result, Object.class, "toSeq");
-            Object seqResult = toSeq.invoke(result);
-            JavaMethod<Object, Object> empty = JavaReflectionUtil.method(seqResult, Object.class, "isEmpty");
-            Object emptyResult = empty.invoke(seqResult);
-            JavaMethod<Object, Boolean> toBoolean = JavaReflectionUtil.method(emptyResult, Boolean.class, "booleanValue");
-            return toBoolean.invoke(emptyResult);
+            JavaMethod<Object, Object> right = JavaReflectionUtil.method(result, Object.class, "right");
+            Object rightResult = right.invoke(result);
+            JavaMethod<Object, Object> get = JavaReflectionUtil.method(rightResult, Object.class, "get");
+            Object generatedFiles = get.invoke(rightResult);
+            JavaMethod<Object, Object> isEmpty = JavaReflectionUtil.method(generatedFiles, Object.class, "isEmpty");
+            Object empty = isEmpty.invoke(generatedFiles);
+            JavaMethod<Object, Boolean> booleanValue = JavaReflectionUtil.method(empty, Boolean.class, "booleanValue");
+            return booleanValue.invoke(empty);
         } else {
             // extract exceptions
             /*
-                val left = result.left()
+                val leftResult = result.left()
                 val errorSeq = left.get()
+
                 // convert errorSeq -> Java types
              */
             JavaMethod<Object, Object> left = JavaReflectionUtil.method(result, Object.class, "left");
-            Object leftProjectionResult = left.invoke(result);
-            JavaMethod<Object, Object> get = JavaReflectionUtil.method(leftProjectionResult, Object.class, "get");
-            Object errorSeq = get.invoke(leftProjectionResult);
+            Object leftResult = left.invoke(result);
+            JavaMethod<Object, Object> get = JavaReflectionUtil.method(leftResult, Object.class, "get");
+            Object errorSeq = get.invoke(leftResult);
 
+            // Convert Scala Seq[RoutesCompilationError] -> Java List<RoutesCompilationError>
             ClassLoader resultCl = result.getClass().getClassLoader();
             ScalaMethod seqAsJavaList = ScalaReflectionUtil.scalaMethod(resultCl, "scala.collection.JavaConverters", "seqAsJavaList", resultCl.loadClass("scala.collection.Seq"));
             List<Object> errors = Cast.uncheckedCast(seqAsJavaList.invoke(errorSeq));
@@ -129,11 +134,13 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
             RoutesCompilationErrorAdapter errorAdapter = new RoutesCompilationErrorAdapter(
                     resultCl.loadClass("play.routes.compiler.RoutesCompilationError"),
                     resultCl.loadClass("scala.Option"));
+
             for (Object error : errors) {
                 RoutesCompilationError adaptedError = errorAdapter.adapt(error);
-                LOGGER.error(adaptedError.toString());
+                String message = adaptedError.toString();
+                LOGGER.error(message);
             }
-            throw new RuntimeException("route compilation failed");
+            throw new RuntimeException("route compilation failed with errors");
         }
     }
 
