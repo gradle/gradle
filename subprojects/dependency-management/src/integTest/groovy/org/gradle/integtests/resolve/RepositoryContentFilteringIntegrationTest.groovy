@@ -293,6 +293,84 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
+    def "can declare that a repository doesn't contain snapshots"() {
+        // doesn't really make sense to look for "SNAPSHOT" in an Ivy repository, but this is for the test
+        def modIvy = ivyHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+
+        given:
+        repositories {
+            maven("""kind = 'RELEASES_ONLY'""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.0-SNAPSHOT"
+            }
+        """
+
+        when:
+        modIvy.ivy.expectGet()
+        modIvy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0-SNAPSHOT')
+            }
+        }
+    }
+
+    @Unroll
+    def "can declare that a repository only contains snapshots (unique = #unique)"() {
+        def snapshotModule = mavenHttpRepo.module('org', 'foo', '1.0-SNAPSHOT')
+        if (!unique) {
+            snapshotModule.withNonUniqueSnapshots()
+        }
+        snapshotModule.publish()
+        def release = ivyHttpRepo.module('org', 'bar', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""kind = 'SNAPSHOTS_ONLY'""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.0-SNAPSHOT"
+                conf "org:bar:1.0"
+            }
+        """
+
+        when:
+        // looks for the Maven pom file because it's a snapshot
+        snapshotModule.metaData.expectGet() // gets the maven-metadata.xml file to get the latest snapshot version
+        snapshotModule.pom.expectGet()
+        snapshotModule.artifact.expectGet()
+
+        // but doesn't look for the release because it's not a snapshot
+        release.ivy.expectGet()
+        release.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                if (unique) {
+                    snapshot('org:foo:1.0-SNAPSHOT', snapshotModule.uniqueSnapshotVersion)
+                } else {
+                    module('org:foo:1.0-SNAPSHOT')
+                }
+                module('org:bar:1.0')
+            }
+        }
+
+        where:
+        unique << [true, false]
+    }
+
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
                     assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
