@@ -546,7 +546,7 @@ org:foo:1.+ FAILED
 """
     }
 
-    def "shows forced version"() {
+    def "shows forced version and substitution equivalent to force"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "leaf", "2.0").publish()
@@ -560,19 +560,24 @@ org:foo:1.+ FAILED
             }
             configurations {
                 conf
+                forced {
+                    extendsFrom conf
+                }
+                substituted {
+                    extendsFrom conf
+                }
             }
-            configurations.conf.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.forced.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.substituted.resolutionStrategy.dependencySubstitution {
+                substitute module('org:leaf') with module('org:leaf:1.0')
+            }
             dependencies {
                 conf 'org:foo:1.0', 'org:bar:1.0'
-            }
-            task insight(type: DependencyInsightReportTask) {
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
             }
         """
 
         when:
-        run "insight"
+        run "dependencyInsight", "--configuration", "forced", "--dependency", "leaf"
 
         then:
         outputContains """
@@ -585,11 +590,35 @@ org:leaf:1.0 (forced)
 
 org:leaf:1.0
 \\--- org:foo:1.0
-     \\--- conf
+     \\--- forced
 
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
-     \\--- conf
+     \\--- forced
+"""
+
+        when:
+        run "dependencyInsight", "--configuration", "substituted", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:1.0
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Selected by rule
+      - Forced
+
+org:leaf:1.0
+\\--- org:foo:1.0
+     \\--- substituted
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- substituted
 """
     }
 
