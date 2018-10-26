@@ -77,11 +77,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId())).collect(toList());
-        if (currentCommitExecutions.isEmpty()) {
+        List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream().filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId())).collect(toList());
+        if (currentBuildExecutions.isEmpty()) {
             scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         } else {
-            scenario.setCurrentBuildExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
+            scenario.setCurrentBuildExecutions(currentBuildExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         }
 
         scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
