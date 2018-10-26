@@ -101,7 +101,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
 
                         @Override
                         public void afterLoadFailedAndWasCleanedUp(Throwable error) {
-                            work.afterOutputsRemovedBeforeTask();
+                            work.outputsRemovedAfterFailureToLoadFromCache();
                         }
                     })
             );

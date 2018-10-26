@@ -215,7 +215,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void afterOutputsRemovedBeforeTask() {
+        public void outputsRemovedAfterFailureToLoadFromCache() {
             context.getTaskArtifactState().afterOutputsRemovedBeforeTask();
         }
 

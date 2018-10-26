@@ -36,17 +36,24 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
@@ -55,14 +62,18 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
@@ -221,12 +232,8 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public boolean execute() {
-            Optional<List<File>> resultFiles = Optional.ofNullable(indexedCache.get(persistentCacheKey));
-            this.result = resultFiles.filter(result -> result.stream().allMatch(File::exists)).orElseGet(() -> {
-                    GFileUtils.cleanDirectory(outputDir);
-                    return ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
-                }
-            );
+            GFileUtils.cleanDirectory(outputDir);
+            result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
             fileAccessTracker.markAccessed(result);
             return true;
         }
@@ -257,7 +264,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
 
         @Override
-        public void afterOutputsRemovedBeforeTask() {
+        public void outputsRemovedAfterFailureToLoadFromCache() {
         }
 
         @Override
@@ -276,16 +283,88 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
+            getResult().ifPresent(result -> indexedCache.put(persistentCacheKey, result));
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return Optional.empty();
+            Optional<List<File>> previousResult = Optional.ofNullable(indexedCache.get(persistentCacheKey));
+            return previousResult.map(result -> {
+                    Set<FileChange> changes = result.stream().filter(file -> !file.exists()).map(file ->
+                        // TODO: use correct file type
+                        FileChange.removed(file.getAbsolutePath(), "Output", FileType.RegularFile)
+                    ).collect(Collectors.toSet());
+                    if (changes.isEmpty()) {
+                        fileAccessTracker.markAccessed(result);
+                        this.result = result;
+                    }
+                    return new ExecutionStateChanges() {
+                        @Override
+                        public Iterable<Change> getInputFilesChanges() {
+                            return ImmutableList.of();
+                        }
+
+                        @Override
+                        public void visitAllChanges(ChangeVisitor visitor) {
+                            for (FileChange change : changes) {
+                                boolean result = visitor.visitChange(change);
+                                if (!result) {
+                                    return;
+                                }
+                            }
+                        }
+
+                        @Override
+                        public boolean isRebuildRequired() {
+                            return true;
+                        }
+
+                        @Override
+                        public AfterPreviousExecutionState getPreviousExecution() {
+                            return new AfterPreviousExecutionState() {
+                                @Override
+                                public OriginMetadata getOriginMetadata() {
+                                    return OriginMetadata.fromPreviousBuild(UniqueId.generate(), 0);
+                                }
+
+                                @Override
+                                public boolean isSuccessful() {
+                                    return true;
+                                }
+
+                                @Override
+                                public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties() {
+                                    return ImmutableSortedMap.of();
+                                }
+
+                                @Override
+                                public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties() {
+                                    return ImmutableSortedMap.of();
+                                }
+
+                                @Override
+                                public ImplementationSnapshot getImplementation() {
+                                    return ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash());
+                                }
+
+                                @Override
+                                public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
+                                    return ImmutableList.of();
+                                }
+
+                                @Override
+                                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                                    return ImmutableSortedMap.of();
+                                }
+                            };
+                        }
+                    };
+                }
+            );
         }
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            getResult().ifPresent(result -> indexedCache.put(persistentCacheKey, result));
             return ImmutableSortedMap.of();
         }
 
