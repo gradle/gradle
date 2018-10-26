@@ -42,7 +42,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Loading from cache failed and all outputs were removed.
      */
-    void afterOutputsRemovedBeforeTask();
+    void outputsRemovedAfterFailureToLoadFromCache();
 
     CacheHandler createCacheHandler();
 

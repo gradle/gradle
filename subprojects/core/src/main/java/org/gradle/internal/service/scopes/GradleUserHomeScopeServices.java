@@ -68,6 +68,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
@@ -77,6 +78,7 @@ import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -100,6 +102,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
@@ -309,15 +312,27 @@ public class GradleUserHomeScopeServices {
             public void removeCallback(Runnable cancellationHandler) {
             }
         };
+        OutputFilesRepository noopOutputFilesRepository = new OutputFilesRepository() {
+            @Override
+            public boolean isGeneratedByGradle(File file) {
+                return true;
+            }
+
+            @Override
+            public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
+            }
+        };
         return new DefaultWorkExecutor<UpToDateResult>(
             new SkipUpToDateStep<Context>(
-                new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                    // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-                    new SnapshotOutputStep<Context>(UniqueId.generate(),
-                        new CreateOutputsStep<Context, Result>(
-                            new CatchExceptionStep<Context>(
-                                new TimeoutStep<Context>(timeoutHandler,
-                                    new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
+                new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
+                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
+                        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
+                        new SnapshotOutputStep<Context>(UniqueId.generate(),
+                            new CreateOutputsStep<Context, Result>(
+                                new CatchExceptionStep<Context>(
+                                    new TimeoutStep<Context>(timeoutHandler,
+                                        new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
+                                    )
                                 )
                             )
                         )

@@ -146,7 +146,7 @@ $fileSizer
         """
 
         expect:
-        succeeds("help")
+        succeeds("help", "--info")
         output.count("Creating FileSizer") == 1
         output.count("Transforming commons-math3") == 1
     }
