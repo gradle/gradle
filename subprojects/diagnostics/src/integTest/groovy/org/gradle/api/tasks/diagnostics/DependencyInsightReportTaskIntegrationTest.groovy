@@ -602,15 +602,12 @@ org:leaf:2.0 -> 1.0
 
         then:
         outputContains """
-org:leaf:1.0
+org:leaf:1.0 (selected by rule)
    variant "runtime" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-runtime (not requested)
       org.gradle.component.category = library (not requested)
    ]
-   Selection reasons:
-      - Selected by rule
-      - Forced
 
 org:leaf:1.0
 \\--- org:foo:1.0

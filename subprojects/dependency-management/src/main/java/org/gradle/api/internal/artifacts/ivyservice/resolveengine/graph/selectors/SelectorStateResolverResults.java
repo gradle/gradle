@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -49,7 +48,6 @@ class SelectorStateResolverResults {
 
             if (selectorState.isForce()) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
-                forcedComponent.addCause(ComponentSelectionReasons.FORCED);
                 return Collections.singletonList(forcedComponent);
             }
 

@@ -251,10 +251,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         for (ComponentSelectionDescriptorInternal dependencyDescriptor : dependencyReasons) {
             selectionReason.addCause(transformer.transform(dependencyDescriptor));
         }
-
-        if (dependencyState.getRuleDescriptor() != null) {
-            selectionReason.addCause(dependencyState.getRuleDescriptor());
-        }
         return selectionReason;
     }
 
