@@ -31,6 +31,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -107,6 +108,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             actionClasspathGroovy.shutdown();
+            CompositeStoppable.stoppable(workerClassLoader, actionClasspathLoader).stop();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
