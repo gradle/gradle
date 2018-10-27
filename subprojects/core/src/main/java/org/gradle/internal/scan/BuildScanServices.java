@@ -16,8 +16,11 @@
 
 package org.gradle.internal.scan;
 
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
+import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
+import org.gradle.internal.scan.eob.DefaultBuildScanEndOfBuildNotifier;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanClock;
 import org.gradle.internal.scan.time.DefaultBuildScanBuildStartedTime;
@@ -33,6 +36,10 @@ public class BuildScanServices {
 
     BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
         return new DefaultBuildScanBuildStartedTime(buildStartedTime);
+    }
+
+    BuildScanEndOfBuildNotifier createBuildScanEndOfBuildNotifier(Gradle gradle) {
+        return new DefaultBuildScanEndOfBuildNotifier(gradle);
     }
 
     void configure(ServiceRegistration registration) {
