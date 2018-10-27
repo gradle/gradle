@@ -132,8 +132,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     body();
                         div().id("acoordion").classAttr("mx-auto");
                         renderHeader();
-                        renderTable("Cross version scenarios", ScenarioBuildResultData::isCrossVersion);
-                        renderTable("Cross build scenarios", ScenarioBuildResultData::isCrossBuild);
+                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", ScenarioBuildResultData::isCrossVersion);
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", ScenarioBuildResultData::isCrossBuild);
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -197,9 +197,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
             }
 
-            private void renderTable(String title, Predicate<ScenarioBuildResultData> predicate) {
+            private void renderTable(String title, String description, Predicate<ScenarioBuildResultData> predicate) {
                 div().classAttr("row alert alert-primary m-0");
-                    div().classAttr("col-12 p-0").text(title).end();
+                    div().classAttr("col-12 p-0").text(title);
+                i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                    end();
                 end();
                 scenarios.stream().filter(predicate).forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
             }
@@ -319,7 +321,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
 
     private enum Tag {
         FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
-        CROSS_BUILD("CROSS-BUILD", "badge badge-info", "This scenario is comparing two builds' performance difference, not versions'. Therefore, it's not seen as regression."),
         FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
@@ -349,9 +350,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             Set<Tag> result = new HashSet<>();
             if (scenario.isFromCache()) {
                 result.add(FROM_CACHE);
-            }
-            if (scenario.isCrossBuild()) {
-                result.add(CROSS_BUILD);
             }
             if(scenario.isUnknown()) {
                 result.add(UNKNOWN);

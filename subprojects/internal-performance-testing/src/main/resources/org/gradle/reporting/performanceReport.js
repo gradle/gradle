@@ -66,7 +66,7 @@ function failedScenarioButtonClicked() {
     $('[data-toggle="popover"]').popover('hide')
     $('#failed-scenarios').removeClass('btn-outline-danger').addClass('btn-danger')
     $('#all-scenarios').addClass('btn-outline-primary').removeClass('btn-primary')
-    refreshCards(['FAILED', 'REGRESSED'])
+    refreshCards(['FAILED', 'REGRESSED', 'UNKNOWN'])
 }
 
 function allScenarioButtonClicked() {
