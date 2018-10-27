@@ -20,23 +20,25 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
-public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
+public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
 
-    private final static Logger LOG = Logging.getLogger(LeakyOnJava7GroovySystemLoader.class);
+    private final static Logger LOG = Logging.getLogger(ClassInfoCleaningGroovySystemLoader.class);
 
     private final Method removeFromGlobalClassValue;
     private final Method globalClassSetIteratorMethod;
     private final Object globalClassValue;
     private final Object globalClassSetItems;
-    private final Field clazzField;
+    private Field clazzField;
+    private Field classRefField;
     private final ClassLoader leakingLoader;
 
-    public LeakyOnJava7GroovySystemLoader(ClassLoader leakingLoader) throws Exception {
+    public ClassInfoCleaningGroovySystemLoader(ClassLoader leakingLoader) throws Exception {
         this.leakingLoader = leakingLoader;
         // this work has to be done before classes are loaded, otherwise there are risks that
         // the PermGen space is full before we create the reflection methods
@@ -56,8 +58,13 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
         globalClassSetItems = globalClassSetField.get(globalClassSet);
         globalClassSetIteratorMethod = globalClassSetItems.getClass().getDeclaredMethod("iterator");
 
-        clazzField = classInfoClass.getDeclaredField("klazz");
-        clazzField.setAccessible(true);
+        try {
+            classRefField = classInfoClass.getDeclaredField("classRef");
+            classRefField.setAccessible(true);
+        } catch (Exception e) {
+            clazzField = classInfoClass.getDeclaredField("klazz");
+            clazzField.setAccessible(true);
+        }
     }
 
     @Override
@@ -65,13 +72,12 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
         if (leakingLoader == getClass().getClassLoader()) {
             throw new IllegalStateException("Cannot shut down the main Groovy loader.");
         }
-        // Remove cached value for every class seen by this ClassLoader
         try {
             Iterator<?> it = globalClassSetIterator();
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = (Class) clazzField.get(classInfo);
+                    Class clazz = getClazz(classInfo);
                     removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
@@ -88,13 +94,12 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
         if (classLoader == leakingLoader) {
             throw new IllegalStateException("Cannot remove own types from Groovy loader.");
         }
-        // Remove cached value for every class seen by this ClassLoader that was loaded by the given ClassLoader
         try {
             Iterator<?> it = globalClassSetIterator();
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = (Class) clazzField.get(classInfo);
+                    Class clazz = getClazz(classInfo);
                     if (clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
@@ -105,6 +110,14 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
             }
         } catch (Exception e) {
             throw new GradleException("Could not remove types for ClassLoader " + classLoader + " from the Groovy system " + leakingLoader, e);
+        }
+    }
+
+    private Class getClazz(Object classInfo) throws IllegalAccessException {
+        if (classRefField != null) {
+            return (Class) ((WeakReference) classRefField.get(classInfo)).get();
+        } else {
+            return (Class) clazzField.get(classInfo);
         }
     }
 
