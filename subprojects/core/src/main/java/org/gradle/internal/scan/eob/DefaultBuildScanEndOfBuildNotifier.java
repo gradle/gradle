@@ -31,7 +31,7 @@ public class DefaultBuildScanEndOfBuildNotifier implements BuildScanEndOfBuildNo
     }
 
     @Override
-    public void notify(Listener listener) {
+    public void notify(final Listener listener) {
         if (registered) {
             throw new IllegalStateException("Listener already registered");
         }
@@ -39,7 +39,7 @@ public class DefaultBuildScanEndOfBuildNotifier implements BuildScanEndOfBuildNo
         registered = true;
         gradle.buildFinished(new Action<org.gradle.BuildResult>() {
             @Override
-            public void execute(org.gradle.BuildResult buildResult) {
+            public void execute(final org.gradle.BuildResult buildResult) {
                 listener.execute(new BuildResult() {
                     @Nullable
                     @Override
