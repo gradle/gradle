@@ -66,7 +66,7 @@ open class IncubatingApiReportTask
 
     @TaskAction
     fun analyze() = workerExecutor.submit(Analyzer::class.java) {
-        isolationMode = IsolationMode.CLASSLOADER
+        isolationMode = IsolationMode.NONE
         params(versionFile.asFile.get(), sources.files, htmlReportFile.asFile.get(), textReportFile.asFile.get(), title.get(), releasedVersionsFile.asFile.get())
     }
 }
