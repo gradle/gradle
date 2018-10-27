@@ -62,8 +62,8 @@ public class BuildScanConfigServices {
                     }
 
                     @Override
-                    public boolean isAnyDeploymentsStarted() {
-                        return false;
+                    public boolean isTaskExecutingBuild() {
+                        return gradle.getBuildType() == GradleInternal.BuildType.TASKS;
                     }
                 };
             }
