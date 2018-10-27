@@ -19,12 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
-import java.util.Set;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
