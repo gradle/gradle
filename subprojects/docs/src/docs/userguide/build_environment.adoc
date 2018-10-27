@@ -161,7 +161,7 @@ You should check for existence of optional project properties before you access 
 
 You can adjust JVM options for Gradle in the following ways:
 
-The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m`
+The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=256m"`
 
 .Changing JVM settings for the build VM
 ----

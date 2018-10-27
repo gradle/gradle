@@ -376,7 +376,7 @@ The command line client now starts with 64m of heap instead of 1g.
 This may affect builds running directly inside the client VM using --no-daemon mode. 
 We discourage the use of --no-daemon, but if you must use it, you can increase the available memory using the GRADLE_OPTS environment variable.
 
-The Gradle daemon now starts with 512m of heap instead of 1g.
+The Gradle daemon now starts with 512m of heap instead of 1g. Metaspace is now limited to 256m. It was unlimited before.
 Large projects may have to increase this setting using the `org.gradle.jvmargs` property.
 
 All workers, including compilers and test executors, now start with 512m of heap. The previous default was 1/4th of physical memory.
