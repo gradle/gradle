@@ -449,11 +449,6 @@ public class BuildOperationTrace implements Stoppable {
                     bufferLock.lock();
                     try {
                         if (buffering) {
-                            if (operation instanceof SerializedOperationStart) {
-                                if (((SerializedOperationStart) operation).id == 11) {
-                                    int i = 1;
-                                }
-                            }
                             buffer.add(this);
                         } else {
                             write();
@@ -482,9 +477,7 @@ public class BuildOperationTrace implements Stoppable {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-
         }
-
     }
 
     static Object toSerializableModel(Object object) {
