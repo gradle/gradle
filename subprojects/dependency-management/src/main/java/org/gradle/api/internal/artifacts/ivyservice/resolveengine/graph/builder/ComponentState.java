@@ -16,21 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
@@ -47,13 +40,8 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.RejectedByAttributesVersion;
-import org.gradle.internal.resolve.RejectedByRuleVersion;
-import org.gradle.internal.resolve.RejectedBySelectorVersion;
-import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
-import org.gradle.internal.text.TreeFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +61,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
-    private Multimap<VersionSelector, String> rejectedBySelectors;
 
     private volatile ComponentResolveMetadata metadata;
 
@@ -223,8 +210,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
         for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason, true, new RejectedBySelectorDescriptorBuilder(selectorState));
-
+                selectorState.addReasonsForSelector(reason);
             }
         }
         for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
@@ -328,27 +314,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return rejected;
     }
 
-    @Override
-    public void rejected(Collection<RejectedVersion> rejectedVersions) {
-        for (RejectedVersion rejectedVersion : rejectedVersions) {
-            String version = rejectedVersion.getId().getVersion();
-            if (rejectedVersion instanceof RejectedBySelectorVersion) {
-                registerRejections((RejectedBySelectorVersion) rejectedVersion, version);
-            } else if (rejectedVersion instanceof RejectedByRuleVersion) {
-                String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByRuleReason(version, reason)));
-            } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
-                addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
-            }
-        }
-    }
-
-    private void registerRejections(RejectedBySelectorVersion rejectedVersion, String version) {
-        if (rejectedBySelectors == null) {
-            rejectedBySelectors = LinkedHashMultimap.create();
-        }
-        rejectedBySelectors.put(rejectedVersion.getRejectionSelector(), version);
-    }
 
     public void removeOutgoingEdges() {
         for (NodeState configuration : getNodes()) {
@@ -425,84 +390,5 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
         return null;
-    }
-
-    private class RejectedBySelectorDescriptorBuilder implements Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> {
-        private final SelectorState selectorState;
-
-        public RejectedBySelectorDescriptorBuilder(SelectorState selectorState) {
-            this.selectorState = selectorState;
-        }
-
-        @Override
-        public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal descriptor) {
-            if (rejectedBySelectors != null &&
-                    (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT)) {
-                Collection<String> rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRejectedSelector());
-                if (!rejectedByThisSelector.isEmpty()) {
-                    descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedByThisSelector, descriptor));
-                }
-
-            }
-            return descriptor;
-        }
-    }
-
-    private static class RejectedByRuleReason implements Describable {
-        private final String version;
-        private final String reason;
-
-        private RejectedByRuleReason(String version, String reason) {
-            this.version = version;
-            this.reason = reason;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return version + " by rule" + (reason != null ? " because " + reason : "");
-        }
-    }
-
-    private static class RejectedByAttributesReason implements Describable {
-        private final RejectedByAttributesVersion version;
-
-        private RejectedByAttributesReason(RejectedByAttributesVersion version) {
-            this.version = version;
-        }
-
-
-        @Override
-        public String getDisplayName() {
-            TreeFormatter formatter = new TreeFormatter();
-            version.describeTo(formatter);
-            return "version " + formatter;
-        }
-    }
-
-    public static class RejectedBySelectorReason implements Describable {
-
-        private final Collection<String> rejectedVersions;
-        private final ComponentSelectionDescriptorInternal descriptor;
-
-        private RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
-            this.rejectedVersions = rejectedVersions;
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public String getDisplayName() {
-            boolean hasCustomDescription = descriptor.hasCustomDescription();
-            StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append(rejectedVersions.size() > 1 ? "rejected versions " : "rejected version ");
-            Joiner.on(", ").appendTo(sb, rejectedVersions);
-            if (hasCustomDescription) {
-                sb.append(" because ").append(descriptor.getDescription());
-            }
-            return sb.toString();
-        }
-
-        private int estimateSize(boolean hasCustomDescription) {
-            return 20 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
-        }
     }
 }

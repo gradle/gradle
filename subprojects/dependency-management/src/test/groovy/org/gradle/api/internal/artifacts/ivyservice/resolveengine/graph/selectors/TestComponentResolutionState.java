@@ -21,10 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
     private ComponentIdentifier componentIdentifier;
@@ -81,8 +79,4 @@ public class TestComponentResolutionState implements ComponentResolutionState {
         return rejected;
     }
 
-    @Override
-    public void rejected(Collection<RejectedVersion> rejectedVersions) {
-
-    }
 }
