@@ -31,10 +31,12 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
@@ -91,6 +93,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final File filesOutputDirectory;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final PersistentCache cache;
+    private final ProducerGuard<HashCode> producing = ProducerGuard.adaptive();
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                              FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
@@ -261,6 +264,11 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         @Override
         public FileCollection getLocalState() {
             return ImmutableFileCollection.of();
+        }
+
+        @Override
+        public <T> T underLockForExecution(Factory<T> factory) {
+            return producing.guardByKey(persistentCacheKey, factory);
         }
 
         @Override

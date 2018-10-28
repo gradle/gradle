@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Factory;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -38,6 +39,8 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     FileCollection getLocalState();
+
+    <T> T underLockForExecution(Factory<T> callable);
 
     /**
      * Loading from cache failed and all outputs were removed.
