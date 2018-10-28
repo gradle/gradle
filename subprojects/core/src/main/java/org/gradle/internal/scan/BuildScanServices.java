@@ -16,10 +16,8 @@
 
 package org.gradle.internal.scan;
 
-import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
-import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
 import org.gradle.internal.scan.eob.DefaultBuildScanEndOfBuildNotifier;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanClock;
@@ -28,6 +26,9 @@ import org.gradle.internal.scan.time.DefaultBuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 
+/**
+ * A collection of services attached to the build scope of the root build.
+ */
 public class BuildScanServices {
 
     BuildScanClock createBuildScanClock(Clock clock) {
@@ -38,8 +39,8 @@ public class BuildScanServices {
         return new DefaultBuildScanBuildStartedTime(buildStartedTime);
     }
 
-    BuildScanEndOfBuildNotifier createBuildScanEndOfBuildNotifier(Gradle gradle) {
-        return new DefaultBuildScanEndOfBuildNotifier(gradle);
+    DefaultBuildScanEndOfBuildNotifier createBuildScanEndOfBuildNotifier() {
+        return new DefaultBuildScanEndOfBuildNotifier();
     }
 
     void configure(ServiceRegistration registration) {
