@@ -16,11 +16,9 @@
 
 package org.gradle.internal.operations.logging
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails
