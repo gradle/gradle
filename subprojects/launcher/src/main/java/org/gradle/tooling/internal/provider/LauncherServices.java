@@ -32,6 +32,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildResultReportingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeScopeBuildActionExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -81,7 +82,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                 new InProcessBuildActionExecuter(
                                                     new RunAsBuildOperationBuildActionRunner(
                                                         new ValidatingBuildActionRunner(
-                                                            new ChainingBuildActionRunner(buildActionRunners))))),
+                                                            new BuildResultReportingBuildActionRunner(
+                                                                new ChainingBuildActionRunner(buildActionRunners),
+                                                                styledTextOutputFactory))))),
                                         fileSystemChangeWaiterFactory,
                                         inputsListener,
                                         styledTextOutputFactory,

@@ -16,12 +16,11 @@
 package org.gradle.internal.buildevents;
 
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistics;
-import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsListener {
+public class TaskExecutionStatisticsReporter {
     private final StyledTextOutputFactory textOutputFactory;
 
     public TaskExecutionStatisticsReporter(StyledTextOutputFactory textOutputFactory) {
