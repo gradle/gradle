@@ -143,4 +143,25 @@ build finished
         where:
         level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]
     }
+
+    @Unroll
+    def "reports task execution statistics on build failure with log level #level"() {
+        buildFile << """
+            task broken {
+                doLast {
+                    throw new RuntimeException("broken")
+                }
+            }
+        """
+
+        expect:
+        executer.withArguments("-Dorg.gradle.logging.level=${level}")
+        fails("broken")
+
+        and:
+        result.assertRawOutputContains("1 actionable task: 1 executed")
+
+        where:
+        level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE]
+    }
 }

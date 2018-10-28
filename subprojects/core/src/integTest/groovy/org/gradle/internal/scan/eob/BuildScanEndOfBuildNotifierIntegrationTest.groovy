@@ -17,6 +17,7 @@
 package org.gradle.internal.scan.eob
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @Unroll
@@ -28,33 +29,81 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    def "can observe successful build"() {
+    def "can observe successful build after completion of user logic and build outcome is reported"() {
         when:
         buildFile << """
             notifier.notify {
                 println "failure is null: \${it.failure == null}" 
+            }
+            // user logic registered _after_ listener registered
+            gradle.buildFinished {
+                println "build finished"
             }
         """
 
         run()
 
         then:
-        output.contains("failure is null: true")
+        output.matches("""(?s).*
+BUILD SUCCESSFUL in \\d+s
+build finished
+1 actionable task: 1 executed
+failure is null: true
+\$""")
     }
 
-    def "can observe failed build"() {
+    def "can observe failed build after completion of user logic and build outcome is reported"() {
         when:
         buildFile << """
             task t { doFirst { throw new Exception("!") } }
             notifier.notify {
                 println "failure message: \${it.failure.cause.message}" 
             }
+            // user logic registered _after_ listener registered
+            gradle.buildFinished {
+                println "build finished"
+            }
         """
 
         runAndFail("t")
 
         then:
-        output.contains("failure message: Execution failed for task ':t'.")
+        output.matches("""(?s).*
+build finished
+1 actionable task: 1 executed
+failure message: Execution failed for task ':t'.
+\$""")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7511")
+    def "can observe failed build after failure in included build buildFinished action"() {
+        when:
+        settingsFile << """
+            includeBuild("child")
+        """
+        buildFile << """
+            notifier.notify {
+                println "failure message: \${it.failure.message}" 
+            }
+            task t { 
+                dependsOn gradle.includedBuild("child").task(":t") 
+                doLast { }
+            }
+        """
+        file("child/build.gradle") << """
+            gradle.buildFinished {
+                throw new RuntimeException("broken")
+            }
+            task t
+        """
+
+        runAndFail("t")
+
+        then:
+        output.matches("""(?s).*
+1 actionable task: 1 executed
+failure message: broken
+\$""")
     }
 
     def "can only register one listener"() {

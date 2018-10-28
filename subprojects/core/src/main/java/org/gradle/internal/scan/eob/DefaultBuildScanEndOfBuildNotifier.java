@@ -16,39 +16,29 @@
 
 package org.gradle.internal.scan.eob;
 
-import org.gradle.api.Action;
-import org.gradle.api.invocation.Gradle;
-
 import javax.annotation.Nullable;
 
 public class DefaultBuildScanEndOfBuildNotifier implements BuildScanEndOfBuildNotifier {
-
-    private final Gradle gradle;
-    private boolean registered;
-
-    public DefaultBuildScanEndOfBuildNotifier(Gradle gradle) {
-        this.gradle = gradle;
-    }
+    private Listener listener;
 
     @Override
     public void notify(final Listener listener) {
-        if (registered) {
+        if (this.listener != null) {
             throw new IllegalStateException("Listener already registered");
         }
 
-        registered = true;
-        gradle.buildFinished(new Action<org.gradle.BuildResult>() {
-            @Override
-            public void execute(final org.gradle.BuildResult buildResult) {
-                listener.execute(new BuildResult() {
-                    @Nullable
-                    @Override
-                    public Throwable getFailure() {
-                        return buildResult.getFailure();
-                    }
-                });
-            }
-        });
+        this.listener = listener;
     }
 
+    public void fireBuildComplete(@Nullable final Throwable failure) {
+        if (listener != null) {
+            listener.execute(new BuildResult() {
+                @Nullable
+                @Override
+                public Throwable getFailure() {
+                    return failure;
+                }
+            });
+        }
+    }
 }
