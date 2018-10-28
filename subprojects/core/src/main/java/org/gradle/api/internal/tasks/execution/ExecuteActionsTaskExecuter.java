@@ -35,6 +35,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -175,6 +176,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public FileCollection getLocalState() {
             return context.getTaskProperties().getLocalStateFiles();
+        }
+
+        @Override
+        public <T> T underLockForExecution(Factory<T> modify) {
+            try {
+                return modify.create();
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
 
         @Override
