@@ -223,7 +223,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
         for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason, new RejectedBySelectorDescriptorBuilder(selectorState));
+                selectorState.addReasonsForSelector(reason, true, new RejectedBySelectorDescriptorBuilder(selectorState));
 
             }
         }
@@ -326,13 +326,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public boolean isRejected() {
         return rejected;
-    }
-
-    @Override
-    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
-        for (RejectedBySelectorVersion unmatchedVersion : unmatchedVersions) {
-            registerRejections(unmatchedVersion, unmatchedVersion.getId().getVersion());
-        }
     }
 
     @Override
@@ -448,11 +441,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 Collection<String> rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRejectedSelector());
                 if (!rejectedByThisSelector.isEmpty()) {
                     descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedByThisSelector, descriptor));
-                } else {
-                    rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRequiredSelector());
-                    if (!rejectedByThisSelector.isEmpty()) {
-                        descriptor = descriptor.withReason(new UnmatchedVersionsReason(rejectedByThisSelector, descriptor));
-                    }
                 }
 
             }
@@ -515,32 +503,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         private int estimateSize(boolean hasCustomDescription) {
             return 20 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
-        }
-    }
-
-    private static class UnmatchedVersionsReason implements Describable {
-        private final Collection<String> rejectedVersions;
-        private final ComponentSelectionDescriptorInternal descriptor;
-
-        private UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
-            this.rejectedVersions = rejectedVersions;
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public String getDisplayName() {
-            boolean hasCustomDescription = descriptor.hasCustomDescription();
-            StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append(rejectedVersions.size() > 1 ? "didn't match versions " : "didn't match version ");
-            Joiner.on(", ").appendTo(sb, rejectedVersions);
-            if (hasCustomDescription) {
-                sb.append(" because ").append(descriptor.getDescription());
-            }
-            return sb.toString();
-        }
-
-        private int estimateSize(boolean hasCustomDescription) {
-            return 24 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
         }
     }
 }
