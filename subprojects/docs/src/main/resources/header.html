@@ -88,41 +88,61 @@
             <input type="search" name="q" id="search-input" class="search-input" placeholder="Search the docs"/>
         </div>
         <ul>
-            <li class="docs-home-link"><a href="/userguide/userguide.html">User Manual Home</a> <div class="pdf-link-container">
+            <li class="docs-home-link"><a href="/userguide/userguide.html">Gradle Overview</a> <div class="pdf-link-container">
                 <a href="/userguide/userguide.pdf">
                     <svg width="10px" height="12px" viewBox="0 0 10 12" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M6.01302083,0.857142857 C6.2421875,0.857142857 6.4296875,1.05 6.4296875,1.28571429 L6.4296875,5.14285714 L8.875,5.14285714 C9.05989583,5.14285714 9.15364583,5.37321429 9.0234375,5.50714286 L5.29427083,9.35357143 C5.13020833,9.52232143 4.8671875,9.52232143 4.703125,9.35357143 L0.979166667,5.50714286 C0.848958333,5.37321429 0.940104167,5.14285714 1.12760417,5.14285714 L3.57291667,5.14285714 L3.57291667,1.28571429 C3.57291667,1.05 3.76041667,0.857142857 3.98958333,0.857142857 L6.01302083,0.857142857 Z M6.01302083,0 L3.98958333,0 C3.29947917,0 2.73958333,0.575892857 2.73958333,1.28571429 L2.73958333,4.28571429 L1.12760417,4.28571429 C0.203125,4.28571429 -0.265625,5.4375 0.390625,6.1125 L4.11458333,9.95892857 C4.60416667,10.4625 5.39583333,10.4625 5.88541667,9.95892857 L9.61197917,6.11517857 C10.265625,5.44285714 9.80208333,4.28839286 8.875,4.28839286 L7.26302083,4.28839286 L7.26302083,1.28571429 C7.26302083,0.575892857 6.70052083,0 6.01302083,0 Z M10,11.6785714 L10,11.4642857 C10,11.2875 9.859375,11.1428571 9.6875,11.1428571 L0.3125,11.1428571 C0.140625,11.1428571 0,11.2875 0,11.4642857 L0,11.6785714 C0,11.8553571 0.140625,12 0.3125,12 L9.6875,12 C9.859375,12 10,11.8553571 10,11.6785714 Z"></path></svg>
                     PDF
                 </a>
             </div></li>
-            <li><a href="/release-notes.html">Release Notes</a></li>
+            <li><a href="/userguide/getting_started.html">Getting Started</a></li>
+        </ul>
+
+        <h3 id="using-gradle">Using Gradle</h3>
+        <ul>
             <li><a href="/userguide/installation.html">Installing Gradle</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#upgrading-gradle" aria-expanded="false" aria-controls="upgrading-gradle">Upgrading Gradle</a>
                 <ul id="upgrading-gradle">
                     <li><a href="/userguide/upgrading_version_4.html">version 4.x to 5.0</a></li>
                 </ul>
             </li>
-            <li id="tutorials"><a href="https://guides.gradle.org/">Tutorials</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#migrating-to-gradle" aria-expanded="false" aria-controls="migrating-to-gradle">Migrating to Gradle</a>
+                <ul id="migrating-to-gradle">
+                    <li><a href="https://guides.gradle.org/migrating-from-maven/">Migrating From Maven</a></li>
+                </ul>
+            </li>
+            <li id="tutorials"><a href="https://guides.gradle.org/#getting-started">Getting Started Guides</a></li>
+            <li id="third-party-integration"><a href="/userguide/third_party_integration.html">Gradle &amp; Third-party Tools</a></li>
         </ul>
+
         <h3 id="reference">Reference</h3>
         <ul>
             <li><a href="https://gradle.github.io/kotlin-dsl-docs/api/" target="_blank">Kotlin DSL Reference</a></li>
             <li><a href="/dsl/">Groovy DSL Reference</a></li>
             <li><a href="/javadoc/">Gradle API Javadoc</a></li>
+            <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
             <li><a href="/userguide/plugin_reference.html">Core Plugins</a></li>
-            <li id="third-party-integration"><a href="/userguide/third_party_integration.html">Gradle &amp; Third-party Tools</a></li>
+            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scan Plugin User Manual</a></li>
         </ul>
 
-        <h3 id="getting-started">Getting Started</h3>
+        <h3 id="getting-started">Managing Gradle Projects</h3>
         <ul>
             <li><a href="https://guides.gradle.org/creating-new-gradle-builds/">Creating New Gradle Builds</a></li>
-            <li><a href="https://guides.gradle.org/creating-build-scans/">Creating Build Scans</a></li>
-            <li><a href="/userguide/kotlin_dsl.html">Gradle Kotlin DSL Primer</a></li>
-            <li><a href="https://guides.gradle.org/migrating-from-maven/">Migrating From Maven</a></li>
-        </ul>
-
-        <h3 id="using-gradle-builds">Running Gradle Builds</h3>
-        <ul>
-            <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
+            <li><a href="https://guides.gradle.org/creating-build-scans/">Inspecting Gradle Builds</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#organizing-gradle-projects" aria-expanded="false" aria-controls="organizing-gradle-projects">Organizing Project Structure</a>
+                <ul id="organizing-gradle-projects">
+                    <li><a href="/userguide/organizing_gradle_projects.html">Organizing Projects Best Practices</a></li>
+                    <li><a href="/userguide/directory_layout.html">Directory Layout</a></li>
+                    <li><a href="/userguide/composite_builds.html">Integrating Separate Gradle Builds (Composite Builds)</a></li>
+                    <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#optimizing-build-performance" aria-expanded="false" aria-controls="optimizing-build-performance">Optimizing Build Times</a>
+                <ul id="optimizing-build-performance">
+                    <li><a href="https://guides.gradle.org/performance/">Build Performance Guide</a></li>
+                    <li><a href="/userguide/build_cache.html">Enabling and Configuring the Build Cache</a></li>
+                    <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
+                </ul>
+            </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#customizing-execution" aria-expanded="false" aria-controls="customizing-execution">Customizing Execution</a>
                 <ul id="customizing-execution">
                     <li><a href="/userguide/build_environment.html">Configuring the Build Environment</a></li>
@@ -130,17 +150,16 @@
                     <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
                 </ul>
             </li>
-            <li><a href="/userguide/directory_layout.html">Directory Layout</a></li>
-            <li><a href="/userguide/intro_multi_project_builds.html">Executing Multi-Project Builds</a></li>
-            <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
+
+            <li><a href="/userguide/gradle_wrapper.html">Provisioning Gradle (Wrapper)</a></li>
             <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
-            <li><a href="https://docs.gradle.com/build-scan-plugin">Using Build Scans</a></li>
-            <li><a href="/userguide/build_cache.html">Enabling and Configuring the Build Cache</a></li>
-            <li><a href="/userguide/composite_builds.html">Integrating Separate Gradle Builds (Composite Builds)</a></li>
         </ul>
 
         <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
         <ul>
+            <li><a href="/userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
+            <li><a href="/userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
+            <li><a href="/userguide/authoring_maintainable_build_scripts.html">Authoring Maintainable Builds</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-build-scripts" aria-expanded="false" aria-controls="authoring-build-scripts">Fundamentals</a>
                 <ul id="authoring-build-scripts">
                     <li><a href="/userguide/tutorial_using_tasks.html">Introducing the Basics of Build Scripts</a></li>
@@ -155,12 +174,10 @@
                     <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
-                <ul id="best-practices">
-                    <li><a href="/userguide/authoring_maintainable_build_scripts.html">Authoring Maintainable Builds</a></li>
-                    <li><a href="/userguide/organizing_gradle_projects.html">Organizing Gradle Projects</a></li>
-                    <li><a href="https://guides.gradle.org/performance/">Optimizing Build Performance</a></li>
-                    <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-gradle-plugins" aria-expanded="false" aria-controls="authoring-gradle-plugins">Authoring Gradle Plugins</a>
+                <ul id="authoring-gradle-plugins">
+                    <li><a href="/userguide/custom_plugins.html">Custom Plugins Introduction</a></li>
+                    <li><a href="https://gradle.org/guides/?q=Plugin%20Development">Plugin Development Tutorials</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management" aria-expanded="false" aria-controls="dependency-management">Dependency Management</a>
@@ -187,6 +204,12 @@
             </li>
             <li><p></p></li>
             <li><a href="/userguide/publishing_overview.html">Artifact Publishing</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#java-projects" aria-expanded="false" aria-controls="java-projects">Java Projects</a>
+                <ul id="java-projects">
+                    <li><a href="/userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
+                    <li><a href="/userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
+                </ul>
+            </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-projects" aria-expanded="false" aria-controls="cpp-projects">C++ Projects</a>
                 <ul id="cpp-projects">
                     <li><a href="/userguide/native_software.html">Building Native Software</a></li>
@@ -194,12 +217,6 @@
                     <li><a href="/userguide/software_model.html">Rule-based Model Configuration</a></li>
                     <li><a href="/userguide/rule_source.html">Implementing Model Rules in a Plugin</a></li>
                     <li><a href="/userguide/software_model_extend.html">Extending the Software Model</a></li>
-                </ul>
-            </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#java-projects" aria-expanded="false" aria-controls="java-projects">Java Projects</a>
-                <ul id="java-projects">
-                    <li><a href="/userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
-                    <li><a href="/userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-techniques" aria-expanded="false" aria-controls="advanced-techniques">Advanced Techniques</a>
@@ -210,18 +227,12 @@
                     <li><a href="/userguide/ant.html">Using Ant from Gradle</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Sample Gradle builds</a>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Example Gradle Projects</a>
                 <ul id="sample-gradle-builds">
                     <li><a href="https://github.com/gradle/gradle/tree/master/subprojects/docs/src/samples">Groovy DSL Samples</a></li>
                     <li><a href="https://github.com/gradle/kotlin-dsl/tree/master/samples">Kotlin DSL Samples</a></li>
                 </ul>
             </li>
-        </ul>
-
-        <h3 id="developing-gradle-plugins">Extending Gradle</h3>
-        <ul>
-            <li><a href="/userguide/custom_plugins.html">Writing Custom Plugins</a></li>
-            <li><a href="https://gradle.org/guides/?q=Plugin%20Development">Plugin Development Guides</a></li>
         </ul>
     </nav>
     <!-- End Primary Navigation -->

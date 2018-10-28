@@ -141,8 +141,8 @@ For more information on how to apply the build scan plugin, please visit https:/
                 }
 
                 @Override
-                boolean isAnyDeploymentsStarted() {
-                    return map.anyDeploymentsStarted
+                boolean isTaskExecutingBuild() {
+                    return map.taskExecutingBuild
                 }
             }
         }
