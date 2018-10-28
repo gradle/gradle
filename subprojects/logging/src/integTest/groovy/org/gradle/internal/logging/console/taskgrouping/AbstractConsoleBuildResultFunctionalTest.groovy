@@ -61,6 +61,7 @@ BUILD SUCCESSFUL in \\d+s
 
         then:
         result.assertRawOutputContains(successMessage)
+        result.error.empty
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 1 executed, 1 up-to-date
@@ -70,16 +71,37 @@ BUILD SUCCESSFUL in \\d+s
     def "successful build result is not logged with --quiet"() {
         given:
         buildFile << """
-            task all
+            task success
         """
 
         when:
         executer.withArgument("--quiet")
-        succeeds('all')
+        succeeds('success')
 
         then:
         result.output.empty
         result.error.empty
+    }
+
+    def "successful build result is logged after user logic has completed"() {
+        given:
+        buildFile << """
+            task success { doLast { } }
+            gradle.buildFinished { 
+                println ("build finished")
+            }
+        """
+
+        when:
+        succeeds('success')
+
+        then:
+        // This is the current behaviour, not desired behaviour
+        LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
+BUILD SUCCESSFUL in \\d+s
+build finished
+1 actionable task: 1 executed
+\$"""
     }
 
     @Unroll
