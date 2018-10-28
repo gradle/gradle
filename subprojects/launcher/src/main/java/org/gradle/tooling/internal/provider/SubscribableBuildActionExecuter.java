@@ -16,39 +16,40 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubscribableBuildActionRunner implements BuildActionRunner {
-    private final BuildActionRunner delegate;
+public class SubscribableBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+    private final BuildActionExecuter<BuildActionParameters> delegate;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
     private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
 
-    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
+    public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
         this.delegate = delegate;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.registrations = registrations;
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         boolean subscribable = action instanceof SubscribableBuildAction;
         if (subscribable) {
-            GradleInternal gradle = buildController.getGradle();
+            BuildEventConsumer eventConsumer = requestContext.getEventConsumer();
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
-            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
+            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);
         }
         try {
-            delegate.run(action, buildController);
+            return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
             for (BuildOperationListener listener : listeners) {
                 buildOperationListenerManager.removeListener(listener);
@@ -57,8 +58,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
-        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
         for (SubscribableBuildActionRunnerRegistration registration : registrations) {
             for (BuildOperationListener listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
                 registerListener(listener);

@@ -75,21 +75,19 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                         new ParallelismConfigurationBuildActionExecuter(
                             new GradleThreadBuildActionExecuter(
                                 new ServicesSetupBuildActionExecuter(
-                                    new ContinuousBuildActionExecuter(
-                                        new BuildTreeScopeBuildActionExecuter(
-                                            new InProcessBuildActionExecuter(
-                                                new SubscribableBuildActionRunner(
+                                    new SubscribableBuildActionExecuter(
+                                        new ContinuousBuildActionExecuter(
+                                            new BuildTreeScopeBuildActionExecuter(
+                                                new InProcessBuildActionExecuter(
                                                     new RunAsBuildOperationBuildActionRunner(
                                                         new ValidatingBuildActionRunner(
-                                                            new ChainingBuildActionRunner(buildActionRunners))),
-                                                    buildOperationListenerManager,
-                                                    registrations)
-                                            )
-                                        ),
+                                                            new ChainingBuildActionRunner(buildActionRunners))))),
                                         fileSystemChangeWaiterFactory,
                                         inputsListener,
                                         styledTextOutputFactory,
                                         executorFactory),
+                                            buildOperationListenerManager,
+                                            registrations),
                                     userHomeServiceRegistry)),
                             parallelismConfigurationManager)),
                     styledTextOutputFactory,
