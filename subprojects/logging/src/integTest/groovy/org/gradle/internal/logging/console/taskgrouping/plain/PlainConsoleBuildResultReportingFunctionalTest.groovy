@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping.rich
+package org.gradle.internal.logging.console.taskgrouping.plain
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractFailureReportingFunctionalTest
+import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildResultFunctionalTest
 
-
-class RichConsoleFailureReportingFunctionalTest extends AbstractFailureReportingFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Rich
+class PlainConsoleBuildResultReportingFunctionalTest extends AbstractConsoleBuildResultFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Plain
+    String failureMessage = buildFailed
+    String successMessage = buildSuccess
 }
