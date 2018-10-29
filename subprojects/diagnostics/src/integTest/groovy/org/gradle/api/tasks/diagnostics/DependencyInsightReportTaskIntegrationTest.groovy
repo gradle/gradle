@@ -2589,12 +2589,15 @@ org:foo:[1.0,) FAILED
 
         then:
         outputContains """
-org:foo:1.0 (by constraint)
+org:foo:1.0
    variant "compile" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-api
       org.gradle.component.category = library (not requested)
    ]
+   Selection reasons:
+      - Was requested : rejected versions 1.2, 1.1
+      - By constraint
 
 org:foo -> 1.0
 \\--- compileClasspath
