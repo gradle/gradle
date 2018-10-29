@@ -170,17 +170,15 @@ In this release, more `Provider` implementations track the tasks that produces t
 
 ### Added Provider.flatMap() method
 
-TBD - why this is useful
+The `flatMap()` method allows you to apply a transformation to the values of an existing `Provider` without realizing the values of that `Provider`.  It returns a new `Provider` object that is "live" (meaning it will reflect any changes to the values of the original `Provider`) but will return the transformed values when queried.
 
 ### Added Property.finalizeValue() method
 
-The property types have a `finalizeValue()` method which prevents further changes to the value of the property.
-TBD - why this is useful
+The property types have a `finalizeValue()` method which prevents further changes to the value of the property.  This is useful in cases where the property needs to be queried and it would be unsafe to then change the value of the property later.  After this method as been invoked, calls to methods that change the value of the property (such as `set()`) will result in an exception.
 
 ### Task properties are made final before task executes
 
-All task properties that use one of the property types have their value made final when the task executes. 
-TBD - why this is useful.
+All task properties that use one of the property types have their value made final when the task executes.  This prevents ordering issues where a task property is inadvertently changed after the task executes, resulting in the change having no effect.  This will now result in an exception, alerting the user to the unintended error.
 
 ### Changes to file and directory property construction
 
@@ -301,11 +299,23 @@ Removing dependencies in this way is error-prone and relies on the internal impl
 At the moment, we are not planning to provide an alternative. 
 In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
-### Incubating factory methods for creating properties
+### Changes to incubating factory methods for creating properties
 
-TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
+The following deprecated methods have been removed:
 
-TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods, or any other mutation method, on the property instances to set an initial value, if required.
+- `ProjectLayout.newDirectoryVar()` - Use `ObjectFactory.directoryProperty()` instead.
+- `ProjectLayout.newFileVar()` - Use `ObjectFactory. fileProperty()` instead.
+
+The following methods have been deprecated and will be removed in Gradle 6.0:
+
+- `DefaultTask.newOutputDirectory()` - Use `ObjectFactory.directoryProperty()` instead.
+- `DefaultTask.newOutputFile()` - Use `ObjectFactory.fileProperty()` instead.
+- `DefaultTask.newInputDirectory()` - Use `ObjectFactory.directoryProperty()` instead.
+- `DefaultTask.newInputFile()` - Use `ObjectFactory.fileProperty()` instead.
+- `ProjectLayout.directoryProperty()` - Use `ObjectFactory.directoryProperty()` instead.
+- `ProjectLayout.fileProperty()` - Use `ObjectFactory.fileProperty()` instead.
+
+The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods (or any other mutation method) to set an initial value, if required.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
