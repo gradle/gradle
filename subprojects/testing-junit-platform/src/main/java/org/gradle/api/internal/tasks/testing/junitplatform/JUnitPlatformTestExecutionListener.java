@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
@@ -33,10 +34,10 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
@@ -47,7 +48,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
-    private final Map<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
@@ -67,6 +68,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
         this.currentTestPlan = null;
+        this.descriptorsByUniqueId.clear();
     }
 
     @Override
@@ -75,9 +77,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void executionSkipped(TestIdentifier testIdentifier) {
-        if (testIdentifier.isTest() || isClass(testIdentifier)) {
-            reportStartedUnlessAlreadyStarted(testIdentifier);
-        }
+        executionStarted(testIdentifier);
         reportSkipped(testIdentifier);
     }
 
@@ -100,7 +100,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (testIdentifier.isTest()) {
                 resultProcessor.failure(getId(testIdentifier), failure);
             } else {
-                TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForTestClass(testIdentifier);
+                TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForContainer(testIdentifier);
                 resultProcessor.started(syntheticTestDescriptor, startEvent(getId(testIdentifier)));
                 resultProcessor.failure(syntheticTestDescriptor.getId(), failure);
                 resultProcessor.completed(syntheticTestDescriptor.getId(), completeEvent());
@@ -112,9 +112,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportStartedUnlessAlreadyStarted(TestIdentifier testIdentifier) {
+        boolean wasNotAlreadyStarted = createDescriptorIfAbsent(testIdentifier);
         // guard against edge cases (e.g. JUnit 4 classes with custom runners that report the class as ignored after reporting it as started)
-        if (!wasStarted(testIdentifier)) {
-            resultProcessor.started(getDescriptor(testIdentifier), startEvent(testIdentifier));
+        if (wasNotAlreadyStarted) {
+            TestDescriptorInternal descriptor = descriptorsByUniqueId.get(testIdentifier.getUniqueId());
+            resultProcessor.started(descriptor, startEvent(testIdentifier));
         }
     }
 
@@ -154,8 +156,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId());
     }
 
-    private TestDescriptorInternal getDescriptor(final TestIdentifier node) {
-        return descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
+    private boolean createDescriptorIfAbsent(TestIdentifier node) {
+        MutableBoolean wasCreated = new MutableBoolean(false);
+        descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
+            wasCreated.set(true);
             if (isVintageDynamicLeafTest(node)) {
                 UniqueId parsedUniqueId = UniqueId.parse(uniqueId);
                 return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(parsedUniqueId), vintageDynamicMethodName(parsedUniqueId));
@@ -168,9 +172,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             }
             return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
         });
+        return wasCreated.get();
     }
 
-    private TestDescriptorInternal createSyntheticTestDescriptorForTestClass(TestIdentifier node) {
+    private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
         boolean testsStarted = currentTestPlan.getDescendants(node).stream().anyMatch(this::wasStarted);
         String name = testsStarted ? "executionError": "initializationError";
         return createTestDescriptor(node, name, name);
