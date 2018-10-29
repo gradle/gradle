@@ -20,8 +20,8 @@ import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
 
-    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("2.0");
-    private static final String MIN_SUPPORTED_VERSION_DISPLAY = "2.0";
+    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("2.0.1");
+    private static final String MIN_SUPPORTED_VERSION_DISPLAY = "2.0.1";
     public static final String UNSUPPORTED_PLUGIN_VERSION_MESSAGE =
         "This version of Gradle requires version " + MIN_SUPPORTED_VERSION_DISPLAY + " of the build scan plugin or later.\n"
             + "Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.";
