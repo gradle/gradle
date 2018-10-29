@@ -78,8 +78,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         }
 
         CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                              FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal) {
-            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal);
+                                                                    FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal, ArtifactTransformListener artifactTransformListener) {
+            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, artifactTransformListener);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }
