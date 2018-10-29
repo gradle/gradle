@@ -33,28 +33,33 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     private volatile Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
 
-    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
+    DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metadata = metadata;
     }
 
+    @Override
     public boolean isMissing() {
         return metadata == null;
     }
 
+    @Override
     public ModuleSource getModuleSource() {
         return moduleSource;
     }
 
+    @Override
     public ResolvedModuleVersion getModuleVersion() {
         return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
     }
 
+    @Override
     public ModuleComponentResolveMetadata getMetadata() {
         return metadata;
     }
 
+    @Override
     public long getAgeMillis() {
         return ageMillis;
     }
