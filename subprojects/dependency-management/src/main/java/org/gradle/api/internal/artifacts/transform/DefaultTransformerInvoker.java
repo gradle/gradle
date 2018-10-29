@@ -23,31 +23,22 @@ import java.io.File;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
     private final CachingTransformerExecutor cachingTransformerExecutor;
-    private final ArtifactTransformListener artifactTransformListener;
 
-    public DefaultTransformerInvoker(CachingTransformerExecutor cachingTransformerExecutor, ArtifactTransformListener artifactTransformListener) {
+    public DefaultTransformerInvoker(CachingTransformerExecutor cachingTransformerExecutor) {
         this.cachingTransformerExecutor = cachingTransformerExecutor;
-        this.artifactTransformListener = artifactTransformListener;
     }
 
     @Override
     public void invoke(TransformerInvocation invocation) {
         File primaryInput = invocation.getPrimaryInput();
         Transformer transformer = invocation.getTransformer();
-        boolean hasCachedResult = hasCachedResult(primaryInput, transformer);
         TransformationSubject subjectBeingTransformed = invocation.getSubjectBeingTransformed();
-        if (!hasCachedResult) {
-            artifactTransformListener.beforeTransformerInvocation(transformer, subjectBeingTransformed);
-        }
+
         try {
-            ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer));
+            ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer, subjectBeingTransformed));
             invocation.success(result);
         } catch (Exception e) {
             invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), e));
-        } finally {
-            if (!hasCachedResult) {
-                artifactTransformListener.afterTransformerInvocation(transformer, subjectBeingTransformed);
-            }
         }
     }
 

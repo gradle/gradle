@@ -82,7 +82,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
 
     private DefaultCachingTransformerExecutor createCache() {
-        new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
+        new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal, artifactTransformListener)
     }
 
     def "reuses result for given inputs and transform"() {
@@ -90,7 +90,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         when:
-        def result = cache.getResult(inputFile, transformerRegistration)
+        def result = cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         result*.name == ["a.1"]
@@ -104,7 +104,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = cache.getResult(inputFile, transformerRegistration)
+        def result2 = cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         result2 == result
@@ -137,7 +137,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
 
         when:
-        cache.getResult(inputFile, transformerRegistration)
+        cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         cache.contains(inputFile, hash)
@@ -154,7 +154,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [file] }
 
         when:
-        cache.getResult(inputFile, transformerRegistration)
+        cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         !cache.contains(inputFile, otherHash)
@@ -165,7 +165,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a").createFile()
 
         when:
-        def result = cache.getResult(inputFile, transformerRegistration)
+        def result = cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         result == [inputFile]
@@ -178,7 +178,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = cache.getResult(inputFile, transformerRegistration)
+        def result2 = cache.getResult(inputFile, transformerRegistration, subject)
 
         then:
         result2 == result
@@ -202,16 +202,16 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def result4
         async {
             start {
-                result1 = cache.getResult(inputFile, transformerRegistration)
+                result1 = cache.getResult(inputFile, transformerRegistration, subject)
             }
             start {
-                result2 = cache.getResult(inputFile, transformerRegistration)
+                result2 = cache.getResult(inputFile, transformerRegistration, subject)
             }
             start {
-                result3 = cache.getResult(inputFile, transformerRegistration)
+                result3 = cache.getResult(inputFile, transformerRegistration, subject)
             }
             start {
-                result4 = cache.getResult(inputFile, transformerRegistration)
+                result4 = cache.getResult(inputFile, transformerRegistration, subject)
             }
         }
 
@@ -251,10 +251,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                cache.getResult(new File("a"), transformerRegistrationA)
+                cache.getResult(new File("a"), transformerRegistrationA, subject)
             }
             start {
-                cache.getResult(new File("b"), transformerRegistrationB)
+                cache.getResult(new File("b"), transformerRegistrationB, subject)
             }
         }
 
@@ -276,10 +276,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        cache.getResult(inputFile, transform1)
+        cache.getResult(inputFile, transform1, subject)
 
         when:
-        def result = cache.getResult(inputFile, transform2)
+        def result = cache.getResult(inputFile, transform2, subject)
 
         then:
         result*.name == ["a.2"]
@@ -292,8 +292,8 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = cache.getResult(inputFile, transform1)
-        def result3 = cache.getResult(inputFile, transform2)
+        def result2 = cache.getResult(inputFile, transform1, subject)
+        def result3 = cache.getResult(inputFile, transform2, subject)
 
         then:
         result2*.name == ["a.1"]
@@ -317,10 +317,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
 
-        cache.getResult(inputFile, transform1)
+        cache.getResult(inputFile, transform1, subject)
 
         when:
-        def result = cache.getResult(inputFile, transform2)
+        def result = cache.getResult(inputFile, transform2, subject)
 
         then:
         result*.name == ["a.2"]
@@ -334,8 +334,8 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = cache.getResult(inputFile, transform1)
-        def result3 = cache.getResult(inputFile, transform2)
+        def result2 = cache.getResult(inputFile, transform1, subject)
+        def result3 = cache.getResult(inputFile, transform2, subject)
 
         then:
         result2*.name == ["a.1"]
@@ -356,7 +356,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         when:
-        cache.getResult(inputFile, transform)
+        cache.getResult(inputFile, transform, subject)
 
         then:
         def e = thrown(RuntimeException)
@@ -374,7 +374,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transform._
 
         when:
-        def result = cache.getResult(inputFile, transform)
+        def result = cache.getResult(inputFile, transform, subject)
 
         then:
         result*.name == ["a.1"]
@@ -401,12 +401,12 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
-        def result = cache.getResult(inputFile, transform)
+        def result = cache.getResult(inputFile, transform, subject)
 
         when:
         def cache = createCache()
         result.first().delete()
-        def result2 = cache.getResult(inputFile, transform)
+        def result2 = cache.getResult(inputFile, transform, subject)
 
         then:
         result2 == result

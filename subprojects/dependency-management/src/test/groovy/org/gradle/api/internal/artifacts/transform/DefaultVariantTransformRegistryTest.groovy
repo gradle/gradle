@@ -49,7 +49,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, Stub(ArtifactTransformListener))
+    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache)
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
 
     def "creates registration without configuration"() {
@@ -324,7 +324,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File primaryInput) {
-        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.transform(file, outputDirectory) }
+        1 * transformedFileCache.getResult(primaryInput, _, _)  >> { file, transformer, subject -> return transformer.transform(file, outputDirectory) }
     }
 
     static class TestArtifactTransform extends ArtifactTransform {

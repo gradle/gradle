@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
 import org.gradle.cache.CacheRepository;
@@ -44,7 +46,15 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                                                 FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal) {
-        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal);
+        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, new ArtifactTransformListener() {
+            @Override
+            public void beforeTransformerInvocation(Describable transformer, Describable subject) {
+            }
+
+            @Override
+            public void afterTransformerInvocation(Describable transformer, Describable subject) {
+            }
+        });
         listenerManager.addListener(transformedFileCache);
         return transformedFileCache;
     }

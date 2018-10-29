@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -97,11 +98,13 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final PersistentCache cache;
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
+    private final ArtifactTransformListener artifactTransformListener;
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                             FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
+                                             FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal, ArtifactTransformListener artifactTransformListener) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.artifactTransformListener = artifactTransformListener;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -145,24 +148,29 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     }
 
     @Override
-    public List<File> getResult(File primaryInput, Transformer transformer) {
-        return transform(primaryInput, transformer);
+    public List<File> getResult(File primaryInput, Transformer transformer, Describable subject) {
+        return transform(primaryInput, transformer, subject);
     }
 
-    private List<File> transform(File primaryInput, Transformer transformer) {
+    private List<File> transform(File primaryInput, Transformer transformer, Describable subject) {
         CacheKey cacheKey = getCacheKey(primaryInput, transformer);
         List<File> results = resultHashToResult.get(cacheKey);
         if (results != null) {
             return results;
         }
         TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
-        UpToDateResult result = workExecutor.execute(execution);
-        if (result.getFailure() != null) {
-            throw UncheckedException.throwAsUncheckedException(result.getFailure());
+        artifactTransformListener.beforeTransformerInvocation(transformer, subject);
+        try {
+            UpToDateResult result = workExecutor.execute(execution);
+            if (result.getFailure() != null) {
+                throw UncheckedException.throwAsUncheckedException(result.getFailure());
+            }
+            List<File> transformerResult = execution.getResult().get();
+            resultHashToResult.put(cacheKey, transformerResult);
+            return transformerResult;
+        } finally {
+            artifactTransformListener.afterTransformerInvocation(transformer, subject);
         }
-        List<File> transformerResult = execution.getResult().get();
-        resultHashToResult.put(cacheKey, transformerResult);
-        return transformerResult;
     }
 
     private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
