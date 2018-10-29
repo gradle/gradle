@@ -2042,19 +2042,7 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        if (!rejected) {
-            outputContains """org:foo:$selected (by constraint)
-   variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
-   ]
-
-org:foo -> $selected
-\\--- compileClasspath
-"""
-        } else {
-            outputContains """org:foo:$selected
+        outputContains """org:foo:$selected
    variant "compile" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-api
@@ -2065,7 +2053,6 @@ org:foo -> $selected
 
 org:foo -> $selected
 \\--- compileClasspath"""
-        }
 
         where:
         version                             | selected | rejected
