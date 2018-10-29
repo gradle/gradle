@@ -308,7 +308,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 workerLeaseService.withLocks([projectLock]) {
                     instant.thread1
                     thread.blockUntil.thread2
-                    sleep 10
+                    sleep 100
                 }
             }
             start {
