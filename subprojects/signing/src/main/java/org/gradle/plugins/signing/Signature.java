@@ -20,6 +20,12 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
@@ -193,6 +199,8 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The file. May be {@code null} if unknown at this time.
      */
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFile
     public File getToSign() {
         File toSign = uncheckedCall(toSignGenerator);
         return toSign != null ? toSign : null;
@@ -209,6 +217,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The name. May be {@code null} if unknown at this time.
      */
+    @Internal
     public String getName() {
         return name != null ? name : defaultName();
     }
@@ -235,6 +244,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The extension. May be {@code null} if unknown at this time.
      */
+    @Internal
     public String getExtension() {
         return extension != null ? extension : signatureTypeExtension();
     }
@@ -257,6 +267,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The type. May be {@code null} if the file to sign or signature type are unknown at this time.
      */
+    @Internal
     public String getType() {
         return type != null ? type : defaultType();
     }
@@ -281,8 +292,13 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The classifier. May be {@code null} if unknown at this time.
      */
+    @Internal
     public String getClassifier() {
-        return classifier != null ? classifier : uncheckedCall(classifierGenerator);
+        return classifier != null ? classifier : defaultClassifier();
+    }
+
+    private String defaultClassifier() {
+        return classifierGenerator == null ? null : uncheckedCall(classifierGenerator);
     }
 
     public void setDate(Date date) {
@@ -296,6 +312,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The date of the signature. May be {@code null} if unknown at this time.
      */
+    @Internal
     public Date getDate() {
         return date != null ? date : defaultDate();
     }
@@ -323,6 +340,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signature file. May be {@code null} if unknown at this time.
      * @see SignatureType#fileFor(File)
      */
+    @OutputFile
     public File getFile() {
         File toSign = getToSign();
         SignatureType signatureType = getSignatureType();
@@ -336,6 +354,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The signatory. May be {@code null} if unknown at this time.
      */
+    @Internal("already tracked as part of the Sign task")
     public Signatory getSignatory() {
         return signatureSpec.getSignatory();
     }
@@ -345,6 +364,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The signature type. May be {@code null} if unknown at this time.
      */
+    @Internal("already tracked as part of the Sign task")
     public SignatureType getSignatureType() {
         return signatureSpec.getSignatureType();
     }
@@ -353,12 +373,24 @@ public class Signature extends AbstractPublishArtifact {
         this.signatureSpec = signatureSpec;
     }
 
+    @Internal
     public SignatureSpec getSignatureSpec() {
         return signatureSpec;
     }
 
+    @Internal
     Buildable getSource() {
         return source;
+    }
+
+    @Internal
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return super.getBuildDependencies();
+    }
+
+    String toKey() {
+        return String.join(":", getName(), getType(), getExtension(), getClassifier());
     }
 
     /**
@@ -382,7 +414,7 @@ public class Signature extends AbstractPublishArtifact {
         Signatory signatory = getSignatory();
         if (signatory == null) {
             if (signatureSpec.isRequired()) {
-                throw new InvalidUserDataException("Unable to generate signature for \'" + String.valueOf(toSign) + "\' as no signatory is available to sign");
+                throw new InvalidUserDataException("Unable to generate signature for \'" + toSign + "\' as no signatory is available to sign");
             } else {
                 return;
             }
@@ -391,7 +423,7 @@ public class Signature extends AbstractPublishArtifact {
         SignatureType signatureType = getSignatureType();
         if (signatureType == null) {
             if (signatureSpec.isRequired()) {
-                throw new InvalidUserDataException("Unable to generate signature for \'" + String.valueOf(toSign) + "\' as no signature type has been configured");
+                throw new InvalidUserDataException("Unable to generate signature for \'" + toSign + "\' as no signature type has been configured");
             } else {
                 return;
             }

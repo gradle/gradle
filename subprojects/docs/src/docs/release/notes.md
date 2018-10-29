@@ -52,7 +52,11 @@ Use `setFrom` instead.
 
     validateTaskProperties.getClasses().setFrom(fileCollection)
     validateTaskProperties.getClasspath().setFrom(fileCollection)
-    
+
+### Properties `inputFiles` and `outputFiles` of `Sign` task
+
+Input and output files of `Sign` tasks are now tracked via `Signature.getToSign()` and `Signature.getFile()`, respectively, of the task's `signatures`.
+
 ## Potential breaking changes
 
 <!--
