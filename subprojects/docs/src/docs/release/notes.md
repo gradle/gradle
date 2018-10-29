@@ -344,16 +344,6 @@ but doing so from other threads will now produce a deprecation warning.
 
 ## Potential breaking changes
 
-### Fixes to dependency resolution
-
-Dependency resolutions fixes have been included in this release.
-By definition this could impact the set of resolved dependencies of your build.
-However the fixed issues are mostly about corner cases and combination with recent features and thus should have a limited impact.
-
-When a dependency constraint matched a real dependency, it was made part of the graph.
-However if for some reason the dependency was later evicted from the graph, the constraint remained present.
-Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
-
 ### Gradle 5.0 requires Java 8
 
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
@@ -380,6 +370,16 @@ Large projects may have to increase this setting using the `org.gradle.jvmargs` 
 
 All workers, including compilers and test executors, now start with 512m of heap. The previous default was 1/4th of physical memory.
 Large projects may have to increase this setting on the relevant tasks, e.g. `JavaCompile` or `Test`.
+
+### Fixes to dependency resolution
+
+Dependency resolutions fixes have been included in this release.
+By definition this could impact the set of resolved dependencies of your build.
+However the fixed issues are mostly about corner cases and combination with recent features and thus should have a limited impact.
+
+When a dependency constraint matched a real dependency, it was made part of the graph.
+However if for some reason the dependency was later evicted from the graph, the constraint remained present.
+Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
 
 ### Configuration Avoidance API disallows common configuration errors
 
