@@ -543,6 +543,7 @@ open class IdePlugin : Plugin<Project> {
         val rootProject = docsProject.rootProject
         val releaseNotesMarkdown: PegDown by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
+        val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
         val vmParameter = mutableListOf(
             "-ea",
             "-Dorg.gradle.docs.releasenotes.source=${releaseNotesMarkdown.markdownFile}",
@@ -552,7 +553,7 @@ open class IdePlugin : Plugin<Project> {
             "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
-            "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
+            "-DintegTest.distsDir=${distsDir.get().asFile.absolutePath}",
             "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
             "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
             "-Dorg.gradle.integtest.executer=embedded",

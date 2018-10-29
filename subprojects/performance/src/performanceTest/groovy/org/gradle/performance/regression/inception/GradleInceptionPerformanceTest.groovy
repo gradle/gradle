@@ -26,7 +26,9 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
-import static org.gradle.performance.generator.JavaTestProject.*
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 
 /**
  * Test Gradle performance against it's own build.
@@ -49,12 +51,15 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
          "-I", createMirrorInitScript().absolutePath]
     }
 
+    def setup() {
+        runner.targetVersions = ["5.1-20181029034539+0000"]
+    }
+
     @Unroll
     def "#tasks on the gradle build comparing gradle"() {
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["5.1-20181023100041+0000"]
         runner.args = extraGradleBuildArguments()
 
         when:
@@ -74,7 +79,6 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["5.1-20181023100041+0000"]
         runner.runs = runs
         runner.args = extraGradleBuildArguments() + ["-Pgradlebuild.skipBuildSrcChecks=true"]
 

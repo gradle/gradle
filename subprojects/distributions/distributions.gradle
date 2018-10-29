@@ -30,7 +30,7 @@ tasks.withType(AbstractArchiveTask).configureEach {
     version = baseVersion
 
     // The CI server looks for the distributions at this location
-    destinationDir = rootProject.distsDir
+    destinationDirectory.set(rootProject.layout.buildDirectory.dir(rootProject.distsDirName))
 }
 
 tasks.named("clean").configure {
@@ -118,21 +118,21 @@ ext {
 }
 
 def allZip = tasks.register("allZip", Zip) {
-    classifier = 'all'
+    archiveClassifier.set('all')
     into(zipRootFolder) {
         with allDistImage
     }
 }
 
 def binZip = tasks.register("binZip", Zip) {
-    classifier = 'bin'
+    archiveClassifier.set('bin')
     into(zipRootFolder) {
         with binWithDistDocImage
     }
 }
 
 def srcZip = tasks.register("srcZip", Zip) {
-    classifier = 'src'
+    archiveClassifier.set('src')
     into(zipRootFolder) {
         from(rootProject.file('gradlew')) {
             fileMode = 0755
@@ -162,7 +162,7 @@ def srcZip = tasks.register("srcZip", Zip) {
 }
 
 tasks.register("outputsZip", Zip) {
-    archiveName "outputs.zip"
+    archiveFileName.set("outputs.zip")
     from(configurations.buildReceipt)
     from(allZip)
     from(binZip)
