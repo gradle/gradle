@@ -172,11 +172,19 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
 
-        includedBuildControllers.finishBuild();
-
-        buildListener.buildFinished(result);
-
+        List<Throwable> failures = new ArrayList<Throwable>();
+        includedBuildControllers.finishBuild(failures);
+        try {
+            buildListener.buildFinished(result);
+        } catch (Throwable t) {
+            failures.add(t);
+        }
         stage = Stage.Finished;
+
+        if (!failures.isEmpty()) {
+            Throwable failure = exceptionAnalyser.transform(new MultipleBuildFailures(failures));
+            throw new ReportedException(failure);
+        }
     }
 
     private void loadSettings() {

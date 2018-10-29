@@ -303,6 +303,33 @@ class DefaultGradleLauncherSpec extends Specification {
         t.cause == transformedException
     }
 
+    void testTransformsBuildFinishedListenerFailure() {
+        given:
+        isRootBuild()
+        expectInitScriptsExecuted()
+        expectSettingsBuilt()
+        expectDagBuilt()
+        expectTasksRun()
+
+        and:
+        1 * buildBroadcaster.buildStarted(gradleMock)
+        1 * buildBroadcaster.projectsEvaluated(gradleMock)
+        1 * modelListenerMock.onConfigure(gradleMock)
+        1 * buildBroadcaster.buildFinished(_) >> { throw failure }
+        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
+
+        and:
+        DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.executeTasks()
+
+        when:
+        gradleLauncher.finishBuild()
+
+        then:
+        def t = thrown ReportedException
+        t.cause == transformedException
+    }
+
     void testCleansUpOnStop() throws IOException {
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -370,6 +397,6 @@ class DefaultGradleLauncherSpec extends Specification {
                 args[0].add(other)
             }
         }
-        1 * includedBuildControllers.finishBuild()
+        1 * includedBuildControllers.finishBuild(_)
     }
 }

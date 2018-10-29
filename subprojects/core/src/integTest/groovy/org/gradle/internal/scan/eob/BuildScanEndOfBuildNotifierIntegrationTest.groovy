@@ -94,7 +94,7 @@ notified
         """
         buildFile << """
             notifier.notify {
-                println "failure message: \${it.failure.message}" 
+                println "failure message: \${it.failure.cause.message}" 
             }
             task t { 
                 dependsOn gradle.includedBuild("child").task(":t") 
