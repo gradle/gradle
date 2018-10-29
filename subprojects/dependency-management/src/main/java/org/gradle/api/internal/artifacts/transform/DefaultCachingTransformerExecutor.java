@@ -71,8 +71,10 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -93,7 +95,8 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final File filesOutputDirectory;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final PersistentCache cache;
-    private final ProducerGuard<HashCode> producing = ProducerGuard.adaptive();
+    private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
+    private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                              FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
@@ -133,11 +136,12 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
     @Override
     public void beforeComplete() {
+        resultHashToResult.clear();
     }
 
     @Override
     public boolean contains(File absoluteFile, HashCode inputsHash) {
-        return false;
+        return resultHashToResult.containsKey(getCacheKey(absoluteFile, inputsHash));
     }
 
     @Override
@@ -145,15 +149,20 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         return transform(primaryInput, transformer);
     }
 
-
     private List<File> transform(File primaryInput, Transformer transformer) {
-        TransformerExecution execution = new TransformerExecution(primaryInput, transformer);
+        CacheKey cacheKey = getCacheKey(primaryInput, transformer);
+        List<File> results = resultHashToResult.get(cacheKey);
+        if (results != null) {
+            return results;
+        }
+        TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
         UpToDateResult result = workExecutor.execute(execution);
         if (result.getFailure() != null) {
             throw UncheckedException.throwAsUncheckedException(result.getFailure());
         }
-
-        return execution.getResult().get();
+        List<File> transformerResult = execution.getResult().get();
+        resultHashToResult.put(cacheKey, transformerResult);
+        return transformerResult;
     }
 
     private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
@@ -174,6 +183,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         private final String absolutePath;
         private final HashCode fileContentHash;
         private final HashCode inputHash;
+        private HashCode persistentHashCode;
 
         public CacheKey(HashCode inputHash, String absolutePath, HashCode fileContentHash) {
             this.absolutePath = absolutePath;
@@ -182,11 +192,14 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
 
         public HashCode getPersistentCacheKey() {
-            Hasher hasher = Hashing.newHasher();
-            hasher.putHash(inputHash);
-            hasher.putString(absolutePath);
-            hasher.putHash(fileContentHash);
-            return hasher.hash();
+            if (persistentHashCode == null) {
+                Hasher hasher = Hashing.newHasher();
+                hasher.putHash(inputHash);
+                hasher.putString(absolutePath);
+                hasher.putHash(fileContentHash);
+                persistentHashCode = hasher.hash();
+            }
+            return persistentHashCode;
         }
 
         @Override
@@ -220,21 +233,24 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
     private class TransformerExecution implements UnitOfWork {
         private final File primaryInput;
-        private final File outputDir;
         private final Transformer transformer;
-        private final HashCode persistentCacheKey;
+        private final CacheKey cacheKey;
         private List<File> result;
 
-        public TransformerExecution(File primaryInput, Transformer transformer) {
+        public TransformerExecution(File primaryInput, Transformer transformer, CacheKey cacheKey) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
-            this.persistentCacheKey = getCacheKey(primaryInput, transformer).getPersistentCacheKey();
-            String outputPath = primaryInput.getName() + "/" + persistentCacheKey;
-            this.outputDir = new File(filesOutputDirectory, outputPath);
+            this.cacheKey = cacheKey;
+        }
+
+        private File getOutputDir() {
+            String outputPath = primaryInput.getName() + "/" + cacheKey.getPersistentCacheKey();
+            return new File(filesOutputDirectory, outputPath);
         }
 
         @Override
         public boolean execute() {
+            File outputDir = getOutputDir();
             GFileUtils.cleanDirectory(outputDir);
             result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
             fileAccessTracker.markAccessed(result);
@@ -252,7 +268,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void visitOutputs(OutputVisitor outputVisitor) {
-            outputVisitor.visitOutput("output", TreeType.DIRECTORY, ImmutableFileCollection.of(outputDir));
+            outputVisitor.visitOutput("output", TreeType.DIRECTORY, ImmutableFileCollection.of(getOutputDir()));
         }
 
         @Override
@@ -268,7 +284,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public <T> T underLockForExecution(Factory<T> factory) {
-            return producing.guardByKey(persistentCacheKey, factory);
+            return producing.guardByKey(cacheKey, factory);
         }
 
         @Override
@@ -291,85 +307,29 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            getResult().ifPresent(result -> indexedCache.put(persistentCacheKey, result));
+            getResult().ifPresent(result -> {
+                indexedCache.put(cacheKey.getPersistentCacheKey(), result);
+            });
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<List<File>> previousResult = Optional.ofNullable(indexedCache.get(persistentCacheKey));
+            Optional<List<File>> previousResult = Optional.ofNullable(indexedCache.get(cacheKey.getPersistentCacheKey()));
             return previousResult.map(result -> {
                     Set<FileChange> changes = result.stream().filter(file -> !file.exists()).map(file ->
                         // TODO: use correct file type
                         FileChange.removed(file.getAbsolutePath(), "Output", FileType.RegularFile)
                     ).collect(Collectors.toSet());
                     if (changes.isEmpty()) {
+                        resultHashToResult.put(cacheKey, result);
                         fileAccessTracker.markAccessed(result);
                         this.result = result;
                     }
-                    return new ExecutionStateChanges() {
-                        @Override
-                        public Iterable<Change> getInputFilesChanges() {
-                            return ImmutableList.of();
-                        }
-
-                        @Override
-                        public void visitAllChanges(ChangeVisitor visitor) {
-                            for (FileChange change : changes) {
-                                boolean result = visitor.visitChange(change);
-                                if (!result) {
-                                    return;
-                                }
-                            }
-                        }
-
-                        @Override
-                        public boolean isRebuildRequired() {
-                            return true;
-                        }
-
-                        @Override
-                        public AfterPreviousExecutionState getPreviousExecution() {
-                            return new AfterPreviousExecutionState() {
-                                @Override
-                                public OriginMetadata getOriginMetadata() {
-                                    return OriginMetadata.fromPreviousBuild(UniqueId.generate(), 0);
-                                }
-
-                                @Override
-                                public boolean isSuccessful() {
-                                    return true;
-                                }
-
-                                @Override
-                                public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties() {
-                                    return ImmutableSortedMap.of();
-                                }
-
-                                @Override
-                                public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties() {
-                                    return ImmutableSortedMap.of();
-                                }
-
-                                @Override
-                                public ImplementationSnapshot getImplementation() {
-                                    return ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash());
-                                }
-
-                                @Override
-                                public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
-                                    return ImmutableList.of();
-                                }
-
-                                @Override
-                                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                                    return ImmutableSortedMap.of();
-                                }
-                            };
-                        }
-                    };
+                    return new TransformerExecutionStateChanges(changes);
                 }
             );
         }
+
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
@@ -389,6 +349,74 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + primaryInput;
+        }
+
+        private class TransformerExecutionStateChanges implements ExecutionStateChanges {
+            private final Set<FileChange> changes;
+
+            public TransformerExecutionStateChanges(Set<FileChange> changes) {
+                this.changes = changes;
+            }
+
+            @Override
+            public Iterable<Change> getInputFilesChanges() {
+                return ImmutableList.of();
+            }
+
+            @Override
+            public void visitAllChanges(ChangeVisitor visitor) {
+                for (FileChange change : changes) {
+                    boolean result = visitor.visitChange(change);
+                    if (!result) {
+                        return;
+                    }
+                }
+            }
+
+            @Override
+            public boolean isRebuildRequired() {
+                return true;
+            }
+
+            @Override
+            public AfterPreviousExecutionState getPreviousExecution() {
+                return new AfterPreviousExecutionState() {
+                    @Override
+                    public OriginMetadata getOriginMetadata() {
+                        return OriginMetadata.fromPreviousBuild(UniqueId.generate(), 0);
+                    }
+
+                    @Override
+                    public boolean isSuccessful() {
+                        return true;
+                    }
+
+                    @Override
+                    public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties() {
+                        return ImmutableSortedMap.of();
+                    }
+
+                    @Override
+                    public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties() {
+                        return ImmutableSortedMap.of();
+                    }
+
+                    @Override
+                    public ImplementationSnapshot getImplementation() {
+                        return ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash());
+                    }
+
+                    @Override
+                    public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
+                        return ImmutableList.of();
+                    }
+
+                    @Override
+                    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                        return ImmutableSortedMap.of();
+                    }
+                };
+            }
         }
     }
 }
