@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -546,7 +547,7 @@ org:foo:1.+ FAILED
 """
     }
 
-    def "shows forced version"() {
+    def "shows forced version and substitution equivalent to force"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "leaf", "2.0").publish()
@@ -560,19 +561,24 @@ org:foo:1.+ FAILED
             }
             configurations {
                 conf
+                forced {
+                    extendsFrom conf
+                }
+                substituted {
+                    extendsFrom conf
+                }
             }
-            configurations.conf.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.forced.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.substituted.resolutionStrategy.dependencySubstitution {
+                substitute module('org:leaf') with module('org:leaf:1.0')
+            }
             dependencies {
                 conf 'org:foo:1.0', 'org:bar:1.0'
-            }
-            task insight(type: DependencyInsightReportTask) {
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
             }
         """
 
         when:
-        run "insight"
+        run "dependencyInsight", "--configuration", "forced", "--dependency", "leaf"
 
         then:
         outputContains """
@@ -585,11 +591,73 @@ org:leaf:1.0 (forced)
 
 org:leaf:1.0
 \\--- org:foo:1.0
-     \\--- conf
+     \\--- forced
 
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
-     \\--- conf
+     \\--- forced
+"""
+
+        when:
+        run "dependencyInsight", "--configuration", "substituted", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:1.0 (selected by rule)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+
+org:leaf:1.0
+\\--- org:foo:1.0
+     \\--- substituted
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- substituted
+"""
+    }
+
+    def "shows forced dynamic version"() {
+        given:
+        mavenRepo.module("org", "leaf", "1").publish()
+        mavenRepo.module("org", "leaf", "2").publish()
+        mavenRepo.module("org", "leaf", "3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf('org:leaf:[1,2]') {
+                    because 'testing stuff'
+                    force true
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:2
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Was requested : didn't match version 3 because testing stuff
+      - Forced
+
+org:leaf:[1,2] -> 2
+\\--- conf
 """
     }
 
@@ -1975,19 +2043,7 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        if (!rejected) {
-            outputContains """org:foo:$selected (by constraint)
-   variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
-   ]
-
-org:foo -> $selected
-\\--- compileClasspath
-"""
-        } else {
-            outputContains """org:foo:$selected
+        outputContains """org:foo:$selected
    variant "compile" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-api
@@ -1998,7 +2054,6 @@ org:foo -> $selected
 
 org:foo -> $selected
 \\--- compileClasspath"""
-        }
 
         where:
         version                             | selected | rejected
@@ -2108,7 +2163,7 @@ org:foo:${displayVersion} -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
-    def "doesn't report duplicate reasins"() {
+    def "doesn't report duplicate reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()
@@ -2493,6 +2548,61 @@ org:foo:[1.0,) FAILED
       - Could not resolve org:foo:[1.0,). (already reported)
 
 org:foo:[1.0,) FAILED
+\\--- compileClasspath
+"""
+    }
+
+    @ToBeImplemented
+    // TODO:DAZ This demonstrates an issue where rejected versions are not reported when multiple rejections are found
+    def "renders multiple rejection reasons for module"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                constraints {
+                    implementation('org:foo') {
+                       version {
+                          reject '1.2'
+                       }
+                    }
+                }
+                implementation('org:foo:[1.0,)') {
+                    version {
+                        reject '1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """
+org:foo:1.0
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Was requested : rejected versions 1.2, 1.1
+      - By constraint
+
+org:foo -> 1.0
+\\--- compileClasspath
+
+org:foo:[1.0,) -> 1.0
 \\--- compileClasspath
 """
     }

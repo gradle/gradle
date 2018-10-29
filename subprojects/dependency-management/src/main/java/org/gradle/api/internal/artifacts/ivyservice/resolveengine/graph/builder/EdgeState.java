@@ -43,7 +43,7 @@ import java.util.List;
  * Represents the edges in the dependency graph.
  *
  * A dependency can have the following states:
- * 1. Unattached: in this case the state of the dependency is  tied to the state of it's associated {@link SelectorState}.
+ * 1. Unattached: in this case the state of the dependency is tied to the state of it's associated {@link SelectorState}.
  * 2. Attached: in this case the Edge has been connected to actual nodes in the target component. Only possible if the {@link SelectorState} did not fail to resolve.
  */
 class EdgeState implements DependencyGraphEdge {
@@ -65,7 +65,7 @@ class EdgeState implements DependencyGraphEdge {
         // The accumulated exclusions that apply to this edge based on the path from the root
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
-        this.selector = resolveState.getSelector(dependencyState, dependencyState.getModuleIdentifier());
+        this.selector = resolveState.getSelector(dependencyState);
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
     }
 

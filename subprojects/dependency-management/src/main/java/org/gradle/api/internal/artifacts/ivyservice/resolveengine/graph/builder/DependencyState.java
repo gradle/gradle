@@ -27,8 +27,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.*;
 
 class DependencyState {
     private final ComponentSelector requested;
@@ -70,17 +69,14 @@ class DependencyState {
         return new DependencyState(targeted, requested, ruleDescriptor, componentSelectorConverter);
     }
 
-    /**
-     * Descriptor for any rules that modify this DependencyState from the original.
-     */
-    public ComponentSelectionDescriptorInternal getRuleDescriptor() {
-        return ruleDescriptor;
-    }
-
     public boolean isForced() {
         if (ruleDescriptor != null && ruleDescriptor.isEquivalentToForce()) {
             return true;
         }
+        return isDependencyForced();
+    }
+
+    private boolean isDependencyForced() {
         return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
     }
 
@@ -95,5 +91,12 @@ class DependencyState {
             dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
         }
         reasons.add(dependencyDescriptor);
+
+        if (ruleDescriptor != null) {
+            reasons.add(ruleDescriptor);
+        }
+        if (isDependencyForced()) {
+            reasons.add(FORCED);
+        }
     }
 }

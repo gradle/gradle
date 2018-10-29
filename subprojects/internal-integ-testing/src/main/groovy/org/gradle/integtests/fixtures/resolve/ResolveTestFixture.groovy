@@ -722,8 +722,12 @@ allprojects {
             this
         }
 
-        NodeBuilder byConstraint(String reason) {
-            reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+        NodeBuilder byConstraint(String reason = null) {
+            if (reason == null) {
+                reasons << ComponentSelectionCause.CONSTRAINT.defaultReason
+            } else {
+                reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+            }
             this
         }
 

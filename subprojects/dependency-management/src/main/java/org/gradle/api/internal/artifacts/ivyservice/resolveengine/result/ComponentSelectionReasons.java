@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +49,10 @@ public class ComponentSelectionReasons {
 
     public static ComponentSelectionReason of(ComponentSelectionDescriptor... descriptions) {
         return new DefaultComponentSelectionReason(descriptions);
+    }
+
+    public static ComponentSelectionReasonInternal of(Collection<ComponentSelectionDescriptorInternal> dependencyReasons) {
+        return new DefaultComponentSelectionReason(dependencyReasons.toArray(new ComponentSelectionDescriptor[0]));
     }
 
     public static ComponentSelectionReasonInternal empty() {
