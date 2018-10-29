@@ -58,7 +58,6 @@ Use `setFrom` instead.
 <!--
 ### Example breaking change
 -->
-
 ### Worker API: working directory of a worker can no longer be set 
 
 Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
