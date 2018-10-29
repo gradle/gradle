@@ -106,13 +106,12 @@ The kind folks at [Algolia](https://www.algolia.com/) kindly host an index used 
 
 [Gradle API Javadocs](javadoc/) now take advantage of Javadoc built-in autocomplete, making it easier to find classes and methods you're interested in.
 
-
-## Performance features
-
-### Task timeouts
+## Task timeouts
 
 You can now specify a timeout duration for a task, after which it will be interrupted.
 Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
+
+## Performance features
 
 ### Gradle can be started as a low-priority process
 
