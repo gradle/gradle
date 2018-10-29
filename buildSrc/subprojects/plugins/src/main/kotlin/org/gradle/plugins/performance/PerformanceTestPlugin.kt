@@ -420,8 +420,8 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
             from(performanceTest.get().debugArtifactsDirectory)
-            destinationDir = buildDir
-            archiveName = "test-results-${junitXmlDir.name}.zip"
+            destinationDirectory.set(buildDir)
+            archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
 
     private

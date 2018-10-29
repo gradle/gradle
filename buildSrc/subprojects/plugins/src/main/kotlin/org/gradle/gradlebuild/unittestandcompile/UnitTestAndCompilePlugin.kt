@@ -175,10 +175,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureJarTasks() {
         tasks.withType<Jar>().configureEach {
-            version = rootProject.extra["baseVersion"] as String
+            val baseVersion: String by rootProject.extra
+            archiveVersion.set(baseVersion)
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to version))
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to baseVersion))
         }
     }
 
