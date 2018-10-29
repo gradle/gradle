@@ -161,9 +161,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
             finishBuild();
         } catch (Throwable t) {
-            Throwable failure = exceptionAnalyser.transform(t);
+            RuntimeException failure = exceptionAnalyser.transform(t);
             finishBuild(new BuildResult(upTo.getDisplayName(), gradle, failure));
-            throw new ReportedException(failure);
+            throw failure;
         }
     }
 
@@ -182,8 +182,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Finished;
 
         if (!failures.isEmpty()) {
-            Throwable failure = exceptionAnalyser.transform(new MultipleBuildFailures(failures));
-            throw new ReportedException(failure);
+            throw exceptionAnalyser.transform(new MultipleBuildFailures(failures));
         }
     }
 

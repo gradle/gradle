@@ -32,7 +32,7 @@ public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser
         this.delegate = delegate;
     }
 
-    public Throwable transform(Throwable exception) {
+    public RuntimeException transform(Throwable exception) {
         if (exception instanceof MultipleBuildFailures) {
             MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) exception;
             if (multipleBuildFailures.getCauses().size() == 1) {
@@ -43,7 +43,7 @@ public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser
                 transformedCauses.add(transform(cause));
             }
             multipleBuildFailures.replaceCauses(transformedCauses);
-            return exception;
+            return multipleBuildFailures;
         }
 
         return delegate.transform(exception);

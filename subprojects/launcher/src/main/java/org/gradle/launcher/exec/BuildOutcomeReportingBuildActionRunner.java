@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistic
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
@@ -32,6 +31,7 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
@@ -64,12 +64,10 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
             failure = throwable;
         }
 
-        Throwable buildFailure = failure instanceof ReportedException ? failure.getCause() : failure;
+        Throwable buildFailure = failure instanceof InternalTestExecutionException ? failure.getCause() : failure;
         buildLogger.logResult(buildFailure);
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
-        if (failure instanceof ReportedException) {
-            throw UncheckedException.throwAsUncheckedException(failure);
-        } else if (failure != null) {
+        if (failure != null) {
             throw new ReportedException(failure);
         }
     }
