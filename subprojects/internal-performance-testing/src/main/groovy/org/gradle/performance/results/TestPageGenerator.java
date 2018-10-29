@@ -151,8 +151,9 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                     String date = format.timestamp(new Date(results.getStartTime()));
                     if(results.getTeamCityBuildId() == null) {
                         text(date);
+                    } else {
+                        a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
                     }
-                    a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
                 end();
             }
 
