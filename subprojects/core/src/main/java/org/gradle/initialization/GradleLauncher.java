@@ -30,7 +30,7 @@ public interface GradleLauncher extends Stoppable {
      * Evaluates the settings for this build.
      *
      * @return The loaded settings instance.
-     * @throws ReportedException On build failure. The failure will have been logged.
+     * @throws ReportedException On build failure. The failure will not have been logged.
      */
     SettingsInternal getLoadedSettings() throws ReportedException;
 
@@ -38,7 +38,7 @@ public interface GradleLauncher extends Stoppable {
      * Configures the build.
      *
      * @return The configured Gradle build instance.
-     * @throws ReportedException On build failure. The failure will have been logged.
+     * @throws ReportedException On build failure. The failure will not have been logged.
      */
     GradleInternal getConfiguredBuild() throws ReportedException;
 
@@ -51,14 +51,15 @@ public interface GradleLauncher extends Stoppable {
      * Executes the tasks scheduled for this build.
      *
      * @return The configured Gradle build instance.
-     * @throws ReportedException On build failure. The failure will have been logged.
+     * @throws ReportedException On build failure. The failure will not have been logged.
      */
     GradleInternal executeTasks() throws ReportedException;
 
     /**
      * Stops task execution threads and calls the `buildFinished` listener event.
+     * @throws ReportedException On build failure. The failure will not have been logged.
      */
-    void finishBuild();
+    void finishBuild() throws ReportedException;
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.

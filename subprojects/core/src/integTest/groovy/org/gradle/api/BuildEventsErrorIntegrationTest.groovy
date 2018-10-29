@@ -36,7 +36,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3);
+                .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when taskGraph.whenReady action fails"() {
@@ -55,7 +55,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3);
+                .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when taskGraph listener fails"() {
@@ -74,7 +74,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3);
+                .assertHasLineNumber(3)
     }
 
     def "produces reasonable error when Gradle.allprojects action fails"() {
@@ -91,7 +91,7 @@ allprojects {
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Initialization script '$initScript'")
-                .assertHasLineNumber(3);
+                .assertHasLineNumber(3)
     }
 
     @Unroll
@@ -108,18 +108,15 @@ gradle.rootProject { task a }
         then:
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
-        // TODO - include location information for buildFinished failure and get rid of the misleading 'build successful'
-        if (hasLocation) {
-            failure.assertHasFileName("Settings file '$settingsFile'")
-                    .assertHasLineNumber(3)
-        }
+                .assertHasFileName("Settings file '$settingsFile'")
+                .assertHasLineNumber(3)
 
         where:
-        method              | hasLocation
-        "settingsEvaluated" | true
-        "projectsLoaded"    | true
-        "projectsEvaluated" | true
-        "buildFinished"     | false
+        method              | _
+        "settingsEvaluated" | _
+        "projectsLoaded"    | _
+        "projectsEvaluated" | _
+        "buildFinished"     | _
     }
 
     @Unroll
@@ -137,18 +134,15 @@ gradle.rootProject { task a }
         then:
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
-        // TODO - include location information for buildFinished failure and get rid of the misleading 'build successful'
-        if (hasLocation) {
-            failure.assertHasFileName("Settings file '$settingsFile'")
-                    .assertHasLineNumber(3)
-        }
+                .assertHasFileName("Settings file '$settingsFile'")
+                .assertHasLineNumber(3)
 
         where:
-        method              | hasLocation
-        "settingsEvaluated" | true
-        "projectsLoaded"    | true
-        "projectsEvaluated" | true
-        "buildFinished"     | false
+        method              | _
+        "settingsEvaluated" | _
+        "projectsLoaded"    | _
+        "projectsEvaluated" | _
+        "buildFinished"     | _
     }
 
     @Unroll
@@ -170,17 +164,14 @@ gradle.rootProject { task a }
         then:
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
-        // TODO - include location information for buildFinished failure and get rid of the misleading 'build successful'
-        if (hasLocation) {
-            failure.assertHasFileName("Settings file '$settingsFile'")
-                    .assertHasLineNumber(5)
-        }
+                .assertHasFileName("Settings file '$settingsFile'")
+                .assertHasLineNumber(5)
 
         where:
-        method              | params               | hasLocation
-        "settingsEvaluated" | "Settings settings"  | true
-        "projectsLoaded"    | "Gradle gradle"      | true
-        "projectsEvaluated" | "Gradle gradle"      | true
-        "buildFinished"     | "BuildResult result" | false
+        method              | params
+        "settingsEvaluated" | "Settings settings"
+        "projectsLoaded"    | "Gradle gradle"
+        "projectsEvaluated" | "Gradle gradle"
+        "buildFinished"     | "BuildResult result"
     }
 }

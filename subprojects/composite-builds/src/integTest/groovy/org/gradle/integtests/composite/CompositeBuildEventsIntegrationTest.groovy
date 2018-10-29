@@ -200,6 +200,40 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
+    def "fires build finished events for all builds regardless of whether other builds fail"() {
+        given:
+        buildA.buildFile << """
+            gradle.buildFinished {
+                println "build A finished"
+                throw new RuntimeException("build A broken")
+            }
+        """
+        buildB.buildFile << """
+            gradle.buildFinished {
+                println "build B finished"
+                throw new RuntimeException("build B broken")
+            }
+        """
+        buildC.buildFile << """
+            gradle.buildFinished {
+                println "build C finished"
+                throw new RuntimeException("build C broken")
+            }
+        """
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        outputContains("build A finished")
+        outputContains("build B finished")
+        outputContains("build C finished")
+        failure.assertHasFailures(3)
+        failure.assertHasDescription("build A broken")
+        failure.assertHasDescription("build B broken")
+        failure.assertHasDescription("build C broken")
+    }
+
     void verifyBuildEvents() {
         loggedOncePerBuild('buildListener.settingsEvaluated')
         loggedOncePerBuild('buildListener.projectsLoaded')
