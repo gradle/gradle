@@ -32,7 +32,7 @@ and [Felipe Lima](https://github.com/felipecsl).
 
 ## Kotlin DSL 1.0
 
-First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13) with it's 1.0 release!
+First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC14) with it's 1.0 release!
 Authoring your build logic using Kotlin provides significant additional editing assistance in IDEs, including: improved completion, error highlighting, and refactoring tools.
 Please read our [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html) and follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
 If you prefer the flexibility and dynamic features of Groovy, that's totally okay — the Groovy DSL will not be deprecated.
@@ -660,7 +660,7 @@ Artifact configuration accessors are now typed `NamedDomainObjectProvider<Config
 
 Both changes could cause script compilation errors.
 
-See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13#breaking-changes) for more information and how to fix builds broken by the changes described above.
+See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC14#breaking-changes) for more information and how to fix builds broken by the changes described above.
 
 
 ## External contributions
