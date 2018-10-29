@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -2552,8 +2551,6 @@ org:foo:[1.0,) FAILED
 """
     }
 
-    @ToBeImplemented
-    // TODO:DAZ This demonstrates an issue where rejected versions are not reported when multiple rejections are found
     def "renders multiple rejection reasons for module"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
