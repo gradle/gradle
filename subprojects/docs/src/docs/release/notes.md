@@ -377,7 +377,7 @@ Dependency resolutions fixes have been included in this release.
 By definition this could impact the set of resolved dependencies of your build.
 However the fixed issues are mostly about corner cases and combination with recent features and thus should have a limited impact.
 
-When a dependency constraint matched a real dependency, it was made part of the graph.
+When a [dependency constraint](userguide/managing_transitive_dependencies.html#sec:dependency_constraints) matched a real dependency, it was made part of the graph.
 However if for some reason the dependency was later evicted from the graph, the constraint remained present.
 Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
 
