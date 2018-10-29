@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.Describables;
@@ -81,7 +80,7 @@ class DependencyState {
     public boolean isForced() {
         if (ruleDescriptors != null) {
             for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
-                if (ruleDescriptor.getCause() == ComponentSelectionCause.FORCED) {
+                if (ruleDescriptor.isEquivalentToForce()) {
                     return true;
                 }
             }
