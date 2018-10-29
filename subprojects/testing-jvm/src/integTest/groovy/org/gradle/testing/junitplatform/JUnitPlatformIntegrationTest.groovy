@@ -369,7 +369,7 @@ public class StaticInnerTest {
     @Issue('https://github.com/gradle/gradle/issues/6453')
     def "can handle parallel test execution"() {
         given:
-        def numTestClasses = 2
+        def numTestClasses = 32
         buildScriptWithJupiterDependencies("""
             test {
                 useJUnitPlatform()
