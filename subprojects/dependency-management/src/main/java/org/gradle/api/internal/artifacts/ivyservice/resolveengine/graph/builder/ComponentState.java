@@ -479,7 +479,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    private static class RejectedBySelectorReason implements Describable {
+    public static class RejectedBySelectorReason implements Describable {
 
         private final Collection<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;

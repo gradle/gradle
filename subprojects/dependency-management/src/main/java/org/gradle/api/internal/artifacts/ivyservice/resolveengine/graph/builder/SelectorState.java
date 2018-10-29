@@ -254,12 +254,14 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     public ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason, boolean includeUnmatched, Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> transformer) {
         ComponentIdResolveResult result = preferResult == null ? requireResult : preferResult;
         for (ComponentSelectionDescriptorInternal descriptor : dependencyReasons) {
-            if (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT) {
+            ComponentSelectionDescriptorInternal transformed = transformer.transform(descriptor);
+            if (descriptor == transformed &&
+                    (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT)) {
                 if (includeUnmatched && result != null && !result.getUnmatchedVersions().isEmpty()) {
-                    descriptor = descriptor.withReason(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
+                    transformed = descriptor.withReason(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
                 }
             }
-            selectionReason.addCause(transformer.transform(descriptor));
+            selectionReason.addCause(transformed);
         }
         return selectionReason;
     }
