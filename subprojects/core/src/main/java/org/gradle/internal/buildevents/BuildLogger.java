@@ -40,6 +40,7 @@ import java.util.List;
 public class BuildLogger implements BuildListener, TaskExecutionGraphListener, InternalListener {
     private final Logger logger;
     private final List<BuildListener> resultLoggers = new ArrayList<BuildListener>();
+    private BuildResult result;
 
     public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildRequestMetaData requestMetaData, BuildStartedTime buildStartedTime, Clock clock) {
         this.logger = logger;
@@ -86,6 +87,17 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener, I
     }
 
     public void buildFinished(BuildResult result) {
+        this.result = result;
+    }
+
+    public void logResult(Throwable buildFailure) {
+        if (result == null) {
+            // This logger has been replaced (for example using `Gradle.useLogger()`), so don't log anything
+            return;
+        }
+        if (result.getFailure() == null && buildFailure != null) {
+            result = new BuildResult(result.getAction(), result.getGradle(), buildFailure);
+        }
         for (BuildListener logger : resultLoggers) {
             logger.buildFinished(result);
         }

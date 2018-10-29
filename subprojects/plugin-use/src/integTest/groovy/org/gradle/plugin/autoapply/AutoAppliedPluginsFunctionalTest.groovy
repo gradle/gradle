@@ -44,12 +44,13 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
         when:
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        result = gradleHandle.waitForFinish()
 
         then:
-        def result = gradleHandle.waitForFinish()
         result.assertNotOutput(BUILD_SCAN_LICENSE_QUESTION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        // TODO - the next 2 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        outputContains(BUILD_SCAN_LICENSE_NOTE)
         result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
@@ -60,13 +61,14 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
         when:
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+        result = gradleHandle.waitForFinish()
 
         then:
-        writeToStdInAndClose(gradleHandle, YES.bytes)
-        def result = gradleHandle.waitForFinish()
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        result.assertHasPostBuildOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        // TODO - the next 3 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_LICENSE_QUESTION)
+        outputContains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        outputContains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.assertNotOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
     }
@@ -78,17 +80,19 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
         when:
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        writeToStdInAndClose(gradleHandle, NO.bytes)
+        result = gradleHandle.waitForFinish()
 
         then:
-        writeToStdInAndClose(gradleHandle, NO.bytes)
-        def result = gradleHandle.waitForFinish()
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_DECLINATION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        // TODO - the next 3 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_LICENSE_QUESTION)
+        outputContains(BUILD_SCAN_LICENSE_DECLINATION)
+        outputContains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
-        result.assertHasPostBuildOutput("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
-        result.assertHasPostBuildOutput("The value given was 'no'.")
+        // TODO - the next 2 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
+        outputContains("The value given was 'no'.")
     }
 
     def "can auto-apply build scan plugin and cancel license acceptance with ctrl-d in interactive console"() {
@@ -98,15 +102,17 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
         when:
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
 
         then:
-        writeToStdInAndClose(gradleHandle, EOF)
-        def result = gradleHandle.waitForFinish()
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        // TODO - the next message should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_LICENSE_QUESTION)
         result.assertNotOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.assertNotOutput(BUILD_SCAN_LICENSE_DECLINATION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        // TODO - the next 2 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        outputContains(BUILD_SCAN_LICENSE_NOTE)
         result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
@@ -124,16 +130,18 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
         when:
         executer.withArgument("--debug")
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
 
         then:
-        writeToStdInAndClose(gradleHandle, EOF)
-        def result = gradleHandle.waitForFinish()
         result.assertNotOutput(BUILD_SCAN_WARNING)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        // TODO - the next message should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_LICENSE_QUESTION)
         result.assertNotOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.assertNotOutput(BUILD_SCAN_LICENSE_DECLINATION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        // TODO - the next 2 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        outputContains(BUILD_SCAN_LICENSE_NOTE)
         result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
@@ -145,13 +153,14 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
         when:
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+        result = gradleHandle.waitForFailure()
 
         then:
-        writeToStdInAndClose(gradleHandle, YES.bytes)
-        def result = gradleHandle.waitForFailure()
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
-        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        result.assertHasPostBuildOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        // TODO - the next 3 messages should be 'post build' output. Change this when scan plugin starts using BuildScanEndOfBuildNotifier
+        outputContains(BUILD_SCAN_LICENSE_QUESTION)
+        outputContains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        outputContains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.assertNotOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
         result.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
