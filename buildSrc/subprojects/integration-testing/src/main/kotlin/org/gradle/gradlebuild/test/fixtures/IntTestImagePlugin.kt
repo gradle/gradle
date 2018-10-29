@@ -140,7 +140,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(Callable {
                     val distributionsProject = rootProject.project("distributions")
                     val allZip = distributionsProject.tasks.getByName<Zip>("allZip")
-                    zipTree(allZip.archivePath)
+                    zipTree(allZip.archiveFile)
                 })
                 into(unpackedPath)
             }
