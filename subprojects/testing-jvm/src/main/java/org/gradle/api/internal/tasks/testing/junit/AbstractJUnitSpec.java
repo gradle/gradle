@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,33 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.io.Serializable;
 import java.util.Set;
 
-public class JUnitSpec extends AbstractJUnitSpec {
-    private final Set<String> includeCategories;
-    private final Set<String> excludeCategories;
+public abstract class AbstractJUnitSpec implements Serializable {
+    private final Set<String> includedTests;
+    private final Set<String> excludedTests;
+    private final Set<String> includedTestsCommandLine;
 
-    public JUnitSpec(
-        Set<String> includeCategories,
-        Set<String> excludeCategories,
+    public AbstractJUnitSpec(
         Set<String> includedTests,
         Set<String> excludedTests,
         Set<String> includedTestsCommandLine
     ) {
-        super(includedTests, excludedTests, includedTestsCommandLine);
-        this.includeCategories = includeCategories;
-        this.excludeCategories = excludeCategories;
+        this.includedTests = includedTests;
+        this.excludedTests = excludedTests;
+        this.includedTestsCommandLine = includedTestsCommandLine;
     }
 
-    public Set<String> getIncludeCategories() {
-        return includeCategories;
+    public Set<String> getIncludedTests() {
+        return includedTests;
     }
 
-    public Set<String> getExcludeCategories() {
-        return excludeCategories;
+    public Set<String> getExcludedTests() {
+        return excludedTests;
     }
 
-    public boolean hasCategoryConfiguration() {
-        return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
+    public Set<String> getIncludedTestsCommandLine() {
+        return includedTestsCommandLine;
     }
 }

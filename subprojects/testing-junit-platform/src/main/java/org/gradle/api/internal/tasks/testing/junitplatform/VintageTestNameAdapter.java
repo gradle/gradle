@@ -41,12 +41,6 @@ class VintageTestNameAdapter {
             && test.isTest();
     }
 
-    static boolean isVintageDynamicTestClass(TestIdentifier test) {
-        return test.getParentId().isPresent()
-            && VINTAGE_ENGINE.equals(test.getParentId().get())
-            && isClassAndTest(test);
-    }
-
     static boolean isVintageDynamicLeafTest(TestDescriptor test, TestSource source) {
         return test.isTest()
             && source instanceof ClassSource
