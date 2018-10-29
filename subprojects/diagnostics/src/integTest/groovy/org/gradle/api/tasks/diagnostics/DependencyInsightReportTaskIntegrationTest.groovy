@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -2547,6 +2548,58 @@ org:foo:[1.0,) FAILED
       - Could not resolve org:foo:[1.0,). (already reported)
 
 org:foo:[1.0,) FAILED
+\\--- compileClasspath
+"""
+    }
+
+    @ToBeImplemented
+    // TODO:DAZ This demonstrates an issue where rejected versions are not reported when multiple rejections are found
+    def "renders multiple rejection reasons for module"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                constraints {
+                    implementation('org:foo') {
+                       version {
+                          reject '1.2'
+                       }
+                    }
+                }
+                implementation('org:foo:[1.0,)') {
+                    version {
+                        reject '1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """
+org:foo:1.0 (by constraint)
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
+
+org:foo -> 1.0
+\\--- compileClasspath
+
+org:foo:[1.0,) -> 1.0
 \\--- compileClasspath
 """
     }
