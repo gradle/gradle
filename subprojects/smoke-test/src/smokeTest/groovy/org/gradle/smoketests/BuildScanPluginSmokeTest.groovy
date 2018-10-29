@@ -20,9 +20,12 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
 
+import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION
+
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> GRACEFULLY_UNSUPPORTED_WITHOUT_FAILURE = [
+        "2.0",
         "1.16",
         "1.15",
         "1.14"
@@ -53,7 +56,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         def output = build("--scan").output
 
         then:
-        output.contains("This version of Gradle requires version 2.0 of the build scan plugin or later.")
+        output.contains("This version of Gradle requires version $MIN_SUPPORTED_VERSION of the build scan plugin or later.")
 
         and:
         output.contains("Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.")
