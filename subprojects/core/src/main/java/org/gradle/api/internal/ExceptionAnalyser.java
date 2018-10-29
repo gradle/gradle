@@ -16,5 +16,5 @@
 package org.gradle.api.internal;
 
 public interface ExceptionAnalyser {
-    Throwable transform(Throwable exception);
+    RuntimeException transform(Throwable exception);
 }

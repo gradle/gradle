@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -58,8 +57,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
             if (throwable instanceof TestExecutionException) {
-                // Tunnel the failure through the reporting
-                throw new ReportedException(new InternalTestExecutionException("Error while running test(s)", throwable));
+                throw new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;
             }

@@ -230,8 +230,8 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.executeTasks()
 
         then:
-        def t = thrown ReportedException
-        t.cause == transformedException
+        def t = thrown RuntimeException
+        t == transformedException
     }
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
@@ -249,8 +249,8 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.executeTasks()
 
         then:
-        def t = thrown ReportedException
-        t.cause == transformedException
+        def t = thrown RuntimeException
+        t == transformedException
     }
 
     void testNotifiesListenerOnBuildCompleteWithFailure() {
@@ -273,8 +273,8 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.executeTasks()
 
         then:
-        def t = thrown ReportedException
-        t.cause == transformedException
+        def t = thrown RuntimeException
+        t == transformedException
     }
 
     void testNotifiesListenerOnBuildCompleteWithMultipleFailures() {
@@ -299,8 +299,8 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.executeTasks()
 
         then:
-        def t = thrown ReportedException
-        t.cause == transformedException
+        def t = thrown RuntimeException
+        t == transformedException
     }
 
     void testTransformsBuildFinishedListenerFailure() {
@@ -326,8 +326,8 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.finishBuild()
 
         then:
-        def t = thrown ReportedException
-        t.cause == transformedException
+        def t = thrown RuntimeException
+        t == transformedException
     }
 
     void testCleansUpOnStop() throws IOException {

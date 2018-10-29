@@ -61,7 +61,6 @@ BUILD SUCCESSFUL in \\d+s
 
         then:
         result.assertRawOutputContains(successMessage)
-        result.error.empty
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 1 executed, 1 up-to-date

@@ -41,10 +41,10 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         scripts.put(source.getFileName(), source);
     }
 
-    public Throwable transform(Throwable exception) {
+    public RuntimeException transform(Throwable exception) {
         Throwable actualException = findDeepestRootException(exception);
         if (actualException instanceof LocationAwareException) {
-            return actualException;
+            return (LocationAwareException) actualException;
         }
 
         ScriptSource source = null;
