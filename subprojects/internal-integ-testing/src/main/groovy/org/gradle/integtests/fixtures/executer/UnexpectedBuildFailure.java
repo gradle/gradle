@@ -21,11 +21,11 @@ public class UnexpectedBuildFailure extends RuntimeException {
         super(message);
     }
 
-    public UnexpectedBuildFailure(Exception e) {
+    public UnexpectedBuildFailure(Throwable e) {
         super(e);
     }
 
-    public UnexpectedBuildFailure(String message, Exception e) {
+    public UnexpectedBuildFailure(String message, Throwable e) {
         super(message, e);
     }
 }

@@ -45,8 +45,9 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.matches("""(?s).*
-BUILD SUCCESSFUL in \\d+s
 build finished
+
+BUILD SUCCESSFUL in \\d+s
 1 actionable task: 1 executed
 failure is null: true
 \$""")
@@ -58,10 +59,12 @@ failure is null: true
             task t { doFirst { throw new Exception("!") } }
             notifier.notify {
                 println "failure message: \${it.failure.cause.message}" 
+                System.err.println "notified"
             }
             // user logic registered _after_ listener registered
             gradle.buildFinished {
                 println "build finished"
+                System.err.println "build finished"
             }
         """
 
@@ -72,6 +75,14 @@ failure is null: true
 build finished
 1 actionable task: 1 executed
 failure message: Execution failed for task ':t'.
+\$""")
+
+        result.error.matches("""(?s)build finished
+
+FAILURE: Build failed with an exception.
+.*
+BUILD FAILED in \\d+s
+notified
 \$""")
     }
 

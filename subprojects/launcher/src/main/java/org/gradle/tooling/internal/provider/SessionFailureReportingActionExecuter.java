@@ -25,8 +25,8 @@ import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.BuildLogger;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -76,6 +76,7 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
             BuildLogger buildLogger = new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
             buildLogger.buildFinished(new BuildResult(null, failure));
+            buildLogger.logResult(failure);
             throw new ReportedException(failure);
         }
     }

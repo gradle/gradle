@@ -32,7 +32,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
 
     abstract String getSuccessMessage()
 
-    def "successful build result is logged with appropriate styling"() {
+    def "outcome for successful build is logged with appropriate styling"() {
         given:
         buildFile << """
             task noActions
@@ -54,7 +54,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 2 executed
-\$"""
+.*"""
 
         when:
         succeeds('all')
@@ -65,10 +65,10 @@ BUILD SUCCESSFUL in \\d+s
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 1 executed, 1 up-to-date
-\$"""
+.*"""
     }
 
-    def "successful build result is not logged with --quiet"() {
+    def "outcome for successful build is not logged with --quiet"() {
         given:
         buildFile << """
             task success
@@ -79,16 +79,16 @@ BUILD SUCCESSFUL in \\d+s
         succeeds('success')
 
         then:
-        result.output.empty
-        result.error.empty
+        result.assertNotOutput("BUILD SUCCESSFUL")
+        result.assertNotOutput("actionable task")
     }
 
-    def "successful build result is logged after user logic has completed"() {
+    def "outcome for successful build is logged after user logic has completed"() {
         given:
         buildFile << """
             task success { doLast { } }
             gradle.buildFinished { 
-                println ("build finished")
+                println "build finished"
             }
         """
 
@@ -96,16 +96,15 @@ BUILD SUCCESSFUL in \\d+s
         succeeds('success')
 
         then:
-        // This is the current behaviour, not desired behaviour
-        LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
+        LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*build finished
+
 BUILD SUCCESSFUL in \\d+s
-build finished
 1 actionable task: 1 executed
-\$"""
+.*"""
     }
 
     @Unroll
-    def "reports build failure with appropriate styling at the end of the build with log level #level"() {
+    def "outcome for failed build is logged with appropriate styling for log level #level"() {
         buildFile << """
             task broken {
                 doLast {

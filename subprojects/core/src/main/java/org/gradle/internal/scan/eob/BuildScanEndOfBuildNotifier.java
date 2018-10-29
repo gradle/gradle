@@ -36,6 +36,9 @@ public interface BuildScanEndOfBuildNotifier {
     }
 
     interface Listener {
+        /**
+         * Called after all user build logic has completed and the build outcome reported to the logging system. Also called prior to shutting down the build(-tree) scope services
+         */
         BuildScanResult execute(BuildResult buildResult);
     }
 
