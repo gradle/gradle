@@ -19,10 +19,11 @@ package org.gradle.language.cpp
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def "can build on current operating system family when explicitly specified"() {
+    def "can build on current operating system family and architecture when explicitly specified"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -36,8 +37,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     def "ignores compile and link tasks when current operating system family is excluded"() {
@@ -58,7 +58,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "fails configuration when no operating system family is configured"() {
+    def "fails configuration when no target machine is configured"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -85,9 +85,18 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
     }
 
+    protected String getVariantSuffix(String architecture) {
+        String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
+        return operatingSystemFamily.capitalize() + architecture.capitalize()
+    }
+
     protected abstract SourceElement getComponentUnderTest()
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
+    protected abstract List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture)
+
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
+
+    protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 }

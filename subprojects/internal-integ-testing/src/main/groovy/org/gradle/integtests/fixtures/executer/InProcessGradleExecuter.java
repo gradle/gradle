@@ -536,6 +536,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+            assertTasksExecuted(taskPaths);
+            assertTasksNotSkipped(taskPaths);
+            return this;
+        }
+
+        @Override
         public ExecutionResult assertTaskExecuted(String taskPath) {
             assertThat(executedTasks, hasItem(taskPath));
             outputResult.assertTaskExecuted(taskPath);

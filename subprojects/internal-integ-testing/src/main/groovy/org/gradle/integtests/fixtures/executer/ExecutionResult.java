@@ -139,6 +139,11 @@ public interface ExecutionResult {
     ExecutionResult assertTaskExecuted(String taskPath);
 
     /**
+     * Asserts that exactly the given set of tasks have been executed in any order and none of the tasks were skipped. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths);
+
+    /**
      * Asserts that the given task has not been executed. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTaskNotExecuted(String taskPath);

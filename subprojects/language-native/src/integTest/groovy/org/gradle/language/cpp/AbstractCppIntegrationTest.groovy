@@ -16,7 +16,11 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.util.Matchers
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
+import static org.junit.Assume.assumeFalse
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
@@ -44,10 +48,74 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "can build for multiple target machines"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.host().x86(), machines.host().x64()]
+            }
+        """
+
+        expect:
+        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64)
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
+                getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64),
+                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
+                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64))
+    }
+
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "fails when no target architecture can be built"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.of('${currentOsFamilyName}', 'foo')]
+            }
+        """
+
+        expect:
+        fails taskNameToAssembleDevelopmentBinary
+        failure.assertHasCause("No tool chain is available to build C++")
+    }
+
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "can build current architecture when other, non-buildable architectures are specified"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.of('${currentOsFamilyName}', 'foo'), machines.host()${currentHostArchitectureDsl}]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+    }
+
     protected abstract String getDevelopmentBinaryCompileTask()
 
     @Override
     protected String getTaskNameToAssembleDevelopmentBinary() {
         return 'assemble'
+    }
+
+    @Override
+    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return ":assembleDebug${getVariantSuffix(architecture)}"
     }
 }

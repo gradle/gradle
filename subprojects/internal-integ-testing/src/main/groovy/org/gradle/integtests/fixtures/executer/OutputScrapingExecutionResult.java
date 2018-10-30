@@ -239,6 +239,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+        assertTasksExecuted(taskPaths);
+        return assertTasksNotSkipped(taskPaths);
+    }
+
+    @Override
     public ExecutionResult assertTaskExecuted(String taskPath) {
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!actualTasks.contains(taskPath)) {

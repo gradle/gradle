@@ -36,4 +36,9 @@ class CppUnitTestComponentWithoutComponentIntegrationTest extends AbstractCppUni
     protected List<String> getTasksToAssembleDevelopmentBinary() {
         return [':compileTestCpp', ':linkTest', ':installTest', ':runTest']
     }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return [":compileTest${getVariantSuffix(architecture)}Cpp", ":linkTest${getVariantSuffix(architecture)}", ":installTest${getVariantSuffix(architecture)}", ":runTest${getVariantSuffix(architecture)}"]
+    }
 }

@@ -38,6 +38,7 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
@@ -62,12 +63,14 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -132,7 +135,8 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                             CppExecutable executable = application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                             // Use the debug variant as the development binary
-                            if (buildType == BuildType.DEBUG) {
+                            // Prefer the host architecture, if present, else use the first architecture specified
+                            if (buildType == BuildType.DEBUG && (targetMachine.getArchitecture().equals(targetMachineFactory.host().getArchitecture()) || !application.getDevelopmentBinary().isPresent())) {
                                 application.getDevelopmentBinary().set(executable);
                             }
 

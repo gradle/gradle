@@ -49,6 +49,12 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        String variantSuffix = getVariantSuffix(architecture)
+        return [":compileDebug${variantSuffix}Cpp", ":linkDebug${variantSuffix}", ":installDebug${variantSuffix}"]
+    }
+
+    @Override
     protected String getDevelopmentBinaryCompileTask() {
         return ":compileDebugCpp"
     }

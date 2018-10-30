@@ -49,6 +49,7 @@ import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
@@ -75,6 +76,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     /**
      * Injects a {@link FileOperations} instance.
@@ -82,10 +84,11 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -172,13 +175,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                     CppSharedLibrary sharedLibrary = library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                                     library.getMainPublication().addVariant(sharedLibrary);
                                     // Use the debug shared library as the development binary
-                                    if (buildType == BuildType.DEBUG) {
+                                    if (shouldPrefer(buildType, targetMachine, library)) {
                                         library.getDevelopmentBinary().set(sharedLibrary);
                                     }
                                 } else {
                                     CppStaticLibrary staticLibrary = library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                                     library.getMainPublication().addVariant(staticLibrary);
-                                    if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
+                                    if (!linkages.contains(Linkage.SHARED) && shouldPrefer(buildType, targetMachine, library)) {
                                         // Use the debug static library as the development binary
                                         library.getDevelopmentBinary().set(staticLibrary);
                                     }
@@ -227,6 +230,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 library.getBinaries().realizeNow();
             }
         });
+    }
+
+    private boolean shouldPrefer(BuildType buildType, TargetMachine targetMachine, CppLibrary library) {
+        return buildType == BuildType.DEBUG && (targetMachine.getArchitecture().equals(targetMachineFactory.host().getArchitecture()) || !library.getDevelopmentBinary().isPresent());
     }
 
     private static final class BuildType implements Named {

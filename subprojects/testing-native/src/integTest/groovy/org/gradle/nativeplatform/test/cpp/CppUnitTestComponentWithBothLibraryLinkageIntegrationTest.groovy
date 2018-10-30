@@ -38,4 +38,9 @@ class CppUnitTestComponentWithBothLibraryLinkageIntegrationTest extends Abstract
     protected List<String> getTasksToAssembleDevelopmentBinary() {
         return [':compileDebugSharedCpp', ':compileTestCpp', ':linkTest', ':installTest', ':runTest']
     }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return [":compileDebugShared${getVariantSuffix(architecture)}Cpp", ":compileTest${getVariantSuffix(architecture)}Cpp", ":linkTest${getVariantSuffix(architecture)}", ":installTest${getVariantSuffix(architecture)}", ":runTest${getVariantSuffix(architecture)}"]
+    }
 }
