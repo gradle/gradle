@@ -20,7 +20,7 @@ import org.gradle.BuildListener
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.ExceptionAnalyser
+import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.TestFiles

@@ -616,13 +616,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private void extractDetails(Throwable failure) {
-            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
+            String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
+            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
             if (matcher.find()) {
                 fileNames.add(matcher.group(1));
                 lineNumbers.add(matcher.group(3));
-                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
+                descriptions.add(failureMessage.substring(matcher.end()).trim());
             } else {
-                descriptions.add(failure.getMessage().trim());
+                descriptions.add(failureMessage.trim());
             }
         }
 

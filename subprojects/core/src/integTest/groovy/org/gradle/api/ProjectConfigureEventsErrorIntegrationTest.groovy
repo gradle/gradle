@@ -174,4 +174,26 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(3)
     }
+
+    def "produces reasonable error message when both project configuration and Project.afterEvaluate action fails"() {
+        when:
+        buildFile << """
+    task test
+    project.afterEvaluate {
+        throw new RuntimeException("afterEvaluate failure")
+    }
+    throw new RuntimeException("configure")
+"""
+        then:
+        fails('test')
+        failure.assertHasFailures(2)
+        failure.assertHasDescription("A problem occurred evaluating root project 'projectConfigure'.")
+                .assertHasCause("configure")
+                .assertHasFileName("Build file '${buildFile}'")
+                .assertHasLineNumber(6)
+        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+                .assertHasCause("afterEvaluate failure")
+                .assertHasFileName("Build file '${buildFile}'")
+                .assertHasLineNumber(4)
+    }
 }

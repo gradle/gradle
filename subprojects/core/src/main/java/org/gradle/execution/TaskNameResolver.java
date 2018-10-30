@@ -97,7 +97,7 @@ public class TaskNameResolver {
         try {
             project.getTasks().discoverTasks();
         } catch (Throwable e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
         }
     }
 
@@ -113,7 +113,7 @@ public class TaskNameResolver {
         try {
             return (TaskInternal) project.getTasks().getByName(taskName);
         } catch (Throwable e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
         }
     }
 

@@ -17,13 +17,25 @@
 package org.gradle.api;
 
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * Indicates a problem that occurs during project configuration (evaluation) phase.
+ * Indicates a problem that occurs during project configuration.
  */
 @Contextual
-public class ProjectConfigurationException extends GradleException {
+public class ProjectConfigurationException extends DefaultMultiCauseException {
     public ProjectConfigurationException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    /**
+     * Creates an exception with the given message and causes.
+     * @param message The message
+     * @param causes The causes
+     * @since 5.1
+     */
+    @Incubating
+    public ProjectConfigurationException(String message, Iterable<? extends Throwable> causes) {
+        super(message, causes);
     }
 }

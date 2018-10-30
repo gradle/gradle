@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization.exception;
 
-import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.execution.MultipleBuildFailures;
 
 import java.util.ArrayList;
@@ -26,26 +25,30 @@ import java.util.List;
  * An exception analyser that deals specifically with MultipleBuildFailures and transforms each component failure.
  */
 public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser {
-    private final ExceptionAnalyser delegate;
+    private final ExceptionCollector collector;
 
-    public MultipleBuildFailuresExceptionAnalyser(ExceptionAnalyser delegate) {
-        this.delegate = delegate;
+    public MultipleBuildFailuresExceptionAnalyser(ExceptionCollector collector) {
+        this.collector = collector;
     }
 
     public RuntimeException transform(Throwable exception) {
+        List<Throwable> failures = new ArrayList<Throwable>();
         if (exception instanceof MultipleBuildFailures) {
             MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) exception;
-            if (multipleBuildFailures.getCauses().size() == 1) {
-                return transform(multipleBuildFailures.getCauses().get(0));
-            }
-            List<Throwable> transformedCauses = new ArrayList<Throwable>(multipleBuildFailures.getCauses().size());
             for (Throwable cause : multipleBuildFailures.getCauses()) {
-                transformedCauses.add(transform(cause));
+                collector.collectFailures(cause, failures);
             }
-            multipleBuildFailures.replaceCauses(transformedCauses);
+            if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
+                return (RuntimeException) failures.get(0);
+            }
+            multipleBuildFailures.replaceCauses(failures);
             return multipleBuildFailures;
+        } else {
+            collector.collectFailures(exception, failures);
+            if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
+                return (RuntimeException) failures.get(0);
+            }
+            return new MultipleBuildFailures(failures);
         }
-
-        return delegate.transform(exception);
     }
 }
