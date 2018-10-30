@@ -25,7 +25,6 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
@@ -108,7 +107,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
-            UpToDateResult result = workExecutor.execute(execution);
+            UpToDateResult result = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
             if (result.getFailure() != null) {
                 throw UncheckedException.throwAsUncheckedException(result.getFailure());
             }
@@ -233,11 +232,6 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         @Override
         public FileCollection getLocalState() {
             return ImmutableFileCollection.of();
-        }
-
-        @Override
-        public <T> T underLockForExecution(Factory<T> factory) {
-            return producing.guardByKey(cacheKey, factory);
         }
 
         @Override

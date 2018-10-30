@@ -75,7 +75,6 @@ import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
-import org.gradle.internal.execution.impl.steps.LockForExecutionStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
@@ -324,17 +323,15 @@ public class GradleUserHomeScopeServices {
             }
         };
         return new DefaultWorkExecutor<UpToDateResult>(
-            new LockForExecutionStep(
-                new SkipUpToDateStep<Context>(
-                    new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
-                        new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                            // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-                            new SnapshotOutputStep<Context>(UniqueId.generate(),
-                                new CreateOutputsStep<Context, Result>(
-                                    new CatchExceptionStep<Context>(
-                                        new TimeoutStep<Context>(timeoutHandler,
-                                            new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
-                                        )
+            new SkipUpToDateStep<Context>(
+                new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
+                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
+                        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
+                        new SnapshotOutputStep<Context>(UniqueId.generate(),
+                            new CreateOutputsStep<Context, Result>(
+                                new CatchExceptionStep<Context>(
+                                    new TimeoutStep<Context>(timeoutHandler,
+                                        new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
                                     )
                                 )
                             )
