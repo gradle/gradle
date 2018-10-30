@@ -26,8 +26,7 @@ class TypeMetaDataTest extends Specification {
     }
 
     def rawTypeForArrayType() {
-        type.addArrayDimension()
-        type.addArrayDimension()
+        type.arrayDimensions = 2
 
         expect:
         type.rawType.signature == 'org.gradle.SomeType[][]'
@@ -41,15 +40,14 @@ class TypeMetaDataTest extends Specification {
         type.rawType.signature == 'org.gradle.SomeType[]'
 
         when:
-        type.addArrayDimension()
+        type.arrayDimensions = 1
 
         then:
         type.rawType.signature == 'org.gradle.SomeType[][]'
     }
 
     def rawTypeForParameterizedArrayType() {
-        type.addArrayDimension()
-        type.addArrayDimension()
+        type.arrayDimensions = 2
         type.addTypeArg(new TypeMetaData('Type1'))
 
         expect:
@@ -91,16 +89,14 @@ class TypeMetaDataTest extends Specification {
     }
 
     def formatsSignatureForArrayType() {
-        type.addArrayDimension()
-        type.addArrayDimension()
+        type.arrayDimensions = 2
 
         expect:
         type.signature == 'org.gradle.SomeType[][]'
     }
 
     def formatsSignatureForArrayAndVarargsType() {
-        type.addArrayDimension()
-        type.addArrayDimension()
+        type.arrayDimensions = 2
         type.setVarargs()
 
         expect:
@@ -149,8 +145,7 @@ class TypeMetaDataTest extends Specification {
 
     def visitsSignatureForArrayType() {
         TypeMetaData.SignatureVisitor visitor = Mock()
-        type.addArrayDimension()
-        type.addArrayDimension()
+        type.arrayDimensions = 2
 
         when:
         type.visitSignature(visitor)

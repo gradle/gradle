@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs;
 
-import org.gradle.internal.exceptions.Contextual;
+package org.gradle.test;
 
-@Contextual
-public class DocGenerationException extends RuntimeException {
-    public DocGenerationException(String message) {
-        super(message);
-    }
+import java.io.IOException;
+import java.util.function.Supplier;
 
-    public DocGenerationException(String message, Throwable throwable) {
-        super(message, throwable);
+/**
+ * An interface that uses Java 8 source features.
+ */
+public interface Java8Interface extends CombinedInterface, JavaInterface {
+    default String getName() {
+        try (Writer writer = new StringWriter()) {
+            Supplier<String> methodReference = this::toString;
+            Supplier<String> lambda = () -> this.toString();
+        } catch (IOException ignore) {
+        }
+        return "foo";
     }
 }
