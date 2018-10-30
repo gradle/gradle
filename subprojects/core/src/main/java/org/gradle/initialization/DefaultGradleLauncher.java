@@ -42,6 +42,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -137,7 +138,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public void finishBuild() {
         if (stage != null) {
-            finishBuild(new BuildResult(stage.getDisplayName(), gradle, null));
+            finishBuild(stage.getDisplayName(), null);
         }
     }
 
@@ -161,27 +162,35 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
             finishBuild();
         } catch (Throwable t) {
-            RuntimeException failure = exceptionAnalyser.transform(t);
-            finishBuild(new BuildResult(upTo.getDisplayName(), gradle, failure));
-            throw failure;
+            finishBuild(upTo.getDisplayName(), t);
         }
     }
 
-    private void finishBuild(BuildResult result) {
+    private void finishBuild(String action, @Nullable Throwable stageFailure) {
         if (stage == Stage.Finished) {
             return;
         }
 
+        RuntimeException reportableFailure = stageFailure == null ? null : exceptionAnalyser.transform(stageFailure);
+        BuildResult buildResult = new BuildResult(action, gradle, reportableFailure);
         List<Throwable> failures = new ArrayList<Throwable>();
         includedBuildControllers.finishBuild(failures);
         try {
-            buildListener.buildFinished(result);
+            buildListener.buildFinished(buildResult);
         } catch (Throwable t) {
             failures.add(t);
         }
         stage = Stage.Finished;
 
+        if (failures.isEmpty() && reportableFailure != null) {
+            throw reportableFailure;
+        }
         if (!failures.isEmpty()) {
+            if (stageFailure instanceof MultipleBuildFailures) {
+                failures.addAll(0, ((MultipleBuildFailures) stageFailure).getCauses());
+            } else if (stageFailure != null) {
+                failures.add(0, stageFailure);
+            }
             throw exceptionAnalyser.transform(new MultipleBuildFailures(failures));
         }
     }
@@ -272,17 +281,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
-                .details(new LoadBuildBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
+                    .details(new LoadBuildBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
 
-                    @Override
-                    public String getIncludedBy() {
-                        return fromBuild == null ? null : fromBuild.getBuildPath().toString();
-                    }
-                });
+                        @Override
+                        public String getIncludedBy() {
+                            return fromBuild == null ? null : fromBuild.getBuildPath().toString();
+                        }
+                    });
         }
     }
 
@@ -357,12 +366,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
-                .details(new CalculateTaskGraphBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return getGradle().getIdentityPath().getPath();
-                    }
-                });
+                    .details(new CalculateTaskGraphBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return getGradle().getIdentityPath().getPath();
+                        }
+                    });
         }
     }
 
@@ -402,12 +411,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
-                .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return gradle.getIdentityPath().toString();
-                    }
-                });
+                    .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
+                    });
         }
     }
 
