@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -68,7 +69,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::isCrossBuild).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -116,6 +116,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {
+            AtomicInteger counter = new AtomicInteger(0);
             // @formatter:off
             {
                 html();
@@ -131,7 +132,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     body();
                         div().id("acoordion").classAttr("mx-auto");
                         renderHeader();
-                        renderTable();
+                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", ScenarioBuildResultData::isCrossVersion);
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", ScenarioBuildResultData::isCrossBuild);
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -146,13 +148,19 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Performance Coordinator Build")
                             .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
-                    div().classAttr("col-8 p-0");
+                    div().classAttr("col-6 p-0");
                         text("Scenarios (" + successCount + " successful");
                         if (failureCount > 0) {
                             text(", " + failureCount + " failed");
                         }
                         text(")");
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
+                    end();
+                    div().classAttr("col-2 p-0");
+                        if(failureCount > 0) {
+                            button().id("failed-scenarios").classAttr("btn-sm btn-danger").text("Failed scenarios").end();
+                            button().id("all-scenarios").classAttr("btn-sm btn-primary").text("All scenarios").end();
+                        }
                     end();
                     div().classAttr("col text-right mt-1");
                         i().classAttr("fa fa-filter").attr("data-toggle", "popover", "data-placement", "bottom").title("Filter by tag").style("cursor: pointer").text(" ").end();
@@ -189,9 +197,13 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
             }
 
-            private void renderTable() {
-                AtomicInteger index = new AtomicInteger(0);
-                scenarios.forEach(scenario -> renderScenario(index.incrementAndGet(), scenario));
+            private void renderTable(String title, String description, Predicate<ScenarioBuildResultData> predicate) {
+                div().classAttr("row alert alert-primary m-0");
+                    div().classAttr("col-12 p-0").text(title);
+                i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                    end();
+                end();
+                scenarios.stream().filter(predicate).forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
             }
 
             private String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
@@ -309,7 +321,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
 
     private enum Tag {
         FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
-        CROSS_BUILD("CROSS-BUILD", "badge badge-info", "This scenario is comparing two builds' performance difference, not versions'. Therefore, it's not seen as regression."),
         FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
@@ -339,9 +350,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             Set<Tag> result = new HashSet<>();
             if (scenario.isFromCache()) {
                 result.add(FROM_CACHE);
-            }
-            if (scenario.isCrossBuild()) {
-                result.add(CROSS_BUILD);
             }
             if(scenario.isUnknown()) {
                 result.add(UNKNOWN);
