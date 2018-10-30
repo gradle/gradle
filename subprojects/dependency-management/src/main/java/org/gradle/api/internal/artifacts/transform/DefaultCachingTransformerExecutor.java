@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository.PreviousTransformerExecution;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
@@ -28,17 +29,16 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -54,11 +54,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, RootBuildLifecycleListener {
 
@@ -68,15 +66,17 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository historyRepository;
+    private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor,
                                              FileSystemSnapshotter fileSystemSnapshotter,
                                              ArtifactTransformListener artifactTransformListener,
-                                             TransformerExecutionHistoryRepository historyRepository) {
+                                             TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
         this.historyRepository = historyRepository;
+        this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
     }
 
     @Override
@@ -255,31 +255,42 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
             getResult().ifPresent(result -> {
-                historyRepository.persist(cacheKey.getPersistentCacheKey(), result);
+                historyRepository.persist(cacheKey.getPersistentCacheKey(), result, finalOutputs.values().iterator().next());
             });
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<List<File>> previousResult = historyRepository.getPreviousExecution(cacheKey.getPersistentCacheKey());
-            return previousResult.map(result -> {
-                    Set<FileChange> changes = result.stream().filter(file -> !file.exists()).map(file ->
-                        // TODO: use correct file type
-                        FileChange.removed(file.getAbsolutePath(), "Output", FileType.RegularFile)
-                    ).collect(Collectors.toSet());
+            Optional<PreviousTransformerExecution> previousExecution = historyRepository.getPreviousExecution(cacheKey.getPersistentCacheKey());
+            return previousExecution.map(previous -> {
+                    CurrentFileCollectionFingerprint fingerprintBeforeExecution = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(getOutputDir()));
+                    ImmutableList.Builder<Change> builder = ImmutableList.builder();
+                    fingerprintBeforeExecution.visitChangesSince(previous.getOutputDirectoryFingerprint(), "outputDirectory", true, new ChangeVisitor() {
+                        @Override
+                        public boolean visitChange(Change change) {
+                            builder.add(change);
+                            return false;
+                        }
+                    });
+                    ImmutableList<Change> changes = builder.build();
                     if (changes.isEmpty()) {
-                        resultHashToResult.put(cacheKey, result);
-                        this.result = result;
+                        this.result = previous.getResult();
                     }
                     return new TransformerExecutionStateChanges(changes);
                 }
             );
         }
 
+        @Override
+        public Optional<? extends Iterable<String>> getChangingOutputs() {
+            return Optional.of(ImmutableList.of(getOutputDir().getAbsolutePath()));
+        }
+
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            return ImmutableSortedMap.of();
+            CurrentFileCollectionFingerprint outputFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(getOutputDir()));
+            return ImmutableSortedMap.of("outputDirectory", outputFingerprint);
         }
 
         @Override
@@ -298,9 +309,9 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
 
         private class TransformerExecutionStateChanges implements ExecutionStateChanges {
-            private final Set<FileChange> changes;
+            private final ImmutableList<Change> changes;
 
-            public TransformerExecutionStateChanges(Set<FileChange> changes) {
+            public TransformerExecutionStateChanges(ImmutableList<Change> changes) {
                 this.changes = changes;
             }
 
@@ -311,7 +322,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
             @Override
             public void visitAllChanges(ChangeVisitor visitor) {
-                for (FileChange change : changes) {
+                for (Change change : changes) {
                     boolean result = visitor.visitChange(change);
                     if (!result) {
                         return;

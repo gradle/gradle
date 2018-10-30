@@ -94,4 +94,13 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
         files.clear();
         cacheFiles.clear();
     }
+
+    public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+        for (String affectedOutputPath : affectedOutputPaths) {
+            metadata.remove(affectedOutputPath);
+            files.remove(affectedOutputPath);
+            cacheMetadata.remove(affectedOutputPath);
+            cacheFiles.remove(affectedOutputPath);
+        }
+    }
 }

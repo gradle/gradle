@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -37,6 +38,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
+@NonNullApi
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
     private final FileSystemSnapshotter fileSystemSnapshotter;
@@ -105,6 +107,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         public void beforeOutputChange() {
             // A very dumb strategy for invalidating cache
             cache.clear();
+        }
+
+        @Override
+        public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+            beforeOutputChange();
         }
 
         @Override

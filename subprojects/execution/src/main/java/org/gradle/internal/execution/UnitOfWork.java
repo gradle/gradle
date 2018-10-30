@@ -50,6 +50,8 @@ public interface UnitOfWork extends CacheableEntity {
 
     Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
 
+    Optional<? extends Iterable<String>> getChangingOutputs();
+
     interface OutputVisitor {
         void visitOutput(String name, TreeType type, FileCollection roots);
     }
