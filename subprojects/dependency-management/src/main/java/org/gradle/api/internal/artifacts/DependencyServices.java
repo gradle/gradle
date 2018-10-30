@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRe
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -75,8 +76,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         }
 
         CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener) {
-            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository);
+                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }

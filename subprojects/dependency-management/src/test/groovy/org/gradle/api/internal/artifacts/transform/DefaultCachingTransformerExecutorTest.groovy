@@ -24,6 +24,7 @@ import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep
 import org.gradle.internal.execution.impl.steps.Step
 import org.gradle.internal.execution.impl.steps.UpToDateResult
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -60,8 +61,8 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         }
 
         @Override
-        void persist(HashCode cacheKey, List<File> currentExecutionResult) {
-            history[cacheKey] = currentExecutionResult
+        void persist(HashCode cacheKey, List<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
+            // TODO
         }
 
         @Override
@@ -76,7 +77,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
 
     private DefaultCachingTransformerExecutor createExecutor() {
-        new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository)
+        new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
     }
 
     def "reuses result for given inputs and transform"() {

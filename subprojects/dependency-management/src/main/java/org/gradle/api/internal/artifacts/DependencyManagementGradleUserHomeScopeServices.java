@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -33,6 +34,7 @@ import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
@@ -46,12 +48,16 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions);
     }
 
-    TransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileAccessTimeJournal fileAccessTimeJournal) {
-        return new DefaultTransformerExecutionHistoryRepository(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, cacheDecoratorFactory, fileAccessTimeJournal);
+    TransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileAccessTimeJournal fileAccessTimeJournal, StringInterner stringInterner) {
+        return new DefaultTransformerExecutionHistoryRepository(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, cacheDecoratorFactory, fileAccessTimeJournal, stringInterner);
+    }
+
+    OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
     CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository) {
+                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
         DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, new ArtifactTransformListener() {
             @Override
             public void beforeTransformerInvocation(Describable transformer, Describable subject) {
@@ -60,7 +66,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             @Override
             public void afterTransformerInvocation(Describable transformer, Describable subject) {
             }
-        }, historyRepository);
+        }, historyRepository, outputFileCollectionFingerprinter);
         listenerManager.addListener(transformedFileCache);
         return transformedFileCache;
     }

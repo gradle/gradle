@@ -185,6 +185,11 @@ public class GradleUserHomeScopeServices {
             public void beforeOutputChange() {
                 fileSystemMirror.beforeOutputChange();
             }
+
+            @Override
+            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+            }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
@@ -283,15 +288,9 @@ public class GradleUserHomeScopeServices {
      * Currently used for running artifact transformations in buildscript blocks.
      */
     WorkExecutor<UpToDateResult> createWorkExecutor(
-        TimeoutHandler timeoutHandler
+        TimeoutHandler timeoutHandler, ListenerManager listenerManager
     ) {
-        // TODO: Do we need to invalidate some caches here?
-        OutputChangeListener noopOutputChangeListener = new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-
-            }
-        };
+        OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Should we support cancellation?
         BuildCancellationToken noopCancellationToken = new BuildCancellationToken() {
             @Override
@@ -331,7 +330,7 @@ public class GradleUserHomeScopeServices {
                             new CreateOutputsStep<Context, Result>(
                                 new CatchExceptionStep<Context>(
                                     new TimeoutStep<Context>(timeoutHandler,
-                                        new ExecuteStep(noopCancellationToken, noopOutputChangeListener)
+                                        new ExecuteStep(noopCancellationToken, outputChangeListener)
                                     )
                                 )
                             )

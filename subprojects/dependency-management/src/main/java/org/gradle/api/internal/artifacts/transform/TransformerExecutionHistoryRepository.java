@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -23,7 +24,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransformerExecutionHistoryRepository {
-    Optional<List<File>> getPreviousExecution(HashCode cacheKey);
-    void persist(HashCode cacheKey, List<File> currentExecutionResult);
+    Optional<PreviousTransformerExecution> getPreviousExecution(HashCode cacheKey);
+    void persist(HashCode cacheKey, List<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint);
     File getOutputDirectory(File toBeTransformed, HashCode cacheKey);
+
+    interface PreviousTransformerExecution {
+        List<File> getResult();
+        FileCollectionFingerprint getOutputDirectoryFingerprint();
+    }
 }
