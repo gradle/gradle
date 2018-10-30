@@ -693,7 +693,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", getDisplayName()), e);
         }
         return this;
     }

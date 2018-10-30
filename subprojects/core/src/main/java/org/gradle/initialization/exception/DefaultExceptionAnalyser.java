@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.initialization.exception;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -26,10 +26,13 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecutionListener {
+public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecutionListener {
     private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
 
     public DefaultExceptionAnalyser(ListenerManager listenerManager) {
@@ -41,10 +44,32 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         scripts.put(source.getFileName(), source);
     }
 
-    public RuntimeException transform(Throwable exception) {
+    @Override
+    public void collectFailures(Throwable exception, Collection<? super Throwable> failures) {
+        if (exception instanceof ProjectConfigurationException) {
+            ProjectConfigurationException projectConfigurationException = (ProjectConfigurationException) exception;
+            List<Throwable> additionalFailures = new ArrayList<Throwable>();
+            for (Throwable cause : projectConfigurationException.getCauses()) {
+                // TODO: remove this special case
+                if (cause instanceof GradleScriptException) {
+                    failures.add(transform(cause));
+                } else {
+                    additionalFailures.add(cause);
+                }
+            }
+            if (!additionalFailures.isEmpty()) {
+                projectConfigurationException.initCauses(additionalFailures);
+                failures.add(transform(projectConfigurationException));
+            }
+        } else {
+            failures.add(transform(exception));
+        }
+    }
+
+    private Throwable transform(Throwable exception) {
         Throwable actualException = findDeepestRootException(exception);
         if (actualException instanceof LocationAwareException) {
-            return (LocationAwareException) actualException;
+            return actualException;
         }
 
         ScriptSource source = null;

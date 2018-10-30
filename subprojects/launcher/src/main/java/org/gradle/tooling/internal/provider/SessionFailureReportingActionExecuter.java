@@ -17,14 +17,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultExceptionAnalyser;
-import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
+import org.gradle.initialization.exception.DefaultExceptionAnalyser;
+import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.ReportedException;
-import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.DefaultListenerManager;

@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;

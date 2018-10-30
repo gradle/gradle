@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.composite.internal.IncludedBuildControllers;
