@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, RootBuildLifecycleListener {
 
@@ -105,15 +106,21 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             return results;
         }
         TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
+        return fireTransformListeners(transformer, subject, () -> {
+                UpToDateResult result = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
+                if (result.getFailure() != null) {
+                    throw UncheckedException.throwAsUncheckedException(result.getFailure());
+                }
+                List<File> transformerResult = execution.getResult().get();
+                resultHashToResult.put(cacheKey, transformerResult);
+                return transformerResult;
+            });
+    }
+
+    private List<File> fireTransformListeners(Transformer transformer, Describable subject, Supplier<List<File>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
-            UpToDateResult result = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
-            if (result.getFailure() != null) {
-                throw UncheckedException.throwAsUncheckedException(result.getFailure());
-            }
-            List<File> transformerResult = execution.getResult().get();
-            resultHashToResult.put(cacheKey, transformerResult);
-            return transformerResult;
+            return execution.get();
         } finally {
             artifactTransformListener.afterTransformerInvocation(transformer, subject);
         }
