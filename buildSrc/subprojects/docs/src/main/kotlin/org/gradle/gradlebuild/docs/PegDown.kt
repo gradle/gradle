@@ -31,9 +31,13 @@ open class PegDown @Inject constructor(
 
     @TaskAction
     fun process() {
-        val processor = PegDownProcessor(0)
+        val processor = PegDownProcessor(0, PEGDOWN_PARSING_TIMEOUT_MILLIS)
         val markdown = markdownFile.readText(Charset.forName(inputEncoding))
         val html = processor.markdownToHtml(markdown)
         destination.writeText(html, Charset.forName(outputEncoding))
     }
 }
+
+
+private
+const val PEGDOWN_PARSING_TIMEOUT_MILLIS = 10_000L
