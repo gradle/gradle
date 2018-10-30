@@ -31,6 +31,8 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
+@Issue('https://github.com/gradle/gradle-private/issues/1537')
+@Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()
@@ -58,8 +60,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(new URI("${baseUrl}/gradlew/dist"))
     }
 
-    @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     public void "downloads wrapper from http server and caches"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
@@ -78,8 +78,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
     }
 
-    @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     public void "recovers from failed download"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
