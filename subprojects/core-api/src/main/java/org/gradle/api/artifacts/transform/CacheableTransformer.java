@@ -16,12 +16,20 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * <p>Attached to a {@link ArtifactTransform} type to indicate that the build cache can be used for the transformer</p>
+ *
+ * @since 5.1
+ */
+@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
