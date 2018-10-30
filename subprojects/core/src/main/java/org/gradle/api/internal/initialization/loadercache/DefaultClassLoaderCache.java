@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -33,13 +36,15 @@ import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 
-public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
+public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, SessionLifecycleListener {
     private static final Logger LOGGER = Logging.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
+    private final Set<ClassLoaderId> usedInThisBuild = Sets.newHashSet();
     private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
 
@@ -55,6 +60,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
 
     @Override
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
+        usedInThisBuild.add(id);
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }
@@ -70,7 +76,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                     LOGGER.debug("Releasing previous classloader for {}", id);
                     cachedLoader.release(id);
                 }
-
                 return newLoader.classLoader;
             } else {
                 return cachedLoader.classLoader;
@@ -87,6 +92,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             cachedClassLoader.retain(id);
             byId.put(id, cachedClassLoader);
             bySpec.put(spec, cachedClassLoader);
+            usedInThisBuild.add(id);
         }
         return classLoader;
     }
@@ -98,6 +104,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             if (cachedClassLoader != null) {
                 cachedClassLoader.release(id);
             }
+            usedInThisBuild.remove(id);
         }
     }
 
@@ -119,7 +126,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         return cachedLoader.retain(id);
     }
 
-    @Override
+    @VisibleForTesting
     public int size() {
         synchronized (lock) {
             return bySpec.size();
@@ -134,7 +141,26 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             }
             byId.clear();
             bySpec.clear();
+            usedInThisBuild.clear();
         }
+    }
+
+    @Override
+    public void afterStart() {
+
+    }
+
+    @Override
+    public void beforeComplete() {
+        synchronized (lock) {
+            Set<ClassLoaderId> unused = Sets.newHashSet(byId.keySet());
+            unused.removeAll(usedInThisBuild);
+            for (ClassLoaderId id : unused) {
+                remove(id);
+            }
+            usedInThisBuild.clear();
+        }
+        assertInternalIntegrity();
     }
 
     private static abstract class ClassLoaderSpec {
@@ -235,9 +261,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
     }
 
-    // Used in org.gradle.api.internal.initialization.loadercache.ClassLoadersCachingIntegrationTest
-    @SuppressWarnings("UnusedDeclaration")
-    public void assertInternalIntegrity() {
+    private void assertInternalIntegrity() {
         synchronized (lock) {
             Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
             for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
