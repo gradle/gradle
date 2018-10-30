@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExec
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -57,7 +58,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
     }
 
     CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter, TemporaryFileProvider temporaryFileProvider) {
         DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, new ArtifactTransformListener() {
             @Override
             public void beforeTransformerInvocation(Describable transformer, Describable subject) {
@@ -66,7 +67,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             @Override
             public void afterTransformerInvocation(Describable transformer, Describable subject) {
             }
-        }, historyRepository, outputFileCollectionFingerprinter);
+        }, historyRepository, outputFileCollectionFingerprinter, temporaryFileProvider);
         listenerManager.addListener(transformedFileCache);
         return transformedFileCache;
     }

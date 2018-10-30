@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository.PreviousTransformerExecution;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
@@ -52,6 +52,9 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +63,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, RootBuildLifecycleListener {
 
@@ -70,16 +76,20 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository historyRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
+    private final TemporaryFileProvider temporaryFileProvider;
 
     public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor,
                                              FileSystemSnapshotter fileSystemSnapshotter,
                                              ArtifactTransformListener artifactTransformListener,
-                                             TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+                                             TransformerExecutionHistoryRepository historyRepository,
+                                             OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
+                                             TemporaryFileProvider temporaryFileProvider) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
         this.historyRepository = historyRepository;
         this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -195,10 +205,13 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     }
 
     private class TransformerExecution implements UnitOfWork {
+        private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
+        private static final String RESULT_FILE_PROPERTY_NAME = "resultFile";
         private final File primaryInput;
         private final Transformer transformer;
         private final CacheKey cacheKey;
         private List<File> result;
+        private File temporaryResultsFile;
 
         public TransformerExecution(File primaryInput, Transformer transformer, CacheKey cacheKey) {
             this.primaryInput = primaryInput;
@@ -256,18 +269,14 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
                         return Optional.empty();
                     }
                     Optional<T> loadedArtifact = Optional.ofNullable(loader.apply(new TransformerExecutionBuildCacheKey(cacheKey, transformer)));
-                    loadedArtifact.ifPresent(artifact -> result = ImmutableList.of(getOutputDir()));
+                    loadedArtifact.ifPresent(artifact -> loadResultFromFile());
                     return loadedArtifact;
                 }
 
                 @Override
                 public void store(Consumer<BuildCacheKey> storer) {
                     if (transformer.isCacheable()) {
-                        if (ImmutableList.of(getOutputDir()).equals(result)) {
-                            storer.accept(new TransformerExecutionBuildCacheKey(cacheKey, transformer));
-                        } else {
-                            throw new TransformInvocationException(primaryInput, transformer.getImplementationClass(), new GradleException("Cacheable transformers need to have the output directory as a result!"));
-                        }
+                        storer.accept(new TransformerExecutionBuildCacheKey(cacheKey, transformer));
                     }
                 }
             };
@@ -275,9 +284,22 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
+            if (temporaryResultsFile != null) {
+                GFileUtils.deleteFileQuietly(temporaryResultsFile);
+            }
             getResult().ifPresent(result -> {
-                historyRepository.persist(cacheKey.getPersistentCacheKey(), result, finalOutputs.values().iterator().next());
+                historyRepository.persist(cacheKey.getPersistentCacheKey(), result, finalOutputs.get(OUTPUT_DIRECTORY_PROPERTY_NAME));
             });
+        }
+
+        private void loadResultFromFile() {
+            try {
+                File outputDir = getOutputDir();
+                List<String> resultPaths = Files.readAllLines(temporaryResultsFile.toPath(), UTF_8);
+                result = ImmutableList.copyOf(resultPaths.stream().map(path -> new File(outputDir, path)).collect(Collectors.toList()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         @Override
@@ -310,8 +332,19 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            CurrentFileCollectionFingerprint outputFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(getOutputDir()));
-            return ImmutableSortedMap.of("outputDirectory", outputFingerprint);
+            File outputDir = getOutputDir();
+            Path outputPath = getOutputDir().toPath();
+            temporaryResultsFile = temporaryFileProvider.createTemporaryFile("transform-results", cacheKey.getPersistentCacheKey().toString());
+            if (result != null) {
+                try {
+                    Files.write(temporaryResultsFile.toPath(), result.stream().map(file -> outputPath.relativize(file.toPath()).toString()).collect(Collectors.toList()), UTF_8);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+            CurrentFileCollectionFingerprint outputDirectoryFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(outputDir));
+            CurrentFileCollectionFingerprint resultsFileFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(temporaryResultsFile));
+            return ImmutableSortedMap.of(OUTPUT_DIRECTORY_PROPERTY_NAME, outputDirectoryFingerprint, RESULT_FILE_PROPERTY_NAME, resultsFileFingerprint);
         }
 
         @Override
@@ -321,12 +354,17 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void visitTrees(CacheableTreeVisitor visitor) {
-            visitor.visitTree("outputDirectory", TreeType.DIRECTORY, getOutputDir());
+            File outputDir = getOutputDir();
+            visitor.visitTree(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, outputDir);
+            if (temporaryResultsFile == null) {
+                temporaryResultsFile = temporaryFileProvider.createTemporaryFile("transform-results", cacheKey.getPersistentCacheKey().toString());
+            }
+            visitor.visitTree(RESULT_FILE_PROPERTY_NAME, TreeType.FILE, temporaryResultsFile);
         }
 
         @Override
         public String getDisplayName() {
-            return transformer.getDisplayName() + ": " + primaryInput;
+            return transformer.getDisplayName() + ": " + primaryInput.getName();
         }
 
         private class TransformerExecutionStateChanges implements ExecutionStateChanges {

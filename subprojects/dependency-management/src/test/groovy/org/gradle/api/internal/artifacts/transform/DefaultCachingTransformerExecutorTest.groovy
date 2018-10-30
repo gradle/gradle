@@ -77,7 +77,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
 
     private DefaultCachingTransformerExecutor createExecutor() {
-        new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
+        new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, temporaryFileProvider)
     }
 
     def "reuses result for given inputs and transform"() {

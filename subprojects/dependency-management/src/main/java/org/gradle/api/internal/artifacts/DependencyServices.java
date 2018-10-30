@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyR
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
@@ -76,8 +77,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         }
 
         CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
-            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
+                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter, TemporaryFileProvider temporaryFileProvider) {
+            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, temporaryFileProvider);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }

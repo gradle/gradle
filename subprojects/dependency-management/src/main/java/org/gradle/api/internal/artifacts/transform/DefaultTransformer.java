@@ -60,13 +60,13 @@ public class DefaultTransformer implements Transformer {
             if (!output.exists()) {
                 throw new InvalidUserDataException("Transform output file " + output.getPath() + " does not exist.");
             }
-            if (output.equals(primaryInput) || output.equals(outputDir)) {
+            if ((!cacheable && output.equals(primaryInput)) || output.equals(outputDir)) {
                 continue;
             }
             if (output.getPath().startsWith(outputDirPrefix)) {
                 continue;
             }
-            if (output.getPath().startsWith(inputFilePrefix)) {
+            if (!cacheable && output.getPath().startsWith(inputFilePrefix)) {
                 continue;
             }
             throw new InvalidUserDataException("Transform output file " + output.getPath() + " is not a child of the transform's input file or output directory.");
