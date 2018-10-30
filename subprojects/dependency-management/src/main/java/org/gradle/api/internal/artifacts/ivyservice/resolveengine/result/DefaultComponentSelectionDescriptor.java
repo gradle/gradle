@@ -92,11 +92,11 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
     }
 
     @Override
-    public ComponentSelectionDescriptorInternal withReason(Describable reason) {
-        if (description.equals(reason)) {
+    public ComponentSelectionDescriptorInternal withDescription(Describable description) {
+        if (this.description.equals(description)) {
             return this;
         }
-        return new DefaultComponentSelectionDescriptor(cause, reason, true, isEquivalentToForce);
+        return new DefaultComponentSelectionDescriptor(cause, description, true, isEquivalentToForce);
     }
 
     @Override

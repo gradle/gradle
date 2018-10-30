@@ -100,7 +100,7 @@ public class VersionConflictResolutionDetails implements Describable {
             for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
                 if (isByVersionConflict(descriptor)) {
                     if (!added) {
-                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withReason(new VersionConflictResolutionDetails(allCandidates)));
+                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(new VersionConflictResolutionDetails(allCandidates)));
                     }
                     added = true;
                 } else {

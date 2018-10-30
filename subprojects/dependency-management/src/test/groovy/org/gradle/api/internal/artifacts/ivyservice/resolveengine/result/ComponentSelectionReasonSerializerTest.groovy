@@ -60,12 +60,12 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
     def "serializes custom reasons"() {
         expect:
-        check(ComponentSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("my conflict resolution")))
-        check(ComponentSelectionReasons.FORCED.withReason(Describables.of("forced by me")))
-        check(ComponentSelectionReasons.REQUESTED.withReason(Describables.of("I really asked for it")))
-        check(ComponentSelectionReasons.ROOT.withReason(Describables.of("I know this is the root of the graph")))
-        check(ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("Wouldn't it be nice to add custom reasons?")))
-        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("More details!")))
+        check(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(Describables.of("my conflict resolution")))
+        check(ComponentSelectionReasons.FORCED.withDescription(Describables.of("forced by me")))
+        check(ComponentSelectionReasons.REQUESTED.withDescription(Describables.of("I really asked for it")))
+        check(ComponentSelectionReasons.ROOT.withDescription(Describables.of("I know this is the root of the graph")))
+        check(ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of("Wouldn't it be nice to add custom reasons?")))
+        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of("More details!")))
     }
 
     def "multiple writes of the same custom reason"() {
@@ -87,13 +87,13 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     private static ComponentSelectionReason withReason(String reason) {
-        ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason)))
+        ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(reason)))
     }
 
     private static ComponentSelectionReason withReasons(String... reasons) {
         int idx = -1
         ComponentSelectionReasons.of(reasons.collect {
-            reason(++idx).withReason(Describables.of(it))
+            reason(++idx).withDescription(Describables.of(it))
         }.toArray(new ComponentSelectionDescriptorInternal[0]))
     }
 

@@ -276,9 +276,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                     rejectedBySelector.add(version);
                 } else if (rejectedVersion instanceof RejectedByRuleVersion) {
                     String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByRuleReason(version, reason)));
+                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByRuleReason(version, reason)));
                 } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
+                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
                 }
             }
         }
@@ -286,9 +286,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         for (ComponentSelectionDescriptorInternal descriptor : dependencyReasons) {
             if (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT) {
                 if (rejectedBySelector != null) {
-                    descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedBySelector, descriptor));
+                    descriptor = descriptor.withDescription(new RejectedBySelectorReason(rejectedBySelector, descriptor));
                 } else if (result != null && !result.getUnmatchedVersions().isEmpty()) {
-                    descriptor = descriptor.withReason(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
+                    descriptor = descriptor.withDescription(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
                 }
             }
             selectionReason.addCause(descriptor);

@@ -92,9 +92,9 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
             if (replacement != null) {
                 String reason = replacement.getReason();
-                ComponentSelectionDescriptorInternal moduleReplacement = ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(identifier, "replaced with", replacement.getTarget()));
+                ComponentSelectionDescriptorInternal moduleReplacement = ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(identifier, "replaced with", replacement.getTarget()));
                 if (reason != null) {
-                    moduleReplacement = moduleReplacement.withReason(Describables.of(reason));
+                    moduleReplacement = moduleReplacement.withDescription(Describables.of(reason));
                 }
                 selected.addCause(moduleReplacement);
             }

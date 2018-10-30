@@ -100,7 +100,7 @@ class DependencyState {
         String reason = dependency.getReason();
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
-            dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
         }
         reasons.add(dependencyDescriptor);
 

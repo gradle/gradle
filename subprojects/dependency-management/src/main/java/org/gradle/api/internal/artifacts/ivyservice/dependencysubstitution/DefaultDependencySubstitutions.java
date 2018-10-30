@@ -138,7 +138,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
             @Override
             public Substitution because(String description) {
-                substitutionReason = substitutionReason.withReason(Describables.of(description));
+                substitutionReason = substitutionReason.withDescription(Describables.of(description));
                 return this;
             }
 

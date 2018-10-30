@@ -48,7 +48,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     private ComponentSelectionDescriptorInternal selectionReason() {
         return customDescription == null
             ? ComponentSelectionReasons.SELECTED_BY_RULE
-            : ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(customDescription));
+            : ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(customDescription));
     }
 
     @Override
