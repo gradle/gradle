@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -44,9 +46,13 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions);
     }
 
-    CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal) {
-        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, new ArtifactTransformListener() {
+    TransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileAccessTimeJournal fileAccessTimeJournal) {
+        return new DefaultTransformerExecutionHistoryRepository(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, cacheDecoratorFactory, fileAccessTimeJournal);
+    }
+
+    CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
+                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository) {
+        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, new ArtifactTransformListener() {
             @Override
             public void beforeTransformerInvocation(Describable transformer, Describable subject) {
             }
@@ -54,7 +60,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             @Override
             public void afterTransformerInvocation(Describable transformer, Describable subject) {
             }
-        });
+        }, historyRepository);
         listenerManager.addListener(transformedFileCache);
         return transformedFileCache;
     }

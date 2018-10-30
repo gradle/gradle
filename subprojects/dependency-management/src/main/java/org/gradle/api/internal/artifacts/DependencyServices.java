@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
@@ -24,13 +23,11 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFact
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
@@ -77,9 +74,9 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new TransformationNodeExecutor(buildOperationExecutor, transformListener);
         }
 
-        CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                                    FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal, ArtifactTransformListener artifactTransformListener) {
-            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, artifactTransformListener);
+        CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
+                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener) {
+            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }

@@ -20,20 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.CompositeCleanupAction;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -42,7 +30,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.FileChange;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
@@ -57,12 +44,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
-import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
-import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -80,57 +61,23 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
-import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
-public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, Stoppable, RootBuildLifecycleListener {
-
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
-    private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
+public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, RootBuildLifecycleListener {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final FileAccessTracker fileAccessTracker;
     private final WorkExecutor<UpToDateResult> workExecutor;
-    private final File filesOutputDirectory;
-    private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
-    private final PersistentCache cache;
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final ArtifactTransformListener artifactTransformListener;
+    private final TransformerExecutionHistoryRepository historyRepository;
 
-    public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                             FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal, ArtifactTransformListener artifactTransformListener) {
+    public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor,
+                                             FileSystemSnapshotter fileSystemSnapshotter,
+                                             ArtifactTransformListener artifactTransformListener,
+                                             TransformerExecutionHistoryRepository historyRepository) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
-        File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
-        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
-        File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
-        cache = cacheRepository
-            .cache(transformsStoreDirectory)
-            .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withDisplayName("Artifact transforms cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
-            .open();
-        indexedCache = cache.createCache(
-            PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-                .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true))
-        );
-        fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-    }
-
-    private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
-        return CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
-            .build();
-    }
-
-    @Override
-    public void stop() {
-        cache.close();
+        this.historyRepository = historyRepository;
     }
 
     @Override
@@ -252,8 +199,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
 
         private File getOutputDir() {
-            String outputPath = primaryInput.getName() + "/" + cacheKey.getPersistentCacheKey();
-            return new File(filesOutputDirectory, outputPath);
+            return historyRepository.getOutputDirectory(primaryInput, cacheKey.getPersistentCacheKey());
         }
 
         @Override
@@ -261,7 +207,6 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             File outputDir = getOutputDir();
             GFileUtils.cleanDirectory(outputDir);
             result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
-            fileAccessTracker.markAccessed(result);
             return true;
         }
 
@@ -316,13 +261,13 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
             getResult().ifPresent(result -> {
-                indexedCache.put(cacheKey.getPersistentCacheKey(), result);
+                historyRepository.persist(cacheKey.getPersistentCacheKey(), result);
             });
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<List<File>> previousResult = Optional.ofNullable(indexedCache.get(cacheKey.getPersistentCacheKey()));
+            Optional<List<File>> previousResult = historyRepository.getPreviousExecution(cacheKey.getPersistentCacheKey());
             return previousResult.map(result -> {
                     Set<FileChange> changes = result.stream().filter(file -> !file.exists()).map(file ->
                         // TODO: use correct file type
@@ -330,7 +275,6 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
                     ).collect(Collectors.toSet());
                     if (changes.isEmpty()) {
                         resultHashToResult.put(cacheKey, result);
-                        fileAccessTracker.markAccessed(result);
                         this.result = result;
                     }
                     return new TransformerExecutionStateChanges(changes);
