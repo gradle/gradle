@@ -1,5 +1,9 @@
 package org.gradle.gradlebuild.docs
 
+import com.vladsch.flexmark.ext.tables.TablesExtension
+import com.vladsch.flexmark.html.HtmlRenderer
+import com.vladsch.flexmark.parser.Parser
+import com.vladsch.flexmark.util.options.MutableDataSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -9,8 +13,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-import org.pegdown.PegDownProcessor
-
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.charset.Charset.defaultCharset
@@ -18,7 +20,7 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class PegDown @Inject constructor(
+open class RenderMarkdownTask @Inject constructor(
     @get:PathSensitive(PathSensitivity.NONE) @get:InputFile val markdownFile: File,
     @get:OutputFile val destination: File
 ) : DefaultTask() {
@@ -31,9 +33,15 @@ open class PegDown @Inject constructor(
 
     @TaskAction
     fun process() {
+<<<<<<< HEAD:buildSrc/subprojects/docs/src/main/kotlin/org/gradle/gradlebuild/docs/PegDown.kt
         val processor = PegDownProcessor(0, PEGDOWN_PARSING_TIMEOUT_MILLIS)
+=======
+        val options = MutableDataSet().apply { set(Parser.EXTENSIONS, listOf(TablesExtension.create())) }
+        val parser = Parser.builder(options).build()
+        val renderer = HtmlRenderer.builder(options).build()
+>>>>>>> Migrate Pegdown to flexmark:buildSrc/subprojects/docs/src/main/kotlin/org/gradle/gradlebuild/docs/RenderMarkdownTask.kt
         val markdown = markdownFile.readText(Charset.forName(inputEncoding))
-        val html = processor.markdownToHtml(markdown)
+        val html = renderer.render(parser.parse(markdown))
         destination.writeText(html, Charset.forName(outputEncoding))
     }
 }
