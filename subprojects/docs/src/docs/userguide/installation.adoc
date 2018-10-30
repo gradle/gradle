@@ -107,7 +107,7 @@ Alternatively you can unpack the Gradle distribution ZIP into `C:\Gradle` using 
 
 === Step 3. Configure your system environment
 
-For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__%GRADLE_HOME%__/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
+For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__%GRADLE_HOME%__/bin` for Windows and `__${GRADLE_HOME}__/bin` for Linux(?) to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
 
 ==== Linux & MacOS users
 
