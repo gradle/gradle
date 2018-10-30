@@ -36,14 +36,9 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     private final List<ComponentSelectionDescriptorInternal> reasons = Lists.newArrayList();
     private ComponentSelector target;
 
-    public DefaultDependencySubstitution(ComponentSelector requested, String reason) {
+    public DefaultDependencySubstitution(ComponentSelector requested) {
         this.requested = requested;
         this.target = requested;
-        if (reason != null) {
-            reasons.add(ComponentSelectionReasons.REQUESTED.withReason(Describables.of(reason)));
-        } else {
-            reasons.add(ComponentSelectionReasons.REQUESTED);
-        }
     }
 
     @Override
@@ -80,7 +75,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return reasons.size() > 1;
+        return !reasons.isEmpty();
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

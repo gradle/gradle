@@ -28,12 +28,11 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionSpec extends Specification {
     def componentSelector = Mock(ComponentSelector)
-    def details = new DefaultDependencySubstitution(componentSelector, null)
+    def details = new DefaultDependencySubstitution(componentSelector)
 
     def "can override target and selection reason for project"() {
         when:
@@ -46,7 +45,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target.module == "foo"
         details.target.version == "3.0"
         details.updated
-        details.selectionDescription == [REQUESTED, FORCED, SELECTED_BY_RULE]
+        details.selectionDescription == [FORCED, SELECTED_BY_RULE]
     }
 
     def "does not allow null target"() {
@@ -71,7 +70,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription == [REQUESTED, SELECTED_BY_RULE]
+        details.selectionDescription == [SELECTED_BY_RULE]
     }
 
     def "can specify custom selection reason"() {
@@ -103,6 +102,6 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
-        details.selectionDescription == [REQUESTED, SELECTED_BY_RULE]
+        details.selectionDescription == [SELECTED_BY_RULE]
     }
 }

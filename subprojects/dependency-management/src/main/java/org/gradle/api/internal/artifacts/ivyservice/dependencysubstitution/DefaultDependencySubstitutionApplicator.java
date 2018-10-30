@@ -29,8 +29,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
 
     @Override
     public SubstitutionResult apply(DependencyMetadata dependency) {
-        // TODO:DAZ Instead of building a list of reasons here, we should be appending to a single list.
-        DependencySubstitutionInternal details = new DefaultDependencySubstitution(dependency.getSelector(), dependency.getReason());
+        DependencySubstitutionInternal details = new DefaultDependencySubstitution(dependency.getSelector());
         try {
             rule.execute(details);
         } catch (Throwable e) {
