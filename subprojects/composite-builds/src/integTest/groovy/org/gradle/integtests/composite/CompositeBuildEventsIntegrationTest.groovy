@@ -200,7 +200,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
-    def "fires build finished events for all builds regardless of whether other builds fail"() {
+    def "fires build finished events for all builds when build finished event is other builds fail"() {
         given:
         buildA.buildFile << """
             gradle.buildFinished {
@@ -230,8 +230,63 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build C finished")
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
+                .assertHasFileName("Build file '${buildA.buildFile}'")
+                .assertHasLineNumber(17)
         failure.assertHasDescription("build B broken")
+                .assertHasFileName("Build file '${buildB.buildFile}'")
+                .assertHasLineNumber(13)
         failure.assertHasDescription("build C broken")
+                .assertHasFileName("Build file '${buildC.buildFile}'")
+                .assertHasLineNumber(9)
+    }
+
+    def "fires build finished events for all builds when other builds fail"() {
+        given:
+        buildA.buildFile << """
+            gradle.buildFinished {
+                println "build A finished"
+                throw new RuntimeException("build A broken")
+            }
+            task broken {
+                dependsOn gradle.includedBuild("buildB").task(":broken")
+            }
+        """
+        buildB.buildFile << """
+            gradle.buildFinished {
+                println "build B finished"
+                throw new RuntimeException("build B broken")
+            }
+            task broken {
+                doLast { throw new RuntimeException("task broken") }
+            }
+        """
+        buildC.buildFile << """
+            gradle.buildFinished {
+                println "build C finished"
+                throw new RuntimeException("build C broken")
+            }
+        """
+
+        when:
+        fails(buildA, "broken")
+
+        then:
+        outputContains("build A finished")
+        outputContains("build B finished")
+        outputContains("build C finished")
+        failure.assertHasFailures(4)
+        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
+                .assertHasFileName("Build file '${buildB.buildFile}'")
+                .assertHasLineNumber(16)
+        failure.assertHasDescription("build A broken")
+                .assertHasFileName("Build file '${buildA.buildFile}'")
+                .assertHasLineNumber(17)
+        failure.assertHasDescription("build B broken")
+                .assertHasFileName("Build file '${buildB.buildFile}'")
+                .assertHasLineNumber(13)
+        failure.assertHasDescription("build C broken")
+                .assertHasFileName("Build file '${buildC.buildFile}'")
+                .assertHasLineNumber(9)
     }
 
     void verifyBuildEvents() {

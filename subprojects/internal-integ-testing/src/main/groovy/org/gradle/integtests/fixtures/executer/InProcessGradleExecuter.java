@@ -597,8 +597,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
         private final OutputScrapingExecutionFailure outputFailure;
         private final Throwable failure;
-        private final String fileName;
-        private final String lineNumber;
+        private final List<String> fileNames = new ArrayList<String>();
+        private final List<String> lineNumbers = new ArrayList<String>();
         private final List<String> descriptions = new ArrayList<String>();
 
         public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
@@ -606,38 +606,35 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             this.outputFailure = outputFailure;
             this.failure = failure;
 
-            // Chop up the exception message into its expected parts
-            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
-            if (matcher.find()) {
-                fileName = matcher.group(1);
-                lineNumber = matcher.group(3);
-                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
-            } else {
-                fileName = "";
-                lineNumber = "";
-                descriptions.add(failure.getMessage().trim());
-            }
             if (failure instanceof MultipleBuildFailures) {
                 for (Throwable cause : ((MultipleBuildFailures) failure).getCauses()) {
-                    matcher = LOCATION_PATTERN.matcher(cause.getMessage());
-                    if (matcher.find()) {
-                        descriptions.add(cause.getMessage().substring(matcher.end()).trim());
-                    } else {
-                        descriptions.add(cause.getMessage().trim());
-                    }
+                    extractDetails(cause);
                 }
+            } else {
+                extractDetails(failure);
+            }
+        }
+
+        private void extractDetails(Throwable failure) {
+            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
+            if (matcher.find()) {
+                fileNames.add(matcher.group(1));
+                lineNumbers.add(matcher.group(3));
+                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
+            } else {
+                descriptions.add(failure.getMessage().trim());
             }
         }
 
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
             outputFailure.assertHasLineNumber(lineNumber);
-            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
+            assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
             return this;
         }
 
         public ExecutionFailure assertHasFileName(String filename) {
             outputFailure.assertHasFileName(filename);
-            assertThat(this.fileName, equalTo(filename));
+            assertThat(this.fileNames, hasItem(equalTo(filename)));
             return this;
         }
 

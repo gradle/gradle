@@ -47,14 +47,14 @@ FAILURE: broken
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "none"')
+        e.message.trim().startsWith('Expected: a collection containing "none"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: "23"')
+        e2.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "cannot assert that failure location is present when missing"() {
@@ -71,14 +71,14 @@ FAILURE: broken
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "build.gradle"')
+        e.message.trim().startsWith('Expected: a collection containing "build.gradle"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: "23"')
+        e2.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "cannot make assertions about failures when failure section is missing"() {
@@ -116,14 +116,14 @@ broken!
 
         then:
         def e4 = thrown(AssertionError)
-        e4.message.trim().startsWith('Expected: "build.gradle"')
+        e4.message.trim().startsWith('Expected: a collection containing "build.gradle"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e5 = thrown(AssertionError)
-        e5.message.trim().startsWith('Expected: "23"')
+        e5.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "can assert that given number of failures are present"() {

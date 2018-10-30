@@ -174,4 +174,28 @@ gradle.rootProject { task a }
         "projectsEvaluated" | "Gradle gradle"
         "buildFinished"     | "BuildResult result"
     }
+
+    def "produces reasonable error message when build fails and Gradle.buildFinished closure also fails"() {
+        buildFile << """
+    gradle.buildFinished {
+        throw new RuntimeException('broken closure')
+    }
+    task broken {
+        doLast { throw new RuntimeException('broken task') }
+    }
+"""
+
+        when:
+        fails("broken")
+
+        then:
+        failure.assertHasFailures(2)
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+                .assertHasCause("broken task")
+                .assertHasFileName("Build file '$buildFile'")
+                .assertHasLineNumber(6)
+        failure.assertHasDescription("broken closure")
+                .assertHasFileName("Build file '$buildFile'")
+                .assertHasLineNumber(3)
+    }
 }
