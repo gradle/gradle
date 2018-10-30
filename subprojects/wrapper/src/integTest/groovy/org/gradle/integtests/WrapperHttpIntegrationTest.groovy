@@ -78,6 +78,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
     }
 
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     public void "recovers from failed download"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
