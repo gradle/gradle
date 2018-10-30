@@ -31,6 +31,8 @@ import java.util.List;
 public interface Transformer extends Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
 
+    boolean isCacheable();
+
     List<File> transform(File file, File file2);
 
     /**

@@ -45,7 +45,6 @@ import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
-import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -94,7 +93,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
-                                    BuildCacheCommandFactory commandFactory,
                                     BuildCacheController buildCacheController,
                                     TaskInputsListener inputsListener,
                                     TaskActionListener actionListener,

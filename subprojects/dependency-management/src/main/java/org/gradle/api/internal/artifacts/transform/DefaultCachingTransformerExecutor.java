@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository.PreviousTransformerExecution;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -250,11 +252,23 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             return new CacheHandler() {
                 @Override
                 public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
-                    return Optional.empty();
+                    if (!transformer.isCacheable()) {
+                        return Optional.empty();
+                    }
+                    Optional<T> loadedArtifact = Optional.ofNullable(loader.apply(new TransformerExecutionBuildCacheKey(cacheKey, transformer)));
+                    loadedArtifact.ifPresent(artifact -> result = ImmutableList.of(getOutputDir()));
+                    return loadedArtifact;
                 }
 
                 @Override
                 public void store(Consumer<BuildCacheKey> storer) {
+                    if (transformer.isCacheable()) {
+                        if (ImmutableList.of(getOutputDir()).equals(result)) {
+                            storer.accept(new TransformerExecutionBuildCacheKey(cacheKey, transformer));
+                        } else {
+                            throw new TransformInvocationException(primaryInput, transformer.getImplementationClass(), new GradleException("Cacheable transformers need to have the output directory as a result!"));
+                        }
+                    }
                 }
             };
         }
@@ -307,7 +321,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void visitTrees(CacheableTreeVisitor visitor) {
-            throw new UnsupportedOperationException("we don't cache yet");
+            visitor.visitTree("outputDirectory", TreeType.DIRECTORY, getOutputDir());
         }
 
         @Override
@@ -381,6 +395,27 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
                     }
                 };
             }
+        }
+    }
+    
+    private static class TransformerExecutionBuildCacheKey implements BuildCacheKey {
+        private final CacheKey cacheKey;
+        private final Transformer transformer;
+
+        public TransformerExecutionBuildCacheKey(CacheKey cacheKey, Transformer transformer) {
+
+            this.cacheKey = cacheKey;
+            this.transformer = transformer;
+        }
+
+        @Override
+        public String getHashCode() {
+            return cacheKey.getPersistentCacheKey().toString();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return cacheKey.getPersistentCacheKey() + " for transformer " + transformer.getDisplayName();
         }
     }
 }

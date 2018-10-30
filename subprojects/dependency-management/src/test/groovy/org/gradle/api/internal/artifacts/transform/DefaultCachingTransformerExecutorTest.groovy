@@ -225,7 +225,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
 
     def "multiple threads can transform files concurrently"() {
-        def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
+        def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null, false) {
             @Override
             List<File> transform(File primaryInput, File outputDir) {
                 instant.a
@@ -233,7 +233,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
                 instant.a_done
                 [new TestFile(outputDir, primaryInput.getName()).touch()]            }
         }
-        def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
+        def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null, false) {
             @Override
             List<File> transform(File primaryInput, File outputDir) {
                 instant.b

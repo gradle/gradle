@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.CacheableTransformer;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -52,7 +53,8 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
 
         paramsSnapshot.appendToHasher(hasher);
 
-        Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiator);
+        boolean isCacheable = implementation.isAnnotationPresent(CacheableTransformer.class);
+        Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiator, isCacheable);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 

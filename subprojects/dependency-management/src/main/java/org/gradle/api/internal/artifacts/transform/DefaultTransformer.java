@@ -22,9 +22,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import javax.annotation.Nullable;
 
 public class DefaultTransformer implements Transformer {
 
@@ -32,12 +32,14 @@ public class DefaultTransformer implements Transformer {
     private final Isolatable<Object[]> parameters;
     private final Instantiator instantiator;
     private final HashCode inputsHash;
+    private final boolean cacheable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator, boolean cacheable) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiator = instantiator;
         this.inputsHash = inputsHash;
+        this.cacheable = cacheable;
     }
 
     @Override
@@ -84,6 +86,11 @@ public class DefaultTransformer implements Transformer {
     @Override
     public Class<? extends ArtifactTransform> getImplementationClass() {
         return implementationClass;
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return cacheable;
     }
 
     @Override
