@@ -136,7 +136,7 @@ public class JacocoTaskExtension {
      *
      * @deprecated The Jacoco plugin now deletes the old coverage file before task execution, so the data will never be appended to an existing coverage file from another task.
      * Use {@link org.gradle.testing.jacoco.tasks.JacocoMerge} to merge different execution files or use {@link org.gradle.testing.jacoco.tasks.JacocoReportBase#setExecutionData(FileCollection)} to generate a report from multiple execution files at once.
-     * Append is set to true for the agent since this allows multiple JVMs spawned by one task to write to the same {@link #destinationFile}.
+     * Append is set to true for the agent since this allows multiple JVMs spawned by one task to write to the same {@link #getDestinationFile() destination file}.
      */
     @Deprecated
     @Input
