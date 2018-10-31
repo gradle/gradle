@@ -709,7 +709,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "transform is rerun when output is removed between builds"() {
+    @Unroll
+    def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
 
@@ -737,8 +738,16 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
 
         when:
-        outputDir1.deleteDir()
-        outputDir2.deleteDir()
+        if (action == "removed") {
+            outputDir1.deleteDir()
+            outputDir2.deleteDir()
+        } else if (action == "removed") {
+            outputDir1.file("dir1.classes.dir/child.txt") << "different"
+            outputDir2.file("lib1.jar.txt") << "different"
+        } else {
+            outputDir1.file("some-unrelated-file.txt") << "added"
+            outputDir2.file("some-unrelated-file.txt") << "added"
+        }
 
         succeeds ":util:resolve", ":app:resolve"
 
@@ -758,6 +767,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        action << ["changed", "removed", "added"]
     }
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
