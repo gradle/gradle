@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskValidationException;
 
 import java.util.List;
@@ -47,11 +46,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
         final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
-        try {
-            context.getTaskProperties().validate(validationContext);
-        } catch (Exception ex) {
-            throw new TaskExecutionException(task, ex);
-        }
+        context.getTaskProperties().validate(validationContext);
 
         if (!messages.isEmpty()) {
             List<String> firstMessages = messages.subList(0, Math.min(5, messages.size()));

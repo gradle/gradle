@@ -86,7 +86,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result == null
-        op.failure == "java.lang.RuntimeException: !"
+        op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
     def "does emit result for afterTask failure"() {
@@ -108,10 +108,10 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result != null
-        op.failure == "java.lang.RuntimeException: !"
+        op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
-    def "afterTask failure supersedes task failure"() {
+    def "afterTask failure is included with task failure"() {
         when:
         buildScript """
             task t {
@@ -132,7 +132,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         }
 
         op.result != null
-        op.failure == "java.lang.RuntimeException: 2"
+        op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
 }

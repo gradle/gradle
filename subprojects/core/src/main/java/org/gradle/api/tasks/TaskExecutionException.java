@@ -15,15 +15,15 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
  * <p>A {@code TaskExecutionException} is thrown when a task fails to execute successfully.</p>
  */
 @Contextual
-public class TaskExecutionException extends GradleException {
+public class TaskExecutionException extends DefaultMultiCauseException {
     private final Task task;
 
     public TaskExecutionException(Task task, Throwable cause) {

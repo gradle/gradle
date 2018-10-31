@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskOutputCachingState;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean actionable = true;
     private boolean didWork;
-    private Throwable failure;
+    private RuntimeException failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
 
@@ -59,15 +62,27 @@ public class TaskStateInternal implements TaskState {
     /**
      * Marks this task as executed with the given failure. This method can be called at most once.
      */
-    public void setOutcome(Throwable failure) {
+    public void setOutcome(RuntimeException failure) {
         assert this.failure == null;
         this.outcome = TaskExecutionOutcome.EXECUTED;
         this.failure = failure;
     }
 
-    public void setAborted(String message) {
-        this.outcome = TaskExecutionOutcome.EXECUTED;
-        this.failure = new GradleException(message);
+    public void addFailure(TaskExecutionException failure) {
+        if (this.failure == null) {
+            this.failure = failure;
+        } else if (this.failure instanceof TaskExecutionException) {
+            TaskExecutionException taskExecutionException = (TaskExecutionException) this.failure;
+            List<Throwable> causes = new ArrayList<Throwable>(taskExecutionException.getCauses());
+            CollectionUtils.addAll(causes, failure.getCauses());
+            taskExecutionException.initCauses(causes);
+        } else {
+            List<Throwable> causes = new ArrayList<Throwable>();
+            causes.add(this.failure);
+            causes.addAll(failure.getCauses());
+            failure.initCauses(causes);
+            this.failure = failure;
+        }
     }
 
     public boolean getExecuting() {
@@ -91,16 +106,9 @@ public class TaskStateInternal implements TaskState {
     }
 
     public void rethrowFailure() {
-        if (failure == null) {
-            return;
+        if (failure != null) {
+            throw failure;
         }
-        if (failure instanceof RuntimeException) {
-            throw (RuntimeException) failure;
-        }
-        if (failure instanceof Error) {
-            throw (Error) failure;
-        }
-        throw new GradleException("Task failed with an exception.", failure);
     }
 
     public boolean getSkipped() {
@@ -131,5 +139,4 @@ public class TaskStateInternal implements TaskState {
     public void setActionable(boolean actionable) {
         this.actionable = actionable;
     }
-
 }
