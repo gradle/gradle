@@ -29,7 +29,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -541,7 +541,7 @@ open class IdePlugin : Plugin<Project> {
     private
     fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
-        val releaseNotesMarkdown: PegDown by docsProject.tasks
+        val releaseNotesMarkdown: RenderMarkdownTask by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
         val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
         val vmParameter = mutableListOf(
