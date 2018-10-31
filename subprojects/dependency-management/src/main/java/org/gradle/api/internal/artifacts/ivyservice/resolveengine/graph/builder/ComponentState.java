@@ -220,8 +220,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public void addCause(ComponentSelectionDescriptorInternal reason) {
-        selectionCauses.add(reason);
+    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
+        selectionCauses.add(componentSelectionDescriptor);
     }
 
     public void setRoot() {

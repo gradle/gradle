@@ -45,7 +45,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target.module == "foo"
         details.target.version == "3.0"
         details.updated
-        details.selectionDescription == [FORCED, SELECTED_BY_RULE]
+        details.ruleDescriptors == [FORCED, SELECTED_BY_RULE]
     }
 
     def "does not allow null target"() {
@@ -70,7 +70,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription == [SELECTED_BY_RULE]
+        details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
     def "can specify custom selection reason"() {
@@ -81,8 +81,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.selectionDescription.last().description == 'with custom reason'
+        details.ruleDescriptors.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.ruleDescriptors.last().description == 'with custom reason'
     }
 
     def "can specify target project"() {
@@ -102,6 +102,6 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
-        details.selectionDescription == [SELECTED_BY_RULE]
+        details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 }

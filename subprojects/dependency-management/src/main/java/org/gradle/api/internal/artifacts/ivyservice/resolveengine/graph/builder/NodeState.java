@@ -309,7 +309,7 @@ class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            return dependencyState.withTarget(details.getTarget(), details.getSelectionDescription());
+            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
         }
         return dependencyState;
     }

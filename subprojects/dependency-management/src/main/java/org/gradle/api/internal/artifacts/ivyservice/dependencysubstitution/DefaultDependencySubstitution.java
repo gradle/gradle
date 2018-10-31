@@ -33,7 +33,7 @@ import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_B
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelector requested;
-    private final List<ComponentSelectionDescriptorInternal> reasons = Lists.newArrayList();
+    private final List<ComponentSelectionDescriptorInternal> ruleDescriptors = Lists.newArrayList();
     private ComponentSelector target;
 
     public DefaultDependencySubstitution(ComponentSelector requested) {
@@ -57,15 +57,15 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     }
 
     @Override
-    public void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription) {
+    public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
-        this.reasons.add((ComponentSelectionDescriptorInternal) selectionDescription);
+        this.ruleDescriptors.add((ComponentSelectionDescriptorInternal) ruleDescriptor);
         validateTarget(target);
     }
 
     @Override
-    public List<ComponentSelectionDescriptorInternal> getSelectionDescription() {
-        return reasons;
+    public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+        return ruleDescriptors;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return !reasons.isEmpty();
+        return !ruleDescriptors.isEmpty();
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

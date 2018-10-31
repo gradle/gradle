@@ -106,7 +106,7 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
+        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
 
         }
 

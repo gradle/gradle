@@ -66,7 +66,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
+    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
     }
 
     @Override

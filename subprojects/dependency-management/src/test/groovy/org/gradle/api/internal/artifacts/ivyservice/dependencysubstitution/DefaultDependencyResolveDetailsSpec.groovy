@@ -38,7 +38,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         !details.delegate.updated
-        details.delegate.selectionDescription == []
+        details.delegate.ruleDescriptors == []
 
         when:
         details.useVersion("1.0") //the same version
@@ -47,7 +47,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         details.delegate.updated
-        details.delegate.selectionDescription == [SELECTED_BY_RULE]
+        details.delegate.ruleDescriptors == [SELECTED_BY_RULE]
 
         when:
         details.useVersion("2.0") //different version
@@ -56,7 +56,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "2.0")
         details.delegate.updated
-        details.delegate.selectionDescription == [SELECTED_BY_RULE, SELECTED_BY_RULE]
+        details.delegate.ruleDescriptors == [SELECTED_BY_RULE, SELECTED_BY_RULE]
     }
 
     def "does not allow null version"() {
@@ -78,7 +78,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:bar:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription == [SELECTED_BY_RULE]
+        details.delegate.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
     def "can mix configuring version and target module"() {
@@ -181,8 +181,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
     private static def getReason(DefaultDependencyResolveDetails details) {
         assert details.delegate.updated
-        assert details.delegate.selectionDescription.size() == 1
-        return details.delegate.selectionDescription[0]
+        assert details.delegate.ruleDescriptors.size() == 1
+        return details.delegate.ruleDescriptors[0]
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version, String reason = null) {

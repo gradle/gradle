@@ -39,7 +39,7 @@ public interface ComponentResolutionState extends StringVersioned {
     @Nullable
     ComponentResolveMetadata getMetadata();
 
-    void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription);
+    void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor);
 
     void reject();
 

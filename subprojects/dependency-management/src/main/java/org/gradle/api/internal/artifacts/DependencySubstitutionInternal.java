@@ -24,11 +24,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import java.util.List;
 
 public interface DependencySubstitutionInternal extends DependencySubstitution {
-    void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription);
+    void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor);
 
     ComponentSelector getTarget();
 
-    List<ComponentSelectionDescriptorInternal> getSelectionDescription();
+    List<ComponentSelectionDescriptorInternal> getRuleDescriptors();
 
     boolean isUpdated();
 }
