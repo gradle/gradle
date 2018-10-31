@@ -57,6 +57,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.platform.TargetMachineFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
@@ -150,6 +151,7 @@ class DefaultProjectTest extends Specification {
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
     ProjectStateRegistry projectStateRegistryMock = Stub(ProjectStateRegistry)
     ProjectState projectStateMock = Stub(ProjectState)
+    TargetMachineFactory targetMachineFactoryMock = Stub(TargetMachineFactory)
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -204,6 +206,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(BuildOperationExecutor)  >> buildOperationExecutor
         serviceRegistryMock.get((Type) ListenerBuildOperationDecorator)  >> listenerBuildOperationDecorator
         serviceRegistryMock.get((Type) CrossProjectConfigurator)  >> crossProjectConfigurator
+        serviceRegistryMock.get(TargetMachineFactory) >> targetMachineFactoryMock
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)

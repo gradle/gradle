@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.api.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.platform.TargetMachine;
 
 /**
  * A factory for creating {@link TargetMachine} objects.
@@ -31,22 +32,22 @@ public interface TargetMachineFactory {
     TargetMachine host();
 
     /**
-     * Returns a {@link TargetMachine} for the windows operating system family.
+     * Returns a {@link TargetMachine} for the windows operating system family and the architecture of the current host.
      */
     TargetMachine windows();
 
     /**
-     * Returns a {@link TargetMachine} for the linux operating system family.
+     * Returns a {@link TargetMachine} for the linux operating system family and the architecture of the current host.
      */
     TargetMachine linux();
 
     /**
-     * Returns a {@link TargetMachine} for the macos operating system family.
+     * Returns a {@link TargetMachine} for the macOS operating system family and the architecture of the current host.
      */
-    TargetMachine macos();
+    TargetMachine macOS();
 
     /**
-     * Returns a {@link TargetMachine} representing the operating system and default architecture.
+     * Returns a {@link TargetMachine} representing the specified operating system and the architecture of the current host.
      */
     TargetMachine of(String operatingSystemFamily);
 

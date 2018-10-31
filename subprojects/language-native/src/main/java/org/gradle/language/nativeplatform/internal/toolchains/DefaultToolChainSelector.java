@@ -22,7 +22,7 @@ import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.api.platform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;

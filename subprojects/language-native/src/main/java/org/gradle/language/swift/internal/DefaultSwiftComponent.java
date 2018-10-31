@@ -29,8 +29,8 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftVersion;
-import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 
 import java.util.Collections;
 

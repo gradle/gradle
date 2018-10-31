@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.MachineArchitecture
+import org.gradle.api.platform.MachineArchitecture
 import org.gradle.util.Matchers
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -91,6 +91,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build current architecture when other, non-buildable architectures are specified"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)

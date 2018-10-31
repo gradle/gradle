@@ -30,7 +30,7 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable;

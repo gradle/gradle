@@ -17,8 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
 import org.gradle.nativeplatform.platform.internal.ImmutableDefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 

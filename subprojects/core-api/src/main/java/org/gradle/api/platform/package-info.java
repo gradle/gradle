@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.platform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.NativePlatform;
-
 /**
- * A target platform for building Swift binaries.
- *
- * @since 4.5
+ * Classes related to targeting operating system and architecture platforms.
  */
-@Incubating
-public interface SwiftPlatform extends NativePlatform {
-    /**
-     * The operating system family being targeted.
-     *
-     * @since 4.8
-     */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.platform;

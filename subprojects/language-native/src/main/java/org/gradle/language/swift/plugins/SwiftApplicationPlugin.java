@@ -37,9 +37,9 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
-import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 

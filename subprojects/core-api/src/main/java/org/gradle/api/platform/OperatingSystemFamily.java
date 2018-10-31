@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.api.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -75,7 +75,7 @@ public abstract class OperatingSystemFamily implements Named {
      *
      * @since 4.8
      */
-    public static final String MACOS = "macos";
+    public static final String MACOS = "macOS";
 
     /**
      * Is this the macOS operating system family?

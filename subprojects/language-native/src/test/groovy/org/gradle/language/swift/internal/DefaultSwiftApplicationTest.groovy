@@ -18,10 +18,10 @@ package org.gradle.language.swift.internal
 
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
-import org.gradle.nativeplatform.MachineArchitecture
-import org.gradle.nativeplatform.OperatingSystemFamily
-import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.TargetMachineFactory
+import org.gradle.api.platform.MachineArchitecture
+import org.gradle.api.platform.OperatingSystemFamily
+import org.gradle.api.platform.TargetMachine
+import org.gradle.api.platform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

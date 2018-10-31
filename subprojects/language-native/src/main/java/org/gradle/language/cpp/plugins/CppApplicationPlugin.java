@@ -35,10 +35,10 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
-import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;

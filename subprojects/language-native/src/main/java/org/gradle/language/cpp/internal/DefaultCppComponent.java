@@ -32,8 +32,8 @@ import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -50,7 +50,6 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
     private final SetProperty<TargetMachine> targetMachines;
-    private final TargetMachineFactory machines;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
@@ -63,9 +62,8 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
-        this.machines = targetMachineFactory;
         targetMachines = objectFactory.setProperty(TargetMachine.class).empty();
-        targetMachines.set(Collections.singleton(machines.host()));
+        targetMachines.set(Collections.singleton(targetMachineFactory.host()));
     }
 
     @Override
@@ -132,10 +130,5 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public SetProperty<TargetMachine> getTargetMachines() {
         return targetMachines;
-    }
-
-    @Override
-    public TargetMachineFactory getMachines() {
-        return machines;
     }
 }

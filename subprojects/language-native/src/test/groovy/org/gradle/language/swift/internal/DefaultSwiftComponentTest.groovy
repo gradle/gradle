@@ -23,7 +23,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
 import org.gradle.language.swift.SwiftVersion
-import org.gradle.nativeplatform.TargetMachineFactory
+import org.gradle.api.platform.TargetMachineFactory
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil

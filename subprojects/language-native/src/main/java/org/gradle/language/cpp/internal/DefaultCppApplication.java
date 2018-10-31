@@ -29,7 +29,7 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 

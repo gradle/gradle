@@ -19,9 +19,9 @@ package org.gradle.language.nativeplatform.internal.toolchains
 import org.gradle.api.model.ObjectFactory
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.nativeplatform.MachineArchitecture
-import org.gradle.nativeplatform.OperatingSystemFamily
-import org.gradle.nativeplatform.TargetMachine
+import org.gradle.api.platform.MachineArchitecture
+import org.gradle.api.platform.OperatingSystemFamily
+import org.gradle.api.platform.TargetMachine
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform

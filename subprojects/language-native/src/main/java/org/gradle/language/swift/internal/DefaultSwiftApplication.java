@@ -29,7 +29,7 @@ import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 

@@ -37,8 +37,8 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 

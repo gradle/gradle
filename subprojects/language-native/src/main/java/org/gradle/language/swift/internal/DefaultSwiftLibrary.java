@@ -34,7 +34,7 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 

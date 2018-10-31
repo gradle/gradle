@@ -35,6 +35,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -978,6 +979,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     ProjectLayout getLayout();
+
+    /**
+     * Returns a factory for configuring target machines.
+     *
+     * @since 5.1
+     */
+    TargetMachineFactory getMachines();
 
     /**
      * Creates a directory and returns a file pointing to it.

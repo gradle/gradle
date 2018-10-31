@@ -17,10 +17,10 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
@@ -48,7 +48,7 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     @Override
-    public TargetMachine macos() {
+    public TargetMachine macOS() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.MACOS), getDefaultArchitecture());
     }
 

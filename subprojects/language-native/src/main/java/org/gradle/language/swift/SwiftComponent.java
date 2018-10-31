@@ -26,7 +26,7 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.ComponentWithDependencies;
-import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.api.platform.TargetMachine;
 
 /**
  * Configuration for a Swift component, such as a library or executable, defining the source files that make up the component plus other settings.

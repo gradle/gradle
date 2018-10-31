@@ -87,7 +87,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     protected String getVariantSuffix(String architecture) {
         String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
-        return operatingSystemFamily.capitalize() + architecture.capitalize()
+        return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
     }
 
     protected abstract SourceElement getComponentUnderTest()
