@@ -37,6 +37,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         signing {
             sign configurations.archives, configurations.meta
         }
+        project.evaluate()
         
         then:
         def signingTasks = [signArchives, signMeta]
@@ -58,6 +59,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         signing {
             sign configurations.produced
         }
+        project.evaluate()
 
         then:
         configurations.signatures.artifacts.size() == 3

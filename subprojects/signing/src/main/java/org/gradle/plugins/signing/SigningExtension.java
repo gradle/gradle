@@ -408,15 +408,21 @@ public class SigningExtension {
         return signTask;
     }
 
-    protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
-        task.getSignatures().all(new Action<Signature>() {
-            public void execute(Signature sig) {
-                configuration.getArtifacts().add(sig);
-            }
-        });
-        return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
-            public void execute(Signature sig) {
-                configuration.getArtifacts().remove(sig);
+    protected void addSignaturesToConfiguration(Sign task, final Configuration configuration) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                task.getSignatures().all(new Action<Signature>() {
+                    public void execute(Signature sig) {
+                        configuration.getArtifacts().add(sig);
+                    }
+                });
+
+                task.getSignatures().whenObjectRemoved(new Action<Signature>() {
+                    public void execute(Signature sig) {
+                        configuration.getArtifacts().remove(sig);
+                    }
+                });
             }
         });
     }
