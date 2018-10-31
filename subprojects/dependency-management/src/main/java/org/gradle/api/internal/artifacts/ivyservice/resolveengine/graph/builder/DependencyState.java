@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.*;
@@ -32,7 +33,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 class DependencyState {
     private final ComponentSelector requested;
     private final DependencyMetadata dependency;
-    private final ComponentSelectionDescriptorInternal ruleDescriptor;
+    private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
 
     private ModuleIdentifier moduleIdentifier;
@@ -42,10 +43,10 @@ class DependencyState {
         this(dependency, dependency.getSelector(), null, componentSelectorConverter);
     }
 
-    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, ComponentSelectionDescriptorInternal ruleDescriptor, ComponentSelectorConverter componentSelectorConverter) {
+    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, List<ComponentSelectionDescriptorInternal> ruleDescriptors, ComponentSelectorConverter componentSelectorConverter) {
         this.dependency = dependency;
         this.requested = requested;
-        this.ruleDescriptor = ruleDescriptor;
+        this.ruleDescriptors = ruleDescriptors;
         this.componentSelectorConverter = componentSelectorConverter;
     }
 
@@ -64,14 +65,25 @@ class DependencyState {
         return moduleIdentifier;
     }
 
-    public DependencyState withTarget(ComponentSelector target, ComponentSelectionDescriptorInternal ruleDescriptor) {
+    public DependencyState withTarget(ComponentSelector target, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTarget(target);
-        return new DependencyState(targeted, requested, ruleDescriptor, componentSelectorConverter);
+        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
+    }
+
+    /**
+     * Descriptor for any rules that modify this DependencyState from the original.
+     */
+    public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+        return ruleDescriptors;
     }
 
     public boolean isForced() {
-        if (ruleDescriptor != null && ruleDescriptor.isEquivalentToForce()) {
-            return true;
+        if (ruleDescriptors != null) {
+            for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
+                if (ruleDescriptor.isEquivalentToForce()) {
+                    return true;
+                }
+            }
         }
         return isDependencyForced();
     }
@@ -88,12 +100,12 @@ class DependencyState {
         String reason = dependency.getReason();
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
-            dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
         }
         reasons.add(dependencyDescriptor);
 
-        if (ruleDescriptor != null) {
-            reasons.add(ruleDescriptor);
+        if (ruleDescriptors != null) {
+            reasons.addAll(ruleDescriptors);
         }
         if (isDependencyForced()) {
             reasons.add(FORCED);

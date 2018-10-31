@@ -207,7 +207,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         } else {
             ComponentSelectionDescriptorInternal desc = ComponentSelectionReasons.CONFLICT_RESOLUTION;
-            selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
+            selected.addCause(desc.withDescription(new VersionConflictResolutionDetails(candidates)));
         }
         return selected;
     }

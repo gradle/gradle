@@ -106,7 +106,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             if (details.hasResult()) {
                 resolutionAction.execute(details);
                 CapabilityInternal capability = (CapabilityInternal) conflict.descriptors.iterator().next();
-                details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("latest version of capability", capability.getCapabilityId())));
+                details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(Describables.of("latest version of capability", capability.getCapabilityId())));
                 return;
             }
         }

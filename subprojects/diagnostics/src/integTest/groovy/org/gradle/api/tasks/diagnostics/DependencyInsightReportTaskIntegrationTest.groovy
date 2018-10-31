@@ -764,6 +764,11 @@ org:bar:2.0
       org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
+      - Forced
+      - Selected by rule
+      - Selected by rule : RULE 2
+      - Selected by rule : SUBSTITUTION 1
+      - Selected by rule : SUBSTITUTION 2
       - Selected by rule : SUBSTITUTION 3
 
 org:foo:1.0 -> org:bar:2.0
