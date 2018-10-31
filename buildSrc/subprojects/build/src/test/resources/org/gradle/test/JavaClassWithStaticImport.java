@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs;
 
-import org.gradle.internal.exceptions.Contextual;
+package org.gradle.test;
 
-@Contextual
-public class DocGenerationException extends RuntimeException {
-    public DocGenerationException(String message) {
-        super(message);
-    }
+import static java.util.Collections.emptyList;
 
-    public DocGenerationException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
+import java.util.List;
+
+public class JavaClassWithStaticImport {
+    List<String> getProperty() { return emptyList(); }
 }

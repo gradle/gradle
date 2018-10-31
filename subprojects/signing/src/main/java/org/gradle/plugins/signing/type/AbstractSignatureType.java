@@ -15,20 +15,17 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.plugins.signing.signatory.Signatory;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import static org.codehaus.groovy.runtime.ResourceGroovyMethods.newInputStream;
-import static org.codehaus.groovy.runtime.ResourceGroovyMethods.newOutputStream;
-import static org.gradle.internal.IoActions.withResource;
 
 /**
  * Convenience base class for {@link SignatureType} implementations.
@@ -36,25 +33,12 @@ import static org.gradle.internal.IoActions.withResource;
 public abstract class AbstractSignatureType implements SignatureType {
 
     @Override
-    public File sign(final Signatory signatory, File toSign) {
-        final File signatureFile = fileFor(toSign);
-        try {
-            withResource(newInputStream(toSign), new Action<InputStream>() {
-                @Override
-                public void execute(final InputStream toSignStream) {
-                    try {
-                        withResource(newOutputStream(signatureFile), new Action<BufferedOutputStream>() {
-                            @Override
-                            public void execute(BufferedOutputStream signatureFileStream) {
-                                sign(signatory, toSignStream, signatureFileStream);
-                            }
-                        });
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-            });
-        } catch (FileNotFoundException e) {
+    public File sign(Signatory signatory, File toSign) {
+        File signatureFile = fileFor(toSign);
+        try (InputStream toSignStream = new BufferedInputStream(new FileInputStream(toSign));
+             OutputStream signatureFileStream = new BufferedOutputStream(new FileOutputStream(signatureFile))) {
+            sign(signatory, toSignStream, signatureFileStream);
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return signatureFile;

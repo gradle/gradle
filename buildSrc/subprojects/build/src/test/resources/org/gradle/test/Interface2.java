@@ -1,4 +1,4 @@
-package org.gradle.test
+package org.gradle.test;
 
 public interface Interface2 {
 
