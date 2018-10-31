@@ -23,17 +23,18 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelector requested;
-    private final List<ComponentSelectionDescriptorInternal> ruleDescriptors = Lists.newArrayList();
+    private List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private ComponentSelector target;
 
     public DefaultDependencySubstitution(ComponentSelector requested) {
@@ -59,13 +60,16 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     @Override
     public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
+        if (this.ruleDescriptors == null) {
+            this.ruleDescriptors = Lists.newArrayList();
+        }
         this.ruleDescriptors.add((ComponentSelectionDescriptorInternal) ruleDescriptor);
         validateTarget(target);
     }
 
     @Override
     public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-        return ruleDescriptors;
+        return ruleDescriptors == null ? Collections.emptyList() : ruleDescriptors;
     }
 
     @Override
@@ -75,7 +79,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return !ruleDescriptors.isEmpty();
+        return ruleDescriptors != null;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {
