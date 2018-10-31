@@ -100,7 +100,6 @@ dependencies {
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testCompile 'com.vladsch.flexmark:flexmark-all:0.34.48'
     testCompile testLibraries.jsoup
     testCompile("org.gebish:geb-spock:2.2")
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')

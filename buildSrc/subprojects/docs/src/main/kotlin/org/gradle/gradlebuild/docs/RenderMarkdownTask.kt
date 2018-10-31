@@ -33,13 +33,9 @@ open class RenderMarkdownTask @Inject constructor(
 
     @TaskAction
     fun process() {
-<<<<<<< HEAD:buildSrc/subprojects/docs/src/main/kotlin/org/gradle/gradlebuild/docs/PegDown.kt
-        val processor = PegDownProcessor(0, PEGDOWN_PARSING_TIMEOUT_MILLIS)
-=======
         val options = MutableDataSet().apply { set(Parser.EXTENSIONS, listOf(TablesExtension.create())) }
         val parser = Parser.builder(options).build()
         val renderer = HtmlRenderer.builder(options).build()
->>>>>>> Migrate Pegdown to flexmark:buildSrc/subprojects/docs/src/main/kotlin/org/gradle/gradlebuild/docs/RenderMarkdownTask.kt
         val markdown = markdownFile.readText(Charset.forName(inputEncoding))
         val html = renderer.render(parser.parse(markdown))
         destination.writeText(html, Charset.forName(outputEncoding))

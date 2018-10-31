@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":versioning"))
     implementation(project(":performance"))
-    implementation("com.vladsch.flexmark:flexmark-all:0.34.48")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.google.guava:guava-jdk5:14.0.1")
     implementation("org.ow2.asm:asm:6.0")
