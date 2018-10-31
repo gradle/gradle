@@ -30,7 +30,7 @@ class SigningTasksSpec extends SigningProjectSpec {
             sign jar
             sign sourcesJar, javadocJar
         }
-        
+
         then:
         def signingTasks = [signJar, signSourcesJar, signJavadocJar]
         
