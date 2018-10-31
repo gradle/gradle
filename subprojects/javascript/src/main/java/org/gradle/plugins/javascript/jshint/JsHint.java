@@ -31,7 +31,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.plugins.javascript.jshint.internal.JsHintProtocol;
 import org.gradle.plugins.javascript.jshint.internal.JsHintResult;
 import org.gradle.plugins.javascript.jshint.internal.JsHintSpec;
@@ -192,7 +191,7 @@ public class JsHint extends SourceTask {
         }
 
         if (anyErrors) {
-            throw new TaskExecutionException(this, new GradleException("JsHint detected errors"));
+            throw new GradleException("JsHint detected errors");
         }
     }
 }

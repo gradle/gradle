@@ -242,6 +242,9 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             record.result = context.result;
+            if (context.failure != null) {
+                record.failure = context.failure;
+            }
             return t;
         }
     }
