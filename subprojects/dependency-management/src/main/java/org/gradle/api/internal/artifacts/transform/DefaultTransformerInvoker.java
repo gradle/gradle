@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
 
 import java.io.File;
 
@@ -29,17 +28,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public void invoke(TransformerInvocation invocation) {
-        File primaryInput = invocation.getPrimaryInput();
-        Transformer transformer = invocation.getTransformer();
-        TransformationSubject subjectBeingTransformed = invocation.getSubjectBeingTransformed();
-
-        try {
-            ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer, subjectBeingTransformed));
-            invocation.success(result);
-        } catch (Exception e) {
-            invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), e));
-        }
+    public Try<ImmutableList<File>> invoke(TransformerInvocation invocation) {
+        return cachingTransformerExecutor.getResult(invocation);
     }
 
     @Override

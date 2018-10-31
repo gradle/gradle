@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -43,7 +44,6 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
-import java.util.List;
 import java.util.Optional;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
@@ -91,7 +91,7 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     }
 
     @Override
-    public void persist(HashCode cacheKey, List<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
+    public void persist(HashCode cacheKey, ImmutableList<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
         fileAccessTracker.markAccessed(currentExecutionResult);
         indexedCache.put(cacheKey, new DefaultPreviousTransformerExecution(currentExecutionResult, new SerializableFileCollectionFingerprint(outputFileFingerprint.getFingerprints(), outputFileFingerprint.getRootHashes())));
     }
@@ -108,16 +108,16 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
 
     public static class DefaultPreviousTransformerExecution implements PreviousTransformerExecution {
 
-        private final List<File> result;
+        private final ImmutableList<File> result;
         private final FileCollectionFingerprint outputDirectoryFingerprint;
 
-        public DefaultPreviousTransformerExecution(List<File> result, FileCollectionFingerprint outputDirectoryFingerprint) {
+        public DefaultPreviousTransformerExecution(ImmutableList<File> result, FileCollectionFingerprint outputDirectoryFingerprint) {
             this.result = result;
             this.outputDirectoryFingerprint = outputDirectoryFingerprint;
         }
 
         @Override
-        public List<File> getResult() {
+        public ImmutableList<File> getResult() {
             return result;
         }
 
@@ -138,7 +138,7 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
 
             @Override
             public PreviousTransformerExecution read(Decoder decoder) throws Exception {
-                List<File> result = listSerializer.read(decoder);
+                ImmutableList<File> result = ImmutableList.copyOf(listSerializer.read(decoder));
                 FileCollectionFingerprint outputDirectoryFingerprint = fingerprintSerializer.read(decoder);
                 return new DefaultPreviousTransformerExecution(result, outputDirectoryFingerprint);
             }

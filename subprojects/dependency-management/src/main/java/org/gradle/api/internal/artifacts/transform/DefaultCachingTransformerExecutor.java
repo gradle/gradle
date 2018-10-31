@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository.PreviousTransformerExecution;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -26,7 +28,6 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.CacheHandler;
@@ -51,7 +52,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,7 +64,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
-    private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
+    private final Map<CacheKey, ImmutableList<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, ImmutableList<File>>();
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository historyRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
@@ -95,29 +95,32 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     }
 
     @Override
-    public List<File> getResult(File primaryInput, Transformer transformer, Describable subject) {
-        return transform(primaryInput, transformer, subject);
+    public Try<ImmutableList<File>> getResult(TransformerInvocation invocation) {
+        return Try.ofFailable(() ->
+            transform(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
+        ).mapFailure(e -> wrapInTransformInvocationException(invocation, e));
     }
 
-    private List<File> transform(File primaryInput, Transformer transformer, Describable subject) {
+    private Exception wrapInTransformInvocationException(TransformerInvocation invocation, Throwable originalFailure) {
+        return new TransformInvocationException(invocation.getPrimaryInput().getAbsoluteFile(), invocation.getTransformer().getImplementationClass(), originalFailure);
+    }
+
+    private Try<ImmutableList<File>> transform(File primaryInput, Transformer transformer, Describable subject) {
         CacheKey cacheKey = getCacheKey(primaryInput, transformer);
-        List<File> results = resultHashToResult.get(cacheKey);
+        ImmutableList<File> results = resultHashToResult.get(cacheKey);
         if (results != null) {
-            return results;
+            return Try.successful(results);
         }
-        TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
         return fireTransformListeners(transformer, subject, () -> {
-                UpToDateResult result = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
-                if (result.getFailure() != null) {
-                    throw UncheckedException.throwAsUncheckedException(result.getFailure());
-                }
-                List<File> transformerResult = execution.getResult().get();
-                resultHashToResult.put(cacheKey, transformerResult);
-                return transformerResult;
-            });
+            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
+            UpToDateResult outcome = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
+            Try<ImmutableList<File>> result = execution.getResult(outcome);
+            result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
+            return result;
+        });
     }
 
-    private List<File> fireTransformListeners(Transformer transformer, Describable subject, Supplier<List<File>> execution) {
+    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, Describable subject, Supplier<Try<ImmutableList<File>>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
             return execution.get();
@@ -196,7 +199,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         private final File primaryInput;
         private final Transformer transformer;
         private final CacheKey cacheKey;
-        private List<File> result;
+        private ImmutableList<File> result;
 
         public TransformerExecution(File primaryInput, Transformer transformer, CacheKey cacheKey) {
             this.primaryInput = primaryInput;
@@ -216,8 +219,21 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             return true;
         }
 
-        public Optional<List<File>> getResult() {
-            return Optional.ofNullable(result);
+        public Try<ImmutableList<File>> getResult() {
+            if (result != null) {
+                return Try.successful(result);
+            }
+            return Try.failure(new RuntimeException("Failed to transform"));
+        }
+
+        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
+            if (outcome.getFailure() != null) {
+                return Try.failure(outcome.getFailure());
+            }
+            if (result == null) {
+                return Try.failure(new GradleException("No result even though no error was reported"));
+            }
+            return Try.successful(result);
         }
 
         @Override
@@ -261,7 +277,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            getResult().ifPresent(result -> {
+            getResult().ifSuccessful(result -> {
                 historyRepository.persist(cacheKey.getPersistentCacheKey(), result, finalOutputs.values().iterator().next());
             });
         }

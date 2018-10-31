@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.File;
 
 /**
  * Invokes a transformer on a single primary input.
  */
 public interface TransformerInvoker {
-    void invoke(TransformerInvocation invocation);
+    Try<ImmutableList<File>> invoke(TransformerInvocation invocation);
     boolean hasCachedResult(File primaryInput, Transformer transformer);
 }
