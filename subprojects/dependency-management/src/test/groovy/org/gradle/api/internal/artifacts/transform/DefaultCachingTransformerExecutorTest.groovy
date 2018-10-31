@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
@@ -61,7 +61,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         }
 
         @Override
-        void persist(HashCode cacheKey, List<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
+        void persist(HashCode cacheKey, ImmutableList<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
             // TODO
         }
 

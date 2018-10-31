@@ -68,6 +68,7 @@ testFixtures {
     from(":coreApi")
     from(":versionControl")
     from(":resourcesHttp")
+    from(":baseServices")
 }
 
 testFilesCleanup {
