@@ -622,14 +622,6 @@
             "changes": [
                 "Method has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.plugins.signing.SigningExtension",
-            "member": "Method org.gradle.plugins.signing.SigningExtension.addSignaturesToConfiguration(org.gradle.plugins.signing.Sign,org.gradle.api.artifacts.Configuration)",
-            "acceptation": "This is a leaked internal method that a user would not invoke",
-            "changes": [
-                "Method return type has changed"
-            ]
         }
     ]
 }
