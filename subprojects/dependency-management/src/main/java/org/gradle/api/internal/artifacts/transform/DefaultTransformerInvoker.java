@@ -59,7 +59,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, RootBuildLifecycleListener {
+public class DefaultTransformerInvoker implements TransformerInvoker, RootBuildLifecycleListener {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
@@ -69,10 +69,10 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final TransformerExecutionHistoryRepository historyRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
 
-    public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor,
-                                             FileSystemSnapshotter fileSystemSnapshotter,
-                                             ArtifactTransformListener artifactTransformListener,
-                                             TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+    public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
+                                     FileSystemSnapshotter fileSystemSnapshotter,
+                                     ArtifactTransformListener artifactTransformListener,
+                                     TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
@@ -95,9 +95,9 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     }
 
     @Override
-    public Try<ImmutableList<File>> getResult(TransformerInvocation invocation) {
+    public Try<ImmutableList<File>> invoke(TransformerInvocation invocation) {
         return Try.ofFailable(() ->
-            transform(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
+            invoke(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
         ).mapFailure(e -> wrapInTransformInvocationException(invocation, e));
     }
 
@@ -105,7 +105,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         return new TransformInvocationException(invocation.getPrimaryInput().getAbsoluteFile(), invocation.getTransformer().getImplementationClass(), originalFailure);
     }
 
-    private Try<ImmutableList<File>> transform(File primaryInput, Transformer transformer, Describable subject) {
+    private Try<ImmutableList<File>> invoke(File primaryInput, Transformer transformer, Describable subject) {
         CacheKey cacheKey = getCacheKey(primaryInput, transformer);
         ImmutableList<File> results = resultHashToResult.get(cacheKey);
         if (results != null) {

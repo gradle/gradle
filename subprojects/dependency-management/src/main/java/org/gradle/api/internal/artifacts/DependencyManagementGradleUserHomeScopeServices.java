@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
-import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
 import org.gradle.api.internal.cache.StringInterner;
@@ -56,9 +56,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
-    CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
-        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, new ArtifactTransformListener() {
+    TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
+                                                FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, TransformerExecutionHistoryRepository historyRepository, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+        DefaultTransformerInvoker transformerInvoker = new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, new ArtifactTransformListener() {
             @Override
             public void beforeTransformerInvocation(Describable transformer, Describable subject) {
             }
@@ -67,7 +67,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             public void afterTransformerInvocation(Describable transformer, Describable subject) {
             }
         }, historyRepository, outputFileCollectionFingerprinter);
-        listenerManager.addListener(transformedFileCache);
-        return transformedFileCache;
+        listenerManager.addListener(transformerInvoker);
+        return transformerInvoker;
     }
 }

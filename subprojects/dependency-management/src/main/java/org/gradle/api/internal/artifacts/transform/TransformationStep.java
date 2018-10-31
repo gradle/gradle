@@ -32,9 +32,9 @@ public class TransformationStep implements Transformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
 
     private final Transformer transformer;
-    private final CachingTransformerExecutor transformerInvoker;
+    private final TransformerInvoker transformerInvoker;
 
-    public TransformationStep(Transformer transformer, CachingTransformerExecutor transformerInvoker) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
     }
@@ -50,7 +50,7 @@ public class TransformationStep implements Transformation {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
             TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
-            Try<ImmutableList<File>> result = transformerInvoker.getResult(invocation);
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(invocation);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());

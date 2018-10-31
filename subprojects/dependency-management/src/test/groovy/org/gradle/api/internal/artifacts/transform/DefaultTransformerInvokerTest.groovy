@@ -37,7 +37,7 @@ import spock.lang.Ignore
 
 @UsesNativeServices
 @Ignore("FIXME wolfs - rewrite and replace by better test")
-class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
+class DefaultTransformerInvokerTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def transformsStoreDirectory = tmpDir.file("output")
@@ -70,14 +70,14 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
             return new File(transformsStoreDirectory, toBeTransformed.getName() + "/" + cacheKey)
         }
     }
-    DefaultCachingTransformerExecutor transformerExecutor
+    DefaultTransformerInvoker transformerInvoker
 
     def setup() {
-        transformerExecutor = createExecutor()
+        transformerInvoker = createInvoker()
     }
 
-    private DefaultCachingTransformerExecutor createExecutor() {
-        new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
+    private DefaultTransformerInvoker createInvoker() {
+        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
     }
 
     def "reuses result for given inputs and transform"() {
@@ -85,7 +85,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         when:
-        def result = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        def result = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
         result*.name == ["a.1"]
@@ -99,7 +99,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
         result2 == result
@@ -119,7 +119,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * snapshotter.snapshot(_) >> snapshot(hash)
 
         expect:
-        !transformerExecutor.contains(inputFile, hash)
+        !transformerInvoker.contains(inputFile, hash)
     }
 
     def "contains result after transform ran once"() {
@@ -132,10 +132,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
 
         when:
-        transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        transformerExecutor.contains(inputFile, hash)
+        transformerInvoker.contains(inputFile, hash)
     }
 
     def "does not contain result if a different transform ran"() {
@@ -149,10 +149,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [file] }
 
         when:
-        transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        !transformerExecutor.contains(inputFile, otherHash)
+        !transformerInvoker.contains(inputFile, otherHash)
     }
 
     def "reuses result when transform returns its input file"() {
@@ -160,7 +160,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a").createFile()
 
         when:
-        def result = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        def result = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
         result == [inputFile]
@@ -173,7 +173,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
         result2 == result
@@ -197,16 +197,16 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def result4
         async {
             start {
-                result1 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+                result1 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
             }
             start {
-                result2 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+                result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
             }
             start {
-                result3 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+                result3 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
             }
             start {
-                result4 = transformerExecutor.getResult(inputFile, transformerRegistration, subject)
+                result4 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
             }
         }
 
@@ -246,10 +246,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                transformerExecutor.getResult(new File("a"), transformerRegistrationA, subject)
+                transformerInvoker.invoke(new File("a"), transformerRegistrationA, subject)
             }
             start {
-                transformerExecutor.getResult(new File("b"), transformerRegistrationB, subject)
+                transformerInvoker.invoke(new File("b"), transformerRegistrationB, subject)
             }
         }
 
@@ -271,10 +271,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        transformerExecutor.getResult(inputFile, transform1, subject)
+        transformerInvoker.invoke(inputFile, transform1, subject)
 
         when:
-        def result = transformerExecutor.getResult(inputFile, transform2, subject)
+        def result = transformerInvoker.invoke(inputFile, transform2, subject)
 
         then:
         result*.name == ["a.2"]
@@ -287,8 +287,8 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = transformerExecutor.getResult(inputFile, transform1, subject)
-        def result3 = transformerExecutor.getResult(inputFile, transform2, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transform1, subject)
+        def result3 = transformerInvoker.invoke(inputFile, transform2, subject)
 
         then:
         result2*.name == ["a.1"]
@@ -312,10 +312,10 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
 
-        transformerExecutor.getResult(inputFile, transform1, subject)
+        transformerInvoker.invoke(inputFile, transform1, subject)
 
         when:
-        def result = transformerExecutor.getResult(inputFile, transform2, subject)
+        def result = transformerInvoker.invoke(inputFile, transform2, subject)
 
         then:
         result*.name == ["a.2"]
@@ -329,8 +329,8 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = transformerExecutor.getResult(inputFile, transform1, subject)
-        def result3 = transformerExecutor.getResult(inputFile, transform2, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transform1, subject)
+        def result3 = transformerInvoker.invoke(inputFile, transform2, subject)
 
         then:
         result2*.name == ["a.1"]
@@ -351,7 +351,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         when:
-        transformerExecutor.getResult(inputFile, transform, subject)
+        transformerInvoker.invoke(inputFile, transform, subject)
 
         then:
         def e = thrown(RuntimeException)
@@ -369,7 +369,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         0 * transform._
 
         when:
-        def result = transformerExecutor.getResult(inputFile, transform, subject)
+        def result = transformerInvoker.invoke(inputFile, transform, subject)
 
         then:
         result*.name == ["a.1"]
@@ -396,12 +396,12 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
-        def result = transformerExecutor.getResult(inputFile, transform, subject)
+        def result = transformerInvoker.invoke(inputFile, transform, subject)
 
         when:
-        def cache = createExecutor()
+        def cache = createInvoker()
         result.first().delete()
-        def result2 = cache.getResult(inputFile, transform, subject)
+        def result2 = cache.invoke(inputFile, transform, subject)
 
         then:
         result2 == result
@@ -422,7 +422,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def file2 = filesDir.file("another.jar", "a89660597ff12d9e0a0397e055e80006").createFile("2.txt")
 
         when:
-        transformerExecutor.stop()
+        transformerInvoker.stop()
 
         then:
         1 * fileAccessTimeJournal.getLastAccessTime(file1.parentFile) >> 0

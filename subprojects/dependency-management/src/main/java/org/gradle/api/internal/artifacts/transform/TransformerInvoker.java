@@ -23,11 +23,11 @@ import org.gradle.internal.hash.HashCode;
 import java.io.File;
 
 @ThreadSafe
-public interface CachingTransformerExecutor {
+public interface TransformerInvoker {
     /**
      * Returns the result of applying the given transformer to the given file.
      */
-    Try<ImmutableList<File>> getResult(TransformerInvocation invocation);
+    Try<ImmutableList<File>> invoke(TransformerInvocation invocation);
 
     boolean contains(File absoluteFile, HashCode inputsHash);
 }

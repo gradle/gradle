@@ -45,7 +45,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
-    def transformerInvoker = Mock(CachingTransformerExecutor)
+    def transformerInvoker = Mock(TransformerInvoker)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
@@ -316,7 +316,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File primaryInput) {
-        1 * transformerInvoker.getResult({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
+        1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
             return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory)) }
         }
     }

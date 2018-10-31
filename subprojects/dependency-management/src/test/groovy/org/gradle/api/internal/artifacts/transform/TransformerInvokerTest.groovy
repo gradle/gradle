@@ -43,14 +43,14 @@ class TransformerInvokerTest extends Specification {
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def historyRepository = Mock(TransformerExecutionHistoryRepository)
     def outputFileCollectionFingerprinter = Mock(OutputFileCollectionFingerprinter)
-    def transformerInvoker = new DefaultCachingTransformerExecutor(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
+    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
 
     def "wraps failures into TransformInvocationException"() {
         def failure = new RuntimeException()
         def invocation = createInvocation(sourceFile)
 
         when:
-        def result = transformerInvoker.getResult(invocation)
+        def result = transformerInvoker.invoke(invocation)
         def transformationFailure = result.failure.get()
         then:
         transformationFailure instanceof TransformInvocationException

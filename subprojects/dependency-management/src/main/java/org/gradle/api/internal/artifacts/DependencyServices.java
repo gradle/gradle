@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
-import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFactory;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
@@ -75,9 +75,9 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new TransformationNodeExecutor(buildOperationExecutor, transformListener);
         }
 
-        CachingTransformerExecutor createCachingTransformerExecuter(WorkExecutor<UpToDateResult> workExecutor,
-                                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
-            DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
+        TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
+                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
+            DefaultTransformerInvoker transformedFileCache = new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }
