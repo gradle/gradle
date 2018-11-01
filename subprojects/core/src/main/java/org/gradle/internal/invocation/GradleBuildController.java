@@ -28,8 +28,6 @@ public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
 
     private State state = State.Created;
-    private boolean hasResult;
-    private Object result;
     private final GradleLauncher gradleLauncher;
     private final WorkerLeaseService workerLeaseService;
 
@@ -47,25 +45,6 @@ public class GradleBuildController implements BuildController {
             throw new IllegalStateException("Cannot use launcher after build has completed.");
         }
         return gradleLauncher;
-    }
-
-    @Override
-    public boolean hasResult() {
-        return hasResult;
-    }
-
-    @Override
-    public Object getResult() {
-        if (!hasResult) {
-            throw new IllegalStateException("No result has been provided for this build action.");
-        }
-        return result;
-    }
-
-    @Override
-    public void setResult(Object result) {
-        this.hasResult = true;
-        this.result = result;
     }
 
     public GradleInternal getGradle() {

@@ -30,12 +30,13 @@ public class ChainingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         for (BuildActionRunner runner : runners) {
-            runner.run(action, buildController);
-            if (buildController.hasResult()) {
-                return;
+            Result result = runner.run(action, buildController);
+            if (result.hasResult()) {
+                return result;
             }
         }
+        return Result.nothing();
     }
 }

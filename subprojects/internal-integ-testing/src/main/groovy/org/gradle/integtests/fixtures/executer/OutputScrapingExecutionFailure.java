@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import junit.framework.AssertionFailedError;
 import org.gradle.internal.Pair;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
@@ -30,7 +29,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
     private static final Pattern FAILURE_PATTERN = Pattern.compile("FAILURE: (.+)");
@@ -219,7 +217,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 return this;
             }
         }
-        fail(String.format("No matching cause found in %s. Output: [%s], Error: [%s]", causes, getOutput(), getError()));
+        failureOnUnexpectedOutput(String.format("No matching cause found in %s", causes));
         return this;
     }
 
@@ -233,7 +231,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         Matcher<String> matcher = containsString(description);
         for (String cause : causes) {
             if (matcher.matches(cause)) {
-                throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+                failureOnUnexpectedOutput(String.format("Expected no failure with description '%s', found: %s", description, cause));
             }
         }
         return this;
@@ -250,7 +248,12 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-        assertThat(descriptions, hasItem(matcher));
+        for (String description : descriptions) {
+            if (matcher.matches(description)) {
+                return this;
+            }
+        }
+        failureOnUnexpectedOutput(String.format("No matching failure description found in %s", descriptions));
         return this;
     }
 

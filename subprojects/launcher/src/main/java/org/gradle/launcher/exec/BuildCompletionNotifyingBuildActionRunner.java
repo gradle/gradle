@@ -16,8 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.ReportedException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -34,18 +32,15 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     @Override
-    public void run(final BuildAction action, final BuildController buildController) {
+    public Result run(final BuildAction action, final BuildController buildController) {
         DefaultBuildScanEndOfBuildNotifier endOfBuildNotifier = buildController.getGradle().getServices().get(DefaultBuildScanEndOfBuildNotifier.class);
-        Throwable failure = null;
+        Result result;
         try {
-            delegate.run(action, buildController);
-        } catch (Throwable throwable) {
-            failure = throwable;
+            result = delegate.run(action, buildController);
+        } catch (RuntimeException e) {
+            result = Result.failed(e);
         }
-        Throwable buildFailure = failure instanceof ReportedException ? failure.getCause() : failure;
-        endOfBuildNotifier.fireBuildComplete(buildFailure);
-        if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
-        }
+        endOfBuildNotifier.fireBuildComplete(result.getBuildFailure());
+        return result;
     }
 }

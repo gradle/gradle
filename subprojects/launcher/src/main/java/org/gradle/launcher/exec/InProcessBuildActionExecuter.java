@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
@@ -44,8 +45,11 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             return rootBuild.run(new Transformer<Object, BuildController>() {
                 @Override
                 public Object transform(BuildController buildController) {
-                    buildActionRunner.run(action, buildController);
-                    return buildController.getResult();
+                    BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
+                    if (result.getClientFailure() != null) {
+                        throw UncheckedException.throwAsUncheckedException(result.getClientFailure());
+                    }
+                    return result.getClientResult();
                 }
             });
         } finally {
