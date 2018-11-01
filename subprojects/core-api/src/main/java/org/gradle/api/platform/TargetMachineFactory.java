@@ -17,7 +17,6 @@
 package org.gradle.api.platform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.platform.TargetMachine;
 
 /**
  * A factory for creating {@link TargetMachine} objects.
@@ -49,10 +48,5 @@ public interface TargetMachineFactory {
     /**
      * Returns a {@link TargetMachine} representing the specified operating system and the architecture of the current host.
      */
-    TargetMachine of(String operatingSystemFamily);
-
-    /**
-     * Returns a {@link TargetMachine} representing the operating system and architecture specified.
-     */
-    TargetMachine of(String operatingSystemFamily, String architecture);
+    TargetMachine os(String operatingSystemFamily);
 }

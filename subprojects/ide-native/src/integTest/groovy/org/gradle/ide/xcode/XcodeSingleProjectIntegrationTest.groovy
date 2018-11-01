@@ -39,7 +39,7 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             apply plugin: 'cpp-application'
             
             application {
-                targetMachines = [machines.of('foo', 'x86')]
+                targetMachines = [machines.os('os-family')]
             }
         """
 

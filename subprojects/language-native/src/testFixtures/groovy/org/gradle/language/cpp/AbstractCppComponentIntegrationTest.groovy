@@ -48,7 +48,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.of('some-other-family', 'x86')]
+                targetMachines = [machines.os('some-other-family')]
             }
         """
 

@@ -53,13 +53,8 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     @Override
-    public TargetMachine of(String operatingSystemFamily) {
+    public TargetMachine os(String operatingSystemFamily) {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, operatingSystemFamily), getDefaultArchitecture());
-    }
-
-    @Override
-    public TargetMachine of(String operatingSystemFamily, String architecture) {
-        return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, operatingSystemFamily), objectFactory.named(MachineArchitecture.class, architecture));
     }
 
     private MachineArchitecture getDefaultArchitecture() {
@@ -128,6 +123,11 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         @Override
         public TargetMachine sparc64() {
             return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.SPARC64));
+        }
+
+        @Override
+        public TargetMachine architecture(String architecture) {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, architecture));
         }
     }
 }

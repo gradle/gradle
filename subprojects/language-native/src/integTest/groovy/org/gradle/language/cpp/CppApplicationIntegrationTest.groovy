@@ -452,13 +452,13 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     dependencies {
                         implementation project(':hello')
                     }
-                    targetMachines = [machines.of('${currentOsFamilyName}', '${currentArchitecture}')]
+                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
                 }
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.of('${currentOsFamilyName}', '${currentArchitecture}')]
+                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
                 }
             }
         """
@@ -488,13 +488,13 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     dependencies {
                         implementation project(':hello')
                     }
-                    targetMachines = [machines.of('${currentOsFamilyName}', '${currentArchitecture}')]
+                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
                 }
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.of('some-other-family', '${currentArchitecture}')]
+                    targetMachines = [machines.os('some-other-family').architecture('${currentArchitecture}')]
                 }
             }
         """

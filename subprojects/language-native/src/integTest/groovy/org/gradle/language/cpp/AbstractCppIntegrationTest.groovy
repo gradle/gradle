@@ -80,7 +80,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.of('${currentOsFamilyName}', 'foo')]
+                targetMachines = [machines.os('${currentOsFamilyName}').architecture('foo')]
             }
         """
 
@@ -100,7 +100,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.of('${currentOsFamilyName}', 'foo'), machines.host()${currentHostArchitectureDsl}]
+                targetMachines = [machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}]
             }
         """
 
