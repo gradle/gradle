@@ -34,6 +34,12 @@ import java.util.List;
 import java.util.Set;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> {
+    private final String projectName;
+
+    public TestPageGenerator(String projectName) {
+        this.projectName = projectName;
+    }
+
     @Override
     protected int getDepth() {
         return 1;
@@ -231,13 +237,12 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             cleanTasks.add("clean" + StringUtils.capitalize(scenario.getTestProject()));
         }
 
-        return "To reproduce, run ./gradlew "
-            + Joiner.on(' ').join(cleanTasks)
-            + " "
-            + Joiner.on(' ').join(templates)
-            + " cleanPerformanceAdhocTest performanceAdhocTest --scenarios "
-            + "'" + history.getDisplayName() + "'"
-            + " -x prepareSamples";
+        return String.format("To reproduce, run ./gradlew %s %s cleanPerformanceAdhocTest :%s:performanceAdhocTest --scenarios '%s' -x prepareSamples",
+            Joiner.on(' ').join(cleanTasks),
+            Joiner.on(' ').join(templates),
+            projectName,
+            history.getDisplayName()
+        );
     }
 
     private static class GitHubLink {

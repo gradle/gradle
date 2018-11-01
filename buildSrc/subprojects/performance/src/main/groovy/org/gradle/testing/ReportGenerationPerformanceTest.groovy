@@ -48,7 +48,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
             project.javaexec(new Action<JavaExecSpec>() {
                 void execute(JavaExecSpec spec) {
                     spec.setMain("org.gradle.performance.results.ReportGenerator")
-                    spec.args(resultStoreClass, reportDir.path, resultJson.path)
+                    spec.args(resultStoreClass, reportDir.path, resultJson.path, getProject().getName())
                     spec.systemProperties(databaseParameters)
                     spec.systemProperty("org.gradle.performance.execution.channel", channel)
                     spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
