@@ -113,7 +113,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 library.getTargetMachines().finalizeValue();
                 Set<TargetMachine> targetMachines = library.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the library.");
+                    throw new IllegalArgumentException("A target machine needs to be specified for the library.");
                 }
 
                 library.getLinkage().finalizeValue();

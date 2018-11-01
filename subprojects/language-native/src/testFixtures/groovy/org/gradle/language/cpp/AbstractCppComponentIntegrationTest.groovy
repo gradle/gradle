@@ -73,7 +73,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         expect:
         fails taskNameToAssembleDevelopmentBinary
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
-        failure.assertHasCause("An operating system needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
+        failure.assertHasCause("A target machine needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
     }
 
     @Override

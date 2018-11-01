@@ -107,7 +107,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 testComponent.getTargetMachines().finalizeValue();
                 Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the unit test.");
+                    throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
                 }
 
                 // TODO: should we not iterate over target machines?

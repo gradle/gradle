@@ -98,7 +98,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 application.getTargetMachines().finalizeValue();
                 Set<TargetMachine> targetMachines = application.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                    throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }
 
                 final ObjectFactory objectFactory = project.getObjects();

@@ -22,7 +22,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
 
 /**
- * Represents the architecture of a binary.  Typical architectures include "x86", "x64", "ia64", and "arm".
+ * Represents a target architecture of a component.  Typical architectures include "x86", "x64", "ia64", and "arm".
  *
  * @since 5.1
  */
