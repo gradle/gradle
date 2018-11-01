@@ -985,6 +985,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 5.1
      */
+    @Incubating
     TargetMachineFactory getMachines();
 
     /**
