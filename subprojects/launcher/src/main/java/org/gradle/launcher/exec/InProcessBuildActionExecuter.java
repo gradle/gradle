@@ -19,7 +19,6 @@ package org.gradle.launcher.exec;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
@@ -27,6 +26,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionRunner buildActionRunner;
@@ -37,6 +37,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
     public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
+        final PayloadSerializer payloadSerializer = contextServices.get(PayloadSerializer.class);
         BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
 
         buildOperationNotificationValve.start();
@@ -47,9 +48,9 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 public Object transform(BuildController buildController) {
                     BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
                     if (result.getClientFailure() != null) {
-                        throw UncheckedException.throwAsUncheckedException(result.getClientFailure());
+                        return new BuildActionResult(null, payloadSerializer.serialize(result.getClientFailure()));
                     }
-                    return result.getClientResult();
+                    return new BuildActionResult(payloadSerializer.serialize(result.getClientResult()), null);
                 }
             });
         } finally {

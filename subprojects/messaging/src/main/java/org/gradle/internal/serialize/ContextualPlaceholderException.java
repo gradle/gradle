@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@
 
 package org.gradle.internal.serialize;
 
-import java.io.Serializable;
+import org.gradle.internal.exceptions.Contextual;
 
-class CausePlaceholder implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private final int causeIndex;
+import javax.annotation.Nullable;
 
-    CausePlaceholder(int causeIndex) {
-        this.causeIndex = causeIndex;
-    }
-
-    public int getCauseIndex() {
-        return causeIndex;
+@Contextual
+public class ContextualPlaceholderException extends PlaceholderException {
+    public ContextualPlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString, @Nullable Throwable toStringException, @Nullable Throwable cause) {
+        super(exceptionClassName, message, getMessageException, toString, toStringException, cause);
     }
 }

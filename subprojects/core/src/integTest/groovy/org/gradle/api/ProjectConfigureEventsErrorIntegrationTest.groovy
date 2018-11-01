@@ -161,9 +161,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
     def "produces reasonable error message when Project.afterEvaluate action fails"() {
         when:
         buildFile << """
-    def action = project.afterEvaluate {
+    def action = {
         throw new RuntimeException("afterEvaluate failure")
-    }
+    } as Action
     project.afterEvaluate(action)
     task test
 """

@@ -19,7 +19,7 @@ package org.gradle.internal.invocation;
 import javax.annotation.Nullable;
 
 /**
- * Responsible for executing a {@link BuildAction} and generating the result.
+ * Responsible for executing a {@link BuildAction} and generating the result. A {@link BuildActionRunner} runs within the root build of the build tree.
  */
 public interface BuildActionRunner {
     /**
@@ -35,6 +35,7 @@ public interface BuildActionRunner {
         private final Throwable buildFailure;
         private final Throwable clientFailure;
         private static final Result NOTHING = new Result(false, null, null, null);
+        private static final Result NULL = new Result(true, null, null, null);
 
         private Result(boolean hasResult, Object result, Throwable buildFailure, Throwable clientFailure) {
             this.hasResult = hasResult;
@@ -48,11 +49,10 @@ public interface BuildActionRunner {
         }
 
         public static Result of(@Nullable Object result) {
+            if (result == null) {
+                return NULL;
+            }
             return new Result(true, result, null, null);
-        }
-
-        public static Result of(@Nullable Object result, Throwable buildFailure) {
-            return new Result(true, result, buildFailure, null);
         }
 
         public static Result failed(Throwable buildFailure) {
