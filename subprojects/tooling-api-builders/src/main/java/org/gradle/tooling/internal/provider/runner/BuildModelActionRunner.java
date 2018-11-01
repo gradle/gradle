@@ -39,32 +39,51 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
-    public void run(BuildAction action, final BuildController buildController) {
+    public Result run(BuildAction action, final BuildController buildController) {
         if (!(action instanceof BuildModelAction)) {
-            return;
+            return Result.nothing();
         }
 
-        final BuildModelAction buildModelAction = (BuildModelAction) action;
-        final GradleInternal gradle = buildController.getGradle();
-        gradle.addBuildListener(new BuildResultAdapter(gradle, buildController, buildModelAction));
+        BuildModelAction buildModelAction = (BuildModelAction) action;
+        GradleInternal gradle = buildController.getGradle();
+        PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
+        BuildResultAdapter listener = new BuildResultAdapter(gradle, buildModelAction);
 
-        if (buildModelAction.isModelRequest()) {
-            gradle.getStartParameter().setConfigureOnDemand(false);
+        Throwable buildFailure = null;
+        Throwable clientFailure = null;
+        try {
+            gradle.addBuildListener(listener);
+            if (buildModelAction.isModelRequest()) {
+                gradle.getStartParameter().setConfigureOnDemand(false);
+            }
+            if (buildModelAction.isRunTasks()) {
+                buildController.run();
+            } else {
+                buildController.configure();
+            }
+        } catch (BuildCancelledException e) {
+            buildFailure = e;
+            clientFailure = new InternalBuildCancelledException(e);
+        } catch (RuntimeException e) {
+            buildFailure = e;
+            clientFailure = new BuildExceptionVersion1(e);
         }
-        if (buildModelAction.isRunTasks()) {
-            buildController.run();
-        } else {
-            buildController.configure();
+        if (listener.modelFailure != null) {
+            clientFailure = new InternalUnsupportedModelException().initCause(listener.modelFailure);
         }
+        if (buildFailure != null) {
+            return Result.of(new BuildActionResult(null, serializer.serialize(clientFailure)), buildFailure);
+        }
+        return Result.of(listener.result);
     }
 
     private static class BuildResultAdapter extends InternalBuildAdapter {
         private final GradleInternal gradle;
-        private final BuildController buildController;
         private final BuildModelAction buildModelAction;
+        private BuildActionResult result;
+        private RuntimeException modelFailure;
 
-        private BuildResultAdapter(GradleInternal gradle, BuildController buildController, BuildModelAction buildModelAction) {
-            this.buildController = buildController;
+        private BuildResultAdapter(GradleInternal gradle, BuildModelAction buildModelAction) {
             this.gradle = gradle;
             this.buildModelAction = buildModelAction;
         }
@@ -79,21 +98,17 @@ public class BuildModelActionRunner implements BuildActionRunner {
         @Override
         public void buildFinished(BuildResult result) {
             if (result.getFailure() == null) {
-                buildController.setResult(buildResult(gradle, buildModelAction));
+                this.result = buildResult(gradle, buildModelAction);
             }
         }
 
-        private static BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
+        private BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
             PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
-            try {
-                Object model = buildModel(gradle, buildModelAction);
-                return new BuildActionResult(serializer.serialize(model), null);
-            } catch (RuntimeException e) {
-                return new BuildActionResult(null, serializer.serialize(e));
-            }
+            Object model = buildModel(gradle, buildModelAction);
+            return new BuildActionResult(serializer.serialize(model), null);
         }
 
-        private static Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
+        private Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
             String modelName = buildModelAction.getModelName();
             ToolingModelBuilder builder = getModelBuilder(gradle, modelName);
 
@@ -101,25 +116,20 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static void forceFullConfiguration(GradleInternal gradle) {
-            try {
-                gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
-                for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                    GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-                    forceFullConfiguration(build);
-                }
-            } catch (BuildCancelledException e) {
-                throw new InternalBuildCancelledException(e);
-            } catch (RuntimeException e) {
-                throw new BuildExceptionVersion1(e);
+            gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
+            for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                forceFullConfiguration(build);
             }
         }
 
-        private static ToolingModelBuilder getModelBuilder(GradleInternal gradle, String modelName) {
+        private ToolingModelBuilder getModelBuilder(GradleInternal gradle, String modelName) {
             ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
             try {
                 return builderRegistry.getBuilder(modelName);
             } catch (UnknownModelException e) {
-                throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+                modelFailure = e;
+                throw e;
             }
         }
 

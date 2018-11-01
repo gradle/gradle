@@ -31,7 +31,6 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
@@ -43,7 +42,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         StartParameter startParameter = buildController.getGradle().getStartParameter();
         ServiceRegistry services = buildController.getGradle().getServices();
         BuildStartedTime buildStartedTime = services.get(BuildStartedTime.class);
@@ -57,18 +56,13 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         // Register as a 'logger' to support this being replaced by build logic.
         buildController.getGradle().useLogger(buildLogger);
 
-        Throwable failure = null;
-        try {
-            delegate.run(action, buildController);
-        } catch (Throwable throwable) {
-            failure = throwable;
-        }
+        Result result = delegate.run(action, buildController);
 
-        Throwable buildFailure = failure instanceof InternalTestExecutionException ? failure.getCause() : failure;
-        buildLogger.logResult(buildFailure);
+        buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
-        if (failure != null) {
-            throw new ReportedException(failure);
+        if (result.getClientFailure() != null) {
+            return result.withClientFailure(new ReportedException(result.getClientFailure()));
         }
+        return result;
     }
 }

@@ -29,7 +29,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
 import org.gradle.tooling.internal.protocol.PhasedActionResult
-import org.gradle.tooling.internal.provider.BuildActionResult
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult
@@ -93,16 +92,17 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         payloadSerializer.serialize(result2) >> serializedResult2
 
         when:
-        runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController)
 
         then:
+        result.clientResult.result == nullSerialized
+        result.clientResult.failure == null
+        result.buildFailure == null
+        result.clientFailure == null
+
+        and:
         1 * projectsLoadedAction.execute(_) >> result1
         1 * buildFinishedAction.execute(_) >> result2
-        1 * buildController.setResult({
-            it instanceof BuildActionResult &&
-                it.failure == null &&
-                it.result == nullSerialized
-        })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.PROJECTS_LOADED &&
@@ -117,31 +117,26 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
     def "do not run later build action when fails"() {
         def serializedFailure = Mock(SerializedPayload)
+        def failure = new RuntimeException()
 
         given:
-        payloadSerializer.serialize({ it instanceof RuntimeException }) >> serializedFailure
 
         when:
-        runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
-        0 * buildFinishedAction.execute(_)
-        1 * buildController.setResult(_) >> { args ->
-            def it = args[0]
-            assert it instanceof BuildActionResult
-            assert it.failure == serializedFailure
-            assert it.result == null
-            buildController.hasResult() >> true
+        result.clientResult.result == null
+        result.clientResult.failure == serializedFailure
+        result.buildFailure == failure
+        result.clientFailure == null
+
+        and:
+        1 * projectsLoadedAction.execute(_) >> {
+            throw failure
         }
-        0 * buildEventConsumer.dispatch({
-            it instanceof PhasedBuildActionResult &&
-                it.phase == PhasedActionResult.Phase.PROJECTS_LOADED
-        })
-        0 * buildEventConsumer.dispatch({
-            it instanceof PhasedBuildActionResult &&
-                it.phase == PhasedActionResult.Phase.BUILD_FINISHED
-        })
+        1 * payloadSerializer.serialize({ it instanceof InternalBuildActionFailureException && it.cause == failure }) >> serializedFailure
+        0 * buildFinishedAction.execute(_)
+        0 * buildEventConsumer.dispatch(_)
     }
 
     def "exceptions are wrapped"() {
@@ -162,17 +157,17 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
     def "action not run if null"() {
         when:
-        runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        noExceptionThrown()
+        result.clientResult.result == nullSerialized
+        result.clientResult.failure == null
+        result.buildFailure == null
+        result.clientFailure == null
+
+        and:
         1 * phasedAction.getProjectsLoadedAction() >> null
         1 * phasedAction.getBuildFinishedAction() >> null
-        1 * buildController.setResult({
-            it instanceof BuildActionResult &&
-                it.failure == null &&
-                it.result == nullSerialized
-        })
         0 * buildEventConsumer.dispatch(_)
     }
 

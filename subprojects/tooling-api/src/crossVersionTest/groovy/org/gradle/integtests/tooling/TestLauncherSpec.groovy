@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.tooling
 
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.BuildException
@@ -34,9 +32,6 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 abstract class TestLauncherSpec extends ToolingApiSpecification {
-    TestOutputStream stderr = new TestOutputStream()
-    TestOutputStream stdout = new TestOutputStream()
-
     ProgressEvents events = ProgressEvents.create()
 
     @Rule
@@ -67,15 +62,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
             .withCancellationToken(cancellationToken)
             .addProgressListener(events)
 
-        if (toolingApi.isEmbedded()) {
-            testLauncher
-                .setStandardOutput(stdout)
-                .setStandardError(stderr)
-        } else {
-            testLauncher
-                .setStandardOutput(new TeeOutputStream(stdout, System.out))
-                .setStandardError(new TeeOutputStream(stderr, System.err))
-        }
+        collectOutputs(testLauncher)
 
         configurationClosure.call(testLauncher)
 

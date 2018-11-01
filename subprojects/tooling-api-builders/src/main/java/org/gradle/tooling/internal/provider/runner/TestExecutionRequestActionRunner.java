@@ -38,9 +38,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         if (!(action instanceof TestExecutionRequestAction)) {
-            return;
+            return Result.nothing();
         }
         GradleInternal gradle = buildController.getGradle();
 
@@ -54,17 +54,17 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                 buildOperationListenerManager.removeListener(testExecutionResultEvaluator);
             }
             testExecutionResultEvaluator.evaluate();
-        } catch (RuntimeException rex) {
-            Throwable throwable = findRootCause(rex);
+        } catch (RuntimeException e) {
+            Throwable throwable = findRootCause(e);
             if (throwable instanceof TestExecutionException) {
-                throw new InternalTestExecutionException("Error while running test(s)", throwable);
+                return Result.failed(e, new InternalTestExecutionException("Error while running test(s)", throwable));
             } else {
-                throw rex;
+                return Result.failed(e);
             }
         }
 
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
+        return Result.of(new BuildActionResult(payloadSerializer.serialize(null), null));
     }
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController) {

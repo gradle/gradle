@@ -16,12 +16,90 @@
 
 package org.gradle.internal.invocation;
 
+import javax.annotation.Nullable;
+
 /**
  * Responsible for executing a {@link BuildAction} and generating the result.
  */
 public interface BuildActionRunner {
     /**
-     * Runs the given action, and attaches the result, if any, to the provided controller.
+     * Runs the given action, returning a result that describes the build outcome and the result that should be returned to the client.
+     *
+     * <p>Build failures should be packaged in the returned result, rather than thrown.
      */
-    void run(BuildAction action, BuildController buildController);
+    Result run(BuildAction action, BuildController buildController);
+
+    class Result {
+        private final boolean hasResult;
+        private final Object result;
+        private final Throwable buildFailure;
+        private final Throwable clientFailure;
+        private static final Result NOTHING = new Result(false, null, null, null);
+
+        private Result(boolean hasResult, Object result, Throwable buildFailure, Throwable clientFailure) {
+            this.hasResult = hasResult;
+            this.result = result;
+            this.buildFailure = buildFailure;
+            this.clientFailure = clientFailure;
+        }
+
+        public static Result nothing() {
+            return NOTHING;
+        }
+
+        public static Result of(@Nullable Object result) {
+            return new Result(true, result, null, null);
+        }
+
+        public static Result of(@Nullable Object result, Throwable buildFailure) {
+            return new Result(true, result, buildFailure, null);
+        }
+
+        public static Result failed(Throwable buildFailure) {
+            return new Result(true, null, buildFailure, buildFailure);
+        }
+
+        public static Result failed(Throwable buildFailure, RuntimeException clientFailure) {
+            return new Result(true, null, buildFailure, clientFailure);
+        }
+
+        /**
+         * Replaces the client exception.
+         */
+        public Result withClientFailure(Throwable clientFailure) {
+            return new Result(hasResult, result, buildFailure, clientFailure);
+        }
+
+        /**
+         * Is there a result, possibly a null object or a build failure?
+         */
+        public boolean hasResult() {
+            return hasResult;
+        }
+
+        /**
+         * Returns the result to send back to the client, possibly null.
+         */
+        @Nullable
+        public Object getClientResult() {
+            return result;
+        }
+
+        /**
+         * Returns the failure to report in the build outcome.
+         */
+        @Nullable
+        public Throwable getBuildFailure() {
+            return buildFailure;
+        }
+
+        /**
+         * Returns the failure to send back to the client.
+         */
+        @Nullable
+        public Throwable getClientFailure() {
+            return clientFailure;
+        }
+
+    }
 }

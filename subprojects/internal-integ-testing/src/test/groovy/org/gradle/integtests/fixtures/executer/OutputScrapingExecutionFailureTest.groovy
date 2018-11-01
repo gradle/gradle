@@ -102,7 +102,7 @@ broken!
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: a collection containing a string starting with "broken!"')
+        e2.message.trim().startsWith('No matching failure description found in []')
 
         when:
         failure.assertHasCause("broken!")
@@ -196,14 +196,14 @@ Reinstalling your operating system
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: a collection containing a string starting with "other"')
+        e.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
 
         when:
         failure.assertHasDescription("cause")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: a collection containing a string starting with "cause"')
+        e2.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
     }
 
     def "can assert that failure with cause is present"() {
@@ -244,14 +244,14 @@ something
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
+        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
 
         when:
         failure.assertHasCause("something")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
+        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
     }
 
     def "log output present assertions ignore content after failure section"() {
