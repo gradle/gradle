@@ -110,8 +110,14 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         DefaultPublishArtifact that = (DefaultPublishArtifact) o;
         return getName().equals(that.getName()) &&
                 getExtension().equals(that.getExtension()) &&
