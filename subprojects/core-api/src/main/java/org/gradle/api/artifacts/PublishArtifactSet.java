@@ -15,13 +15,18 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 
 /**
  * A set of artifacts to be published.
  */
 public interface PublishArtifactSet extends DomainObjectSet<PublishArtifact>, Buildable {
+    Provider<PublishArtifact> register(Provider<? extends FileSystemLocation> artifactFile, Action<ConfigurablePublishArtifact> configuration);
+
     FileCollection getFiles();
 }

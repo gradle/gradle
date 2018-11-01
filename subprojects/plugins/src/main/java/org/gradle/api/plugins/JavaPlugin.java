@@ -22,15 +22,17 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -298,39 +300,48 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
         });
-        // TODO: Allow this to be added lazily
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
+
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
-
         Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
         Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
 
-        addJar(apiElementConfiguration, jarArtifact);
-        addJar(runtimeConfiguration, jarArtifact);
-        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+        registerJarAsArtifact(jar, apiElementConfiguration.getOutgoing());
+        registerJarAsArtifact(jar, runtimeConfiguration.getOutgoing());
+        registerJarAsArtifact(jar, runtimeElementsConfiguration.getOutgoing());
 
-        project.getComponents().add(objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), jarArtifact));
+        addRuntimeVariants(runtimeElementsConfiguration, javaCompile, processResources);
+
+        // TODO: Allow this to be added lazily
+        LazyPublishArtifact artifact = new LazyPublishArtifact(jar);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(artifact);
+        project.getComponents().add(objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), artifact));
         project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
-    private void addJar(Configuration configuration, PublishArtifact jarArtifact) {
-        ConfigurationPublications publications = configuration.getOutgoing();
-
-        // Configure an implicit variant
-        publications.getArtifacts().add(jarArtifact);
+    private void registerJarAsArtifact(final TaskProvider<Jar> jarProvider, ConfigurationPublications publications) {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
+
+        publications.getArtifacts().register(jarProvider.flatMap(new Transformer<Provider<? extends FileSystemLocation>, Jar>() {
+            @Override
+            public Provider<? extends FileSystemLocation> transform(Jar jar) {
+                return jar.getArchiveFile();
+            }
+        }), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.setName(jarProvider.get().getBaseName()); // TODO: Name
+                artifact.setExtension(jarProvider.get().getArchiveExtension().get());
+                artifact.setType(jarProvider.get().getArchiveExtension().get());
+                artifact.setClassifier(jarProvider.get().getArchiveClassifier().get());
+            }
+        });
     }
 
-    private void addRuntimeVariants(Configuration configuration, PublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
-
-        // Configure an implicit variant
-        publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();

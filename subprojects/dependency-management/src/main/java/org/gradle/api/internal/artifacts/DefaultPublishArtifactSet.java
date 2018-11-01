@@ -15,17 +15,24 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 
@@ -51,6 +58,51 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     @Override
     public String toString() {
         return displayName.getDisplayName();
+    }
+
+    @Override
+    public Provider<PublishArtifact> register(Provider<? extends FileSystemLocation> artifactFile, Action<ConfigurablePublishArtifact> configuration) {
+        PublishArtifactProvider provider = new PublishArtifactProvider(artifactFile, configuration);
+        addLater(provider);
+        return provider;
+    }
+
+    private static class DefaultConfigurablePublishArtifact extends DefaultPublishArtifact {
+        private final Provider<? extends FileSystemLocation> artifactFile;
+
+        public DefaultConfigurablePublishArtifact(TaskResolver resolver, Provider<? extends FileSystemLocation> artifactFile) {
+            super(resolver, null, null, null, null, null, null);
+            this.artifactFile = artifactFile;
+            this.builtBy(artifactFile);
+        }
+
+        @Override
+        public File getFile() {
+            return artifactFile.get().getAsFile();
+        }
+    }
+
+    private static class PublishArtifactProvider extends AbstractReadOnlyProvider<PublishArtifact> {
+        private final Provider<? extends FileSystemLocation> artifactFile;
+        private final Action<ConfigurablePublishArtifact> configuration;
+
+        private PublishArtifactProvider(Provider<? extends FileSystemLocation> artifactFile, Action<ConfigurablePublishArtifact> configuration) {
+            this.artifactFile = artifactFile;
+            this.configuration = configuration;
+        }
+
+        @Override
+        public Class<PublishArtifact> getType() {
+            return PublishArtifact.class;
+        }
+
+        @Override
+        public PublishArtifact getOrNull() {
+            // TODO: need task resolver to make builtBy work
+            ConfigurablePublishArtifact artifact = new DefaultConfigurablePublishArtifact(null, artifactFile);
+            configuration.execute(artifact);
+            return artifact;
+        }
     }
 
     public FileCollection getFiles() {

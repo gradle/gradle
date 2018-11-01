@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.io.File;
 import java.util.Date;
+import java.util.Objects;
 
 public class DefaultPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
@@ -105,5 +106,22 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
 
     public void setFile(File file) {
         this.file = file;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DefaultPublishArtifact that = (DefaultPublishArtifact) o;
+        return getName().equals(that.getName()) &&
+                getExtension().equals(that.getExtension()) &&
+                getType().equals(that.getType()) &&
+                Objects.equals(getClassifier(), that.getClassifier()) &&
+                getFile().equals(that.getFile());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getExtension(), getType(), getClassifier(), getFile());
     }
 }
