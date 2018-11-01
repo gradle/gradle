@@ -45,7 +45,7 @@ public abstract class MachineArchitecture implements Named {
     /**
      * The intel x86 64-bit architecture
      */
-    public static final String X64 = "x86-64";
+    public static final String X86_64 = "x86-64";
 
     /**
      * The Itanium 64-bit architecture

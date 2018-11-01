@@ -46,7 +46,7 @@ public interface TargetMachine {
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 64-bit architecture
      */
-    TargetMachine x64();
+    TargetMachine x86_64();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the itanium architecture

@@ -59,16 +59,16 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host().x86(), machines.host().x64()]
+                targetMachines = [machines.host().x86(), machines.host().x86_64()]
             }
         """
 
         expect:
-        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64)
+        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64),
+                getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X64))
+                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture

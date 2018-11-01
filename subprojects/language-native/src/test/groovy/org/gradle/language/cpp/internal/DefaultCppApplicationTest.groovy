@@ -59,7 +59,7 @@ class DefaultCppApplicationTest extends Specification {
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
-            getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X64)
+            getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64)
         }
     }
 

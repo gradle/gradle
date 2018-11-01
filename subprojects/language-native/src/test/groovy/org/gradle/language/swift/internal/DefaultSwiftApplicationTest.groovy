@@ -81,7 +81,7 @@ class DefaultSwiftApplicationTest extends Specification {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
             isDebuggable() >> true
-            getTargetMachine() >> targetMachine(OperatingSystemFamily.MACOS, MachineArchitecture.X64)
+            getTargetMachine() >> targetMachine(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64)
         }
     }
 

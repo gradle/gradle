@@ -86,8 +86,8 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
-        public TargetMachine x64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X64));
+        public TargetMachine x86_64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86_64));
         }
 
         @Override
