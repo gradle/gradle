@@ -623,8 +623,8 @@ class DefaultConfigurationSpec extends Specification {
         def c = conf()
 
         when:
-        c.artifacts << artifact()
-        c.artifacts << artifact()
+        c.artifacts << artifact("first")
+        c.artifacts << artifact("second")
 
         then:
         c.allArtifacts.size() == 2
