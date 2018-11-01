@@ -2742,13 +2742,16 @@ org:foo:[1.0,) -> 1.0
                 .publish()
             module('planet', 'mercury', '1.0.0').publish()
             module('planet', 'mercury', '1.0.1').publish()
-            module('planet', 'mercury', '1.0.2').publish()
+            module('planet', 'mercury', '1.0.2')
+                .dependsOn('planet', 'pluto', '1.0.0')
+                .publish()
             module('planet', 'venus', '2.0.0')
                 .dependsOn('planet', 'mercury', '1.0.0')
                 .publish()
             module('planet', 'venus', '2.0.1')
                 .dependsOn('planet', 'mercury', '1.0.1')
                 .publish()
+            module('planet', 'pluto', '1.0.0').publish()
         }
 
         file("build.gradle") << """
@@ -2817,6 +2820,30 @@ planet:venus:1.0 -> 2.0.1
 planet:venus:2.0.0 -> 2.0.1
 \\--- planet:earth:3.0.0
      \\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", "pluto"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:pluto:1.0.0
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
+
+planet:pluto:1.0.0
+\\--- planet:mercury:1.0.2
+     +--- planet:jupiter:5.0.0
+     |    \\--- compileClasspath
+     \\--- planet:venus:2.0.1 (=> planet:mercury:1.0.1)
+          +--- planet:earth:3.0.0 (=> planet:venus:2.0.0)
+          |    \\--- compileClasspath
+          +--- planet:mars:4.0.0
+          |    \\--- compileClasspath
+          \\--- planet:jupiter:5.0.0 (=> planet:venus:1.0) (*)
 """
     }
 
