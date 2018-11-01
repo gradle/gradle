@@ -257,7 +257,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Requested test task with path ':secondTest' cannot be found.")
-        stdout.toString().contains("BUILD FAILED")
+        assertHasBuildFailedLogging()
     }
 
     def "fails with meaningful error when passing invalid arguments"() {
@@ -286,7 +286,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
-        stdout.toString().contains("BUILD FAILED")
+        assertHasBuildFailedLogging()
     }
 
     def "throws BuildCancelledException when build canceled"() {

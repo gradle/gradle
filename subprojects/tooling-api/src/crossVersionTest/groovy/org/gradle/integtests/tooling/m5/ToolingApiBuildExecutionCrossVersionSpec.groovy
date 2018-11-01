@@ -53,11 +53,15 @@ apply plugin: 'java'
         withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('jar')
+            collectOutputs(build)
             build.run()
         }
 
         then:
         file('build/libs/test.jar').assertIsFile()
+
+        and:
+        assertHasBuildSuccessfulLogging()
 
         when:
         withConnection { connection ->
@@ -104,7 +108,7 @@ System.err.println 'this is stderr'
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
-        stdout.toString().contains("BUILD FAILED")
+        assertHasBuildFailedLogging()
     }
 
     def "can build the set of tasks for an Eclipse project"() {

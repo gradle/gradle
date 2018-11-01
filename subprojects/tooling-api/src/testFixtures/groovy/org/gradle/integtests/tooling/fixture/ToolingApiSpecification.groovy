@@ -219,6 +219,32 @@ abstract class ToolingApiSpecification extends Specification {
         rootProjectImplicitTasks
     }
 
+    void assertHasBuildSuccessfulLogging() {
+        assert stdout.toString().contains("BUILD SUCCESSFUL")
+    }
+
+    void assertHasBuildFailedLogging() {
+        def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
+        assert failureOutput.contains("BUILD FAILED")
+    }
+
+    void assertHasConfigureSuccessfulLogging() {
+        if (targetDist.isLogsConfigureSummary()) {
+            assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
+        } else {
+            assert stdout.toString().contains("BUILD SUCCESSFUL")
+        }
+    }
+
+    void assertHasConfigureFailedLogging() {
+        def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
+        if (targetDist.isLogsConfigureSummary()) {
+            assert failureOutput.contains("CONFIGURE FAILED")
+        } else {
+            assert failureOutput.contains("BUILD FAILED")
+        }
+    }
+
     public <T> T loadToolingModel(Class<T> modelClass) {
         withConnection { connection -> connection.getModel(modelClass) }
     }

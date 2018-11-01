@@ -65,17 +65,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         List<ProgressEvent> resultsOfFirstListener = []
         List<ProgressEvent> resultsOfLastListener = []
-        def stdout = new ByteArrayOutputStream()
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                def build = connection.newBuild()
+                build.forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     resultsOfFirstListener.add(event)
                 }, EnumSet.of(OperationType.GENERIC)).addProgressListener({ ProgressEvent event ->
                     throw failure
                 }, EnumSet.of(OperationType.GENERIC)).addProgressListener({ ProgressEvent event ->
                     resultsOfLastListener.add(event)
-                }, EnumSet.of(OperationType.GENERIC)).setStandardOutput(stdout).run()
+                }, EnumSet.of(OperationType.GENERIC))
+                collectOutputs(build)
+                build.run()
         }
 
         then: "listener exception is wrapped"
@@ -88,7 +90,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resultsOfLastListener.size() == 1
 
         and: "build execution is successful"
-        stdout.toString().contains("BUILD SUCCESSFUL")
+        assertHasBuildSuccessfulLogging()
     }
 
     def "receive build progress events for successful operations"() {

@@ -164,7 +164,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         // <5.1 would log an intermediate exception with the actual exception as its cause, >=5.1 log just the actual exception
         failure.assertRawOutputContains('actionFailure')
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 
     @TargetGradleVersion(">=4.8")
@@ -197,7 +197,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("A problem occurred evaluating root project")
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 
     @TargetGradleVersion(">=4.8")
@@ -231,7 +231,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Execution failed for task ':broken'.")
-        stdout.toString().contains("BUILD FAILED")
+        assertHasBuildFailedLogging()
     }
 
     @TargetGradleVersion(">=4.8")

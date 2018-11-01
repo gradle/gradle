@@ -80,10 +80,10 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('this is a custom exception')
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion("<5.1")
+    @TargetGradleVersion(">=2.6 <5.1")
     def "client receives the exception thrown by the build action for version that does not log failure"() {
         when:
         withConnection {
@@ -114,10 +114,10 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("No model of type 'CustomModel' is available in this build.")
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion("<5.1")
+    @TargetGradleVersion(">=2.6 <5.1")
     def "client receives the exception thrown when action requests unknown model for version that does not log failure"() {
         when:
         withConnection {
@@ -150,6 +150,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 }

@@ -125,4 +125,11 @@ public interface GradleDistribution {
      * Returns true if this version always adds a task execution exception around all failures, such as input fingerprinting or property validation failures, rather than only around task action failures.
      */
     boolean isAddsTaskExecutionExceptionAroundAllTaskFailures();
+
+    /**
+     * Returns the logging output stream that this version logs build failures to when invoked via the TAPI.
+     */
+    <T> T selectOutputWithFailureLogging(T stdout, T stderr);
+
+    boolean isLogsConfigureSummary();
 }
