@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r50
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r33.FetchIdeaProject
@@ -26,8 +25,6 @@ import org.gradle.integtests.tooling.r33.FetchIdeaProject
 @ToolingApiVersion('>=4.4')
 class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
     def "does not emit deprecation warnings when idea model builder resolves a configuration"() {
-        def stdOut = new TestOutputStream()
-        def stdErr = new TestOutputStream()
         singleProjectBuildInRootFolder("root") {
             buildFile << """
                 apply plugin: 'java'
@@ -36,20 +33,20 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
 
         when:
         withConnection {
-            action(new FetchIdeaProject()).withArguments("--warning-mode", "all").setStandardOutput(stdOut).setStandardError(stdErr).run()
+            def executer = action(new FetchIdeaProject())
+            executer.withArguments("--warning-mode", "all")
+            collectOutputs(executer)
+            executer.run()
         }
 
         then:
-        println stdOut.toString()
-        !stdOut.toString().contains("was resolved without accessing the project in a safe manner")
+        !stdout.toString().contains("was resolved without accessing the project in a safe manner")
 
         and:
-        stdOut.toString().contains("CONFIGURE SUCCESSFUL")
+        assertHasConfigureSuccessfulLogging()
     }
 
     def "does not emit deprecation warnings when eclipse model builder resolves a configuration"() {
-        def stdOut = new TestOutputStream()
-        def stdErr = new TestOutputStream()
         singleProjectBuildInRootFolder("root") {
             buildFile << """
                 apply plugin: 'java'
@@ -58,14 +55,16 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
 
         when:
         withConnection {
-            action(new FetchEclipseProject()).withArguments("--warning-mode", "all").setStandardOutput(stdOut).setStandardError(stdErr).run()
+            def executer = action(new FetchEclipseProject())
+            executer.withArguments("--warning-mode", "all")
+            collectOutputs(executer)
+            executer.run()
         }
 
         then:
-        println stdOut.toString()
-        !stdOut.toString().contains("was resolved without accessing the project in a safe manner")
+        !stdout.toString().contains("was resolved without accessing the project in a safe manner")
 
         and:
-        stdOut.toString().contains("CONFIGURE SUCCESSFUL")
+        assertHasConfigureSuccessfulLogging()
     }
 }

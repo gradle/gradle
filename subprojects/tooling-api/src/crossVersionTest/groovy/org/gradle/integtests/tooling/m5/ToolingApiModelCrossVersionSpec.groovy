@@ -54,6 +54,6 @@ System.err.println 'this is stderr'
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 }

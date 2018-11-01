@@ -39,10 +39,10 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         and:
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("No builders are available to build a model of type 'org.gradle.integtests.tooling.r16.CustomModel'.")
-        stdout.toString().contains("CONFIGURE FAILED")
+        assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion("<5.1")
+    @TargetGradleVersion(">=2.6 <5.1")
     def "fails gracefully when unknown model requested for version that does not log failure"() {
         when:
         withConnection {

@@ -206,6 +206,20 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("5.0");
     }
 
+    @Override
+    public boolean isLogsConfigureSummary() {
+        return isSameOrNewer("2.14");
+    }
+
+    @Override
+    public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
+        if (isSameOrNewer("4.0") && isSameOrOlder("4.6")) {
+            // This only worked as expected for a while
+            return stderr;
+        }
+        return stdout;
+    }
+
     protected boolean isSameOrNewer(String otherVersion) {
         return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }
