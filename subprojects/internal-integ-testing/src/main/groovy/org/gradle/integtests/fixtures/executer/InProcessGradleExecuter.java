@@ -62,12 +62,17 @@ import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
+import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -105,6 +110,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -315,16 +321,22 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                    try {
+                        BuildActionResult result = (BuildActionResult) actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                        if (result.failure != null) {
+                            PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
+                            return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.failure));
+                        }
+                        return new BuildResult(null, null);
+                    } catch (ReportedException e) {
+                        return new BuildResult(null, e.getCause());
+                    }
                 } finally {
                     stopMeasurement();
                 }
             } finally {
                 loggingManager.stop();
             }
-            return new BuildResult(null, null);
-        } catch (ReportedException e) {
-            return new BuildResult(null, e.getCause());
         } finally {
             listenerManager.removeListener(listener);
         }
@@ -671,7 +683,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
+            Matcher<Throwable> messageMatcher = hasMessage(normalizedLineSeparators(matcher));
+            for (Throwable cause : causes) {
+                if (messageMatcher.matches(cause)) {
+                    return this;
+                }
+            }
+            fail(String.format("Could not find matching cause in: %s%nFailure is: %s", causes, failure));
             return this;
         }
 
@@ -731,6 +749,24 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
             return new DependencyResolutionFailure(this, configurationPath);
+        }
+    }
+
+    private static class TestClassLoaderRegistry implements PayloadClassLoaderRegistry {
+        @Override
+        public SerializeMap newSerializeSession() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public DeserializeMap newDeserializeSession() {
+            return new DeserializeMap() {
+                @Override
+                public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                    // Assume everything is loaded into the current classloader
+                    return Class.forName(className);
+                }
+            };
         }
     }
 }

@@ -31,7 +31,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.tooling.internal.provider.BuildActionResult;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -56,7 +56,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         ActionRunningListener listener = new ActionRunningListener(phasedAction, gradle);
 
         Throwable buildFailure = null;
-        Throwable clientFailure = null;
+        RuntimeException clientFailure = null;
         try {
             gradle.addBuildListener(listener);
             if (clientProvidedPhasedAction.isRunTasks()) {
@@ -76,9 +76,9 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         }
 
         if (buildFailure != null) {
-            return Result.of(new BuildActionResult(null, payloadSerializer.serialize(clientFailure)), buildFailure);
+            return Result.failed(buildFailure, clientFailure);
         }
-        return Result.of(new BuildActionResult(payloadSerializer.serialize(null), null));
+        return Result.of(null);
     }
 
     private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {

@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
@@ -60,9 +59,6 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
-        if (result.getClientFailure() != null) {
-            return result.withClientFailure(new ReportedException(result.getClientFailure()));
-        }
         return result;
     }
 }

@@ -219,9 +219,6 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
                     + "Error:%n%s%n"
                     + "-----%n",
                 status, execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), execResult.toString(), output, error);
-        Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) executionResult).getException() : null;
-        return exception != null
-            ? new UnexpectedBuildFailure(message, exception)
-            : new UnexpectedBuildFailure(message);
+        return new UnexpectedBuildFailure(message);
     }
 }
