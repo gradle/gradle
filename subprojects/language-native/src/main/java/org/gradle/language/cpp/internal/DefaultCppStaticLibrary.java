@@ -46,6 +46,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
@@ -57,8 +58,8 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, Map<String, String> macros, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, baseName, sourceFiles, macros, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);

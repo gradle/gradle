@@ -103,6 +103,9 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         compile.includes(binary.getCompileIncludePath());
                         compile.getSystemIncludes().from(systemIncludes);
                         compile.source(binary.getCppSource());
+                        if(!binary.getMacros().isEmpty()) {
+                            compile.setMacros(binary.getMacros());
+                        }
                         if (binary.isDebuggable()) {
                             compile.setDebuggable(true);
                         }

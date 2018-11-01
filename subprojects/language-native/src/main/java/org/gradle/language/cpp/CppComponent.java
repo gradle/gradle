@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp;
 
+import java.util.Map;
+
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
@@ -68,6 +70,14 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      * <p>When this collection is empty, the directory {@code src/main/headers} is used by default.</p>
      */
     ConfigurableFileCollection getPrivateHeaders();
+
+    /**
+     * Get private macros for this library
+     * 
+     * @since 5.1
+     */
+    Map<String, String> getPrivateMacros();
+
 
     /**
      * Configures the private header directories for this component.

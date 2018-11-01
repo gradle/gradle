@@ -49,7 +49,7 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     }
 
     public DefaultCppExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateMacros(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }

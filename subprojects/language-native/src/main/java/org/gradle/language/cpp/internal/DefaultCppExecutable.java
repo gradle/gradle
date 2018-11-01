@@ -46,6 +46,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
@@ -59,8 +60,8 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, Map<String, String> macros, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, baseName, sourceFiles, macros, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         this.debuggerExecutableFile = objectFactory.fileProperty();

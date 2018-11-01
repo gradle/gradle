@@ -42,10 +42,13 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection publicHeaders;
+    private final Map<String, String> publicMacros = new LinkedHashMap<String, String>();
     private final FileCollection publicHeadersWithConvention;
     private final SetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
@@ -77,13 +80,13 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllMacros(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
 
     public DefaultCppStaticLibrary addStaticLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(),  getAllMacros(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
@@ -137,6 +140,18 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
+    public Map<String, String> getPublicMacros() {
+        return publicMacros;
+    }
+
+    public Map<String, String> getAllMacros() {
+        Map<String, String> allMacros = new LinkedHashMap<String, String>();
+        allMacros.putAll(publicMacros);
+        allMacros.putAll(super.getPrivateMacros());
+        return allMacros;
+    }
+
+    @Override
     public FileTree getPublicHeaderFiles() {
         PatternSet patterns = new PatternSet();
         patterns.include("**/*.h");
@@ -158,4 +173,5 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     public SetProperty<Linkage> getLinkage() {
         return linkage;
     }
+
 }

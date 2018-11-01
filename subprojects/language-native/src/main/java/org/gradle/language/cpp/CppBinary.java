@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp;
 
+import java.util.Map;
+
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.FileCollection;
@@ -62,6 +64,13 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
      */
     FileCollection getCompileIncludePath();
 
+    /**
+     * Returns the macros for this binary
+     * 
+     * @since 5.1
+     */
+    Map<String, String> getMacros();
+    
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
      */

@@ -44,12 +44,14 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
+    private final Map<String, String> macros;
     private final Configuration linkLibraries;
     private final FileCollection runtimeLibraries;
     private final CppPlatform targetPlatform;
@@ -59,10 +61,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, Map<String, String> macros, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
+        this.macros = macros;
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
@@ -139,6 +142,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     @Override
     public FileCollection getCompileIncludePath() {
         return includePath;
+    }
+    
+    @Override
+    public Map<String, String> getMacros() {
+        return macros;
     }
 
     @Override

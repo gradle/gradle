@@ -38,6 +38,8 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
@@ -45,6 +47,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final String name;
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
+    private final Map<String, String> privateMacros = new LinkedHashMap<String, String>();
     private final FileCollection privateHeadersWithConvention;
     private final Property<String> baseName;
     private final Names names;
@@ -101,6 +104,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public ConfigurableFileCollection getPrivateHeaders() {
         return privateHeaders;
+    }
+
+    @Override
+    public Map<String, String> getPrivateMacros() {
+        return privateMacros;
     }
 
     @Override
