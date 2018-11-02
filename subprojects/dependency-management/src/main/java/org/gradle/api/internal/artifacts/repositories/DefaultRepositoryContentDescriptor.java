@@ -80,15 +80,27 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void includeGroup(String group) {
         assert group != null : "Group cannot be null";
-        addInclude(group, null, null);
+        addInclude(group, null, null, false);
     }
 
+    @Override
+    public void includeGroupByRegex(String groupRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        addInclude(groupRegex, null, null, true);
+    }
 
     @Override
     public void includeModule(String group, String moduleName) {
         assert group != null : "Group cannot be null";
         assert moduleName != null : "Module name cannot be null";
-        addInclude(group, moduleName, null);
+        addInclude(group, moduleName, null, false);
+    }
+
+    @Override
+    public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        assert moduleNameRegex != null : "Module name cannot be null";
+        addInclude(groupRegex, moduleNameRegex, null, true);
     }
 
     @Override
@@ -96,25 +108,46 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         assert group != null : "Group cannot be null";
         assert moduleName != null : "Module name cannot be null";
         assert version != null : "Version cannot be null";
-        addInclude(group, moduleName, version);
+        addInclude(group, moduleName, version, false);
     }
 
-    private void addInclude(String group, String moduleName, String version) {
+    @Override
+    public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        assert moduleNameRegex != null : "Module name cannot be null";
+        assert versionRegex != null : "Version cannot be null";
+        addInclude(groupRegex, moduleNameRegex, versionRegex, true);
+    }
+
+    private void addInclude(String group, String moduleName, String version, boolean regex) {
         switchTo(Mode.include);
-        specs.add(new ContentSpec(false, group, moduleName, version));
+        specs.add(new ContentSpec(regex, group, moduleName, version));
     }
 
     @Override
     public void excludeGroup(String group) {
         assert group != null : "Group cannot be null";
-        addExclude(group, null, null);
+        addExclude(group, null, null, false);
+    }
+
+    @Override
+    public void excludeGroupByRegex(String groupRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        addExclude(groupRegex, null, null, true);
     }
 
     @Override
     public void excludeModule(String group, String moduleName) {
         assert group != null : "Group cannot be null";
         assert moduleName != null : "Module name cannot be null";
-        addExclude(group, moduleName, null);
+        addExclude(group, moduleName, null, false);
+    }
+
+    @Override
+    public void excludeModuleByRegex(String groupRegex, String moduleNameRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        assert moduleNameRegex != null : "Module name cannot be null";
+        addExclude(groupRegex, moduleNameRegex, null, true);
     }
 
     @Override
@@ -122,12 +155,20 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         assert group != null : "Group cannot be null";
         assert moduleName != null : "Module name cannot be null";
         assert version != null : "Version cannot be null";
-        addExclude(group, moduleName, version);
+        addExclude(group, moduleName, version, false);
     }
 
-    private void addExclude(String group, String moduleName, String version) {
+    @Override
+    public void excludeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
+        assert groupRegex != null : "Group cannot be null";
+        assert moduleNameRegex != null : "Module name cannot be null";
+        assert versionRegex != null : "Version cannot be null";
+        addExclude(groupRegex, moduleNameRegex, versionRegex, true);
+    }
+
+    private void addExclude(String group, String moduleName, String version, boolean regex) {
         switchTo(Mode.exclude);
-        specs.add(new ContentSpec(false, group, moduleName, version));
+        specs.add(new ContentSpec(regex, group, moduleName, version));
     }
 
     @Override

@@ -35,12 +35,13 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         resolve.prepare()
     }
 
-    def "can exclude a module from a repository"() {
+    @Unroll
+    def "can exclude a module from a repository using #notation"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
-            maven("content { excludeGroup('org') }")
+            maven("content { $notation }")
             ivy()
         }
         buildFile << """
@@ -61,14 +62,21 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:foo:1.0')
             }
         }
+
+        where:
+        notation << [
+                "excludeGroup('org')",
+                "excludeGroupByRegex('or.+')"
+        ]
     }
 
-    def "can include a module from a repository"() {
+    @Unroll
+    def "can include a module from a repository using #notation"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
-            maven("content { includeGroup('other') }")
+            maven("content { $notation }")
             ivy()
         }
         buildFile << """
@@ -89,15 +97,22 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:foo:1.0')
             }
         }
+
+        where:
+        notation << [
+                "includeGroup('other')",
+                "includeGroupByRegex('oth[a-z]+')"
+        ]
     }
 
-    def "doesn't try to list module versions in repository when rule excludes group"() {
+    @Unroll
+    def "doesn't try to list module versions in repository when rule excludes group using #notation"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def ivyDirectoryList = ivyHttpRepo.directoryList('org', 'foo')
 
         given:
         repositories {
-            maven("content { excludeGroup('org') }")
+            maven("content { $notation }")
             ivy()
         }
         buildFile << """
@@ -119,15 +134,22 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 edge('org:foo:+', 'org:foo:1.0')
             }
         }
+
+        where:
+        notation << [
+                "excludeGroup('org')",
+                "excludeGroupByRegex('or.+')"
+        ]
     }
 
-    def "doesn't try to list module versions in repository when rule includes group"() {
+    @Unroll
+    def "doesn't try to list module versions in repository when rule includes group using #notation"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def ivyDirectoryList = ivyHttpRepo.directoryList('org', 'foo')
 
         given:
         repositories {
-            maven("content { includeGroup('other') }")
+            maven("content { $notation }")
             ivy()
         }
         buildFile << """
@@ -149,16 +171,23 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 edge('org:foo:+', 'org:foo:1.0')
             }
         }
+
+        where:
+        notation << [
+                "includeGroup('other')",
+                "includeGroupByRegex('oth[a-z]+')"
+        ]
     }
 
-    def "can exclude a specific module"() {
+    @Unroll
+    def "can exclude a specific module using #notation"() {
         def mod1 = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def mod2Ivy = ivyHttpRepo.module('org', 'bar', '1.0').publish()
         def mod2Maven = mavenHttpRepo.module('org', 'bar', '1.0')
 
         given:
         repositories {
-            maven("""content { excludeModule('org', 'foo') }""")
+            maven("""content { $notation }""")
             ivy()
         }
         buildFile << """
@@ -187,16 +216,23 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:bar:1.0')
             }
         }
+
+        where:
+        notation << [
+                "excludeModule('org', 'foo')",
+                "excludeModuleByRegex('or.+', 'f[o]{1,2}')"
+        ]
     }
 
-    def "can include a specific module"() {
+    @Unroll
+    def "can include a specific module using #notation"() {
         def mod1 = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def mod2Ivy = ivyHttpRepo.module('org', 'bar', '1.0').publish()
         def mod2Maven = mavenHttpRepo.module('org', 'bar', '1.0')
 
         given:
         repositories {
-            maven("""content { includeModule('org', 'bar') }""")
+            maven("""content { $notation }""")
             ivy()
         }
         buildFile << """
@@ -225,6 +261,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:bar:1.0')
             }
         }
+
+        where:
+        notation << [
+                "includeModule('org', 'bar')",
+                "includeModuleByRegex('or.+', 'b[ar]+')",
+        ]
     }
 
     /**
@@ -352,14 +394,15 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    def "can exclude by module version"() {
+    @Unroll
+    def "can exclude by module version using #notation"() {
         def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
         def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
             maven("""content { details ->
-                excludeVersion('org', 'foo', '1.1')
+                $notation
             }""")
             ivy()
         }
@@ -381,16 +424,23 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:foo:1.1')
             }
         }
+
+        where:
+        notation << [
+                "excludeVersion('org', 'foo', '1.1')",
+                "excludeVersionByRegex('or.+', 'f.+', '1\\\\.[1-2]')"
+        ]
     }
 
-    def "can include by module version"() {
+    @Unroll
+    def "can include by module version using #notation"() {
         def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
         def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
             maven("""content {
-                includeVersion('org', 'foo', '1.0')
+                $notation
             }""")
             ivy()
         }
@@ -412,6 +462,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:foo:1.1')
             }
         }
+
+        where:
+        notation << [
+                "includeVersion('org', 'foo', '1.0')",
+                "includeVersionByRegex('or.+', 'fo.+', '.+0')",
+        ]
     }
 
     def "can declare that a repository doesn't contain snapshots"() {

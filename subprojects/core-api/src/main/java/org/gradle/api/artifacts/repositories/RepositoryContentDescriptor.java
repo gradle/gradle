@@ -41,12 +41,27 @@ public interface RepositoryContentDescriptor {
     void includeGroup(String group);
 
     /**
+     * Declares that an entire group should be searched for in this repository.
+     *
+     * @param groupRegex a regular expression of the group name
+     */
+    void includeGroupByRegex(String groupRegex);
+
+    /**
      * Declares that an entire module should be searched for in this repository.
      *
      * @param group the group name
      * @param moduleName the module name
      */
     void includeModule(String group, String moduleName);
+
+    /**
+     * Declares that an entire module should be searched for in this repository, using regular expressions.
+     *
+     * @param groupRegex the group name regular expression
+     * @param moduleNameRegex the module name regular expression
+     */
+    void includeModuleByRegex(String groupRegex, String moduleNameRegex);
 
     /**
      * Declares that a specific module version should be searched for in this repository.
@@ -58,11 +73,27 @@ public interface RepositoryContentDescriptor {
     void includeVersion(String group, String moduleName, String version);
 
     /**
+     * Declares that a specific module version should be searched for in this repository, using regular expressions.
+     *
+     * @param groupRegex the group name regular expression
+     * @param moduleNameRegex the module name regular expression
+     * @param versionRegex the module version regular expression
+     */
+    void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
+
+    /**
      * Declares that an entire group shouldn't be searched for in this repository.
      *
      * @param group the group name
      */
     void excludeGroup(String group);
+
+    /**
+     * Declares that an entire group shouldn't be searched for in this repository.
+     *
+     * @param groupRegex the group name regular expression
+     */
+    void excludeGroupByRegex(String groupRegex);
 
     /**
      * Declares that an entire module shouldn't be searched for in this repository.
@@ -73,6 +104,14 @@ public interface RepositoryContentDescriptor {
     void excludeModule(String group, String moduleName);
 
     /**
+     * Declares that an entire module shouldn't be searched for in this repository, using regular expressions.
+     *
+     * @param groupRegex the group name regular expression
+     * @param moduleNameRegex the module name regular expression
+     */
+    void excludeModuleByRegex(String groupRegex, String moduleNameRegex);
+
+    /**
      * Declares that a specific module version shouldn't be searched for in this repository.
      *
      * @param group the group name
@@ -80,6 +119,15 @@ public interface RepositoryContentDescriptor {
      * @param version the module version
      */
     void excludeVersion(String group, String moduleName, String version);
+
+    /**
+     * Declares that a specific module version shouldn't be searched for in this repository, using regular expressions.
+     *
+     * @param groupRegex the group name
+     * @param moduleNameRegex the module name
+     * @param versionRegex the module version
+     */
+    void excludeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
 
     /**
      * Declares that this repository should only be used for a specific
