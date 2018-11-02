@@ -137,7 +137,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 module("org:bar:1.0") {
                     edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                 }
-                edgeFromConstraint("org:foo:1.1", "org:foo:1.1")
+                constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
     }
@@ -232,7 +232,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 module("org:bar:1.0") {
                     edge("org:foo:[1.0,1.2]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
                 }
-                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
+                constraint("org:foo:[1.0,1.1]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
             }
         }
     }
@@ -504,8 +504,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:foo:1.1") {
-                    graph.constraints.add(delegate)
+                constraint("org:foo:1.1", "org:foo:1.1") {
                     artifact(classifier: 'shaded')
                 }
                 module("org:bar:1.0") {
