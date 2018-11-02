@@ -39,6 +39,7 @@ include::installation.adoc[leveloffset=+2]
 
 include::kotlin_dsl.adoc[leveloffset=+2]
 
+include::upgrading_version_5.adoc[leveloffset=+2]
 include::upgrading_version_4.adoc[leveloffset=+2]
 
 == Using Gradle Builds

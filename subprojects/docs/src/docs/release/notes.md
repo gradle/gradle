@@ -1,16 +1,16 @@
-## New and noteworthy
+The Gradle team is excited to announce Gradle 5.1.
 
-Here are the new features introduced in this Gradle release.
+This release features [Stricter validation with `validateTaskProperties`](userguide/java_gradle_plugin.html), [2](), ... [n](), and more.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+We would like to thank the following community contributors to this release of Gradle:
+[Mike Kobit](https://github.com/mkobit),
+[Kent Fletcher](https://github.com/fletcher-sumglobal),
+[Niklas Grebe](https://github.com/ThYpHo0n),
+[Jonathan Leitschuh](https://github.com/JLLeitschuh),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Dan Sănduleac](https://github.com/dansanduleac),
 
-<!--
-### Example new and noteworthy
--->
-
-### Stricter validation with `validateTaskProperties`
+## Stricter validation with `validateTaskProperties`
 
 Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
 For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
@@ -34,16 +34,14 @@ The following are the features that have been promoted in this Gradle release.
 Previously, only exclude rules directly declared on published configurations (e.g. `apiElements` and `runtimeElements` for the `java` component defined by the [Java Library Plugin](userguide/java_library_plugin.html#sec:java_library_configurations_graph)) were published in the Ivy descriptor and POM when using the [Ivy Publish Plugin](userguide/publishing_ivy.html) or [Maven Publish Plugins](userguide/publishing_maven.html), respectively.
 Now, inherited exclude rules defined on extended configurations (e.g. `api` for Java libraries) are also taken into account.
 
+## Known issues
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version. See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ### Setters for `classes` and `classpath` on `ValidateTaskProperties`
 
@@ -52,11 +50,13 @@ Use `setFrom` instead.
 
     validateTaskProperties.getClasses().setFrom(fileCollection)
     validateTaskProperties.getClasspath().setFrom(fileCollection)
+    
+### Breaking changes
 
-### Properties `inputFiles` and `outputFiles` of `Sign` task
+<!-- add any notable changes here in a summary -->
 
-Input and output files of `Sign` tasks are now tracked via `Signature.getToSign()` and `Signature.getFile()`, respectively, of the task's `signatures`.
-
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+    
 ## Potential breaking changes
 
 <!--
@@ -91,10 +91,6 @@ We would like to thank the following community members for making contributions 
  - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Add Provider API types to `AbstractArchiveTask` task types (gradle/gradle#7435)
  - [Sebastian Schuberth](https://github.com/sschuberth) - Improve init-command comments for Kotlin projects (gradle/gradle#7592)
  - [Dan Sănduleac](https://github.com/dansanduleac) - Don't share dependency resolution listeners list when copying configuration (gradle/gradle#6996)
-
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
