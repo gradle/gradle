@@ -160,9 +160,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     if (thing == "dependencies") {
-                        edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                        edge('org.test:moduleB:{strictly 1.0}', 'org.test:moduleB:1.0')
                     } else {
-                        constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                        constraint('org.test:moduleB:{strictly 1.0}', 'org.test:moduleB:1.0')
                     }
                 }
             }
@@ -353,7 +353,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                     context.details.withVariant("$variantToTest") { 
                         withDependencies {
                             it.each {
-                                it.version { ${keyword} '1.0' }
+                                it.version {
+                                    require '' 
+                                    ${keyword} '1.0' 
+                                }
                             }
                         }
                     }
@@ -380,10 +383,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         then:
         succeeds 'checkDep'
         def expectedVariant = variantToTest
+        def versionConstraint = keyword == 'require' ? '1.0' : "{${keyword} 1.0}"
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
-                    module('org.test:moduleB:1.0')
+                    edge('org.test:moduleB:' + versionConstraint, 'org.test:moduleB:1.0')
                 }
             }
         }
@@ -1014,7 +1018,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        constraint("org.test:moduleC:1.1", "org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
                     }
                 }
             }

@@ -106,9 +106,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:[1.0,1.2]", "org:foo:1.2")
+                edge("org:foo:{strictly [1.0,1.2]}", "org:foo:1.2")
                 edge('org:bar:1.0', 'org:bar:1.0') {
-                    edge("org:foo:[1.1,1.3]", "org:foo:1.2")
+                    edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2")
                 }
             }
         }
@@ -164,10 +164,10 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:bar:1') {
-                    edge("org:foo:1.1", "org:foo:1.1")
+                    edge("org:foo:{prefer 1.1}", "org:foo:1.1")
                 }
                 module('org:baz:1') {
-                    edge("org:foo:1.0", "org:foo:1.1")
+                    edge("org:foo:{prefer 1.0}", "org:foo:1.1")
                 }
                 edge("org:foo:[1.0,2.0)", "org:foo:1.1")
             }

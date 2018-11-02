@@ -60,7 +60,7 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        outputContains('org:bar:1.0')
+        outputContains('org:bar')
         outputDoesNotContain('foo')
 
     }
@@ -131,7 +131,7 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        outputContains("org:bar:$resolvedVersion")
+        outputContains("org:bar:latest.${level} -> $resolvedVersion")
 
         where:
         level         | resolvedVersion

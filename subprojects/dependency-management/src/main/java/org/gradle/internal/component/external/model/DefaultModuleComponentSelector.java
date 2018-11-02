@@ -49,19 +49,14 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
-        String version = getVersion();
         StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getRequiredVersion().length() + 2);
         builder.append(group);
         builder.append(":");
         builder.append(module);
-        if (version.length() > 0) {
+        String versionString = versionConstraint.getDisplayName();
+        if (versionString.length() > 0) {
             builder.append(":");
-            builder.append(version);
-        }
-        if (versionConstraint.getBranch() != null) {
-            builder.append(" (branch: ");
-            builder.append(versionConstraint.getBranch());
-            builder.append(")");
+            builder.append(versionString);
         }
         return builder.toString();
     }
