@@ -20,15 +20,15 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
 /**
- * A {@link ComponentResult} implementation that is detached from the original resolution process.
+ * A {@link ResolvedGraphComponent} implementation that is detached from the original resolution process.
  * Instances are created when de-serializing the resolution result.
  */
-public class DetachedComponentResult implements ComponentResult {
+public class DetachedComponentResult implements ResolvedGraphComponent {
     private final Long resultId;
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
