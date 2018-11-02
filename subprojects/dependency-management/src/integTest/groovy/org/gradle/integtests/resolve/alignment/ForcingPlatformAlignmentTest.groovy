@@ -684,10 +684,10 @@ include 'other'
                 }
                 module('org:platform:2.7.9:default') {
                     noArtifacts()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
         }
@@ -745,10 +745,10 @@ include 'other'
                     noArtifacts()
                     byConstraint("belongs to platform org:platform:2.7.9")
                     forced()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
             virtualConfiguration('org:platform:2.7.9')
@@ -817,10 +817,10 @@ include 'other'
                 }
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled()?'enforced-platform':'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
         }
@@ -889,10 +889,10 @@ include 'other'
                     noArtifacts()
                     byConstraint("belongs to platform org:platform:2.7.9")
                     forced()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
             virtualConfiguration('org:platform:2.7.9')

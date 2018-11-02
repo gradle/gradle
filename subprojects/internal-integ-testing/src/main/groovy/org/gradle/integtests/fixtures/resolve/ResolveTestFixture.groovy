@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionCause
-import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
@@ -136,7 +135,7 @@ allprojects {
         compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
         def actualEdges = findLines(configDetails, 'dependency')
-        def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
+        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
@@ -596,7 +595,7 @@ allprojects {
         /**
          * Defines a link between nodes created through a dependency constraint.
          */
-        NodeBuilder constraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+        NodeBuilder constraint(String requested, String selectedModuleVersionId = requested, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             def edge = new EdgeBuilder(this, requested, node)
             edge.constraint = true
@@ -793,7 +792,7 @@ class GenerateGraphTask extends DefaultTask {
                 writer.println("component:${formatComponent(it)}")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+                writer.println("dependency:${it.constraint ? '[constraint]' : '' }[from:${it.from.id}][${it.requested}->${it.selected.id}]")
             }
             if (buildArtifacts) {
                 configuration.files.each {

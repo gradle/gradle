@@ -72,18 +72,6 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     conf 'org:foo:1.1'
                 }
             }
-            
-            task checkConstraints {
-                doLast {
-                    def root = configurations.conf.incoming.resolutionResult.root
-                    
-                    def hardEdge = root.dependencies.find { it.requested.version == '' }
-                    assert !hardEdge.constraint
-                    
-                    def constraintEdge = root.dependencies.find { it.requested.version == '1.1' }
-                    assert constraintEdge.constraint
-                }
-            }                        
         """
 
         when:
@@ -93,13 +81,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo","org:foo:1.1")
-                module("org:foo:1.1")
+                constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
-
-        expect:
-        // TODO:DAZ This is a temporary check pending full support in `ResolveTestFixture`
-        succeeds "checkConstraints"
     }
 
     void "dependency constraint can be used to declare incompatibility"() {
@@ -311,7 +295,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:bar:1.1", "org:foo:1.1").selectedByRule()
+                constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
                 edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
             }
         }
@@ -343,7 +327,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
-                module("org:foo:1.1")
+                constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
     }
@@ -389,7 +373,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 project(":b", "test:b:") {
                     configuration = "conf"
                     noArtifacts()
-                    module("org:foo:1.1").byConstraint('transitive dependency constraint')
+                    constraint("org:foo:1.1", "org:foo:1.1").byConstraint('transitive dependency constraint')
                 }
             }
         }
@@ -436,7 +420,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
-                    module("org:foo:1.1:runtime")
+                    constraint("org:foo:1.1", "org:foo:1.1")
                 }.compositeSubstitute()
             }
         }
@@ -450,7 +434,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             dependencies {
-                conf('org:foo:1.0') {
+                conf('org:foo') {
                     exclude group: 'org', module: 'baz'
                 }
                 
@@ -466,7 +450,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:foo:1.0")
+                edge("org:foo", "org:foo:1.0")
+                constraint("org:foo:1.0")
             }
         }
     }
@@ -492,7 +477,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0","org:foo:1.1")
-                module("org:foo:1.1") {
+                constraint("org:foo:1.1", "org:foo:1.1") {
                     artifact(classifier: 'shaded')
                 }
             }
@@ -551,7 +536,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.1") {
+                constraint("org:bar:1.1", "org:bar:1.1") {
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
                 edge('org:bar:1.0', 'org:bar:1.1')
@@ -580,7 +565,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.1") {
+                constraint("org:bar:1.1", "org:bar:1.1") {
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
                 edge('org:bar', 'org:bar:1.1')

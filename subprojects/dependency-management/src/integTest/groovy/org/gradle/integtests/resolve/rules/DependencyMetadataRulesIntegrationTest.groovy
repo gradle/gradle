@@ -101,7 +101,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             root(':', ':test:') {
                 edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
-                    module('org.test:moduleB:1.0')
+                    if (thing == "dependencies") {
+                        edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    } else {
+                        constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    }
                 }
             }
         }
@@ -155,7 +159,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             root(':', ':test:') {
                 edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
-                    module('org.test:moduleB:1.0')
+                    if (thing == "dependencies") {
+                        edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    } else {
+                        constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    }
                 }
             }
         }
@@ -434,7 +442,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             root(':', ':test:') {
                 edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
-                    module('org.test:moduleB:1.0')
+                    constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
                 }
             }
         }
@@ -575,7 +583,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 edge('org.test:moduleC', 'org.test:moduleC:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
-                        module('org.test:moduleC:1.0')
+                        if (thing == "dependencies") {
+                            edge('org.test:moduleC:1.0', 'org.test:moduleC:1.0')
+                        } else {
+                            constraint('org.test:moduleC:1.0', 'org.test:moduleC:1.0')
+                        }
                     }
                 }
             }
@@ -1002,7 +1014,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        module("org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                        constraint("org.test:moduleC:1.1", "org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
                     }
                 }
             }
