@@ -16,9 +16,21 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
+import static org.gradle.util.ConfigureUtil.configure;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -106,19 +118,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
-import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
@@ -811,6 +810,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.description = description;
 
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
+        copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
