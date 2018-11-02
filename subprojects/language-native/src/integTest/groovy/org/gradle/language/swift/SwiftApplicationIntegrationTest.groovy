@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
+class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest implements SwiftTaskNames {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
         return [":compileDebugSwift", ":linkDebug", ":installDebug"]
@@ -434,6 +434,75 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         def installation = installation("app/build/install/main/debug")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("Greeter")
+    }
+
+    def "can compile and link against a library specifying target machines"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+                application {
+                    targetMachines = [machines.macOS(), machines.linux()]
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+                library {
+                    targetMachines = [machines.macOS(), machines.linux()]
+                }
+            }
+        """
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(tasks(':greeter').withArchitecture(currentArchitecture).debug.allToLink, tasks(':app').withArchitecture(currentArchitecture).debug.allToInstall, ":app:assemble")
+
+        executable("app/build/exe/main/debug/${currentOsFamilyName}/${currentArchitecture}/App").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/${currentOsFamilyName}/${currentArchitecture}/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug/${currentOsFamilyName}/${currentArchitecture}")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Greeter")
+    }
+
+    def "fails when dependency library does not specify the same target machines"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+                application {
+                    targetMachines = [machines.macOS(), machines.linux()]
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+                library {
+                    targetMachines = [machines.host().architecture('foo')]
+                }
+            }
+        """
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        fails ":app:assemble"
+
+        and:
+        failure.assertHasCause("Could not resolve project :greeter.")
+        failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
     }
 
     def "can compile and link against a static library"() {
