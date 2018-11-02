@@ -44,4 +44,6 @@ public interface ResolvedGraphDependency {
      */
     @Nullable
     ComponentSelectionReason getReason();
+
+    boolean isConstraint();
 }

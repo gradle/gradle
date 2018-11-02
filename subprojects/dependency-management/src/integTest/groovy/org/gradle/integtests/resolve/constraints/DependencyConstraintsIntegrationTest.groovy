@@ -72,6 +72,18 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     conf 'org:foo:1.1'
                 }
             }
+            
+            task checkConstraints {
+                doLast {
+                    def root = configurations.conf.incoming.resolutionResult.root
+                    
+                    def hardEdge = root.dependencies.find { it.requested.version == '' }
+                    assert !hardEdge.constraint
+                    
+                    def constraintEdge = root.dependencies.find { it.requested.version == '1.1' }
+                    assert constraintEdge.constraint
+                }
+            }                        
         """
 
         when:
@@ -84,6 +96,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 module("org:foo:1.1")
             }
         }
+
+        expect:
+        // TODO:DAZ This is a temporary check pending full support in `ResolveTestFixture`
+        succeeds "checkConstraints"
     }
 
     void "dependency constraint can be used to declare incompatibility"() {

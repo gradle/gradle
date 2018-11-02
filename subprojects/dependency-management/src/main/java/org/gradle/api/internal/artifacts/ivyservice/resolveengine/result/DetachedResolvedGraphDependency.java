@@ -31,11 +31,13 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final Long selected;
     private final ComponentSelectionReason reason;
     private ModuleVersionResolveException failure;
+    private boolean constraint;
 
     public DetachedResolvedGraphDependency(ComponentSelector requested,
                                            Long selected,
                                            ComponentSelectionReason reason,
-                                           ModuleVersionResolveException failure) {
+                                           ModuleVersionResolveException failure,
+                                           boolean constraint) {
         assert requested != null;
         assert failure != null || selected != null;
 
@@ -43,21 +45,31 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
         this.reason = reason;
         this.selected = selected;
         this.failure = failure;
+        this.constraint = constraint;
     }
 
+    @Override
     public ComponentSelector getRequested() {
         return requested;
     }
 
+    @Override
     public Long getSelected() {
         return selected;
     }
 
+    @Override
     public ComponentSelectionReason getReason() {
         return reason;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         return failure;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 }

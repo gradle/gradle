@@ -279,5 +279,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         Long selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
+        boolean constraint
     }
 }

@@ -35,15 +35,16 @@ public class DependencyResultSerializer {
     public ResolvedGraphDependency read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         Long selectorId = decoder.readSmallLong();
         ComponentSelector requested = selectors.get(selectorId);
+        boolean constraint = decoder.readBoolean();
 
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             Long selectedId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null);
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure);
+            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -51,6 +52,7 @@ public class DependencyResultSerializer {
 
     public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
         encoder.writeSmallLong(value.getSelector().getResultId());
+        encoder.writeBoolean(value.isConstraint());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             encoder.writeSmallLong(value.getSelected());

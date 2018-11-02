@@ -243,6 +243,11 @@ class EdgeState implements DependencyGraphEdge {
         return selector.getSelectionReason();
     }
 
+    @Override
+    public boolean isConstraint() {
+        return dependencyMetadata.isConstraint();
+    }
+
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();
     }
