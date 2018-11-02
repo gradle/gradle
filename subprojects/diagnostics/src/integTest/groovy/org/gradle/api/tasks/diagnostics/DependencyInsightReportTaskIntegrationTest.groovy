@@ -956,7 +956,7 @@ org:new-leaf:77 (selected by rule)
 
 org:leaf:1.0 -> org:new-leaf:77
 \\--- org:foo:2.0
-     \\--- conf (=> org:foo:1.0)
+     \\--- conf (requested org:foo:1.0)
 
 org:leaf:2.0 -> org:new-leaf:77
 \\--- org:bar:1.0
@@ -2788,11 +2788,11 @@ planet:mercury:1.0.2
 
 planet:mercury:1.0.1 -> 1.0.2
 \\--- planet:venus:2.0.1
-     +--- planet:earth:3.0.0 (=> planet:venus:2.0.0)
+     +--- planet:earth:3.0.0 (requested planet:venus:2.0.0)
      |    \\--- compileClasspath
      +--- planet:mars:4.0.0
      |    \\--- compileClasspath
-     \\--- planet:jupiter:5.0.0 (=> planet:venus:1.0)
+     \\--- planet:jupiter:5.0.0 (requested planet:venus:1.0)
           \\--- compileClasspath
 """
         when:
@@ -2838,12 +2838,12 @@ planet:pluto:1.0.0
 \\--- planet:mercury:1.0.2
      +--- planet:jupiter:5.0.0
      |    \\--- compileClasspath
-     \\--- planet:venus:2.0.1 (=> planet:mercury:1.0.1)
-          +--- planet:earth:3.0.0 (=> planet:venus:2.0.0)
+     \\--- planet:venus:2.0.1 (requested planet:mercury:1.0.1)
+          +--- planet:earth:3.0.0 (requested planet:venus:2.0.0)
           |    \\--- compileClasspath
           +--- planet:mars:4.0.0
           |    \\--- compileClasspath
-          \\--- planet:jupiter:5.0.0 (=> planet:venus:1.0) (*)
+          \\--- planet:jupiter:5.0.0 (requested planet:venus:1.0) (*)
 """
     }
 

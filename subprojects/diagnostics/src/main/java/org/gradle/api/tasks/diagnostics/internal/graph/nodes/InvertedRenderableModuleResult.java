@@ -58,7 +58,7 @@ public class InvertedRenderableModuleResult extends AbstractRenderableModuleResu
     public String getDescription() {
         if (dependencyResult != null) {
             if (!dependencyResult.getRequested().matchesStrictly(dependencyResult.getSelected().getId())) {
-                return "(=> " + dependencyResult.getRequested() + ")";
+                return "(requested " + dependencyResult.getRequested() + ")";
             }
         }
         return null;
