@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.api.platform.MachineArchitecture
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -116,8 +117,14 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         return 'assemble'
     }
 
-    @Override
     protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
         return ":assembleDebug${getVariantSuffix(architecture)}"
     }
+
+    protected String getVariantSuffix(String architecture) {
+        String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
+        return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
+    }
+
+    protected abstract List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 }

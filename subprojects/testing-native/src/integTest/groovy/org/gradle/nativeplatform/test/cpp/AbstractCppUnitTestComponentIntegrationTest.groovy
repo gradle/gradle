@@ -28,9 +28,4 @@ abstract class AbstractCppUnitTestComponentIntegrationTest extends AbstractCppCo
     protected String getTaskNameToAssembleDevelopmentBinary() {
         return 'test'
     }
-
-    @Override
-    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return "testDebug${getVariantSuffix(architecture)}"
-    }
 }

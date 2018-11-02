@@ -38,9 +38,4 @@ class CppUnitTestComponentWithStaticLibraryLinkageIntegrationTest extends Abstra
     protected List<String> getTasksToAssembleDevelopmentBinary() {
         return [':compileDebugCpp', ':compileTestCpp', ':linkTest', ':installTest', ':runTest']
     }
-
-    @Override
-    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return [":compileDebug${getVariantSuffix(architecture)}Cpp", ":compileTest${getVariantSuffix(architecture)}Cpp", ":linkTest${getVariantSuffix(architecture)}", ":installTest${getVariantSuffix(architecture)}", ":runTest${getVariantSuffix(architecture)}"]
-    }
 }

@@ -18,6 +18,7 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
@@ -29,7 +30,17 @@ import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
-        [":compileDebugSwift", ":linkDebug", ":installDebug"]
+        return [":compileDebugSwift", ":linkDebug", ":installDebug"]
+    }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return [":compileDebug${getVariantSuffix(architecture)}Swift", ":linkDebug${getVariantSuffix(architecture)}", ":installDebug${getVariantSuffix(architecture)}"]
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new SwiftApp()
     }
 
     @Override

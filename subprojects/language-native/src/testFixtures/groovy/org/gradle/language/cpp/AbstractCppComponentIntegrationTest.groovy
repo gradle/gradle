@@ -85,18 +85,9 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
     }
 
-    protected String getVariantSuffix(String architecture) {
-        String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
-        return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
-    }
-
     protected abstract SourceElement getComponentUnderTest()
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
-    protected abstract List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture)
-
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
-
-    protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 }

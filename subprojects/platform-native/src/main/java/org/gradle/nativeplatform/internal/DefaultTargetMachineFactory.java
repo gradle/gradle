@@ -58,7 +58,7 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     private MachineArchitecture getDefaultArchitecture() {
-        return objectFactory.named(MachineArchitecture.class, DefaultNativePlatform.host().getName());
+        return objectFactory.named(MachineArchitecture.class, DefaultNativePlatform.host().getArchitecture().getName());
     }
 
     private class TargetMachineImpl implements TargetMachine {
