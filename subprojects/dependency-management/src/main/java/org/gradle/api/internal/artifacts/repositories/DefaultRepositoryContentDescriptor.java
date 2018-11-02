@@ -38,11 +38,12 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private Set<ContentSpec> specs;
     private Map<Attribute<Object>, Set<Object>> requiredAttributes;
     private Mode mode;
+    private boolean locked;
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
 
     private void switchTo(Mode mode) {
-        if (cachedAction != null) {
+        if (locked) {
             throw new IllegalStateException("Cannot mutate content repository descriptor after repository has been used");
         }
         if (this.mode != mode) {
@@ -56,6 +57,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         if (cachedAction != null) {
             return cachedAction;
         }
+        locked = true;
         if (includedConfigurations == null && excludedConfigurations == null && specs == null && requiredAttributes == null) {
             // no filtering in place
             return null;
@@ -79,43 +81,49 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void includeGroup(String group) {
-        assert group != null : "Group cannot be null";
+        checkNotNull(group, "Group cannot be null");
         addInclude(group, null, null, false);
+    }
+
+    private static void checkNotNull(String value, String message) {
+        if (value == null) {
+            throw new IllegalArgumentException(message);
+        }
     }
 
     @Override
     public void includeGroupByRegex(String groupRegex) {
-        assert groupRegex != null : "Group cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
         addInclude(groupRegex, null, null, true);
     }
 
     @Override
     public void includeModule(String group, String moduleName) {
-        assert group != null : "Group cannot be null";
-        assert moduleName != null : "Module name cannot be null";
+        checkNotNull(group, "Group cannot be null");
+        checkNotNull(moduleName, "Module name cannot be null");
         addInclude(group, moduleName, null, false);
     }
 
     @Override
     public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
-        assert groupRegex != null : "Group cannot be null";
-        assert moduleNameRegex != null : "Module name cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(moduleNameRegex, "Module name cannot be null");
         addInclude(groupRegex, moduleNameRegex, null, true);
     }
 
     @Override
     public void includeVersion(String group, String moduleName, String version) {
-        assert group != null : "Group cannot be null";
-        assert moduleName != null : "Module name cannot be null";
-        assert version != null : "Version cannot be null";
+        checkNotNull(group, "Group cannot be null");
+        checkNotNull(moduleName, "Module name cannot be null");
+        checkNotNull(version, "Version cannot be null");
         addInclude(group, moduleName, version, false);
     }
 
     @Override
     public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
-        assert groupRegex != null : "Group cannot be null";
-        assert moduleNameRegex != null : "Module name cannot be null";
-        assert versionRegex != null : "Version cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(moduleNameRegex, "Module name cannot be null");
+        checkNotNull(versionRegex, "Version cannot be null");
         addInclude(groupRegex, moduleNameRegex, versionRegex, true);
     }
 
@@ -126,43 +134,43 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void excludeGroup(String group) {
-        assert group != null : "Group cannot be null";
+        checkNotNull(group, "Group cannot be null");
         addExclude(group, null, null, false);
     }
 
     @Override
     public void excludeGroupByRegex(String groupRegex) {
-        assert groupRegex != null : "Group cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
         addExclude(groupRegex, null, null, true);
     }
 
     @Override
     public void excludeModule(String group, String moduleName) {
-        assert group != null : "Group cannot be null";
-        assert moduleName != null : "Module name cannot be null";
+        checkNotNull(group, "Group cannot be null");
+        checkNotNull(moduleName, "Module name cannot be null");
         addExclude(group, moduleName, null, false);
     }
 
     @Override
     public void excludeModuleByRegex(String groupRegex, String moduleNameRegex) {
-        assert groupRegex != null : "Group cannot be null";
-        assert moduleNameRegex != null : "Module name cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(moduleNameRegex, "Module name cannot be null");
         addExclude(groupRegex, moduleNameRegex, null, true);
     }
 
     @Override
     public void excludeVersion(String group, String moduleName, String version) {
-        assert group != null : "Group cannot be null";
-        assert moduleName != null : "Module name cannot be null";
-        assert version != null : "Version cannot be null";
+        checkNotNull(group, "Group cannot be null");
+        checkNotNull(moduleName, "Module name cannot be null");
+        checkNotNull(version, "Version cannot be null");
         addExclude(group, moduleName, version, false);
     }
 
     @Override
     public void excludeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
-        assert groupRegex != null : "Group cannot be null";
-        assert moduleNameRegex != null : "Module name cannot be null";
-        assert versionRegex != null : "Version cannot be null";
+        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(moduleNameRegex, "Module name cannot be null");
+        checkNotNull(versionRegex, "Version cannot be null");
         addExclude(groupRegex, moduleNameRegex, versionRegex, true);
     }
 
@@ -197,17 +205,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     enum Mode {
         include,
-        exclude;
-
-        boolean notFound(boolean matches) {
-            switch (this) {
-                case include:
-                    return !matches;
-                case exclude:
-                    return matches;
-            }
-            return false;
-        }
+        exclude
     }
 
     private static class ContentSpec {
@@ -328,9 +326,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 return;
             }
             if (anyMatcherExcludes(details)) {
+                details.notFound();
                 return;
             }
             if (anyAttributesExcludes(details)) {
+                details.notFound();
                 return;
             }
         }
@@ -343,7 +343,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                     Set<Object> allowedValues = entry.getValue();
                     Object value = consumerAttributes.getAttribute(key);
                     if (!allowedValues.contains(value)) {
-                        details.notFound();
                         return true;
                     }
                 }
@@ -353,17 +352,34 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
         private boolean anyMatcherExcludes(ArtifactResolutionDetails details) {
             if (matchers != null) {
-                for (SpecMatcher matcher : matchers) {
-                    boolean matches;
-                    if (details.isVersionListing()) {
-                        matches = matcher.matches(details.getModuleId());
-                    } else {
-                        matches = matcher.matches(details.getComponentId());
+                if (mode == Mode.exclude) {
+                    // Any exclusion matching triggers rejection
+                    for (SpecMatcher matcher : matchers) {
+                        boolean matches;
+                        if (details.isVersionListing()) {
+                            matches = matcher.matches(details.getModuleId());
+                        } else {
+                            matches = matcher.matches(details.getComponentId());
+                        }
+                        if (matches) {
+                            return true;
+                        }
                     }
-                    if (mode.notFound(matches)) {
-                        details.notFound();
-                        return true;
+                    return false;
+                } else {
+                    // Any inclusion works
+                    for (SpecMatcher matcher : matchers) {
+                        boolean matches;
+                        if (details.isVersionListing()) {
+                            matches = matcher.matches(details.getModuleId());
+                        } else {
+                            matches = matcher.matches(details.getComponentId());
+                        }
+                        if (matches) {
+                            return false;
+                        }
                     }
+                    return true;
                 }
             }
             return false;
