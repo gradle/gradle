@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -52,7 +51,7 @@ class ScenarioBuildResultData {
     }
 
     boolean isBuildFailed() {
-        return status == 'FAILURE'  && currentBuildExecutions.empty
+        return status == 'FAILURE' && currentBuildExecutions.empty
     }
 
     boolean isRegressed() {
@@ -105,17 +104,11 @@ class ScenarioBuildResultData {
         }
 
         String getDifferenceDisplay() {
-            Amount base = baseVersion.totalTime.median
-            Amount current = currentVersion.totalTime.median
-            Amount diff = current - base
-
-            return String.format("%s (%s)", diff.format(), formattedDifferencePercentage)
+            return FormatSupport.formatDifference(baseVersion.totalTime, currentVersion.totalTime)
         }
 
         double getDifferencePercentage() {
-            double base = baseVersion.totalTime.median.value.doubleValue()
-            double current = currentVersion.totalTime.median.value.doubleValue()
-            return 100.0 * (current - base) / base
+            return FormatSupport.getDifferencePercentage(baseVersion, currentVersion).doubleValue()
         }
 
         double getConfidencePercentage() {

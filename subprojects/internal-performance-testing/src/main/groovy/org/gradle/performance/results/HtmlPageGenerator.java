@@ -18,25 +18,28 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.googlecode.jatl.Html;
-import org.gradle.api.Transformer;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
-import org.gradle.performance.util.Git;
+import org.gradle.performance.measure.Duration;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
-    protected final FormatSupport format = new FormatSupport();
-
     protected int getDepth() {
         return 0;
     }
@@ -75,7 +78,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected void footer(Html html) {
         html.div()
             .id("footer")
-            .text(String.format("Generated at %s by %s", format.executionTimestamp(), GradleVersion.current()))
+            .text(String.format("Generated at %s by %s", FormatSupport.executionTimestamp(), GradleVersion.current()))
             .end();
     }
 
@@ -153,37 +156,34 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             th().colspan(String.valueOf(getColumnsForSamples())).text(label).end();
         }
 
-        protected <T> void renderSamplesForExperiment(Iterable<MeasuredOperationList> experiments, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
-            List<DataSeries<T>> values = new ArrayList<DataSeries<T>>();
-            Amount<T> min = null;
-            Amount<T> max = null;
-            for (MeasuredOperationList testExecution : experiments) {
-                DataSeries<T> data = transformer.transform(testExecution);
-                if (data.isEmpty()) {
-                    values.add(null);
-                } else {
-                    Amount<T> value = data.getMedian();
-                    values.add(data);
-                    if (min == null || value.compareTo(min) < 0) {
-                        min = value;
-                    }
-                    if (max == null || value.compareTo(max) > 0) {
-                        max = value;
-                    }
-                }
-            }
+        private Stream<DataSeries<Duration>> totalTimeStream(Iterable<MeasuredOperationList> experiments) {
+            return StreamSupport.stream(experiments.spliterator(), false).map(MeasuredOperationList::getTotalTime);
+        }
+
+        private Stream<Amount<Duration>> totalTimeMedianStream(Iterable<MeasuredOperationList> experiments) {
+            return totalTimeStream(experiments).filter((DataSeries<Duration> data) -> !data.isEmpty()).map(DataSeries::getMedian);
+        }
+
+        protected void renderSamplesForExperiment(Iterable<MeasuredOperationList> experiments) {
+            List<DataSeries<Duration>> executionVersions = totalTimeStream(experiments)
+                .map((DataSeries<Duration> data) -> data.isEmpty() ? null : data)
+                .collect(Collectors.toList());
+
+            Amount<Duration> min = totalTimeMedianStream(experiments).min(Comparator.comparing(Function.identity())).orElse(null);
+            Amount<Duration> max = totalTimeMedianStream(experiments).max(Comparator.comparing(Function.identity())).orElse(null);
+
             if (min != null && min.equals(max)) {
                 min = null;
                 max = null;
             }
 
-            for (DataSeries<T> data : values) {
+            for (DataSeries<Duration> data : executionVersions) {
                 if (data == null) {
                     td().text("").end();
                     td().text("").end();
                 } else {
-                    Amount<T> value = data.getMedian();
-                    Amount<T> se = data.getStandardError();
+                    Amount<Duration> value = data.getMedian();
+                    Amount<Duration> se = data.getStandardError();
                     String classAttr = "numeric";
                     if (value.equals(min)) {
                         classAttr += " min-value";
@@ -202,20 +202,19 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                         .end();
                 }
             }
-        }
-    }
 
-    protected List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results) {
-        String commitId = Git.current().getCommitId();
-        if (commitId == null) {
-            return results;
-        }
-        for (PerformanceTestExecution execution : results) {
-            if (execution.getVcsCommits().contains(commitId)) {
-                return results;
+            Optional<DataSeries<Duration>> first = executionVersions.stream().filter(Objects::nonNull).findFirst();
+            Optional<DataSeries<Duration>> last = Lists.reverse(executionVersions).stream().filter(Objects::nonNull).findFirst();
+            if (first.isPresent() && last.isPresent() && first.get() != last.get()) {
+                td().classAttr("numeric").text(FormatSupport.formatConfidence(first.get(), last.get())).end();
+
+                String differenceCss = FormatSupport.getDifference(first.get(), last.get()).doubleValue() > 0 ? "max-value" : "min-value";
+                td().classAttr("numeric " + differenceCss).text(FormatSupport.formatDifference(first.get(), last.get())).end();
+            } else {
+                td().text("").end();
+                td().text("").end();
             }
         }
-        return Collections.emptyList();
     }
 
     protected String urlEncode(String str) {
