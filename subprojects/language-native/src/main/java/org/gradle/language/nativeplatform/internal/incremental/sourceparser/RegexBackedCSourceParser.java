@@ -79,7 +79,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 parseIncludeOrImportDirectiveBody(buffer, true, includes);
             }
         }
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
+        return DefaultIncludeDirectives.of(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
     }
 
     /**
@@ -265,7 +265,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
     }
 
-    static Expression parseExpression(String value) {
+    public static Expression parseExpression(String value) {
         Buffer buffer = new Buffer();
         buffer.value.append(value);
         return parseDirectiveBodyExpression(buffer).asMacroExpansion();

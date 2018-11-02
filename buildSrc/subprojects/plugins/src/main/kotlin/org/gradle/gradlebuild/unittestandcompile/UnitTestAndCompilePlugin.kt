@@ -175,10 +175,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureJarTasks() {
         tasks.withType<Jar>().configureEach {
-            version = rootProject.extra["baseVersion"] as String
+            val baseVersion: String by rootProject.extra
+            archiveVersion.set(baseVersion)
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to version))
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to baseVersion))
         }
     }
 
@@ -198,6 +199,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             if (javaInstallationForTest.javaVersion.isJava9Compatible) {
                 //allow embedded executer to modify environment variables
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+                //allow embedded executer to inject legacy types into the system classloader
+                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version
             inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })

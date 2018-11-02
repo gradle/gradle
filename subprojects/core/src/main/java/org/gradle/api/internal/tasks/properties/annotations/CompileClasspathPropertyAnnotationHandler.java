@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.internal.fingerprint.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 
 import java.lang.annotation.Annotation;
 

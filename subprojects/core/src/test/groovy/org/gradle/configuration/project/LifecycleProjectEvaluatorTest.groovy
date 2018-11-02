@@ -21,6 +21,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
@@ -35,6 +36,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private buildOperationExecutor = new TestBuildOperationExecutor()
     private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
     private state = new ProjectStateInternal()
+    private mutationState = Mock(ProjectState)
 
     final RuntimeException failure1 = new RuntimeException()
     final RuntimeException failure2 = new RuntimeException()
@@ -53,6 +55,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
             step.execute(listener)
             null
         }
+        project.getMutationState() >> mutationState
+        mutationState.withMutableState(_) >> { args -> args[0].run() }
     }
 
     void "nothing happens if project was already configured"() {
@@ -175,7 +179,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state) >> { throw failure2 }
 
         then:
-        failsWithCause(failure1)
+        failsWithCause(failure1, failure2)
 
         and:
         operations.size() == 3
@@ -184,13 +188,13 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertAfterEvaluateOp(operations[2], failure2)
     }
 
-    private void failsWithCause(RuntimeException cause) {
+    private void failsWithCause(RuntimeException... causes) {
         try {
             evaluate()
             throw new AssertionError("Expected to fail")
         } catch (ProjectConfigurationException e) {
             assert e.message == "A problem occurred configuring <project>."
-            assert e.cause == cause
+            assert e.causes == causes as List
 
             assert state.executed
             assert state.failure.is(e)

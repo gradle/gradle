@@ -221,8 +221,8 @@ public class ApiMemberSelector extends ClassVisitor {
         if (name.equals(className) && privateInnerClass) {
             thisClassIsPrivateInnerClass = true;
         }
-        if (innerName == null || privateInnerClass) {
-            // An anonymous class or a private inner class - ignore the reference
+        if (outerName == null || innerName == null || privateInnerClass) {
+            // A local, anonymous class or a private inner class - ignore the reference
             return;
         }
 

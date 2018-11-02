@@ -17,34 +17,31 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.internal.Factory;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
-    // This currently needs to be lazy, as it uses state that is not available when the graph is created
-    private final Factory<? extends TaskExecuter> taskExecuterFactory;
-
-    public LocalTaskNodeExecutor(Factory<? extends TaskExecuter> taskExecuterFactory) {
-        this.taskExecuterFactory = taskExecuterFactory;
-    }
 
     @Override
-    public boolean execute(Node node) {
+    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
         if (node instanceof LocalTaskNode) {
-            TaskInternal task = ((LocalTaskNode) node).getTask();
+            LocalTaskNode localTaskNode = (LocalTaskNode) node;
+            TaskInternal task = localTaskNode.getTask();
             TaskStateInternal state = task.getState();
             if (state.getExecuted()) {
                 // Task has already been run. This can happen when the owning build is used both at configuration time and execution time
-                // This should move earlier in task scheduling, so that a worker thread does not even bother trying run this task
+                // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
             TaskExecutionContext ctx = new DefaultTaskExecutionContext();
-            TaskExecuter taskExecuter = taskExecuterFactory.create();
+            TaskExecuter taskExecuter = services.getProjectService((ProjectInternal) task.getProject(), TaskExecuter.class);
             assert taskExecuter != null;
             taskExecuter.execute(task, state, ctx);
+            localTaskNode.getPostAction().execute(task);
             return true;
         } else {
             return false;

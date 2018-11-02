@@ -44,13 +44,15 @@ public interface ModuleMetadataCache {
         /**
          * The metadata after being processed by component metadata rules.
          * Will be null the first time an entry is read from the filesystem cache during a build invocation.
+         *
+         * @param key the hash of the rules
          */
         @Nullable
-        ModuleComponentResolveMetadata getProcessedMetadata();
+        ModuleComponentResolveMetadata getProcessedMetadata(int key);
 
         /**
          * Set the processed metadata to be cached in-memory only.
          */
-        void setProcessedMetadata(ModuleComponentResolveMetadata processedMetadata);
+        void putProcessedMetadata(int key, ModuleComponentResolveMetadata processedMetadata);
     }
 }

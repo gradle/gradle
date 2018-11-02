@@ -16,28 +16,29 @@
 
 package org.gradle.normalization.internal;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
-
-import java.util.Set;
+import org.gradle.api.internal.changedetection.state.IgnoringResourceFilter;
+import org.gradle.api.internal.changedetection.state.ResourceFilter;
 
 public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNormalizationInternal {
-    private final Set<String> ignores = Sets.newHashSet();
-    private RuntimeClasspathNormalizationStrategy finalizedStrategy;
+    private final ImmutableSet.Builder<String> ignoresBuilder = ImmutableSet.builder();
+    private ResourceFilter resourceFilter;
 
     @Override
     public void ignore(String pattern) {
-        if (finalizedStrategy != null) {
+        if (resourceFilter != null) {
             throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
         }
-        ignores.add(pattern);
+        ignoresBuilder.add(pattern);
     }
 
     @Override
-    public RuntimeClasspathNormalizationStrategy buildFinalStrategy() {
-        if (finalizedStrategy == null) {
-            finalizedStrategy = new RuntimeClasspathNormalizationStrategy(ignores);
+    public ResourceFilter getResourceFilter() {
+        if (resourceFilter == null) {
+            ImmutableSet<String> ignores = ignoresBuilder.build();
+            resourceFilter = ignores.isEmpty() ? ResourceFilter.FILTER_NOTHING : new IgnoringResourceFilter(ignores);
         }
-        return finalizedStrategy;
+        return resourceFilter;
     }
 }

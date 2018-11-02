@@ -121,6 +121,7 @@ public class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuild
         def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("baseName")
+        archive.setDestinationDir(temporaryFolder.testDirectory)
         archive.setExtension(archiveExtension)
         archive.setClassifier(archiveClassifier)
 

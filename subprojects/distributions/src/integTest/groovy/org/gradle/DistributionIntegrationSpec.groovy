@@ -40,8 +40,22 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
+    /**
+     * Change this whenever you add or remove a new subproject.
+     */
+    int getCoreLibJarsCount() {
+        26
+    }
+
+    /**
+     * Change this if you added or removed dependencies.
+     */
+    int getThirdPartyLibJarsCount() {
+        181
+    }
+
     int getLibJarsCount() {
-        202
+        coreLibJarsCount + thirdPartyLibJarsCount
     }
 
     def "no duplicate entries"() {
@@ -115,7 +129,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
             it.name.startsWith("gradle-") && !it.name.startsWith("gradle-api-metadata") && !it.name.startsWith("gradle-kotlin-dsl")
         }
-        assert coreLibs.size() == 23
+        assert coreLibs.size() == coreLibJarsCount
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")

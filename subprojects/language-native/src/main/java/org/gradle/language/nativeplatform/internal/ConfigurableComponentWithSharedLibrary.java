@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
@@ -39,6 +40,9 @@ public interface ConfigurableComponentWithSharedLibrary extends ComponentWithSha
 
     @Override
     Property<LinkSharedLibrary> getLinkTask();
+
+    @Override
+    Property<Task> getLinkFileProducer();
 
     @Override
     ConfigurableFileCollection getOutputs();

@@ -45,8 +45,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     }
 
     def doesNotLoadHistoryWhenTaskHasNoOutputs() {
-        def messages = []
-
         when:
         TaskArtifactState state = repository.getStateFor(task, taskProperties)
 
@@ -57,8 +55,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
         and:
         state instanceof NoOutputsArtifactState
-        !state.isUpToDate(messages)
-        !messages.empty
     }
 
     def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
@@ -75,8 +71,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     }
 
     def taskArtifactsAreAlwaysOutOfDateWithRerunTasks() {
-        def messages = []
-
         when:
         startParameter.setRerunTasks(true)
         def state = repository.getStateFor(task, taskProperties)
@@ -87,16 +81,10 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        !state.isUpToDate(messages)
-        !messages.empty
-
-        and:
-        !state.getInputChanges(taskProperties).incremental
+        !state.getInputChanges().incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
-        def messages = []
-
         when:
         def state = repository.getStateFor(task, taskProperties)
 
@@ -109,11 +97,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        !state.isUpToDate(messages)
-        !messages.empty
-
-        and:
-        !state.getInputChanges(taskProperties).incremental
+        !state.getInputChanges().incremental
     }
 
 }

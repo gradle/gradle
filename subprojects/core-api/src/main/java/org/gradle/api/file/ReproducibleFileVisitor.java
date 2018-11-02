@@ -16,14 +16,11 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
-
 /**
  * Visitor which can request a reproducible file order.
  *
  * @since 3.4
  */
-@Incubating
 public interface ReproducibleFileVisitor extends FileVisitor {
     /**
      * Whether the {@link FileVisitor} should receive the files in a reproducible order independent of the underlying file system.

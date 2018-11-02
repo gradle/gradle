@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
@@ -47,8 +46,9 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
@@ -62,7 +62,6 @@ import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,28 +140,17 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        ensureResolved(false);
-
-        final List<Object> taskDependencies = new ArrayList<Object>();
-        final List<Throwable> failures = new ArrayList<Throwable>();
-        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new BuildDependenciesVisitor() {
+        return new AbstractTaskDependency() {
             @Override
-            public void visitDependency(Object dep) {
-                taskDependencies.add(dep);
+            public void visitDependencies(final TaskDependencyResolveContext context) {
+                ensureResolved(false);
+                FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+                resolveResult.artifactsResults.getArtifacts().visitDependencies(collectingContext);
+                if (!collectingContext.getFailures().isEmpty()) {
+                    throw new ResolveException(getDisplayName(), collectingContext.getFailures());
+                }
             }
-
-            @Override
-            public void visitFailure(Throwable failure) {
-                failures.add(failure);
-            }
-        });
-        if (!failures.isEmpty()) {
-            throw new ResolveException(getDisplayName(), failures);
-        }
-        if (taskDependencies.isEmpty()) {
-            return TaskDependencyInternal.EMPTY;
-        }
-        return new DefaultTaskDependency().add(taskDependencies);
+        };
     }
 
     private void ensureResolved(boolean failFast) {

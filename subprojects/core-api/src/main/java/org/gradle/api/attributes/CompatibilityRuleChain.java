@@ -36,7 +36,6 @@ import java.util.Comparator;
  *
  * @param <T> the type of the attribute
  */
-@Incubating
 @HasInternalProtocol
 public interface CompatibilityRuleChain<T> {
     /**
@@ -67,6 +66,7 @@ public interface CompatibilityRuleChain<T> {
      * @param rule the rule to add to the chain
      * @since 4.0
      */
+    @Incubating
     void add(Class<? extends AttributeCompatibilityRule<T>> rule);
 
     /**
@@ -76,6 +76,7 @@ public interface CompatibilityRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
+    @Incubating
     void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
 }

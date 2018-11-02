@@ -195,7 +195,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
             myTask.doLast(project.hasProperty("changed") ? LambdaActionChanged.ACTION : LambdaActionOriginal.ACTION)
         """
         def outOfDateMessage = { String enclosingClass ->
-            "Task ':myTask' has an additional action that was implemented by the Java lambda '${enclosingClass}\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead."
+            "Additional action for task ':myTask': was implemented by the Java lambda '${enclosingClass}\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead."
         }
 
         when:
@@ -251,7 +251,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     private String getSanitizedOutput() {
-        output.replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>')
+        output.replaceAll('\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+', '\\$\\$Lambda\\$<non-deterministic>')
     }
 
     private TestFile setupCustomTask() {

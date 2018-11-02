@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
  *
  * @since 2.2
  */
-@Incubating
 public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata {
 
     /**
@@ -55,5 +54,6 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      *
      * @since 4.5
      */
+    @Incubating
     void replacedBy(Object moduleNotation, @Nullable String reason);
 }

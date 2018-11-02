@@ -17,16 +17,16 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultExceptionAnalyser;
-import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
+import org.gradle.initialization.exception.DefaultExceptionAnalyser;
+import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.ReportedException;
-import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.buildevents.BuildLogger;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -76,6 +76,7 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
             BuildLogger buildLogger = new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
             buildLogger.buildFinished(new BuildResult(null, failure));
+            buildLogger.logResult(failure);
             throw new ReportedException(failure);
         }
     }

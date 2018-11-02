@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.plugins;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -66,7 +65,6 @@ import java.util.concurrent.Callable;
  *
  * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
  */
-@Incubating
 @NonNullApi
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
@@ -245,8 +243,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
                 validator.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/task-properties/report.txt"));
 
-                validator.setClasses(mainSourceSet.getOutput().getClassesDirs());
-                validator.setClasspath(mainSourceSet.getCompileClasspath());
+                validator.getClasses().setFrom(mainSourceSet.getOutput().getClassesDirs());
+                validator.getClasspath().setFrom(mainSourceSet.getCompileClasspath());
                 validator.dependsOn(mainSourceSet.getOutput());
             }
         });

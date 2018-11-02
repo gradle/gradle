@@ -16,42 +16,42 @@
 
 package org.gradle.integtests.tooling.r16
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnknownModelException
 
 class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion("current")
-    @TargetGradleVersion(">=1.6")
-    def "fails gracefully when unknown model requested when custom models are supported by the target version"() {
+
+    @TargetGradleVersion(">=5.1")
+    def "fails gracefully when unknown model requested"() {
         when:
-        withConnection { it.getModel(CustomModel.class) }
+        withConnection {
+            def builder = it.model(CustomModel.class)
+            collectOutputs(builder)
+            builder.get()
+        }
 
         then:
         UnknownModelException e = thrown()
         e.message == "No model of type 'CustomModel' is available in this build."
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("No builders are available to build a model of type 'org.gradle.integtests.tooling.r16.CustomModel'.")
+        assertHasConfigureFailedLogging()
     }
 
-    @ToolingApiVersion("current")
-    @TargetGradleVersion(">=1.2 <1.6")
-    def "fails gracefully when unknown model requested when custom models are not supported by the target version"() {
+    @TargetGradleVersion(">=2.6 <5.1")
+    def "fails gracefully when unknown model requested for version that does not log failure"() {
         when:
-        withConnection { it.getModel(CustomModel.class) }
+        withConnection {
+            def builder = it.model(CustomModel.class)
+            builder.get()
+        }
 
         then:
         UnknownModelException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
-    }
-
-    @ToolingApiVersion("!current")
-    @TargetGradleVersion("current")
-    def "fails gracefully when unknown model requested by old tooling API version"() {
-        when:
-        withConnection { it.getModel(CustomModel.class) }
-
-        then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains('CustomModel')
+        e.message == "No model of type 'CustomModel' is available in this build."
     }
 }

@@ -19,11 +19,11 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependency;
+import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 @NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
@@ -31,7 +31,12 @@ public abstract class AbstractTaskDependency implements TaskDependencyInternal {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
             // Ignore artifact transforms
-            return node instanceof ArtifactTransformDependency;
+            return node instanceof TransformationDependency;
+        }
+
+        @Override
+        public boolean attachActionTo(Task task, Action<? super Task> action) {
+            return false;
         }
     };
 

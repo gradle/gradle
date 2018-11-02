@@ -17,13 +17,18 @@
 package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
-    final def registy = new DefaultToolingModelBuilderRegistry()
+    final def projectStateRegistry = Stub(ProjectStateRegistry) {
+        withLenientState(_) >> { args -> args[0].create() }
+    }
+    final def registy = new DefaultToolingModelBuilderRegistry(new TestBuildOperationExecutor(), projectStateRegistry)
 
     def "finds model builder for requested model"() {
         def builder1 = Mock(ToolingModelBuilder)
@@ -38,7 +43,9 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         builder2.canBuild("model") >> true
 
         expect:
-        registy.getBuilder("model") == builder2
+        def actualBuilder = registy.getBuilder("model")
+        actualBuilder instanceof DefaultToolingModelBuilderRegistry.BuildOperationWrappingToolingModelBuilder
+        actualBuilder.delegate == builder2
     }
 
     def "includes a simple implementation for the Void model"() {
@@ -89,7 +96,8 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         then:
         def foundBuilder = registy.getBuilder("model")
-        foundBuilder == builder
-        foundBuilder instanceof ParameterizedToolingModelBuilder
+        foundBuilder instanceof DefaultToolingModelBuilderRegistry.ParameterizedBuildOperationWrappingToolingModelBuilder
+        foundBuilder.delegate == builder
+        foundBuilder.delegate instanceof ParameterizedToolingModelBuilder
     }
 }

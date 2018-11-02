@@ -35,10 +35,21 @@ class ChainingBuildActionRunnerTest extends Specification {
         runner.run(action, controller)
 
         then:
-        1 * runner1.run(action, controller)
-        1 * controller.hasResult() >> false
-        1 * runner2.run(action, controller)
-        1 * controller.hasResult() >> true
-        0 * runner3._
+        1 * runner1.run(action, controller) >> BuildActionRunner.Result.nothing()
+        1 * runner2.run(action, controller) >> BuildActionRunner.Result.of("thing")
+        0 * _
+    }
+
+    def "invokes runners until a failure is produced"() {
+        def action = Stub(BuildAction)
+        def controller = Mock(BuildController)
+
+        when:
+        runner.run(action, controller)
+
+        then:
+        1 * runner1.run(action, controller) >> BuildActionRunner.Result.nothing()
+        1 * runner2.run(action, controller) >> BuildActionRunner.Result.failed(new RuntimeException("broken"))
+        0 * _
     }
 }

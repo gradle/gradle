@@ -19,20 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ModuleForcingResolveRuleSpec extends Specification {
-
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
-        module(_, _) >> { args ->
-            DefaultModuleIdentifier.newId(*args)
-        }
-    }
 
     private static ModuleIdentifier mid(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
@@ -49,12 +42,12 @@ class ModuleForcingResolveRuleSpec extends Specification {
             //exotic module with colon in the name
             newSelector(mid("org", "module:with:colon"), "3.0"),
             newSelector(mid("org:with:colon", "module2"), "4.0")
-        ], moduleIdentifierFactory).execute(details)
+        ]).execute(details)
 
         then:
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
         _ * details.getOldRequested() >> requested
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), forcedVersion), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), forcedVersion), ComponentSelectionReasons.FORCED)
         0 * details._
 
         where:
@@ -75,7 +68,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
             newSelector(mid("org", "module2"), "2.0"),
             newSelector(mid("org", "module:with:colon"), "3.0"),
             newSelector(mid("org:with:colon", "module2"), "4.0")
-        ], moduleIdentifierFactory).execute(details)
+        ]).execute(details)
 
         then:
         _ * details.getRequested() >> requested
@@ -96,7 +89,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        new ModuleForcingResolveRule([], moduleIdentifierFactory).execute(details)
+        new ModuleForcingResolveRule([]).execute(details)
 
         then:
         0 * details._

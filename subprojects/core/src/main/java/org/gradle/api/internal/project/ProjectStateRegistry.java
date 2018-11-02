@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
@@ -58,4 +59,32 @@ public interface ProjectStateRegistry {
      * Registers the projects of a build.
      */
     void registerProjects(BuildState build);
+
+    /**
+     * Allows a section of code to be run with state locking disabled.  This should be used to allow
+     * deprecated practices that we eventually want to retire.
+     */
+    void withLenientState(Runnable runnable);
+
+    /**
+     * Creates the object with state locking disabled.  This should be used to allow
+     * deprecated practices that we eventually want to retire.
+     */
+    <T> T withLenientState(Factory<T> factory);
+
+    /**
+     * Returns a {@link SafeExclusiveLock}.
+     */
+    SafeExclusiveLock newExclusiveOperationLock();
+
+    /**
+     * Represents a lock that can be used to perform safe concurrent execution in light of the possibility that a project
+     * lock might be released during execution.  Specifically, it avoids blocking on the lock while holding the project lock.
+     */
+    interface SafeExclusiveLock {
+        /**
+         * Safely waits for the lock before executing the given action.
+         */
+        void withLock(Runnable runnable);
+    }
 }

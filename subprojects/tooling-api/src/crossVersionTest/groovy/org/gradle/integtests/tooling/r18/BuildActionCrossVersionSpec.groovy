@@ -16,15 +16,15 @@
 
 package org.gradle.integtests.tooling.r18
 
+
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.idea.IdeaProject
 
-@TargetGradleVersion('>=1.8')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the result of running a build action"() {
         given:
@@ -51,7 +51,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         nullModel == null
     }
 
-    @TargetGradleVersion(">=2.2")
     def "action classes are reused in daemon"() {
         toolingApi.requireIsolatedDaemons()
 
@@ -64,29 +63,33 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         result3 == 3
     }
 
-    @TargetGradleVersion(">=1.8 <=2.1")
-    def "action classes are reused in daemon when daemon is idle when operation starts"() {
-        toolingApi.requireIsolatedDaemons()
-
-        expect:
-        def result1 = withConnection { it.action(new CounterAction()).run() }
-
-        // Earlier versions return the build result before marking the daemon as idle. Wait for the daemon to be marked as idle
-        // before attempting the next operation otherwise the client will start a new daemon
-        toolingApi.daemons.daemon.becomesIdle()
-
-        def result2 = withConnection { it.action(new CounterAction()).run() }
-        toolingApi.daemons.daemon.becomesIdle()
-
-        def result3 = withConnection { it.action(new CounterAction()).run() }
-        result1 == 1
-        result2 == 2
-        result3 == 3
-    }
-
+    @TargetGradleVersion(">=5.1")
     def "client receives the exception thrown by the build action"() {
         when:
-        withConnection { it.action(new BrokenAction()).run() }
+        withConnection {
+            def action = it.action(new BrokenAction())
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof BrokenAction.CustomException
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('this is a custom exception')
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=2.6 <5.1")
+    def "client receives the exception thrown by the build action for version that does not log failure"() {
+        when:
+        withConnection {
+            def action = it.action(new BrokenAction())
+            action.run()
+        }
 
         then:
         BuildActionFailureException e = thrown()
@@ -94,13 +97,38 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof BrokenAction.CustomException
     }
 
+    @TargetGradleVersion(">=5.1")
     def "client receives the exception thrown when action requests unknown model"() {
         when:
-        withConnection { it.action(new FetchUnknownModel()).run() }
+        withConnection {
+            def action = it.action(new FetchUnknownModel())
+            collectOutputs(action)
+            action.run()
+        }
 
         then:
-        // Verification is in the action
-        noExceptionThrown()
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof UnknownModelException
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("No model of type 'CustomModel' is available in this build.")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=2.6 <5.1")
+    def "client receives the exception thrown when action requests unknown model for version that does not log failure"() {
+        when:
+        withConnection {
+            def action = it.action(new FetchUnknownModel())
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof UnknownModelException
     }
 
     def "client receives the exception thrown when build fails"() {
@@ -108,22 +136,20 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFile << 'throw new RuntimeException("broken")'
 
         when:
-        withConnection { it.action(new FetchCustomModel()).run() }
+        withConnection {
+            def action = it.action(new FetchCustomModel())
+            collectOutputs(action)
+            action.run()
+        }
 
         then:
-        // TODO:ADAM - clean this up
         BuildException e = thrown()
         e.message.startsWith('Could not run build action using')
-    }
+        e.cause.message.contains('A problem occurred evaluating root project')
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('>=1.2 <1.8')
-    def "gives reasonable error message when target Gradle version does not support build actions"() {
-        when:
-        withConnection { it.action(new FetchCustomModel()).run() }
-
-        then:
-        UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        assertHasConfigureFailedLogging()
     }
 }

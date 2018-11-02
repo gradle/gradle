@@ -64,12 +64,12 @@ val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = generatedResourcesDir.resolve("all-released-versions.properties")
-    versions = releasedVersions.allVersions
+    versions = releasedVersions.allPreviousVersions
     mostRecent = releasedVersions.mostRecentRelease
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
-sourceSets["main"].output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir)
+sourceSets.main { output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir) }
 
 ideConfiguration {
     makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()

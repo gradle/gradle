@@ -17,69 +17,93 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.internal.Describables
+import org.gradle.internal.serialize.AbstractDecoder
+import org.gradle.internal.serialize.AbstractEncoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
+    private final static ComponentSelectionDescriptorInternal[] REASONS_FOR_TEST = [
+            ComponentSelectionReasons.SELECTED_BY_RULE,
+            ComponentSelectionReasons.CONFLICT_RESOLUTION,
+            ComponentSelectionReasons.CONSTRAINT,
+            ComponentSelectionReasons.REJECTION,
+            ComponentSelectionReasons.FORCED
+    ] as ComponentSelectionDescriptorInternal[]
+
 
     private serializer = new ComponentSelectionReasonSerializer()
 
+    @Override
+    Class<? extends AbstractEncoder> getEncoder() {
+        StringDeduplicatingKryoBackedEncoder
+    }
+
+    @Override
+    Class<? extends AbstractDecoder> getDecoder() {
+        StringDeduplicatingKryoBackedDecoder
+    }
+
     def "serializes"() {
         expect:
-        check(VersionSelectionReasons.CONFLICT_RESOLUTION)
-        check(VersionSelectionReasons.FORCED)
-        check(VersionSelectionReasons.REQUESTED)
-        check(VersionSelectionReasons.ROOT)
-        check(VersionSelectionReasons.SELECTED_BY_RULE)
-        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE)
+        check(ComponentSelectionReasons.CONFLICT_RESOLUTION)
+        check(ComponentSelectionReasons.FORCED)
+        check(ComponentSelectionReasons.REQUESTED)
+        check(ComponentSelectionReasons.ROOT)
+        check(ComponentSelectionReasons.SELECTED_BY_RULE)
+        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE)
     }
 
     def "serializes custom reasons"() {
         expect:
-        check(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("my conflict resolution")))
-        check(VersionSelectionReasons.FORCED.withReason(Describables.of("forced by me")))
-        check(VersionSelectionReasons.REQUESTED.withReason(Describables.of("I really asked for it")))
-        check(VersionSelectionReasons.ROOT.withReason(Describables.of("I know this is the root of the graph")))
-        check(VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("Wouldn't it be nice to add custom reasons?")))
-        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("More details!")))
+        check(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(Describables.of("my conflict resolution")))
+        check(ComponentSelectionReasons.FORCED.withDescription(Describables.of("forced by me")))
+        check(ComponentSelectionReasons.REQUESTED.withDescription(Describables.of("I really asked for it")))
+        check(ComponentSelectionReasons.ROOT.withDescription(Describables.of("I know this is the root of the graph")))
+        check(ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of("Wouldn't it be nice to add custom reasons?")))
+        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of("More details!")))
     }
 
     def "multiple writes of the same custom reason"() {
         when:
-        def firstTime = toBytes(withReason("hello"), serializer)
-        def secondTime = toBytes(withReason("hello"), serializer)
-        def thirdTime = toBytes(withReason("hello"), serializer)
-        def fourthTime = toBytes(withReason("how are you?"), serializer)
-        def fifthTime = toBytes(withReason("hello"), serializer)
+        def single = toBytes(withReason("hello"), serializer)
+        def withDuplicate = toBytes(withReasons("hello", "hello"), serializer)
+        def withoutDuplicate = toBytes(withReasons("hello", "other"), serializer)
 
-        then: "first serialization is more expensive than the next one"
-        firstTime.length > secondTime.length
-
-        and: "subsequent serializations use the same amount of data"
-        secondTime.length == thirdTime.length
-
-        and: "adding a different reason will imply serializing the reason"
-        fourthTime.length > thirdTime.length
-
-        and: "remembers the selection reasons"
-        fifthTime.length == thirdTime.length
+        then:
+        single.length < withDuplicate.length
+        withDuplicate.length < 2*single.length
+        withoutDuplicate.length > withDuplicate.length
     }
 
     void check(ComponentSelectionDescriptor... reasons) {
-        def reason = VersionSelectionReasons.of(Arrays.asList(reasons))
+        def reason = ComponentSelectionReasons.of(reasons)
         def result = serialize(reason, serializer)
         assert result == reason
     }
 
-    private static ComponentSelectionReasonInternal withReason(String reason) {
-        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason))])
+    private static ComponentSelectionReason withReason(String reason) {
+        ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(reason)))
+    }
+
+    private static ComponentSelectionReason withReasons(String... reasons) {
+        int idx = -1
+        ComponentSelectionReasons.of(reasons.collect {
+            reason(++idx).withDescription(Describables.of(it))
+        }.toArray(new ComponentSelectionDescriptorInternal[0]))
+    }
+
+    private static ComponentSelectionDescriptorInternal reason(int idx) {
+        REASONS_FOR_TEST[idx%REASONS_FOR_TEST.length]
     }
 
     @Override
-    def <T> T serialize(T value, Serializer<T> serializer) {
+    <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
-        serializer.reset()
         return fromBytes(bytes, serializer)
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -44,8 +43,8 @@ import org.gradle.internal.Describables;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
@@ -87,35 +86,39 @@ public class BasePlugin implements Plugin<Project> {
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
-                ConventionMapping taskConventionMapping = task.getConventionMapping();
 
-                Callable<File> destinationDir;
-                if (task instanceof Jar) {
-                    destinationDir = new Callable<File>() {
-                        public File call() throws Exception {
-                            return pluginConvention.getLibsDir();
-                        }
-                    };
-                } else {
-                    destinationDir = new Callable<File>() {
-                        public File call() throws Exception {
-                            return pluginConvention.getDistsDir();
-                        }
-                    };
+                // This is here because the JvmComponentPlugin Jar task configuration runs before this action.
+                // It has already set the destination directory for this task. The BasePlugin needs to respect that.
+                if (!task.getDestinationDirectory().isPresent()) {
+                    Callable<String> destinationDir;
+                    if (task instanceof Jar) {
+                        destinationDir = new Callable<String>() {
+                            public String call() {
+                                return pluginConvention.getLibsDirName();
+                            }
+                        };
+                    } else {
+                        destinationDir = new Callable<String>() {
+                            public String call() {
+                                return pluginConvention.getDistsDirName();
+                            }
+                        };
+                    }
+                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
                 }
-                taskConventionMapping.map("destinationDir", destinationDir);
 
-                taskConventionMapping.map("version", new Callable<String>() {
-                    public String call() throws Exception {
+                task.getArchiveVersion().set(project.provider(new Callable<String>() {
+                    @Nullable
+                    public String call() {
                         return project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString();
                     }
-                });
+                }));
 
-                taskConventionMapping.map("baseName", new Callable<String>() {
-                    public String call() throws Exception {
+                task.getArchiveBaseName().set(project.provider(new Callable<String>() {
+                    public String call() {
                         return pluginConvention.getArchivesBaseName();
                     }
-                });
+                }));
             }
         });
     }
@@ -164,11 +167,13 @@ public class BasePlugin implements Plugin<Project> {
         );
 
         configurations.all(new Action<Configuration>() {
-            public void execute(Configuration configuration) {
+            public void execute(final Configuration configuration) {
                 if (!configuration.equals(archivesConfiguration)) {
                     configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
                         public void execute(PublishArtifact artifact) {
-                            defaultArtifacts.addCandidate(artifact);
+                            if (configuration.isVisible()) {
+                                defaultArtifacts.addCandidate(artifact);
+                            }
                         }
                     });
                 }

@@ -32,7 +32,7 @@ fun Project.pkill(pid: String) {
             if (BuildEnvironment.isWindows) {
                 listOf("taskkill.exe", "/F", "/T", "/PID", pid)
             } else {
-                listOf("kill", pid)
+                listOf("kill", "-9", pid)
             }
         standardOutput = killOutput
         errorOutput = killOutput

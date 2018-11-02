@@ -40,7 +40,6 @@ import static java.util.Arrays.asList;
  * @param <T> Parameterized type
  * @since 3.5
  */
-@Incubating
 public abstract class TypeOf<T> {
 
     /**
@@ -250,6 +249,7 @@ public abstract class TypeOf<T> {
      * 
      * @return Underlying Java Class of this type.
      */
+    @Incubating
     public Class<T> getConcreteClass() {
         return type.getConcreteClass();
     }

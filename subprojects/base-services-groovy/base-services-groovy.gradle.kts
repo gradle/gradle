@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 plugins {
     `java-library`
     // DynamicObjectAware and DynamicObjectUtil should move to org.gralde.internal.metaobject (but it breaks third-party plugins)
-    // id("gradlebuild.classycle")
+    // gradlebuild.classycle
 }
 
 dependencies {

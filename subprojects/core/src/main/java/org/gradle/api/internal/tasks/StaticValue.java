@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProducerAwareProperty;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
@@ -23,14 +26,22 @@ import javax.annotation.Nullable;
 public class StaticValue implements ValidatingValue {
     private final Object value;
 
-    public StaticValue(Object value) {
+    public StaticValue(@Nullable Object value) {
         this.value = value;
     }
 
-    @Nullable
     @Override
-    public Object getContainerValue() {
-        return value;
+    public void attachProducer(Task producer) {
+        if (value instanceof ProducerAwareProperty) {
+            ((ProducerAwareProperty)value).attachProducer(producer);
+        }
+    }
+
+    @Override
+    public void maybeFinalizeValue() {
+        if (value instanceof PropertyInternal) {
+            ((PropertyInternal)value).finalizeValueOnReadAndWarnAboutChanges();
+        }
     }
 
     @Nullable

@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.Contextual;
 
 public abstract class AbstractMutationGuard implements MutationGuard {
@@ -49,10 +48,6 @@ public abstract class AbstractMutationGuard implements MutationGuard {
 
     protected abstract <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods);
 
-    protected abstract void runWithMutation(final Runnable runnable, boolean allowMutationMethods);
-
-    protected abstract <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods);
-
     @Override
     public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {
         return newActionWithMutation(action, true);
@@ -61,25 +56,5 @@ public abstract class AbstractMutationGuard implements MutationGuard {
     @Override
     public <T> Action<? super T> withMutationDisabled(Action<? super T> action) {
         return newActionWithMutation(action, false);
-    }
-
-    @Override
-    public void whileMutationEnabled(Runnable runnable) {
-        runWithMutation(runnable, true);
-    }
-
-    @Override
-    public <T> T whileMutationEnabled(Factory<T> factory) {
-        return createWithMutation(factory, true);
-    }
-
-    @Override
-    public void whileMutationDisabled(Runnable runnable) {
-        runWithMutation(runnable, false);
-    }
-
-    @Override
-    public <T> T whileMutationDisabled(Factory<T> factory) {
-        return createWithMutation(factory, false);
     }
 }

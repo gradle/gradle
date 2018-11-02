@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -44,11 +45,15 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
      * @return a list of realised variants
      */
     public static ImmutableList<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realiseVariants(ModuleComponentResolveMetadata mutableMetadata, VariantMetadataRules variantMetadataRules, ImmutableList<? extends ComponentVariant> variants) {
+        if (variants.isEmpty()) {
+            return ImmutableList.of();
+        }
         List<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = Lists.newArrayListWithExpectedSize(variants.size());
         for (ComponentVariant variant : variants) {
             ImmutableAttributes attributes = variantMetadataRules.applyVariantAttributeRules(variant, variant.getAttributes());
             CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, variant.getCapabilities());
-            List<GradleDependencyMetadata> dependencies = variantMetadataRules.applyDependencyMetadataRules(variant, convertDependencies(variant.getDependencies(), variant.getDependencyConstraints()));
+            boolean force = PlatformSupport.hasForcedDependencies(variant);
+            List<GradleDependencyMetadata> dependencies = variantMetadataRules.applyDependencyMetadataRules(variant, convertDependencies(variant.getDependencies(), variant.getDependencyConstraints(), force));
             realisedVariants.add(new AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl(mutableMetadata.getId(), variant.getName(), attributes,
                 variant.getDependencies(), variant.getDependencyConstraints(), variant.getFiles(),
                 ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), dependencies));
@@ -56,12 +61,12 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         return ImmutableList.copyOf(realisedVariants);
     }
 
-    private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints) {
+    private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {
         List<GradleDependencyMetadata> result = new ArrayList<GradleDependencyMetadata>(dependencies.size());
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), false));
+            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), force));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
@@ -69,7 +74,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
                 dependencyConstraint.getReason(),
-                false
+                force
             ));
         }
         return result;

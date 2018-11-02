@@ -20,7 +20,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
     Provides generally useful test utilities, used for unit and integration testing.
 */
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {

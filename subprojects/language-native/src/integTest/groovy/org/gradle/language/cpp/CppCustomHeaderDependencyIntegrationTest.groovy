@@ -28,9 +28,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << consumerBuildScript(repoType)
 
-        file("lib/settings.gradle") << """
-            enableFeaturePreview('STABLE_PUBLISHING')
-        """
+        file("lib/settings.gradle").touch()
 
         file("lib/build.gradle") << producerBuildScript(repoType)
 
@@ -45,7 +43,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
         where:
         repoType << [
-            //'maven',
+            'maven',
             'ivy'
         ]
     }
@@ -129,6 +127,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
     def producerBuildScript(String repoType) {
         return """
+            apply plugin: "base"
             apply plugin: "${repoType}-publish"
             
             configurations {

@@ -16,21 +16,25 @@
 
 package org.gradle.workers.internal;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
-import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
+import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -45,20 +49,23 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
+    private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessCleanupAction();
 
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
     private final LoggingManagerInternal loggingManager;
+    private final OsMemoryInfo memoryInfo;
     private final SessionLifecycleListener stopSessionScopeWorkers;
     private final OutputEventListener logLevelChangeEventListener;
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final MemoryManager memoryManager;
-    private LogLevel currentLogLevel;
+    private volatile LogLevel currentLogLevel;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager) {
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager, OsMemoryInfo memoryInfo) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;
         this.loggingManager = loggingManager;
+        this.memoryInfo = memoryInfo;
         this.stopSessionScopeWorkers = new StopSessionScopedWorkers();
         listenerManager.addListener(stopSessionScopeWorkers);
         this.logLevelChangeEventListener = new LogLevelChangeEventListener();
@@ -94,9 +101,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol<ActionExecutionSpec>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, forkOptions, workerProcessCleanupAction);
         synchronized (lock) {
             allClients.add(client);
         }
@@ -105,7 +112,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     public void release(WorkerDaemonClient client) {
         synchronized (lock) {
-            idleClients.add(client);
+            if (!client.isFailed()) {
+                idleClients.add(client);
+            }
         }
     }
 
@@ -122,9 +131,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         loggingManager.removeOutputEventListener(logLevelChangeEventListener);
     }
 
-    private static long getTotalPhysicalMemory() {
+    private long getTotalPhysicalMemory() {
         try {
-            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
+            return memoryInfo.getOsSnapshot().getTotalPhysicalMemory();
         } catch (UnsupportedOperationException e) {
             return -1;
         }
@@ -152,11 +161,27 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
         if (clientsToStop.size() > 0) {
-            LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
-            CompositeStoppable.stoppable(clientsToStop).stop();
-            LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+            int clientCount = clientsToStop.size();
+            LOGGER.debug("Stopping {} worker daemon(s).", clientCount);
+            List<Exception> failures = Lists.newArrayList();
+            for (WorkerDaemonClient client : clientsToStop) {
+                try {
+                    client.stop();
+                } catch (Exception e) {
+                    failures.add(e);
+                }
+            }
             idleClients.removeAll(clientsToStop);
             allClients.removeAll(clientsToStop);
+            if (!failures.isEmpty()) {
+                if (failures.size() == 1) {
+                    throw UncheckedException.throwAsUncheckedException(failures.get(0));
+                } else {
+                    throw new DefaultMultiCauseException("Not all worker daemon(s) could be stopped.", failures);
+                }
+            } else {
+                LOGGER.info("Stopped {} worker daemon(s).", clientCount);
+            }
         }
     }
 
@@ -183,8 +208,22 @@ public class WorkerDaemonClientsManager implements Stoppable {
         public void onOutput(OutputEvent event) {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
-                synchronized (lock) {
-                    currentLogLevel = logLevelChangeEvent.getNewLogLevel();
+                currentLogLevel = logLevelChangeEvent.getNewLogLevel();
+            }
+        }
+    }
+
+    private class WorkerProcessCleanupAction implements Action<WorkerProcess> {
+        @Override
+        public void execute(WorkerProcess workerProcess) {
+            synchronized (lock) {
+                Iterator<WorkerDaemonClient> iterator = allClients.iterator();
+                while (iterator.hasNext()) {
+                    WorkerDaemonClient client = iterator.next();
+                    if (client.isProcess(workerProcess)) {
+                        client.setFailed(true);
+                        iterator.remove();
+                    }
                 }
             }
         }

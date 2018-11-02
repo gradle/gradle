@@ -19,13 +19,11 @@ package org.gradle.integtests.tooling.r42
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.2")
 class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 

@@ -18,7 +18,6 @@ package org.gradle.testing;
 
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import javax.inject.Inject;
 
 import org.gradle.process.CommandLineArgumentProvider;
 

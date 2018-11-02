@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -45,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.DisplayName;
@@ -52,9 +52,9 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -113,11 +113,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         return new SelectedArtifactSet() {
             @Override
-            public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                    visitor.visitFailure(unresolvedDependency.getProblem());
+                    context.visitFailure(unresolvedDependency.getProblem());
                 }
-                artifactResults.getArtifacts().collectBuildDependencies(visitor);
+                context.add(artifactResults.getArtifacts());
             }
 
             @Override

@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.tooling.m8
 
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -56,7 +58,11 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         env.java.javaHome
-        env.java.jvmArguments.contains("-Xmx1024m")
+        if (targetVersion < GradleVersion.version("5.0")) {
+            env.java.jvmArguments.contains("-Xmx1024m")
+        } else {
+            env.java.jvmArguments.contains("-Xmx512m")
+        }
         env.java.jvmArguments.contains("-XX:+HeapDumpOnOutOfMemoryError")
     }
 

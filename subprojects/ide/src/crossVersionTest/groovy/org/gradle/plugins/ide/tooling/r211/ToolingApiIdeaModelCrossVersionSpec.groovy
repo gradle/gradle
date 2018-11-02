@@ -19,11 +19,9 @@ package org.gradle.plugins.ide.tooling.r211
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion(">=2.11")
 @TargetGradleVersion(">=2.11")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -31,7 +29,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=1.2 <2.11")
+    @TargetGradleVersion(">=2.6 <2.11")
     def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
@@ -49,7 +47,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         true                     | defaultIdeaPluginLanguageLevelForJavaProjects
     }
 
-    @TargetGradleVersion(">=1.2 <2.11")
+    @TargetGradleVersion(">=2.6 <2.11")
     def "older Gradle versions infer project source settings from configured idea plugin language level"() {
         given:
         buildFile << """
@@ -73,7 +71,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         applyJavaPlugin << [false, true]
     }
 
-    @TargetGradleVersion(">=1.2 <2.11")
+    @TargetGradleVersion(">=2.6 <2.11")
     def "older Gradle version throw exception when querying idea module java settings"() {
         when:
         def ideaProject = loadIdeaProjectModel()
@@ -83,7 +81,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
-    @TargetGradleVersion(">=1.2 <2.11")
+    @TargetGradleVersion(">=2.6 <2.11")
     def "older Gradle version throws exception when querying idea project java bytecode version or jdk"() {
         given:
         def ideaProject = loadIdeaProjectModel()

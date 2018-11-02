@@ -26,7 +26,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultModuleVersionsCache extends InMemoryModuleVersionsCache {
+public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
 
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -52,20 +52,12 @@ public class DefaultModuleVersionsCache extends InMemoryModuleVersionsCache {
 
     @Override
     protected void store(ModuleAtRepositoryKey key, ModuleVersionsCacheEntry entry) {
-        super.store(key, entry);
         getCache().put(key, entry);
     }
 
     @Override
     protected ModuleVersionsCacheEntry get(ModuleAtRepositoryKey key) {
-        ModuleVersionsCacheEntry entry = super.get(key);
-        if (entry == null) {
-            entry = getCache().get(key);
-            if (entry != null) {
-                super.store(key, entry);
-            }
-        }
-        return entry;
+        return getCache().get(key);
     }
 
     private static class ModuleKeySerializer extends AbstractSerializer<ModuleAtRepositoryKey> {

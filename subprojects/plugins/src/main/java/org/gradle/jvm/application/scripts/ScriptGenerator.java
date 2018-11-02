@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.application.scripts;
 
-import org.gradle.api.Incubating;
-
 import java.io.Writer;
 
 /**
@@ -25,7 +23,6 @@ import java.io.Writer;
  *
  * @see TemplateBasedScriptGenerator
  */
-@Incubating
 public interface ScriptGenerator {
 
     /**

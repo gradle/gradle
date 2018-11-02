@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.file.TreeType;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
@@ -40,13 +41,13 @@ import java.util.Map;
 @NonNullApi
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements DeclaredTaskOutputFileProperty {
 
-    private final OutputType outputType;
+    private final TreeType outputType;
     private final ValidatingValue value;
     private final ValidationAction validationAction;
     private final String taskDisplayName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskDisplayName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+    public CompositeTaskOutputPropertySpec(String taskDisplayName, FileResolver resolver, TreeType outputType, ValidatingValue value, ValidationAction validationAction) {
         this.taskDisplayName = taskDisplayName;
         this.resolver = resolver;
         this.outputType = outputType;
@@ -54,7 +55,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
         this.validationAction = validationAction;
     }
 
-    public OutputType getOutputType() {
+    public TreeType getOutputType() {
         return outputType;
     }
 
@@ -124,7 +125,16 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public void attachProducer(Task producer) {
-        // Ignore for now
+        value.attachProducer(producer);
+    }
+
+    @Override
+    public void prepareValue() {
+        value.maybeFinalizeValue();
+    }
+
+    @Override
+    public void cleanupValue() {
     }
 
     @Override

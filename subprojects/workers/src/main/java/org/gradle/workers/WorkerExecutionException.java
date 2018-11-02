@@ -16,7 +16,6 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
@@ -25,7 +24,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
  *
  * @since 3.5
  */
-@Contextual @Incubating
+@Contextual
 public class WorkerExecutionException extends DefaultMultiCauseException {
     public WorkerExecutionException(String message) {
         super(message);

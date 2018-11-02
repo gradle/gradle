@@ -16,19 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-
-import javax.annotation.Nullable;
-import java.io.File;
+import org.gradle.api.Describable;
 
 public interface ArtifactTransformListener {
-    /**
-     * This method is called immediately before a transform is executed.
-     */
-    void beforeTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file);
 
     /**
-     * This method is call immediately after a transform has been executed.
+     * This method is called immediately before a transformer is invoked.
      */
-    void afterTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure);
+    void beforeTransformerInvocation(Describable transformer, Describable subject);
+
+    /**
+     * This method is call immediately after a transformer has been invoked.
+     */
+    void afterTransformerInvocation(Describable transformer, Describable subject);
 }

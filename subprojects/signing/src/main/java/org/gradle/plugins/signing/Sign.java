@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.signing;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -43,6 +42,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -66,20 +67,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     private static final Pattern JAVA_PARTS = Pattern.compile("[^\\p{javaJavaIdentifierPart}]");
 
-    private static final Function<Signature, File> SIGNATURE_TO_SIGN_FILE_FUNCTION = new Function<Signature, File>() {
-        @Override
-        public File apply(Signature input) {
-            return input.getToSign();
-        }
-    };
-
-    private static final Function<Signature, File> SIGNATURE_FILE_FUNCTION = new Function<Signature, File>() {
-        @Override
-        public File apply(Signature input) {
-            return input.getFile();
-        }
-    };
-
     @Internal
     private SignatureType signatureType;
     /**
@@ -93,12 +80,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
-        onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return isRequired() || getSignatory() != null;
-            }
-        });
+        onlyIf(task -> isRequired() || getSignatory() != null);
 
         getInputs().property("signatory", new Callable<Object>() {
             @Override
@@ -109,9 +91,10 @@ public class Sign extends DefaultTask implements SignatureSpec {
         }).optional(true);
     }
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     public Iterable<File> getInputFiles() {
-        return Iterables.transform(signatures, SIGNATURE_TO_SIGN_FILE_FUNCTION);
+        return Iterables.transform(signatures, Signature::getToSign);
     }
 
     @OutputFiles
@@ -372,7 +355,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     public FileCollection getSignatureFiles() {
         return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' signature files",
-            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, SIGNATURE_FILE_FUNCTION), Predicates.notNull())));
+            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getFile), Predicates.notNull())));
     }
 
     public SignatureType getSignatureType() {

@@ -97,4 +97,17 @@ model {
             text = text.replaceFirst(/object/, "class")
         }
     }
+
+
+    def "failure to generate routes fails the build with useful message"() {
+        given:
+        file("conf/routes") << """
+# This will cause route compilation failure since overload is not supported.
+GET        /        com.foobar.HelloController.index()
+GET        /*path   com.foobar.HelloController.index(path)
+        """
+        expect:
+        fails("compilePlayBinaryPlayRoutes")
+        result.assertHasErrorOutput("Using different overloaded methods is not allowed. If you are using a single method in combination with default parameters, make sure you declare them all explicitly.")
+    }
 }

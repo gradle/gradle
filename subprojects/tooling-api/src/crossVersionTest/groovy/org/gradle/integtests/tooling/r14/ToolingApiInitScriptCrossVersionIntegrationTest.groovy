@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r14
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -27,7 +27,6 @@ import spock.lang.Issue
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
-@TargetGradleVersion('>=1.4')
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
 @LeaksFileHandles
 class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecification {

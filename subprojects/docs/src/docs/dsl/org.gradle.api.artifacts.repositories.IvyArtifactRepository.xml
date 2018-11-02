@@ -48,6 +48,12 @@
             <tr>
                 <td>layout</td>
             </tr>
+            <tr>
+                <td>patternLayout</td>
+            </tr>
+            <tr>
+                <td>metadataSources</td>
+            </tr>
         </table>
     </section>
 </section>

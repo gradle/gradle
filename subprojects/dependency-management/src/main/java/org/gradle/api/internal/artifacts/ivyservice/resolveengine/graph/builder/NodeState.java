@@ -309,7 +309,7 @@ class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            return dependencyState.withTarget(details.getTarget(), details.getSelectionDescription());
+            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
         }
         return dependencyState;
     }
@@ -439,10 +439,10 @@ class NodeState implements DependencyGraphNode {
 
     private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            EdgeState singleEdge = incomingEdges.iterator().next();
+            EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.restart();
         } else {
-            for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
+            for (EdgeState dependency : new ArrayList<>(incomingEdges)) {
                 dependency.restart();
             }
         }
@@ -466,4 +466,19 @@ class NodeState implements DependencyGraphNode {
         return resolveState.getAttributesFactory();
     }
 
+    /**
+     * Invoked when this node is back to being a pending dependency.
+     * There may be some incoming edges left at that point, but they must all be coming from constraints.
+     * @param pendingDependencies
+     */
+    public void clearConstraintEdges(PendingDependencies pendingDependencies) {
+        for (EdgeState incomingEdge : incomingEdges) {
+            assert incomingEdge.getDependencyMetadata().isConstraint();
+            incomingEdge.getSelector().release();
+            NodeState from = incomingEdge.getFrom();
+            from.getOutgoingEdges().remove(incomingEdge);
+            pendingDependencies.addNode(from);
+        }
+        incomingEdges.clear();
+    }
 }

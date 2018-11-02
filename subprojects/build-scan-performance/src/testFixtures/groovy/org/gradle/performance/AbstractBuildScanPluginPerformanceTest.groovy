@@ -36,9 +36,7 @@ import spock.lang.Specification
 
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
-    int warmupBuilds = 2
-    int measuredBuilds = 7
-
+    static String incomingDir = "../../incoming"
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -49,16 +47,15 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
 
+    @Shared
+    String pluginVersionNumber = resolvePluginVersion()
 
     void setup() {
-        def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
-        assert incomingDir: "'incomingArtifactDir' system property is not set"
         def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
         assert buildStampJsonFile.exists()
-
-        def versionJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
-        assert versionJsonData.commitId
-        def pluginCommitId = versionJsonData.commitId as String
+        def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
+        assert buildStampJsonData.commitId
+        def pluginCommitId = buildStampJsonData.commitId as String
         runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
@@ -66,7 +63,13 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
                 builder.workingDirectory = tmpDir.testDirectory
             }
         }
+    }
 
+    private static resolvePluginVersion() {
+        def pluginVersionJsonFile = new File(incomingDir, "plugin.json")
+        assert pluginVersionJsonFile.exists()
+        def pluginVersionJsonData = new JsonSlurper().parse(pluginVersionJsonFile) as Map<String, ?>
+        pluginVersionJsonData.versionNumber
     }
 
     protected static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {

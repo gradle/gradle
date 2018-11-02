@@ -22,6 +22,8 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -80,6 +82,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
      *
      * These files do not have any filtering/expanding done to them.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     ConfigurableFileCollection resources = project.files()
 
@@ -100,6 +103,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     /**
      * @return Template directory with source and build file templates
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     public File getProjectTemplate() {
         resolveTemplate(projectTemplateName)

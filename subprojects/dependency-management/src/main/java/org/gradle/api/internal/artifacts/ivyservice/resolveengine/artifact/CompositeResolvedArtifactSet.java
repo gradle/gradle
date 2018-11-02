@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -76,9 +77,9 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         for (ResolvedArtifactSet set : sets) {
-            set.collectBuildDependencies(visitor);
+            set.visitDependencies(context);
         }
     }
 

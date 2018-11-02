@@ -22,12 +22,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.LogLevel;
@@ -36,7 +37,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -46,6 +46,7 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -74,9 +75,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         resolve(task, context);
-        delegate.execute(task, state, context);
+        return delegate.execute(task, state, context);
     }
 
     private void resolve(final TaskInternal task, final TaskExecutionContext context) {
@@ -139,22 +140,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             this.key = key;
         }
 
-        @Nullable
-        @Override
-        public Map<String, String> getInputValueHashes() {
-            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
-            if (inputHashes == null || inputHashes.isEmpty()) {
-                return null;
-            } else {
-                return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
-                    @Override
-                    public String apply(HashCode input) {
-                        return input.toString();
-                    }
-                });
-            }
-        }
-
         @Override
         public Map<String, byte[]> getInputValueHashesBytes() {
             ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
@@ -170,23 +155,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
         }
 
-        @Override
-        public Map<String, String> getInputHashes() {
-            ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
-            Map<String, String> inputValueHashes = getInputValueHashes();
-            if (inputValueHashes != null) {
-                builder.putAll(inputValueHashes);
-            }
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
-            if (inputFiles != null) {
-                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
-                    builder.put(entry.getKey(), entry.getValue().getHash().toString());
-                }
-            }
-            ImmutableSortedMap<String, String> map = builder.build();
-            return map.isEmpty() ? null : map;
-        }
-
         @NonNullApi
         private static class State implements VisitState, FileSystemSnapshotVisitor {
 
@@ -195,7 +163,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             Map<String, FileSystemLocationFingerprint> fingerprints;
             String propertyName;
             HashCode propertyHash;
-            FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
+            String propertyNormalizationStrategyIdentifier;
             String name;
             String path;
             HashCode hash;
@@ -217,7 +185,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
             @Override
             public String getPropertyNormalizationStrategyName() {
-                return propertyNormalizationStrategyIdentifier.name();
+                return propertyNormalizationStrategyIdentifier;
             }
 
             @Override
@@ -314,15 +282,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             return invalidInputProperties.keySet();
         }
 
-        @Nullable
-        @Override
-        public String getClassLoaderHash() {
-            ImplementationSnapshot taskImplementation = key.getInputs().getTaskImplementation();
-            if (taskImplementation == null || taskImplementation.getClassLoaderHash() == null) {
-                return null;
-            }
-            return taskImplementation.getClassLoaderHash().toString();
-        }
 
         @Override
         public byte[] getClassLoaderHashBytes() {
@@ -331,22 +290,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 return null;
             }
             return taskImplementation.getClassLoaderHash().toByteArray();
-        }
-
-        @Nullable
-        @Override
-        public List<String> getActionClassLoaderHashes() {
-            List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
-            if (actionImplementations == null || actionImplementations.isEmpty()) {
-                return null;
-            } else {
-                return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
-                    @Override
-                    public String apply(ImplementationSnapshot input) {
-                        return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toString();
-                    }
-                });
-            }
         }
 
         @Override
@@ -397,24 +340,66 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             return key.isValid() ? key.getHashCodeBytes() : null;
         }
 
-        @Nullable
-        @Override
-        public String getBuildCacheKey() {
-            return key.isValid() ? key.getHashCode() : null;
-        }
-
         @Override
         public Object getCustomOperationTraceSerializableModel() {
             Map<String, Object> model = new TreeMap<String, Object>();
-            model.put("actionClassLoaderHashes", getActionClassLoaderHashes());
+
+            final Function<byte[], String> bytesToString = new Function<byte[], String>() {
+                @NullableDecl
+                @Override
+                public String apply(@NullableDecl byte[] input) {
+                    if (input == null) {
+                        return null;
+                    }
+                    return HashCode.fromBytes(input).toString();
+                }
+            };
+
+            List<byte[]> actionClassLoaderHashesBytes = getActionClassLoaderHashesBytes();
+            if (actionClassLoaderHashesBytes != null) {
+                model.put("actionClassLoaderHashes", Lists.transform(getActionClassLoaderHashesBytes(), bytesToString));
+            } else {
+                model.put("actionClassLoaderHashes", null);
+            }
+
             model.put("actionClassNames", getActionClassNames());
-            model.put("buildCacheKey", getBuildCacheKey());
-            model.put("classLoaderHash", getClassLoaderHash());
+
+            byte[] hashBytes = getHashBytes();
+            if (hashBytes != null) {
+                model.put("hash", HashCode.fromBytes(hashBytes).toString());
+            } else {
+                model.put("hash", null);
+            }
+
+            byte[] classLoaderHashBytes = getClassLoaderHashBytes();
+            if (classLoaderHashBytes != null) {
+                model.put("classLoaderHash", HashCode.fromBytes(classLoaderHashBytes).toString());
+            } else {
+                model.put("classLoaderHash", null);
+            }
+
+
             model.put("inputFileProperties", fileProperties());
-            model.put("inputHashes", getInputHashes());
+
             model.put("inputPropertiesLoadedByUnknownClassLoader", getInputPropertiesLoadedByUnknownClassLoader());
-            model.put("inputValueHashes", getInputValueHashes());
+
+            Map<String, byte[]> inputValueHashesBytes = getInputValueHashesBytes();
+            if (inputValueHashesBytes != null) {
+                model.put("inputValueHashes", Maps.transformEntries(inputValueHashesBytes, new Maps.EntryTransformer<String, byte[], String>() {
+                    @Override
+                    public String transformEntry(@NullableDecl String key, @NullableDecl byte[] value) {
+                        if (value == null) {
+                            return null;
+                        }
+                        return HashCode.fromBytes(value).toString();
+                    }
+                }));
+            } else {
+                model.put("inputValueHashes", null);
+            }
+
             model.put("outputPropertyNames", getOutputPropertyNames());
+
             return model;
         }
 

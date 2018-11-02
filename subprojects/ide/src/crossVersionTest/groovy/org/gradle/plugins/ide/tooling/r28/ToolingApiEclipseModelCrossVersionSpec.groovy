@@ -51,12 +51,10 @@ project(':contrib:impl') {
         EclipseProject rootImplProject = rootProject.children.find { it.name == 'root-impl' }
         EclipseProject contribProject = rootProject.children.find { it.name == 'contrib' }
         EclipseProject contribImplProject = contribProject.children.find { it.name == 'contrib-impl' }
-        EclipseProject rootApiProject = rootProject.children.find { it.name == 'root-api' }
-        EclipseProject contribApiProject = contribProject.children.find { it.name == 'contrib-api' }
 
         then:
-        contribImplProject.projectDependencies.any { it.path == 'contrib-api' && it.targetProject == contribApiProject }
-        rootImplProject.projectDependencies.any { it.path == 'root-api' && it.targetProject == rootApiProject }
+        contribImplProject.projectDependencies.any { it.path == 'contrib-api' }
+        rootImplProject.projectDependencies.any { it.path == 'root-api' }
 
     }
 }

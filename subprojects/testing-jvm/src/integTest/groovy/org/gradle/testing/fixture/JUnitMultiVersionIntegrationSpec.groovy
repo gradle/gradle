@@ -105,22 +105,22 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     }
 
     protected ignoreWhenJUnitPlatform() {
-        Assume.assumeFalse(isVintage() || isJupiter())
+        Assume.assumeFalse(isJUnitPlatform())
     }
 
     static String getTestFramework() {
-        if (isJupiter() || isVintage()) {
-            return "JUnitPlatform"
-        } else {
-            return "JUnit"
-        }
+        isJUnitPlatform() ? "JUnitPlatform" : "JUnit"
     }
 
-    private static boolean isVintage() {
+    static boolean isJUnitPlatform() {
+        isJupiter() || isVintage()
+    }
+
+    static boolean isVintage() {
         return version.toString().startsWith("Vintage")
     }
 
-    private static boolean isJupiter() {
+    static boolean isJupiter() {
         return version.toString().startsWith("Jupiter")
     }
 

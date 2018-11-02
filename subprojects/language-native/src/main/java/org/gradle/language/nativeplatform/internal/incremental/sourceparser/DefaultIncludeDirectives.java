@@ -36,21 +36,25 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableListMultimap<String, Macro> macros;
     private final ImmutableListMultimap<String, MacroFunction> macroFunctions;
 
-    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
-        this(allIncludes, Multimaps.index(macros, new Function<Macro, String>() {
-            @Nullable
-            @Override
-            public String apply(@Nullable Macro input) {
-                return input.getName();
-            }
-        }),
-        Multimaps.index(macroFunctions, new Function<MacroFunction, String>() {
-            @Nullable
-            @Override
-            public String apply(@Nullable MacroFunction input) {
-                return input.getName();
-            }
-        }));
+    public static IncludeDirectives of(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
+        if (allIncludes.isEmpty() && macros.isEmpty() && macroFunctions.isEmpty()) {
+            return EMPTY;
+        }
+        return new DefaultIncludeDirectives(allIncludes,
+            Multimaps.index(macros, new Function<Macro, String>() {
+                @Nullable
+                @Override
+                public String apply(@Nullable Macro input) {
+                    return input.getName();
+                }
+            }),
+            Multimaps.index(macroFunctions, new Function<MacroFunction, String>() {
+                @Nullable
+                @Override
+                public String apply(@Nullable MacroFunction input) {
+                    return input.getName();
+                }
+            }));
     }
 
     private DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableListMultimap<String, Macro> macros, ImmutableListMultimap<String, MacroFunction> macroFunctions) {

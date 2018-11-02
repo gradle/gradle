@@ -101,13 +101,7 @@ class BuildOperationNotificationFixture {
 
     String registerListener() {
         listenerClass() + """
-        registrar.registerBuildScopeListener(listener)
-        """
-    }
-
-    String registerListenerWithDrainRecordings() {
-        listenerClass() + """
-        registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
+        registrar.register(listener)
         """
     }
 
@@ -121,7 +115,7 @@ class BuildOperationNotificationFixture {
                 void started(${BuildOperationStartedNotification.name} startedNotification) {
             
                     def details = startedNotification.notificationOperationDetails
-                    if (details instanceof org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details) {
+                    if (details instanceof org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType.Details) {
                         details = [taskPath: details.taskPath, buildPath: details.buildPath, taskClass: details.taskClass.name]
                     } else  if (details instanceof org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details) {
                         details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
@@ -132,6 +126,11 @@ class BuildOperationNotificationFixture {
                             detailsType: startedNotification.notificationOperationDetails.getClass().getInterfaces()[0].getName(),
                             details: details, 
                             started: startedNotification.notificationOperationStartedTimestamp))
+                }
+                
+                @Override
+                void progress(${BuildOperationProgressNotification.name} progressNotification){
+                    // Do nothing
                 }
             
                 @Override

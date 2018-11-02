@@ -17,6 +17,7 @@
 package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.Cast;
 import org.gradle.scala.internal.reflect.ScalaListBuffer;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -64,4 +65,8 @@ class RoutesCompilerAdapterV23X extends DefaultVersionedRoutesCompilerAdapter {
         };
     }
 
+    @Override
+    public Boolean interpretResult(Object result) {
+        return Cast.cast(Boolean.class, result);
+    }
 }

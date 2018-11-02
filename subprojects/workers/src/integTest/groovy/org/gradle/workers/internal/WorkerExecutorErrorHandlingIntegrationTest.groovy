@@ -102,29 +102,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    def "produces a sensible error if the specified working directory cannot be used"() {
-        executer.withStackTraceChecksDisabled()
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            task runInDaemon(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
-                additionalForkOptions = {
-                    it.workingDir = project.file("doesNotExist")
-                }
-            }
-        """.stripIndent()
-
-        when:
-        fails("runInDaemon")
-
-        then:
-        failureHasCause("Could not set process working directory to '" + file('doesNotExist').absolutePath + "'")
-
-        and:
-        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-    }
-
     @Unroll
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         withRunnableClassInBuildSrc()

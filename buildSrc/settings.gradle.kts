@@ -20,10 +20,6 @@ pluginManagement {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
-        maven {
-            name = "kotlin-dev"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-        }
         gradlePluginPortal()
     }
 }
@@ -54,6 +50,7 @@ include("plugins")
 include("profiling")
 include("performance")
 include("versioning")
+include("buildPlatform")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName.gradle.kts"
@@ -64,5 +61,25 @@ for (project in rootProject.children) {
     project.buildFileName = buildFileNameFor(projectDirName)
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
+}
+
+fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
+
+fun getBuildJavaVendor() = System.getProperty("java.vendor")
+
+fun getBuildJavaHome() = System.getProperty("java.home")
+
+gradle.settingsEvaluated {
+    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
+        return@settingsEvaluated
+    }
+
+    if (remoteBuildCacheEnabled(this) && !getBuildJavaVendor().contains("Oracle") && !JavaVersion.current().isJava9()) {
+        throw GradleException("Remote cache is enabled, which requires Oracle JDK 9 to perform this build. It's currently ${getBuildJavaVendor()} at ${getBuildJavaHome()}.")
+    }
+
+    if (!JavaVersion.current().isJava9Compatible()) {
+        throw GradleException("JDK 9 is required to perform this build. It's currently ${getBuildJavaVendor()} at ${getBuildJavaHome()}.")
+    }
 }
 

@@ -5,12 +5,16 @@
 /buildSrc/build
 /buildSrc/subprojects/*/build
 /subprojects/*/build
-/subprojects/docs/src/samples/*/*/build
+/subprojects/docs/src/samples/**/build
 /subprojects/internal-android-performance-testing/build-android-libs
 
 # IDEA
 # ----
-.idea
+!/.idea
+/.idea/*
+!/.idea/codeStyles
+!/.idea/inspectionProfiles
+*/**/.idea
 .shelf
 /*.iml
 /*.ipr

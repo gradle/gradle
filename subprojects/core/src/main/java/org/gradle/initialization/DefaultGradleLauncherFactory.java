@@ -20,10 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
@@ -34,9 +32,6 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildevents.BuildLogger;
-import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -53,7 +48,6 @@ import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.profile.ProfileEventAdapter;
@@ -138,15 +132,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         StartParameter startParameter = buildDefinition.getStartParameter();
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-
-        Clock clock = serviceRegistry.get(Clock.class);
-        if (parent == null) {
-            BuildStartedTime buildStartedTime = serviceRegistry.get(BuildStartedTime.class);
-            listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData, buildStartedTime, clock));
-        }
-
-        listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
-        listenerManager.addListener(new TaskExecutionStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
 
         if (startParameter.isProfile()) {
             listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));

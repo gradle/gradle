@@ -63,13 +63,13 @@ public class ConsumerProvidedVariantFinder {
     private void findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
         // Prefer direct transformation over indirect transformation
         List<VariantTransformRegistry.Registration> candidates = new ArrayList<VariantTransformRegistry.Registration>();
-        for (VariantTransformRegistry.Registration transform : variantTransforms.getTransforms()) {
-            if (matchAttributes(transform.getTo(), requested)) {
-                if (matchAttributes(actual, transform.getFrom())) {
-                    ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    result.matched(variantAttributes, transform.getArtifactTransform(), 1);
+        for (VariantTransformRegistry.Registration registration : variantTransforms.getTransforms()) {
+            if (matchAttributes(registration.getTo(), requested)) {
+                if (matchAttributes(actual, registration.getFrom())) {
+                    ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), registration.getTo().asImmutable());
+                    result.matched(variantAttributes, registration.getTransformationStep(), 1);
                 }
-                candidates.add(transform);
+                candidates.add(registration);
             }
         }
         if (result.hasMatches()) {
@@ -84,8 +84,8 @@ public class ConsumerProvidedVariantFinder {
             }
             for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
-                ArtifactTransformer transformer = new ChainedTransformer(inputVariant.transformer, candidate.getArtifactTransform());
-                result.matched(variantAttributes, transformer, inputVariant.depth + 1);
+                Transformation transformation = new TransformationChain(inputVariant.transformation, candidate.getTransformationStep());
+                result.matched(variantAttributes, transformation, inputVariant.depth + 1);
             }
         }
     }

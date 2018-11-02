@@ -17,12 +17,11 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
+    def setup(){
         using m2
     }
 
@@ -75,7 +74,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
         '''
 
-        file('includedBuild/build.gradle') << '''
+        file('includedBuild/build.gradle') << """
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
@@ -93,17 +92,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
-        '''
+
+            ${fooAndBarJars()}
+        """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'external'
         '''
@@ -177,7 +168,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
         """
 
-        file('includedBuild/build.gradle') << '''
+        file('includedBuild/build.gradle') << """
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
@@ -195,17 +186,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
-        '''
+
+            ${fooAndBarJars()}
+        """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'c'
         '''
@@ -279,7 +262,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
         """
 
-        file('includedBuild/build.gradle') << '''
+        file('includedBuild/build.gradle') << """
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
@@ -297,17 +280,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
-        '''
+
+            ${fooAndBarJars()}
+        """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'c'
         '''
@@ -399,16 +374,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(flavor, $freeValue) }
                 bar.attributes { attribute(flavor, $paidValue) }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
+
+            ${fooAndBarJars()}
         """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'external'
@@ -522,16 +489,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
                 bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
+
+            ${fooAndBarJars()}
         """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'external'
@@ -625,16 +584,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
                 bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
+
+            ${fooAndBarJars()}
         """
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'external'
@@ -717,7 +668,7 @@ All of them match the consumer attributes:
                     'default' file('b-transitive.jar')
                 }
                 dependencies {
-                    'default'('org.gradle.test.external:external:1.0')
+                    'default'('com.acme.external:external:1.0')
                 }
             }
         """
@@ -725,7 +676,7 @@ All of them match the consumer attributes:
         file('includedBuild/build.gradle') << """
             ${usesTypedAttributesPlugin(v2, usePluginsDSL)}
 
-            group = 'org.gradle.test.external'
+            group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
 
             dependencies {
@@ -739,16 +690,8 @@ All of them match the consumer attributes:
                 foo.attributes { attribute(buildType, debug); attribute(flavor, free) }
                 bar.attributes { attribute(buildType, release); attribute(flavor, free) }
             }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
+
+            ${fooAndBarJars()}
         """
 
         file('includedBuild/settings.gradle') << """
@@ -786,48 +729,112 @@ All of them match the consumer attributes:
     private String usesTypedAttributesPlugin(String version, boolean usePluginsDSL) {
         String pluginsBlock = usePluginsDSL ? """
             plugins {
-                id 'org.gradle.test.typed-attributes' version '$version'
+                id 'com.acme.typed-attributes' version '$version'
             } """ : """
             buildscript {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependencies {
-                    classpath 'org.gradle.test:typed-attributes:$version'
+                    classpath 'com.acme.typed-attributes:com.acme.typed-attributes.gradle.plugin:$version'
                 }
             }
 
-            apply plugin: 'org.gradle.test.typed-attributes'
+            apply plugin: 'com.acme.typed-attributes'
             """
 
         """
             $pluginsBlock
 
-            import static org.gradle.test.Flavor.*
-            import static org.gradle.test.BuildType.*
+            import static com.acme.Flavor.*
+            import static com.acme.BuildType.*
 
-            def flavor = Attribute.of(org.gradle.test.Flavor)
-            def buildType = Attribute.of(org.gradle.test.BuildType)
+            def flavor = Attribute.of(com.acme.Flavor)
+            def buildType = Attribute.of(com.acme.BuildType)
         """
     }
 
     private void buildTypedAttributesPlugin(String version = "1.0") {
-        def pluginDir = testDirectory.file("typed-attributes-plugin-$version")
+        def pluginDir = new File(testDirectory, "typed-attributes-plugin-$version")
         pluginDir.deleteDir()
         pluginDir.mkdirs()
-        new PluginBuilder(pluginDir).with {
-            groovy('Flavor.groovy') << 'package org.gradle.test; enum Flavor { free, paid }'
-            groovy('BuildType.groovy') << 'package org.gradle.test; enum BuildType { debug, release }'
-            addPlugin(
-                """
-                    project.dependencies.attributesSchema {
-                        attribute(org.gradle.api.attributes.Attribute.of(Flavor))
-                        attribute(org.gradle.api.attributes.Attribute.of(BuildType))
+        def builder = new FileTreeBuilder(pluginDir)
+        builder.call {
+            'settings.gradle'('rootProject.name="com.acme.typed-attributes.gradle.plugin"')
+            'build.gradle'("""
+                apply plugin: 'groovy'
+                apply plugin: 'maven'
+
+                group = 'com.acme.typed-attributes'
+                version = '$version'
+
+                dependencies {
+                    compile localGroovy()
+                    compile gradleApi()
+                }
+
+                uploadArchives {
+                    repositories {
+                        mavenDeployer {
+                            repository(url: "${mavenRepo.uri}")
+                        }
                     }
-                """.stripIndent(),
-                'org.gradle.test.typed-attributes',
-                'TypedAttributesPlugin')
-            publishAs("org.gradle.test:typed-attributes:$version", mavenRepo, executer)
+                }
+            """)
+            src {
+                main {
+                    groovy {
+                        com {
+                            acme {
+                                'Flavor.groovy'('package com.acme; enum Flavor { free, paid }')
+                                'BuildType.groovy'('package com.acme; enum BuildType { debug, release }')
+                                'TypedAttributesPlugin.groovy'('''package com.acme
+
+                                    import org.gradle.api.Plugin
+                                    import org.gradle.api.Project
+                                    import org.gradle.api.attributes.Attribute
+
+                                    class TypedAttributesPlugin implements Plugin<Project> {
+                                        void apply(Project p) {
+                                            p.dependencies.attributesSchema {
+                                                attribute(Attribute.of(Flavor))
+                                                attribute(Attribute.of(BuildType))
+                                            }
+                                        }
+                                    }
+                                    ''')
+                            }
+                        }
+                    }
+                    resources {
+                        'META-INF' {
+                            'gradle-plugins' {
+                                'com.acme.typed-attributes.properties'('implementation-class: com.acme.TypedAttributesPlugin')
+                            }
+                        }
+                    }
+                }
+            }
         }
+        executer.usingBuildScript(new File(pluginDir, "build.gradle"))
+            .withTasks("uploadArchives")
+            .run()
+    }
+
+    private String fooAndBarJars() {
+        '''
+            task fooJar(type: Jar) {
+                baseName = 'c-foo'
+                destinationDir = projectDir
+            }
+            task barJar(type: Jar) {
+                baseName = 'c-bar'
+                destinationDir = projectDir
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        '''
     }
 }

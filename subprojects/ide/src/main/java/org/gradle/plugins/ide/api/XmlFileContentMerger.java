@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.xml.XmlTransformer;
 
@@ -65,7 +64,6 @@ public class XmlFileContentMerger extends FileContentMerger {
      *
      * @param action The action to execute when the XML has been created.
      */
-    @Incubating
     public void withXml(Action<? super XmlProvider> action) {
         xmlTransformer.addAction(action);
     }

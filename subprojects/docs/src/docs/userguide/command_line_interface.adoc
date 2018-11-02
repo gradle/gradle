@@ -340,6 +340,9 @@ Sets maximum number of workers that Gradle may use. _Default is number of proces
 `--parallel`, `--no-parallel`::
 Build projects in parallel. For limitations of this option, see <<multi_project_builds.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
 
+`--priority`::
+Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
+
 `--profile`::
 Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
 
@@ -466,6 +469,10 @@ Indicates that versions for the specified modules have to be updated in the lock
 This flag also implies `--write-locks`.
 Learn more about this in <<dependency_locking.adoc#dependency_locking,dependency locking>>.
 
+`---no-rebuild`::
+Do not rebuild project dependencies.
+Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
+
 == Environment options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment.adoc#build_environment, build environment>>.
 
@@ -543,11 +550,6 @@ If Gradle is attached to an interactive input source, such as a terminal, the co
 
 [[continuous_build_limitations]]
 === Limitations and quirks
-
-[NOTE]
-====
-Continuous build is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
-====
 
 There are several issues to be aware with the current implementation of continuous build. These are likely to be addressed in future Gradle releases.
 

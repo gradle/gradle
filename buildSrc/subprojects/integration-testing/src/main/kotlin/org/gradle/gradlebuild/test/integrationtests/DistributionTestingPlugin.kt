@@ -106,7 +106,7 @@ class DistributionTestingPlugin : Plugin<Project> {
         libsRepository.dir.set(projectDirectory.dir("build/repo"))
 
         binaryDistributions.apply {
-            distsDir.set(dirWorkaround { basePluginConvention.distsDir })
+            distsDir.set(layout.buildDirectory.dir(basePluginConvention.distsDirName))
             distZipVersion = project.version.toString()
         }
     }

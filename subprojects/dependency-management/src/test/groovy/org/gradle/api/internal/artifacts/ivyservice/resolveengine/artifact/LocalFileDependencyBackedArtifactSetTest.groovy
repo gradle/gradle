@@ -21,17 +21,18 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
 import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class LocalFileDependencyBackedArtifactSetTest extends Specification {
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
     def filter = Mock(Spec)
     def selector = Mock(VariantSelector)
@@ -41,17 +42,17 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
         def files = Stub(FileCollection)
-        def visitor = Mock(BuildDependenciesVisitor)
+        def visitor = Mock(TaskDependencyResolveContext)
 
         given:
         dep.files >> files
         files.buildDependencies >> fileBuildDependencies
 
         when:
-        set.collectBuildDependencies(visitor)
+        set.visitDependencies(visitor)
 
         then:
-        1 * visitor.visitDependency(fileBuildDependencies)
+        1 * visitor.add(fileBuildDependencies)
         0 * visitor._
     }
 

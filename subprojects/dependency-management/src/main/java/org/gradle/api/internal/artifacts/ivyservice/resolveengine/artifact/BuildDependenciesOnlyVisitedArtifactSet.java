@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -54,11 +55,11 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
         }
 
         @Override
-        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                visitor.visitFailure(unresolvedDependency.getProblem());
+                context.visitFailure(unresolvedDependency.getProblem());
             }
-            selectedArtifacts.collectBuildDependencies(visitor);
+            context.add(selectedArtifacts);
         }
 
         @Override

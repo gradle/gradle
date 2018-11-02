@@ -15,20 +15,22 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import java.io.Serializable;
 import java.util.Set;
 
-public class JUnitSpec implements Serializable {
+public class JUnitSpec extends AbstractJUnitSpec {
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
-    private final Set<String> includedTests;
-    private final Set<String> includedTestsCommandLine;
 
-    public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests, Set<String> includedTestsCommandLine) {
+    public JUnitSpec(
+        Set<String> includeCategories,
+        Set<String> excludeCategories,
+        Set<String> includedTests,
+        Set<String> excludedTests,
+        Set<String> includedTestsCommandLine
+    ) {
+        super(includedTests, excludedTests, includedTestsCommandLine);
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;
-        this.includedTests = includedTests;
-        this.includedTestsCommandLine = includedTestsCommandLine;
     }
 
     public Set<String> getIncludeCategories() {
@@ -41,13 +43,5 @@ public class JUnitSpec implements Serializable {
 
     public boolean hasCategoryConfiguration() {
         return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
-    }
-
-    public Set<String> getIncludedTests() {
-        return includedTests;
-    }
-
-    public Set<String> getIncludedTestsCommandLine() {
-        return includedTestsCommandLine;
     }
 }

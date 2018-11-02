@@ -26,12 +26,14 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.configuration.internal.ExecuteListenerBuildOperationType.DetailsImpl;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -42,16 +44,16 @@ import static org.gradle.configuration.internal.ExecuteListenerBuildOperationTyp
 public class DefaultListenerBuildOperationDecorator implements ListenerBuildOperationDecorator {
 
     private static final ImmutableSet<Class<?>> SUPPORTED_INTERFACES = ImmutableSet.of(
-        BuildListener.class,
-        ProjectEvaluationListener.class,
-        TaskExecutionGraphListener.class
+            BuildListener.class,
+            ProjectEvaluationListener.class,
+            TaskExecutionGraphListener.class
     );
 
     // we don't decorate everything in BuildListener, just projectsLoaded/projectsEvaluated
     private static final ImmutableSet<String> UNDECORATED_METHOD_NAMES = ImmutableSet.of(
-        "buildStarted",
-        "settingsEvaluated",
-        "buildFinished"
+            "buildStarted",
+            "settingsEvaluated",
+            "buildFinished"
     );
 
 
@@ -127,8 +129,8 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Execute " + registrationPoint + " listener")
-                .details(new DetailsImpl(applicationId, registrationPoint));
+                    .displayName("Execute " + registrationPoint + " listener")
+                    .details(new DetailsImpl(applicationId, registrationPoint));
         }
     }
 
@@ -229,7 +231,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             } else if (methodName.equals("equals") && args.length == 1) {
                 return proxy == args[0] || isSame(args[0]);
             } else if (!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)) {
-                return method.invoke(delegate, args);
+                try {
+                    return method.invoke(delegate, args);
+                } catch (InvocationTargetException e) {
+                    throw UncheckedException.unwrapAndRethrow(e);
+                }
             } else {
                 buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                     @Override
@@ -240,8 +246,10 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                                 try {
                                     method.invoke(delegate, args);
                                     context.setResult(RESULT);
+                                } catch (InvocationTargetException e) {
+                                    throw UncheckedException.unwrapAndRethrow(e);
                                 } catch (Exception e) {
-                                    context.failed(e);
+                                    throw UncheckedException.throwAsUncheckedException(e);
                                 }
                             }
                         });

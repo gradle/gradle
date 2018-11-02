@@ -163,7 +163,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertNotOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
-            throw new AssertionError(String.format("Found unexpected text in build output.%nExpected not present: %s%n%nOutput:%n=======%n%s%nError:%n======%n%s", expectedText, getOutput(), getError()));
+            failureOnUnexpectedOutput(String.format("Found unexpected text in build output.%nExpected not present: %s%n", expectedText));
         }
         return this;
     }
@@ -310,15 +310,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
+        failureOnUnexpectedOutput(String.format("%s%nExpected: %s%nActual: %s", message, expected, actual));
     }
 
     private void failOnMissingElement(String message, String expected, Set<String> actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
+        failureOnUnexpectedOutput(String.format("%s%nExpected: %s%nActual: %s", message, expected, actual));
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, type, actual, getOutput(), getError()));
+        failureOnUnexpectedOutput(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
+    }
+
+    protected void failureOnUnexpectedOutput(String message) {
+        throw new AssertionError(String.format("%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, getOutput(), getError()));
     }
 
     private List<String> grepTasks(final Pattern pattern) {

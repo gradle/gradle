@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.changes
 
+import groovy.transform.ToString
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -23,31 +24,31 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore
-import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
-import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess
+import org.gradle.internal.execution.history.OutputFilesRepository
+import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -56,16 +57,17 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.serialize.DefaultSerializerRegistry
-import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
+import spock.lang.Ignore
 
+@Ignore("I, lptr, hereby solemnly promise to rewrite this in a better way. Someday.")
 class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
     def gradle
     final outputFile = temporaryFolder.file("output-file")
@@ -93,8 +95,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     }
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
-    TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
-    final originMetadata = new OriginTaskExecutionMetadata(buildScopeId.id, 1)
+    OutputFilesRepository taskOutputFilesRepository = Stub(OutputFilesRepository)
+    final originMetadata = new OriginMetadata(buildScopeId.id, 1)
     def taskExecutionContext = Mock(TaskExecutionContext)
     def taskCacheKeyCalculator = new TaskCacheKeyCalculator(false)
 
@@ -103,7 +105,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         CrossBuildInMemoryCacheFactory cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
+        ExecutionHistoryCacheAccess cacheAccess = new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
@@ -112,17 +114,15 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
-        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
-        inputFileCollectionFingerprinter.registerSerializers(serializerRegistry)
         def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
+
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            cacheAccess,
-            serializerRegistry.build(HistoricalFileCollectionFingerprint),
+            new DefaultExecutionHistoryStore(cacheAccess, stringInterner),
             classLoaderHierarchyHasher,
-            TestUtil.valueSnapshotter(),
+            SnapshotTestUtil.valueSnapshotter(),
             fingerprinterRegistry
         )
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
+        repository = new DefaultTaskArtifactStateRepository(fingerprinterRegistry, taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }
 
     def "artifacts are not up to date when cache is empty"() {
@@ -234,7 +234,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskInternal inputFilesAdded = builder.withInputFiles(file: [inputFile, addedFile], dir: [inputDir], missingFile: [missingInputFile]).task()
 
         then:
-        inputsOutOfDate(inputFilesAdded).withAddedFile(addedFile)
+        inputsOutOfDate(inputFilesAdded).withAddedFiles(addedFile)
     }
 
     def "artifacts are not up to date when any input files removed from set"() {
@@ -254,7 +254,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.write("some new content")
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file has changed type"() {
@@ -266,7 +266,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createDir()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file no longer exists"() {
@@ -277,7 +277,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.delete()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file did not exist and now does"() {
@@ -289,7 +289,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createNewFile()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any file created in input dir"() {
@@ -300,7 +300,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def file = inputDir.file("other-file").createFile()
 
         then:
-        inputsOutOfDate(task).withAddedFile(file)
+        inputsOutOfDate(task).withAddedFiles(file)
     }
 
     def "artifacts are not up to date when any file deleted from input dir"() {
@@ -311,7 +311,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.delete()
 
         then:
-        inputsOutOfDate(task).withRemovedFile(inputDirFile)
+        inputsOutOfDate(task).withRemovedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any file in input dir changes hash"() {
@@ -322,7 +322,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.writelns("new content")
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputDirFile)
+        inputsOutOfDate(task).withModifiedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any file in input dir changes type"() {
@@ -334,7 +334,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.mkdir()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputDirFile)
+        inputsOutOfDate(task).withModifiedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any input property value changed"() {
@@ -391,15 +391,15 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         TaskArtifactState state = getStateFor(task1)
         state.isUpToDate([])
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         outputDirFile.createFile()
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        // state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         !state.upToDate
 
         when:
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         outputDir.deleteDir()
 
         and:
@@ -410,9 +410,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !state.isUpToDate([])
 
         when:
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         outputDirFile2.createFile()
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        // state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         // Task should be out-of-date
@@ -524,9 +524,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         when:
         execute(task)
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         otherFile.write("new content")
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        // state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
         otherFile.delete()
 
         then:
@@ -542,7 +542,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = getStateFor(task)
         state.isUpToDate([])
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        // state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         when:
         outputDirFile.write("ignore me")
@@ -562,7 +562,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate noInputsTask
 
         when:
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         outputDirFile.delete()
 
         then:
@@ -646,7 +646,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     private void outOfDate(TaskInternal task) {
         final state = getStateFor(task)
         assert !state.isUpToDate([])
-        assert !state.getInputChanges(Mock(TaskProperties)).incremental
+        assert !state.getInputChanges().incremental
     }
 
     private TaskArtifactState getStateFor(TaskInternal task) {
@@ -654,8 +654,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def serviceRegistry = project.services
         new ResolveTaskArtifactStateTaskExecuter(repository, serviceRegistry.get(PathToFileResolver), serviceRegistry.get(PropertyWalker), new TaskExecuter() {
             @Override
-            void execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
+            TaskExecuterResult execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
                 state = context.getTaskArtifactState()
+                return Mock(TaskExecuterResult)
             }
         }).execute(task, null, new DefaultTaskExecutionContext())
         return state
@@ -665,7 +666,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         final state = getStateFor(task)
         assert !state.isUpToDate([])
 
-        final inputChanges = state.getInputChanges(Mock(TaskProperties))
+        final inputChanges = state.getInputChanges()
         assert inputChanges.incremental
 
         final changedFiles = new ChangedFiles()
@@ -708,35 +709,30 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             TaskArtifactState state = getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileSystemMirror.beforeTaskOutputChanged()
+            fileSystemMirror.beforeOutputChange()
             super.execute(task)
-            state.snapshotAfterTaskExecution(null, originMetadata.buildInvocationId, taskExecutionContext)
+            // state.snapshotAfterTaskExecution(true, originMetadata.buildInvocationId, taskExecutionContext)
         }
         // reset state
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
     }
 
+    @ToString(includeNames = true)
     private static class ChangedFiles {
         def added = []
         def modified = []
         def removed = []
 
-        void withAddedFile(File file) {
-            assert added == [file]
+        void withAddedFiles(File... files) {
+            assert added == files as List
             assert modified == []
             assert removed == []
         }
 
-        void withModifiedFile(File file) {
+        void withModifiedFiles(File... files) {
             assert added == []
-            assert modified == [file]
+            assert modified == files as List
             assert removed == []
-        }
-
-        void withRemovedFile(File file) {
-            assert added == []
-            assert modified == []
-            assert removed == [file]
         }
 
         void withRemovedFiles(File... files) {

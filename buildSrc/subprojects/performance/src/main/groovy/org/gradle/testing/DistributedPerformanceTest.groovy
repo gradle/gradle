@@ -118,6 +118,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
+        println("Running against baseline ${determineBaselinesForWorkers()}")
         try {
             doExecuteTests()
         } finally {
@@ -130,9 +131,10 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
+                teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: scenarioResult.buildResult.webUrl.toString(),
-                successful: scenarioResult.buildResult.status == 'SUCCESS',
+                status: scenarioResult.buildResult.status.toString(),
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }
@@ -162,6 +164,14 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         super.executeTests()
     }
 
+    private String determineBaselinesForWorkers() {
+        if (!baselines || baselines == 'force-defaults') {
+            return "defaults"
+        } else {
+            return baselines
+        }
+    }
+
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario, String lastChangeId) {
         def requestBody = [
@@ -170,7 +180,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: baselines ?: 'defaults'],
+                    [name: 'baselines', value: determineBaselinesForWorkers()],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],

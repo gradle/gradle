@@ -16,7 +16,6 @@
 package org.gradle.api.resources;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -38,7 +37,6 @@ import java.io.Reader;
  *
  * @since 2.2
  */
-@Incubating
 @HasInternalProtocol
 public interface TextResource extends Buildable {
     /**

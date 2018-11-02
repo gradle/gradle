@@ -18,25 +18,25 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.Path;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
-class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory {
+class NoOutputsArtifactState implements TaskArtifactState {
 
     public static final TaskArtifactState WITHOUT_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs nor actions.");
     public static final TaskArtifactState WITH_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs despite executing actions.");
@@ -87,20 +87,49 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         }
     };
 
-    private String message;
+    private final Change change;
 
-    private NoOutputsArtifactState(String message) {
-        this.message = message;
+    private NoOutputsArtifactState(final String message) {
+        this.change = new Change() {
+            @Override
+            public String getMessage() {
+                return message;
+            }
+        };
     }
 
     @Override
-    public boolean isUpToDate(Collection<String> messages) {
-        messages.add(message);
-        return false;
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
+            @Override
+            public void visitAllChanges(ChangeVisitor visitor) {
+                visitor.visitChange(change);
+            }
+
+            @Override
+            public boolean isRebuildRequired() {
+                return true;
+            }
+
+            @Override
+            public Iterable<Change> getInputFilesChanges() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public AfterPreviousExecutionState getPreviousExecution() {
+                throw new UnsupportedOperationException();
+            }
+        });
     }
 
     @Override
-    public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
+    public IncrementalTaskInputs getInputChanges() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
         throw new UnsupportedOperationException();
     }
 
@@ -115,16 +144,6 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public TaskExecutionHistory getExecutionHistory() {
-        return this;
-    }
-
-    @Override
-    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
-        return null;
-    }
-
-    @Override
     public void ensureSnapshotBeforeTask() {
     }
 
@@ -133,21 +152,17 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
+        return ImmutableSortedMap.of();
     }
 
     @Override
-    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata) {
+    public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
     }
 
     @Override
     public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
         return Collections.emptyMap();
-    }
-
-    @Override
-    public Set<File> getOutputFiles() {
-        return Collections.emptySet();
     }
 
     @Override

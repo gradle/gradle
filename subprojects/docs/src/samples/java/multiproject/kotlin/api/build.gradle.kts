@@ -26,11 +26,11 @@ dependencies {
 // end::project-dependencies[]
 
 // Just a smoke test that using this option does not lead to any exception
-tasks.getByName<JavaCompile>("compileJava").options.compilerArgs = listOf("-Xlint:unchecked")
+tasks.compileJava { options.compilerArgs = listOf("-Xlint:unchecked") }
 
 task<Jar>("spiJar") {
     appendix = "spi"
-    from(sourceSets["main"].output)
+    from(sourceSets.main.get().output)
     include("org/gradle/api/")
 }
 

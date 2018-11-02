@@ -23,10 +23,15 @@ import org.gradle.launcher.cli.action.ExecuteBuildAction;
 
 public class ExecuteBuildActionRunner implements BuildActionRunner {
     @Override
-    public void run(BuildAction action, BuildController buildController) {
-        if (action instanceof ExecuteBuildAction) {
+    public Result run(BuildAction action, BuildController buildController) {
+        if (!(action instanceof ExecuteBuildAction)) {
+            return Result.nothing();
+        }
+        try {
             buildController.run();
-            buildController.setResult(null);
+            return Result.of(null);
+        } catch (RuntimeException e) {
+            return Result.failed(e);
         }
     }
 }

@@ -49,7 +49,7 @@ public class DefaultResolutionResultBuilder {
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DetachedComponentResult(0L, id, VersionSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
+        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
         return builder.complete(0L);
     }
 
@@ -93,7 +93,7 @@ public class DefaultResolutionResultBuilder {
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
             root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector,
                 root,
-                VersionSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
+                ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
                 new ModuleVersionResolveException(failureComponentSelector, "Dependency lock state out of date", failure.getProblem())));
         }
     }

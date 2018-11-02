@@ -19,6 +19,10 @@ import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
 public class DocGenerationException extends RuntimeException {
+    public DocGenerationException(String message) {
+        super(message);
+    }
+
     public DocGenerationException(String message, Throwable throwable) {
         super(message, throwable);
     }

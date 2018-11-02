@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
@@ -40,7 +39,6 @@ import java.util.concurrent.Callable;
 /**
  * Adds various reporting tasks that provide information about the project.
  */
-@Incubating
 public class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
     public static final String HELP_GROUP = "help";

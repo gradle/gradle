@@ -43,6 +43,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -480,7 +481,7 @@ class DefaultMavenPublicationTest extends Specification {
     def createPublication() {
         def instantiator = DirectInstantiator.INSTANCE
         def objectFactory = TestUtil.objectFactory()
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(), featurePreviews, TestUtil.attributesFactory())
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(), featurePreviews, AttributeTestUtil.attributesFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication
@@ -528,6 +529,6 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def platformAttribute() {
-        return TestUtil.attributes([(PlatformSupport.COMPONENT_CATEGORY.name) : PlatformSupport.REGULAR_PLATFORM])
+        return AttributeTestUtil.attributes([(PlatformSupport.COMPONENT_CATEGORY.name) : PlatformSupport.REGULAR_PLATFORM])
     }
 }

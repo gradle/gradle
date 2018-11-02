@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -39,7 +40,7 @@ import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
+import org.gradle.process.internal.shutdown.ShutdownHooks;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.ByteArrayInputStream;
@@ -79,6 +80,7 @@ public class DaemonMain extends EntryPoint {
         int periodicCheckIntervalMs;
         boolean singleUse;
         String daemonUid;
+        DaemonParameters.Priority priority;
         List<File> additionalClassPath;
 
         KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
@@ -89,6 +91,7 @@ public class DaemonMain extends EntryPoint {
             periodicCheckIntervalMs = decoder.readSmallInt();
             singleUse = decoder.readBoolean();
             daemonUid = decoder.readString();
+            priority = DaemonParameters.Priority.values()[decoder.readSmallInt()];
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
             for (int i = 0; i < argCount; i++) {
@@ -104,7 +107,7 @@ public class DaemonMain extends EntryPoint {
         }
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
@@ -168,7 +171,7 @@ public class DaemonMain extends EntryPoint {
         }
         final PrintStream log = result;
 
-        ShutdownHookActionRegister.addAction(new Runnable() {
+        ShutdownHooks.addShutdownHook(new Runnable() {
             public void run() {
                 //just in case we have a bug related to logging,
                 //printing some exit info directly to file:

@@ -42,12 +42,14 @@ public class IncrementalCompileFilesFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileFilesFactory.class);
     private static final String IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME = "org.gradle.internal.native.headers.unresolved.dependencies.ignore";
 
+    private final IncludeDirectives initialIncludeDirectives;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
+    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
+        this.initialIncludeDirectives = initialIncludeDirectives;
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -111,7 +113,7 @@ public class IncrementalCompileFilesFactory {
             // Source file has not been compiled before, or its include file graph has changed in some way
             // Calculate the include file graph for the source file and mark for recompilation
 
-            CollectingMacroLookup visibleMacros = new CollectingMacroLookup();
+            CollectingMacroLookup visibleMacros = new CollectingMacroLookup(initialIncludeDirectives);
             FileVisitResult result = visitFile(sourceFile, fileContent, visibleMacros, new HashSet<HashCode>(), existingHeaders);
             Set<IncludeFileEdge> includedFiles = new LinkedHashSet<IncludeFileEdge>();
             result.collectFilesInto(includedFiles, new HashSet<File>());

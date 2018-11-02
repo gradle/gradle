@@ -22,7 +22,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -100,7 +100,7 @@ public class VersionConflictResolutionDetails implements Describable {
             for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
                 if (isByVersionConflict(descriptor)) {
                     if (!added) {
-                        merged.add(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason(new VersionConflictResolutionDetails(allCandidates)));
+                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(new VersionConflictResolutionDetails(allCandidates)));
                     }
                     added = true;
                 } else {

@@ -27,6 +27,7 @@ dependencies {
 
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
+    implementation(project(":snapshots"))
 
     implementation(library("asm"))
     implementation(library("asm_commons"))
@@ -72,6 +73,6 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-tasks.named<ClasspathManifest>("classpathManifest") {
+tasks.classpathManifest {
     additionalProjects = listOf(project(":runtimeApiInfo"))
 }

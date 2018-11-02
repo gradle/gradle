@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
@@ -141,26 +140,15 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static abstract class AbstractFileVar<T> extends DefaultPropertyState<T> implements ProducerAwareProperty {
-        private Task producer;
+    static abstract class AbstractFileVar<T> extends DefaultPropertyState<T> {
 
         public AbstractFileVar(Class<T> type) {
             super(type);
         }
 
         @Override
-        public void attachProducer(Task task) {
-            if (this.producer != null && this.producer != task) {
-                throw new IllegalStateException("This property already has a producer task associated with it.");
-            }
-            this.producer = task;
-        }
-
-        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            if (producer != null) {
-                context.add(producer);
-            } else {
+            if (!super.maybeVisitBuildDependencies(context)) {
                 getProvider().maybeVisitBuildDependencies(context);
             }
             return true;

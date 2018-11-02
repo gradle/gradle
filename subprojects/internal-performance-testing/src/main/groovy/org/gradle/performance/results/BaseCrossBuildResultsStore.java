@@ -52,7 +52,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
@@ -66,6 +66,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(10, resultType);
                         statement.setString(11, results.getChannel());
                         statement.setString(12, results.getHost());
+                        statement.setString(13, results.getTeamCityBuildId());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -150,7 +151,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
@@ -172,6 +173,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         performanceResults.setTestGroup(testExecutions.getString(9));
                         performanceResults.setChannel(testExecutions.getString(10));
                         performanceResults.setHost(testExecutions.getString(11));
+                        performanceResults.setTeamCityBuildId(testExecutions.getString(12));
 
                         if (ignore(performanceResults)) {
                             continue;
@@ -259,6 +261,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             }
             if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "HOST")) {
                 statement.execute("alter table testExecution add column if not exists host varchar");
+            }
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "TEAMCITYBUILDID")) {
+                statement.execute("alter table testExecution add column if not exists teamCityBuildId varchar");
             }
             statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");

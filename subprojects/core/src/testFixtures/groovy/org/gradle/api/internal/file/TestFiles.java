@@ -88,7 +88,11 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
+        return fileOperations(basedDir, null);
+    }
+
+    public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
+        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
     }
 
     public static TextResourceLoader textResourceLoader() {

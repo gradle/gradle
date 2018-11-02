@@ -17,12 +17,10 @@
 package org.gradle.tooling.provider.model;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 
 /**
  * Thrown when an unknown tooling model is requested.
  */
-@Incubating
 public class UnknownModelException extends GradleException {
     public UnknownModelException(String message) {
         super(message);

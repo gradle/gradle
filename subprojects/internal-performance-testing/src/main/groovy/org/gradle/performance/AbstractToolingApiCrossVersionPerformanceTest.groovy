@@ -199,7 +199,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 args: [],
                 gradleOpts: [],
                 daemon: true,
-                channel: ResultsStoreHelper.determineChannel())
+                channel: ResultsStoreHelper.determineChannel(),
+                teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
+            )
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()

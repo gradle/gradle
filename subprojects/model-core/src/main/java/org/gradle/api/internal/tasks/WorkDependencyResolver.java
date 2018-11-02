@@ -28,6 +28,8 @@ public interface WorkDependencyResolver<T> {
      */
     boolean resolve(Task task, Object node, Action<? super T> resolveAction);
 
+    boolean attachActionTo(T value, Action<? super Task> action);
+
     /**
      * Resolves dependencies to {@link Task} objects.
      */
@@ -45,6 +47,11 @@ public interface WorkDependencyResolver<T> {
                 return false;
             }
             return true;
+        }
+
+        @Override
+        public boolean attachActionTo(Task task, Action<? super Task> action) {
+            return false;
         }
     };
 }

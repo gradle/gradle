@@ -199,7 +199,6 @@ If you then run `gradle hello` you'll see that only the helloA and helloB subpro
 [source]
 ----
 > gradle hello
-Parallel execution is an incubating feature.
 :helloA:hello
 :helloB:hello
 Hello!

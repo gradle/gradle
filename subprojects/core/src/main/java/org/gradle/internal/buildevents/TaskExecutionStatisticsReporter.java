@@ -16,12 +16,11 @@
 package org.gradle.internal.buildevents;
 
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistics;
-import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsListener {
+public class TaskExecutionStatisticsReporter {
     private final StyledTextOutputFactory textOutputFactory;
 
     public TaskExecutionStatisticsReporter(StyledTextOutputFactory textOutputFactory) {
@@ -32,7 +31,7 @@ public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsL
         int total = statistics.getTotalTaskCount();
         if (total > 0) {
             String pluralizedTasks = total > 1 ? "tasks" : "task";
-            StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
+            StyledTextOutput textOutput = textOutputFactory.create(TaskExecutionStatisticsReporter.class, LogLevel.LIFECYCLE);
             textOutput.format("%d actionable %s:", total, pluralizedTasks);
             boolean printedDetail = formatDetail(textOutput, statistics.getExecutedTasksCount(), "executed", false);
             printedDetail = formatDetail(textOutput, statistics.getFromCacheTaskCount(), "from cache", printedDetail);

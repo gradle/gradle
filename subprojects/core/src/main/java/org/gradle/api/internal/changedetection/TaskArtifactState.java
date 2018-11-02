@@ -16,30 +16,37 @@
 package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
  */
 public interface TaskArtifactState {
     /**
-     * Returns true if the task outputs were generated using the given task inputs.
-     *
-     * @param messages a collection to add messages which explain why the task is out-of-date.
+     * Returns changes since the previous execution, if any.
      */
-    boolean isUpToDate(Collection<String> messages);
+    Optional<ExecutionStateChanges> getExecutionStateChanges();
 
-    IncrementalTaskInputs getInputChanges(TaskProperties taskProperties);
+    /**
+     * Returns the incremental task inputs for the current execution.
+     */
+    IncrementalTaskInputs getInputChanges();
+
+    /**
+     * Returns fingerprints of all the current input files.
+     */
+    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
@@ -64,20 +71,21 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext);
 
     /**
-     * Called on task being loaded from cache.
+     * Called when outputs were generated.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata);
-
-    /**
-     * Returns the history for this task.
-     */
-    TaskExecutionHistory getExecutionHistory();
+    void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
 
     /**
      * Returns the current output file fingerprints indexed by property name.
      */
     Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints();
+
+    /**
+     * Returns if overlapping outputs were detected
+     */
+    @Nullable
+    OverlappingOutputs getOverlappingOutputs();
 }

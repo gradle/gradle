@@ -16,7 +16,6 @@
 
 package org.gradle.authentication.aws;
 
-import org.gradle.api.Incubating;
 import org.gradle.authentication.Authentication;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.authentication.Authentication;
  *
  * @since 3.1
  */
-@Incubating
 public interface AwsImAuthentication extends Authentication {
 }
 

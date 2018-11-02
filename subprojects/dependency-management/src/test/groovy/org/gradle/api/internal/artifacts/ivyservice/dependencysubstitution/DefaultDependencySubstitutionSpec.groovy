@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -28,14 +27,17 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
+
 class DefaultDependencySubstitutionSpec extends Specification {
     def componentSelector = Mock(ComponentSelector)
-    def details = new DefaultDependencySubstitution(componentSelector, null)
+    def details = new DefaultDependencySubstitution(componentSelector)
 
     def "can override target and selection reason for project"() {
         when:
-        details.useTarget("org:foo:2.0", VersionSelectionReasons.FORCED)
-        details.useTarget("org:foo:3.0", VersionSelectionReasons.SELECTED_BY_RULE)
+        details.useTarget("org:foo:2.0", FORCED)
+        details.useTarget("org:foo:3.0", SELECTED_BY_RULE)
 
         then:
         details.requested == componentSelector
@@ -43,7 +45,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target.module == "foo"
         details.target.version == "3.0"
         details.updated
-        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.ruleDescriptors == [FORCED, SELECTED_BY_RULE]
     }
 
     def "does not allow null target"() {
@@ -54,7 +56,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         thrown(UnsupportedNotationException)
 
         when:
-        details.useTarget(null, VersionSelectionReasons.SELECTED_BY_RULE)
+        details.useTarget(null, SELECTED_BY_RULE)
 
         then:
         thrown(UnsupportedNotationException)
@@ -68,7 +70,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
     def "can specify custom selection reason"() {
@@ -79,8 +81,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.selectionDescription.description == 'with custom reason'
+        details.ruleDescriptors.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.ruleDescriptors.last().description == 'with custom reason'
     }
 
     def "can specify target project"() {
@@ -100,6 +102,6 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
-        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 }

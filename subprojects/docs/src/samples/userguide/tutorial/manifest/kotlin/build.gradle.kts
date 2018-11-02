@@ -4,7 +4,7 @@ plugins {
 version = "1.0"
 
 // tag::add-to-manifest[]
-tasks.getByName<Jar>("jar") {
+tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle",

@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 
 public class MutationGuards {
     private static final MutationGuard IDENTITY_MUTATION_GUARD = new MutationGuard() {
@@ -29,26 +28,6 @@ public class MutationGuards {
         @Override
         public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {
             return action;
-        }
-
-        @Override
-        public <T> T whileMutationEnabled(Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void whileMutationDisabled(Runnable runnable) {
-            runnable.run();
-        }
-
-        @Override
-        public <T> T whileMutationDisabled(Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void whileMutationEnabled(Runnable runnable) {
-            runnable.run();
         }
 
         @Override

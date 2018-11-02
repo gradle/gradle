@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
-@TargetGradleVersion(">=2.3")
 class ImplicitTasksToolingApiCrossVersionSpec extends ToolingApiSpecification {
 
     def "implicit/placeholder tasks are visible from tooling api"() {

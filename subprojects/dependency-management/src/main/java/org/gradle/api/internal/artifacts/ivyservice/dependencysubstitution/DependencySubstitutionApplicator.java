@@ -27,7 +27,7 @@ public interface DependencySubstitutionApplicator {
     DependencySubstitutionApplicator NO_OP = new DependencySubstitutionApplicator() {
         @Override
         public SubstitutionResult apply(DependencyMetadata dependency) {
-            return SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector(), dependency.getReason()));
+            return SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector()));
         }
     };
 

@@ -15,14 +15,15 @@
  */
 package org.gradle.internal.action;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.CacheableRule;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.snapshot.impl.ArrayValueSnapshot;
 
 import java.util.Arrays;
 
@@ -70,6 +71,25 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     @Override
     public boolean isCacheable() {
         return cacheable;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultConfigurableRule<?> that = (DefaultConfigurableRule<?>) o;
+        return cacheable == that.cacheable &&
+            Objects.equal(rule, that.rule) &&
+            Objects.equal(ruleParams, that.ruleParams);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(rule, ruleParams, cacheable);
     }
 
     @Override

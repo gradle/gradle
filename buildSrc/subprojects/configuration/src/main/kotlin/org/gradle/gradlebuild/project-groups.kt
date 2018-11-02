@@ -25,7 +25,7 @@ object ProjectGroups {
             it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance") }.toSet()
 
     val Project.javaProjects
-        get() = rootProject.subprojects - rootProject.project("distributionsDependencies")
+        get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
 
     val Project.publicJavaProjects
         get() = javaProjects - internalProjects
@@ -57,9 +57,6 @@ object ProjectGroups {
             rootProject.project(":messaging"),
             rootProject.project(":processServices"),
             rootProject.project(":resources"))
-
-    val Project.projectsRequiringLanguageLevel8
-        get() = setOf(":testingJunitPlatform", ":internalPerformanceTesting", ":buildScanPerformance").map { rootProject.project(it) }
 
     val Project.publicProjects
         get() = pluginProjects +

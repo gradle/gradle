@@ -28,7 +28,6 @@ import java.util.List;
  * @since 1.3
  */
 @UsedByScanPlugin
-@Incubating
 @HasInternalProtocol
 public interface ComponentSelectionReason {
 
@@ -64,7 +63,17 @@ public interface ComponentSelectionReason {
      *
      * @since 4.5
      */
+    @Incubating
     boolean isCompositeSubstitution();
+
+    /**
+     * Informs whether the selected component version has been influenced by a dependency constraint.
+     *
+     * @return true if a dependency constraint influenced the selection of this component
+     *
+     * @since 4.6
+     */
+    boolean isConstrained();
 
     /**
      * Returns a human-consumable description of this selection reason.
@@ -81,15 +90,6 @@ public interface ComponentSelectionReason {
      *
      * @since 4.6
      */
-    List<ComponentSelectionDescriptor> getDescriptions();
-
-    /**
-     * Informs whether the selected component version has been influenced by a dependency constraint.
-     *
-     * @return true if a dependency constraint influenced the selection of this component
-     *
-     * @since 4.6
-     */
     @Incubating
-    boolean isConstrained();
+    List<ComponentSelectionDescriptor> getDescriptions();
 }

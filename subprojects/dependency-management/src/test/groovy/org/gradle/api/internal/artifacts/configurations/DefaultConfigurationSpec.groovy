@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
@@ -35,6 +36,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -46,12 +48,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -63,13 +67,15 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.artifacts.Configuration.State.*
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
+import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -83,13 +89,20 @@ class DefaultConfigurationSpec extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
-    def immutableAttributesFactory = TestUtil.attributesFactory()
+    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
+    def projectStateRegistry = Mock(ProjectStateRegistry)
+    def projectState = Mock(ProjectState)
+    def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
+        _ * projectStateRegistry.stateFor(_) >> projectState
+        _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
+        _ * safeLock.withLock(_) >> { args -> args[0].run() }
+        _ * projectState.withMutableState(_) >> { args -> args[0].create() }
     }
 
     void defaultValues() {
@@ -552,7 +565,7 @@ class DefaultConfigurationSpec extends Specification {
 
         given:
         _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
-        _ * selectedArtifactSet.collectBuildDependencies(_) >> { BuildDependenciesVisitor visitor -> visitor.visitDependency(artifactTaskDependencies) }
+        _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
@@ -1639,6 +1652,27 @@ All Artifacts:
         seenCopied == [copied.incoming] as Set
     }
 
+    def "collects exclude rules from hierarchy"() {
+        given:
+        def firstRule = new DefaultExcludeRule("foo", "bar")
+        def secondRule = new DefaultExcludeRule("bar", "baz")
+        def thirdRule = new DefaultExcludeRule("baz", "qux")
+        def rootConfig = configurationWithExcludeRules(thirdRule)
+        def parentConfig = configurationWithExcludeRules(secondRule).extendsFrom(rootConfig)
+        def config = configurationWithExcludeRules(firstRule).extendsFrom(parentConfig)
+
+        expect:
+        config.getAllExcludeRules() == [firstRule, secondRule, thirdRule] as Set
+        parentConfig.getAllExcludeRules() == [secondRule, thirdRule] as Set
+        rootConfig.getAllExcludeRules() == [thirdRule] as Set
+    }
+
+    private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
+        def config = conf()
+        config.setExcludeRules(rules as LinkedHashSet)
+        config
+    }
+
     // You need to wrap this in an interaction {} block when calling it
     private ResolvedConfiguration resolveConfig(ConfigurationInternal config) {
         def resolvedConfiguration = Mock(ResolvedConfiguration)
@@ -1652,7 +1686,7 @@ All Artifacts:
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def selectedArtifactSet = Stub(SelectedArtifactSet)
         _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
-        _ * selectedArtifactSet.collectBuildDependencies(_) >> { Collection<Object> deps -> deps }
+        _ * selectedArtifactSet.visitDependencies(_) >> { Collection<Object> deps -> deps }
         visitedArtifactSet
     }
 
@@ -1691,7 +1725,7 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry))
     }
 
     private DefaultPublishArtifact artifact(String name) {

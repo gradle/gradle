@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.resolve.ComponentMetadataRulesChangingModulesIntegrationTest
+import org.gradle.integtests.resolve.rules.ComponentMetadataRulesChangingModulesIntegrationTest
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 
 class IvyComponentMetadataRulesChangingModulesIntegrationTest extends ComponentMetadataRulesChangingModulesIntegrationTest {

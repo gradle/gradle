@@ -146,7 +146,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             withModuleMetadata {
                 shouldFail {
                     // We have a publication but artifacts have been modified, which currently disables publication
-                    assertHasDescription 'Could not resolve all files'
+                    assertHasCause 'Could not resolve all files'
                     assertHasCause 'Could not find group:projectText:1.0.'
                 }
             }

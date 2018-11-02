@@ -19,7 +19,6 @@ package org.gradle.api.tasks.testing.testng;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
@@ -178,13 +177,11 @@ public class TestNGOptions extends TestFrameworkOptions {
      *
      * @since 1.11
      */
-    @Incubating
     @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
     }
 
-    @Incubating
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
     }
@@ -358,17 +355,14 @@ public class TestNGOptions extends TestFrameworkOptions {
      *
      * If not present, the order will not be preserved.
      */
-    @Incubating
     public boolean isPreserveOrder() {
         return preserveOrder;
     }
 
-    @Incubating
     public void setPreserveOrder(boolean preserveOrder) {
         this.preserveOrder = preserveOrder;
     }
 
-    @Incubating
     public boolean getGroupByInstances() {
         return groupByInstances;
     }
@@ -381,12 +375,10 @@ public class TestNGOptions extends TestFrameworkOptions {
      *
      * If not present, the tests will not be grouped by instances.
      */
-    @Incubating
     public boolean isGroupByInstances() {
         return groupByInstances;
     }
 
-    @Incubating
     public void setGroupByInstances(boolean groupByInstances) {
         this.groupByInstances = groupByInstances;
     }

@@ -30,8 +30,6 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.GroovyCoverage.groovySnapshotRepository
-
 @TargetCoverage({GroovyCoverage.ALL})
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
@@ -47,7 +45,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        buildFile << groovySnapshotRepository(version)
     }
 
     def "compileGoodCode"() {
@@ -283,7 +280,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.annotationProcessorPath = files()
             }
         """
 
@@ -401,7 +398,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         buildScript """
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
-            ${groovySnapshotRepository(version)}
         """
 
         when:

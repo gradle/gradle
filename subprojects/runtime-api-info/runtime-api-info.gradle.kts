@@ -18,8 +18,26 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 val runtimeShadedPath = "$buildDir/runtime-api-info"
 
+configurations {
+    create("gradleApiRuntime") {
+        isVisible = false
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+    }
+    create("testKitPackages") {
+        isVisible = false
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    }
+}
+
 dependencies {
     compile(project(":distributionsDependencies"))
+    "gradleApiRuntime"(project(":"))
+    "testKitPackages"(project(":testKit"))
 }
 
 gradlebuildJava {
@@ -27,21 +45,16 @@ gradlebuildJava {
 }
 
 val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generateGradleApiPackageList") {
-    classpath = files(
-        rootProject.configurations["externalModules"],
-        listOf(":core", ":dependencyManagement", ":pluginUse", ":toolingApi").map {
-            project(it).configurations.runtimeClasspath
-        },
-        project(":").configurations["gradlePlugins"])
+    classpath = configurations["gradleApiRuntime"]
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
-    classpath = project(":testKit").configurations["compileClasspath"] // TODO:kotlin-dsl revert to accessor
+    classpath = configurations["testKitPackages"]
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }
 
-tasks.named<Jar>("jar") {
+tasks.jar {
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateGradleApiPackageList)
         from(generateTestKitPackageList)

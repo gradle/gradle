@@ -231,7 +231,7 @@ include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/Gre
 [[sec:using_the_java_gradle_plugin_development_plugin]]
 === Using the Java Gradle Plugin Development Plugin
 
-You can use the incubating <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution, and generate plugin descriptors in the resulting JAR's `META-INF` directory.
+You can use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution, and generate plugin descriptors in the resulting JAR's `META-INF` directory.
 
 .Using the Java Gradle Plugin Development plugin
 ====

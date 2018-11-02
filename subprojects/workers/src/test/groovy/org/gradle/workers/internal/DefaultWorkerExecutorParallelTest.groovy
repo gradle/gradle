@@ -30,10 +30,14 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutionException
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder()
     def workerDaemonFactory = Mock(WorkerFactory)
     def workerInProcessFactory = Mock(WorkerFactory)
     def workerNoIsolationFactory = Mock(WorkerFactory)
@@ -41,7 +45,9 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(PathToFileResolver)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
+        getWorkingDirectory() >> { temporaryFolder.root }
+    }
     def instantiatorFactory = Mock(InstantiatorFactory)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)

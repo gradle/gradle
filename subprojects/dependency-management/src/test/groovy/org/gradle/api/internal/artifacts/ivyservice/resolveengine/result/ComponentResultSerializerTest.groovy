@@ -22,22 +22,22 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
-        def attributes = TestUtil.attributesFactory().mutable()
+        def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
         def selection = new DetachedComponentResult(12L,
             newId('org', 'foo', '2.0'),
-            VersionSelectionReasons.requested(),
+            ComponentSelectionReasons.requested(),
             componentIdentifier, 'default',
             attributes,
             'repoName')
@@ -47,7 +47,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
 
         then:
         result.resultId == 12L
-        result.selectionReason == VersionSelectionReasons.requested()
+        result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
         result.variantName.displayName == 'default'

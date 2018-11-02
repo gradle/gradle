@@ -19,13 +19,21 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+
+import java.util.List;
+import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.*;
 
 class DependencyState {
     private final ComponentSelector requested;
     private final DependencyMetadata dependency;
-    private final ComponentSelectionDescriptorInternal ruleDescriptor;
+    private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
 
     private ModuleIdentifier moduleIdentifier;
@@ -35,10 +43,10 @@ class DependencyState {
         this(dependency, dependency.getSelector(), null, componentSelectorConverter);
     }
 
-    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, ComponentSelectionDescriptorInternal ruleDescriptor, ComponentSelectorConverter componentSelectorConverter) {
+    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, List<ComponentSelectionDescriptorInternal> ruleDescriptors, ComponentSelectorConverter componentSelectorConverter) {
         this.dependency = dependency;
         this.requested = requested;
-        this.ruleDescriptor = ruleDescriptor;
+        this.ruleDescriptors = ruleDescriptors;
         this.componentSelectorConverter = componentSelectorConverter;
     }
 
@@ -57,15 +65,50 @@ class DependencyState {
         return moduleIdentifier;
     }
 
-    public DependencyState withTarget(ComponentSelector target, ComponentSelectionDescriptorInternal ruleDescriptor) {
+    public DependencyState withTarget(ComponentSelector target, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTarget(target);
-        return new DependencyState(targeted, requested, ruleDescriptor, componentSelectorConverter);
+        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
     }
 
     /**
      * Descriptor for any rules that modify this DependencyState from the original.
      */
-    public ComponentSelectionDescriptorInternal getRuleDescriptor() {
-        return ruleDescriptor;
+    public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+        return ruleDescriptors;
+    }
+
+    public boolean isForced() {
+        if (ruleDescriptors != null) {
+            for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
+                if (ruleDescriptor.isEquivalentToForce()) {
+                    return true;
+                }
+            }
+        }
+        return isDependencyForced();
+    }
+
+    private boolean isDependencyForced() {
+        return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
+    }
+
+    public boolean isFromLock() {
+        return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
+    }
+
+    public void addSelectionReasons(Set<ComponentSelectionDescriptorInternal> reasons) {
+        String reason = dependency.getReason();
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
+        }
+        reasons.add(dependencyDescriptor);
+
+        if (ruleDescriptors != null) {
+            reasons.addAll(ruleDescriptors);
+        }
+        if (isDependencyForced()) {
+            reasons.add(FORCED);
+        }
     }
 }

@@ -21,11 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.RejectedBySelectorVersion;
-import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 public interface ComponentResolutionState extends StringVersioned {
     ComponentIdentifier getComponentId();
@@ -42,13 +39,9 @@ public interface ComponentResolutionState extends StringVersioned {
     @Nullable
     ComponentResolveMetadata getMetadata();
 
-    void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription);
+    void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor);
 
     void reject();
 
     boolean isRejected();
-
-    void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions);
-
-    void rejected(Collection<RejectedVersion> rejectedVersions);
 }

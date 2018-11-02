@@ -175,7 +175,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             task cacheableWithOverlap(type: Cacheable) {
                 outputFile = cacheable.outputFile
                 cachingEnabled = false
-                disabledReason = "Gradle does not know how file '" + project.relativePath(outputFile) + "' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness."
+                disabledReason = "Gradle does not know how file '\$outputFile' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness."
                 disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
             }
         """

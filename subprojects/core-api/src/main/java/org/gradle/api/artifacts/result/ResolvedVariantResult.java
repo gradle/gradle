@@ -24,7 +24,6 @@ import org.gradle.api.attributes.AttributeContainer;
  *
  * @since 3.5
  */
-@Incubating
 public interface ResolvedVariantResult {
     /**
      * The attributes associated with this variant.
@@ -36,5 +35,6 @@ public interface ResolvedVariantResult {
      *
      * @since 4.6
      */
+    @Incubating
     String getDisplayName();
 }

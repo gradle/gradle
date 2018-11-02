@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r41
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=4.1")
 class InitScriptCrossVersionSpec extends ToolingApiSpecification {
 

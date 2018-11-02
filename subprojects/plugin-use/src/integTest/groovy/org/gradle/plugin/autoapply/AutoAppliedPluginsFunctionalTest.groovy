@@ -24,12 +24,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.NO
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToStdInAndClose
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
@@ -164,9 +159,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
     private void withInteractiveConsole() {
         executer.withTestConsoleAttached()
-                .withConsole(ConsoleOutput.Plain)
-                .withStdinPipe()
-                .withForceInteractive(true)
+            .withConsole(ConsoleOutput.Plain)
+            .withStdinPipe()
+            .withForceInteractive(true)
     }
 
     private GradleHandle startBuildWithBuildScanCommandLineOption() {

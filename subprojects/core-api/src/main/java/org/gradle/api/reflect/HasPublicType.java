@@ -16,8 +16,6 @@
 
 package org.gradle.api.reflect;
 
-import org.gradle.api.Incubating;
-
 /**
  * Allows a scriptable object, such as a project extension, to declare its preferred public type.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 3.5
  */
-@Incubating
 public interface HasPublicType {
 
     /**

@@ -64,7 +64,7 @@ public class Specs {
         if (specs.length == 1) {
             return Cast.uncheckedCast(specs[0]);
         }
-        return doIntersect(Arrays.asList(specs));
+        return doIntersect(Arrays.<Spec<? super T>>asList(specs));
     }
 
     /**
@@ -107,7 +107,7 @@ public class Specs {
         if (specs.length == 1) {
             return Cast.uncheckedCast(specs[0]);
         }
-        return doUnion(Arrays.asList(specs));
+        return doUnion(Arrays.<Spec<? super T>>asList(specs));
     }
 
     /**

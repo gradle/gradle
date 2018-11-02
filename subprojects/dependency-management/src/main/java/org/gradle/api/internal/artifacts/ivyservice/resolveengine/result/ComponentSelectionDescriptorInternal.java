@@ -22,11 +22,11 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
     /**
      * Updates the description of this component selection descriptor.
      *
-     * @param reason a new textual description of the descriptor.
+     * @param description a new textual description of the descriptor.
      *
      * @return this descriptor
      */
-    ComponentSelectionDescriptorInternal withReason(Describable reason);
+    ComponentSelectionDescriptorInternal withDescription(Describable description);
 
     /**
      * Determines if a custom description was provided. This can be used in reporting to determine if additional details should
@@ -35,6 +35,20 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
      * @return true if the description is not the default cause description.
      */
     boolean hasCustomDescription();
+
+    /**
+     * Updates this component selection descriptor to indicate it is equivalent to a force
+     *
+     * @return a new descriptor, equivalent to force
+     */
+    ComponentSelectionDescriptorInternal markAsEquivalentToForce();
+
+    /**
+     * Indicates whether the component selection descriptor is equivalent to a forced dependency
+     *
+     * @return {@code true} if equivalent to force, {@code false} otherwise
+     */
+    boolean isEquivalentToForce();
 
     Describable getDescribable();
 

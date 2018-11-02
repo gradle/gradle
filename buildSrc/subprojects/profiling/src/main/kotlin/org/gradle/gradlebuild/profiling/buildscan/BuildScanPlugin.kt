@@ -22,12 +22,19 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import org.gradle.kotlin.dsl.*
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -54,7 +61,7 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer) {
+        if (isCiServer && !isTravis) {
             extractAllReportsFromCI()
         }
 
@@ -105,10 +112,15 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                link("TeamCity Build", System.getenv("BUILD_URL"))
-                value("Build ID", System.getenv("BUILD_ID"))
-                setCommitId(System.getenv("BUILD_VCS_NUMBER"))
-
+                if (isTravis) {
+                    link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
+                    value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
+                    setCommitId(System.getenv("TRAVIS_COMMIT"))
+                } else {
+                    link("TeamCity Build", System.getenv("BUILD_URL"))
+                    value("Build ID", System.getenv("BUILD_ID"))
+                    setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)
                     link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
@@ -123,7 +135,7 @@ open class BuildScanPlugin : Plugin<Project> {
     fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
         val envValue: String? = System.getenv(envName)
         if (!envValue.isNullOrEmpty()) {
-            action(envValue!!)
+            action(envValue)
         }
     }
 
@@ -133,27 +145,21 @@ open class BuildScanPlugin : Plugin<Project> {
 
             if (!isCiServer) {
                 background {
-                    system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                        setCommitId(commitId)
-                    }
+                    setCommitId(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
                 }
             }
 
             background {
-                system("git", "status", "--porcelain").let { status ->
-                    if (status.isNotEmpty()) {
-                        tag("dirty")
-                        value("Git Status", status)
-                    }
+                execAndGetStdout("git", "status", "--porcelain").takeIf { it.isNotEmpty() }?.let { status ->
+                    tag("dirty")
+                    value("Git Status", status)
                 }
             }
 
             background {
-                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
-                    if (branchName.isNotEmpty() && branchName != "HEAD") {
-                        tag(branchName)
-                        value("Git Branch Name", branchName)
-                    }
+                execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD").takeIf { it.isNotEmpty() && it != "HEAD" }?.let { branchName ->
+                    tag(branchName)
+                    value("Git Branch Name", branchName)
                 }
             }
         }
@@ -205,8 +211,10 @@ open class BuildScanPlugin : Plugin<Project> {
     fun BuildScanExtension.setCommitId(commitId: String) {
         value(gitCommitName, commitId)
         link("Source", "https://github.com/gradle/gradle/commit/$commitId")
-        link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
-        link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
+        if (!isTravis) {
+            link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
+            link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
+        }
     }
 
     private
@@ -214,17 +222,6 @@ open class BuildScanPlugin : Plugin<Project> {
         buildScan.apply(configure)
     }
 }
-
-
-private
-fun Project.system(vararg args: String): String =
-    ProcessBuilder(args.toList())
-        .directory(rootDir)
-        .start()
-        .run {
-            assert(waitFor() == 0)
-            inputStream.bufferedReader().use { it.readText().trim() }
-        }
 
 
 private

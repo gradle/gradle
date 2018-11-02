@@ -25,11 +25,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.collections.ArchiveFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.file.collections.SingletonFileTree;
+import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
@@ -47,7 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
+public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
     private final File tarFile;
     private final ReadableResourceInternal resource;
     private final Chmod chmod;
@@ -113,7 +113,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
-    private File getBackingFile() {
+    public File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
         }
@@ -162,7 +162,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     public void visitTreeOrBackingFile(final FileVisitor visitor) {
         File backingFile = getBackingFile();
         if (backingFile != null) {
-            new SingletonFileTree(backingFile).visit(visitor);
+            new DefaultSingletonFileTree(backingFile).visit(visitor);
         } else {
             // We need to wrap the visitor so that the file seen by the visitor has already
             // been extracted from the archive and we do not try to extract it again.

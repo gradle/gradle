@@ -3,17 +3,17 @@ package org.gradle.test;
 import java.util.*;
 
 public class JavaClassWithParameterizedTypes {
-    Set<GroovyInterface> getSetProp() { return null; }
+    Set<CombinedInterface> getSetProp() { return null; }
 
-    Map<GroovyInterface, JavaClassWithParameterizedTypes> getMapProp() { return null; }
+    Map<CombinedInterface, JavaClassWithParameterizedTypes> getMapProp() { return null; }
 
     List<?> getWildcardProp() { return null; }
 
-    List<? extends GroovyInterface> getUpperBoundProp() { return null; }
+    List<? extends CombinedInterface> getUpperBoundProp() { return null; }
 
-    List<? super GroovyInterface> getLowerBoundProp() { return null; }
+    List<? super CombinedInterface> getLowerBoundProp() { return null; }
 
-    List<? super Set<? extends Map<?, GroovyInterface[]>>>[] getNestedProp() { return null; }
+    List<? super Set<? extends Map<?, CombinedInterface[]>>>[] getNestedProp() { return null; }
 
     <T extends JavaInterface> T paramMethod(T param) {
         return null;

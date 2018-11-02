@@ -34,7 +34,7 @@ val generatePom = tasks.register("generatePom", GeneratePom::class.java)
 
 val main by java.sourceSets
 val sourceJar = tasks.register("sourceJar", Jar::class.java) {
-    classifier = "sources"
+    archiveClassifier.set("sources")
     from(main.java.srcDirs + main.groovy.srcDirs)
 }
 

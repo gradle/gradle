@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 plugins {
     `java-library`
     // Some cycles have been inherited from the time these classes were in :core
-    // id("gradlebuild.classycle")
+    // gradlebuild.classycle
 }
 
 dependencies {
@@ -36,6 +36,7 @@ dependencies {
     implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalTesting"))
 }
 
 java {

@@ -14,23 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2018 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 val originalUrls: Map<String, String> = mapOf(
     "jcenter" to "https://jcenter.bintray.com/",
     "mavencentral" to "https://repo.maven.apache.org/maven2/",
@@ -41,7 +24,7 @@ val originalUrls: Map<String, String> = mapOf(
     "gradle-libs" to "https://repo.gradle.org/gradle/libs",
     "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
     "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
-    "kotlindev" to "https://dl.bintray.com/kotlin/kotlin-dev/",
+    "kotlinx" to "https://kotlin.bintray.com/kotlinx/",
     "kotlineap" to "https://dl.bintray.com/kotlin/kotlin-eap/"
 )
 

@@ -293,19 +293,36 @@ The following types/formats are supported:
         result.assertTasksExecuted(":b")
     }
 
+    def "produces reasonable error message when task dependency closure throws exception"() {
+        buildFile << """
+    task a
+    a.dependsOn {
+        throw new RuntimeException('broken')
+    }
+"""
+        when:
+        fails "a"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
+                .assertHasCause('broken')
+                .assertHasFileName("Build file '$buildFile'")
+                .assertHasLineNumber(4)
+    }
+
     def "dependency declared using provider with no value fails"() {
         buildFile << """
             def provider = objects.property(String)
-            tasks.register("b") {
+            tasks.register("a") {
                 dependsOn provider
             }
         """
 
         when:
-        fails("b")
+        fails("a")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
         failure.assertHasCause("No value has been specified for this provider.")
     }
 
@@ -395,6 +412,57 @@ The following types/formats are supported:
         then:
         result.assertTasksExecuted(":a", ":b")
         file("out.txt").text == "1"
+    }
+
+    def "input file collection containing task output property implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.create("a", OutputFilesTask) {
+                out1 = file("file1.txt")
+                out2 = file("file2.txt")
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from a.out1
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    def "input file collection containing collection property implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.create("a", OutputFilesTask) {
+                out1 = file("a-1.txt")
+                out2 = file("a-2.txt")
+            }
+            def b = tasks.create("b", OutputFilesTask) {
+                out1 = file("b-1.txt")
+                out2 = file("b-2.txt")
+            }
+            def files = objects.setProperty(RegularFile).empty()
+            files.add(a.out1)
+            files.add(b.out2)
+            tasks.register("c", InputFilesTask) {
+                inFiles.from files
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":b", ":c")
+        file("out.txt").text == "1,2"
     }
 
     def "input file property with value of flat map task provider implies dependency on a specific output of the task"() {

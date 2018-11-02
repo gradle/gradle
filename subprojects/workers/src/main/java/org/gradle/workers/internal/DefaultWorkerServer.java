@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
-public class DefaultWorkerServer implements WorkerProtocol<ActionExecutionSpec> {
+public class DefaultWorkerServer implements WorkerProtocol {
     private final Instantiator instantiator;
 
     @Inject

@@ -106,7 +106,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
-            channel: ResultsStoreHelper.determineChannel()
+            channel: ResultsStoreHelper.determineChannel(),
+            teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }

@@ -28,10 +28,8 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -39,10 +37,11 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaProject
+import org.gradle.plugins.ide.idea.model.Module
+import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jetbrains.gradle.ext.Application
-import org.jetbrains.gradle.ext.CodeStyleConfig
 import org.jetbrains.gradle.ext.CopyrightConfiguration
-import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
 import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
 import org.jetbrains.gradle.ext.Inspection
@@ -51,9 +50,6 @@ import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
-import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -70,10 +66,14 @@ private
 const val javaCompilerHeapSpace = 3072
 
 
-// Disable Java 7 inspections because some parts of the codebase still need
-// to run on Java 6
+// Disable Java 7 and Java 8 inspections because some parts of the codebase still need to run on Java 6
 private
-val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
+val disabledInspections = listOf(
+    // Java 7 inspections
+    "Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches",
+    // Java 8 inspections
+    "Anonymous2MethodRef", "AnonymousHasLambdaAlternative", "CodeBlock2Expr", "ComparatorCombinators", "Convert2Lambda", "Convert2MethodRef", "Convert2streamapi", "FoldExpressionIntoStream", "Guava", "Java8ArraySetAll", "Java8CollectionRemoveIf", "Java8ListSort", "Java8MapApi", "Java8MapForEach", "LambdaCanBeMethodCall", "SimplifyForEach", "StaticPseudoFunctionalStyleMethod"
+)
 
 
 object GradleCopyright {
@@ -217,7 +217,6 @@ open class IdePlugin : Plugin<Project> {
                 settings {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
-                    configureCodeStyle()
                     // TODO The idea-ext plugin does not yet support customizing inspections.
                     // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
                     // configureInspections()
@@ -300,6 +299,18 @@ open class IdePlugin : Plugin<Project> {
                     }
                 }
             }
+            create<Application>("Run Gradle") {
+                mainClass = "org.gradle.debug.GradleRunConfiguration"
+                programParameters = "help"
+                workingDirectory = rootProject.projectDir.absolutePath
+                moduleName = "integTest"
+                jvmArgs = "-Dorg.gradle.daemon=false"
+                beforeRun {
+                    create<Make>("make") {
+                        enabled = false
+                    }
+                }
+            }
             create<Remote>("Remote debug port 5005") {
                 mode = Remote.RemoteMode.ATTACH
                 transport = Remote.RemoteTransport.SOCKET
@@ -378,10 +389,8 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
-        val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
-            else "1.7"
-        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
+        val ideaLanguageLevel = "1.8"
+        // Force everything to Java 8, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
@@ -529,8 +538,9 @@ open class IdePlugin : Plugin<Project> {
     private
     fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
-        val releaseNotesMarkdown: PegDown by docsProject.tasks
+        val releaseNotesMarkdown: RenderMarkdownTask by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
+        val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
         val vmParameter = mutableListOf(
             "-ea",
             "-Dorg.gradle.docs.releasenotes.source=${releaseNotesMarkdown.markdownFile}",
@@ -540,7 +550,7 @@ open class IdePlugin : Plugin<Project> {
             "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
-            "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
+            "-DintegTest.distsDir=${distsDir.get().asFile.absolutePath}",
             "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
             "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
             "-Dorg.gradle.integtest.executer=embedded",
@@ -548,12 +558,13 @@ open class IdePlugin : Plugin<Project> {
             "-Dorg.gradle.integtest.native.toolChains=default",
             "-Dorg.gradle.integtest.multiversion=default",
             "-Dorg.gradle.integtest.testkit.compatibility=current",
-            "-Xmx512m"
+            "-Xmx512m",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
         )
-
-        if (!BuildEnvironment.javaVersion.isJava8Compatible) {
-            vmParameter.add("-XX:MaxPermSize=512m")
-        }
         return vmParameter.joinToString(" ") {
             if (it.contains(" ") || it.contains("\$")) "\"$it\""
             else it
@@ -580,9 +591,6 @@ fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.()
 
 
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
 fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
@@ -700,39 +708,6 @@ fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled
         .attr("enabled", enabled.toString())
         .attr("level", level)
         .attr("enabled_by_default", "false")
-}
-
-
-private
-fun ProjectSettings.configureCodeStyle() {
-    codeStyle {
-        @Suppress("DEPRECATION")
-        USE_SAME_INDENTS = true // deprecated!
-        hardWrapAt = 200
-        java {
-            classCountToUseImportOnDemand = 999
-            alignParameterDescriptions = false
-            alignThrownExceptionDescriptions = false
-            keepEmptyParamTags = false
-            keepEmptyThrowsTags = false
-            keepEmptyReturnTags = false
-            wrapCommentsAtRightMargin = true
-            keepControlStatementInOneLine = false
-            generatePTagOnEmptyLines = false
-            ifForceBraces = FORCE_BRACES_ALWAYS
-            doWhileForceBraces = FORCE_BRACES_ALWAYS
-            whileForceBraces = FORCE_BRACES_ALWAYS
-            forForceBraces = FORCE_BRACES_ALWAYS
-        }
-        groovy {
-            classCountToUseImportOnDemand = 999
-            alignMultilineNamedArguments = false
-            ifForceBraces = FORCE_BRACES_ALWAYS
-            doWhileForceBraces = FORCE_BRACES_ALWAYS
-            whileForceBraces = FORCE_BRACES_ALWAYS
-            forForceBraces = FORCE_BRACES_ALWAYS
-        }
-    }
 }
 
 

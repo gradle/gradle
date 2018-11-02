@@ -16,19 +16,22 @@
 
 ext {
     libraries = [:]
-    groovyVersion = '2.5.3-SNAPSHOT'
+    groovyVersion = '2.5.3'
 }
 
 // TODO This must match the version number in code-quality-configuration.gradle.kts
-def gradleGroovyVersion = "0.9-${groovyVersion}" as String
+def gradleGroovyVersion = "1.0-${groovyVersion}" as String
 
 // All libraries that are required to compile and run Gradle are listed here.
 // Most of them are also part of the distribution as they are declared as dependencies in one of Gradle's subprojects.
 // Everything that's in 'libraries' is added as a dependency constraints with a 'strict' version requirement (see distributions-dependencies.gradle).
 // This way we make sure that a version is not accidentally updated transitively.
+
+// If you change the dependencies, make sure the third-party library count is updated in DistributionIntegrationSpec as necessary
+
 libraries.aether_connector =    [coordinates: 'org.sonatype.aether:aether-connector-wagon', version: '1.13.1']
 libraries.ant =                 [coordinates: 'org.apache.ant:ant', version: '1.9.13', because: '1.10.x requires Java 8']
-libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '6.2.1']
+libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '7.0']
 libraries.asm_commons =         [coordinates: 'org.ow2.asm:asm-commons', version: libraries.asm.version]
 libraries.asm_tree =            [coordinates: 'org.ow2.asm:asm-tree', version: libraries.asm.version]
 libraries.asm_util =            [coordinates: 'org.ow2.asm:asm-util', version: libraries.asm.version]
@@ -61,6 +64,7 @@ libraries.jackson_annotations = [coordinates: 'com.fasterxml.jackson.core:jackso
 libraries.jackson_databind =    [coordinates: 'com.fasterxml.jackson.core:jackson-databind', version: libraries.jackson_core.version]
 libraries.jansi =               [coordinates: 'org.fusesource.jansi:jansi', version: '1.17.1']
 libraries.jatl =                [coordinates: 'com.googlecode.jatl:jatl', version: '0.2.3']
+libraries.jaxb =                [coordinates: 'com.sun.xml.bind:jaxb-impl', version: '2.3.1']
 libraries.jcifs =               [coordinates: 'org.samba.jcifs:jcifs', version: '1.3.17']
 libraries.jcip =                [coordinates: 'net.jcip:jcip-annotations', version: '1.0']
 libraries.jgit =                [coordinates: 'org.eclipse.jgit:org.eclipse.jgit', version: '5.0.3.201809091024-r']

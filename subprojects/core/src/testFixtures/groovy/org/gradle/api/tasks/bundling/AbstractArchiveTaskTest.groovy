@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
+import groovy.transform.CompileStatic
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
@@ -30,6 +31,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         assert archiveTask.classifier == ''
     }
 
+    @CompileStatic
     protected void configure(AbstractArchiveTask archiveTask) {
         archiveTask.baseName = 'testbasename'
         archiveTask.appendix = 'testappendix'
@@ -46,6 +48,8 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         execute(archiveTask)
 
         then:
+        archiveTask.destinationDirectory.isPresent()
+        archiveTask.archiveFile.isPresent()
         archiveTask.destinationDir.isDirectory()
         archiveTask.archivePath.isFile()
     }
@@ -53,6 +57,14 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     def "archiveName with empty extension"() {
         when:
         archiveTask.extension = null
+
+        then:
+        archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
+    }
+
+    def "archiveName with empty extension in provider"() {
+        when:
+        archiveTask.archiveExtension.set(project.provider { null })
 
         then:
         archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
@@ -131,5 +143,14 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     def "correct archive path"() {
         expect:
         archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveName)
+    }
+
+    def "does not accept unset destinationDir"() {
+        when:
+        archiveTask.destinationDir = null
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "path may not be null or empty string. path='null'"
     }
 }

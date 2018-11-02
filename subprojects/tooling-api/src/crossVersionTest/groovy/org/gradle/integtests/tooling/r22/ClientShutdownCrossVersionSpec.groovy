@@ -16,18 +16,16 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.2")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
+    private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
@@ -50,10 +48,9 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         thrown(IllegalStateException)
     }
 
-    @TargetGradleVersion(">=2.2")
     def "cleans up idle daemons when tooling API session is shutdown"() {
         withConnection { connection ->
-            connection.getModel(GradleBuild)
+            connection.model(GradleBuild).setJvmArguments(JVM_OPTS).get()
         }
         toolingApi.daemons.daemon.assertIdle()
 
@@ -64,14 +61,13 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.daemons.daemon.stops()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
         buildFile << """
 task slow { doLast { new URL("${server.uri}").text } }
 """
         withConnection { connection ->
-            connection.getModel(GradleBuild)
+            connection.model(GradleBuild).setJvmArguments(JVM_OPTS).get()
         }
         toolingApi.daemons.daemon.assertIdle()
 
@@ -93,11 +89,10 @@ task slow { doLast { new URL("${server.uri}").text } }
         toolingApi.daemons.daemon.stops()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that are no longer running"() {
         given:
         withConnection { connection ->
-            connection.getModel(GradleBuild)
+            connection.model(GradleBuild).setJvmArguments(JVM_OPTS).get()
         }
         toolingApi.daemons.daemon.assertIdle()
         toolingApi.daemons.daemon.kill()
@@ -109,14 +104,13 @@ task slow { doLast { new URL("${server.uri}").text } }
         noExceptionThrown()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that were not started by client"() {
         given:
         daemonExecutor().run()
         toolingApi.daemons.daemon.assertIdle()
 
         withConnection { connection ->
-            connection.getModel(GradleBuild)
+            connection.model(GradleBuild).setJvmArguments(JVM_OPTS).get()
         }
         toolingApi.daemons.daemon.assertIdle()
 
@@ -128,9 +122,6 @@ task slow { doLast { new URL("${server.uri}").text } }
     }
 
     private GradleExecuter daemonExecutor() {
-        // Need to use the same JVM args to start daemon as those used by tooling api fixture
-        // TODO - use more sane JVM args here and for the daemons started using tooling api fixture
-        def jvmOpts = JavaVersion.current() >= JavaVersion.VERSION_1_8 && GradleVersion.version(targetDist.version.version) > GradleVersion.version('4.0.2') ? ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"] : ["-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
-        targetDist.executer(temporaryFolder, getBuildContext()).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts(jvmOpts).useOnlyRequestedJvmOpts().requireDaemon()
+        targetDist.executer(temporaryFolder, getBuildContext()).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts(JVM_OPTS).useOnlyRequestedJvmOpts().requireDaemon()
     }
 }

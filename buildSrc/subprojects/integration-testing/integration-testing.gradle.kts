@@ -1,10 +1,5 @@
-plugins {
-    `java-gradle-plugin`
-}
-
-apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-
 dependencies {
+    api(kotlin("stdlib"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))

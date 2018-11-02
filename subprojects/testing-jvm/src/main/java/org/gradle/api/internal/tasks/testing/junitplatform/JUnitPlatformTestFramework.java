@@ -32,6 +32,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
@@ -47,15 +48,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         if (!JavaVersion.current().isJava8Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Running JUnit platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
+            throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
-        return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(options, filter.getIncludePatterns(), filter.getCommandLineIncludePatterns()));
+        return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(options,
+            filter.getIncludePatterns(), filter.getExcludePatterns(),
+            filter.getCommandLineIncludePatterns()));
     }
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
+            public void execute(@Nonnull WorkerProcessBuilder workerProcessBuilder) {
                 workerProcessBuilder.sharedPackages("org.junit");
             }
         };
@@ -71,10 +74,10 @@ public class JUnitPlatformTestFramework implements TestFramework {
         return null;
     }
 
-    public static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
+    static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
         private final JUnitPlatformSpec spec;
 
-        public JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
+        JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
             this.spec = spec;
         }
 
@@ -84,7 +87,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
                 IdGenerator idGenerator = serviceRegistry.get(IdGenerator.class);
                 Clock clock = serviceRegistry.get(Clock.class);
                 ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
-                Class clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
+                Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
                 Constructor constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
                 return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
             } catch (Exception e) {

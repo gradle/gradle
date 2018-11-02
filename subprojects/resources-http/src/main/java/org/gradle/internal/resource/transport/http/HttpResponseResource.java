@@ -15,13 +15,8 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.client.utils.HttpClientUtils;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -38,11 +33,11 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     private final String method;
     private final URI source;
-    private final CloseableHttpResponse response;
+    private final HttpClientResponse response;
     private final ExternalResourceMetaData metaData;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, URI source, CloseableHttpResponse response) {
+    public HttpResponseResource(String method, URI source, HttpClientResponse response) {
         this.method = method;
         this.source = source;
         this.response = response;
@@ -69,43 +64,36 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     }
 
     public long getLastModified() {
-        Header responseHeader = response.getFirstHeader("last-modified");
+        String responseHeader = response.getHeader(HttpHeaders.LAST_MODIFIED);
         if (responseHeader == null) {
             return 0;
         }
         try {
-            return DateUtils.parseDate(responseHeader.getValue()).getTime();
+            return DateUtils.parseDate(responseHeader).getTime();
         } catch (Exception e) {
             return 0;
         }
     }
 
     public long getContentLength() {
-        Header header = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+        String header = response.getHeader(HttpHeaders.CONTENT_LENGTH);
         if (header == null) {
             return -1;
         }
 
-        String value = header.getValue();
-        if (value == null) {
-            return -1;
-        }
-
         try {
-            return Long.parseLong(value);
+            return Long.parseLong(header);
         } catch (NumberFormatException e) {
             return -1;
         }
     }
 
     public String getHeaderValue(String name) {
-        Header header = response.getFirstHeader(name);
-        return header != null ? header.getValue() : null;
+        return response.getHeader(name);
     }
 
     public String getContentType() {
-        final Header header = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
-        return header == null ? null : header.getValue();
+        return response.getHeader(HttpHeaders.CONTENT_TYPE);
     }
 
     public boolean isLocal() {
@@ -118,27 +106,22 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         }
         LOGGER.debug("Attempting to download resource {}.", source);
         this.wasOpened = true;
-        final HttpEntity entity = response.getEntity();
-        if (entity == null) {
-            throw new IOException(String.format("Response %d: %s has no content!", getStatusCode(), response.getStatusLine().getReasonPhrase()));
-        }
-        return entity.getContent();
+        return response.getContent();
     }
 
     @Override
-    public void close() throws IOException {
-        HttpClientUtils.closeQuietly(response);
+    public void close() {
+        response.close();
     }
 
-    private static String getEtag(HttpResponse response) {
-        Header etagHeader = response.getFirstHeader(HttpHeaders.ETAG);
-        return etagHeader == null ? null : etagHeader.getValue();
+    private static String getEtag(HttpClientResponse response) {
+        return response.getHeader(HttpHeaders.ETAG);
     }
 
-    private static HashValue getSha1(HttpResponse response, String etag) {
-        Header sha1Header = response.getFirstHeader("X-Checksum-Sha1");
+    private static HashValue getSha1(HttpClientResponse response, String etag) {
+        String sha1Header = response.getHeader("X-Checksum-Sha1");
         if (sha1Header != null) {
-            return new HashValue(sha1Header.getValue());
+            return new HashValue(sha1Header);
         }
 
         // Nexus uses sha1 etags, with a constant prefix

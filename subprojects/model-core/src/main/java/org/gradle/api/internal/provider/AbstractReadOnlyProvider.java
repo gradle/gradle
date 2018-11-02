@@ -21,7 +21,7 @@ import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 /**
  * A basic {@link org.gradle.api.provider.Provider} implementation. Subclasses need to provide a {@link #getOrNull()} implementation.
  */
-public abstract class AbstractReadOnlyProvider<T> extends AbstractMinimalProvider<T> implements ProviderInternal<T> {
+public abstract class AbstractReadOnlyProvider<T> extends AbstractMinimalProvider<T> {
     @Override
     public T get() {
         T evaluatedValue = getOrNull();

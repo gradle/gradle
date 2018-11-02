@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import javax.annotation.Nullable;
+
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  */
@@ -28,7 +30,7 @@ public class GradleException extends RuntimeException {
         super(message);
     }
 
-    public GradleException(String message, Throwable cause) {
+    public GradleException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 }

@@ -17,7 +17,6 @@ package org.gradle.testing.jacoco.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
@@ -33,7 +32,6 @@ import java.io.File;
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
  */
 @CacheableTask
-@Incubating
 public class JacocoReport extends JacocoReportBase implements Reporting<JacocoReportsContainer> {
 
     private final JacocoReportsContainer reports;

@@ -26,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=2.6 <3.0")
     def "Older versions throw runtime exception when querying classpath attributes"() {
         settingsFile << 'rootProject.name = "root"'
         buildFile <<

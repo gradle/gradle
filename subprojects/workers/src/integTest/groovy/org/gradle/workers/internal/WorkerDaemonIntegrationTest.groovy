@@ -30,7 +30,9 @@ import static org.hamcrest.CoreMatchers.notNullValue
 
 @IntegrationTestTimeout(90)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    def "sets the working directory to the project directory by default during worker execution"() {
+
+    def "uses the worker home directory as working directory for worker execution"() {
+        def workerHomeDir = executer.gradleUserHomeDir.file("workers").getAbsolutePath()
         withRunnableClassInBuildScript()
         buildFile << """
             import org.gradle.workers.IsolationMode
@@ -51,17 +53,18 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         gradle.waitForFinish()
 
         and:
-        gradle.standardOutput.readLines().find { normaliseFileSeparators(it).matches "Starting process 'Gradle Worker Daemon \\d+'. Working directory: " + normaliseFileSeparators(executer.gradleUserHomeDir.file("workers").getAbsolutePath()) + ".*" }
+        gradle.standardOutput.readLines().find {
+            normaliseFileSeparators(it).matches "Starting process 'Gradle Worker Daemon \\d+'. Working directory: " + normaliseFileSeparators(workerHomeDir) + ".*"
+        }
 
         and:
-        gradle.standardOutput.contains("Execution working dir: " + testDirectory.getAbsolutePath())
+        gradle.standardOutput.contains("Execution working dir: " + workerHomeDir)
 
         and:
-        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + workerHomeDir)
     }
 
-    @Requires(TestPrecondition.WORKING_DIR)
-    def "sets the working directory to the specified directory during worker execution"() {
+    def "setting the working directory of a worker is not supported"() {
         withRunnableClassInBuildScript()
         buildFile << """
             import org.gradle.workers.IsolationMode
@@ -71,26 +74,15 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
                 runnableClass = WorkingDirRunnable.class
-                additionalForkOptions = { it.workingDir = project.file("workerDir") }
+                additionalForkOptions = { it.workingDir = project.file("unsupported") }
             }
         """
-        testDirectory.file("workerDir").createDir()
 
         when:
-        args("--info")
-        def gradle = executer.withTasks("runInWorker").start()
+        fails("runInWorker")
 
         then:
-        gradle.waitForFinish()
-
-        and:
-        gradle.standardOutput.readLines().find { normaliseFileSeparators(it).matches "Starting process 'Gradle Worker Daemon \\d+'. Working directory: " + normaliseFileSeparators(executer.gradleUserHomeDir.file("workers").getAbsolutePath()) + ".*" }
-
-        and:
-        gradle.standardOutput.contains("Execution working dir: " + testDirectory.file("workerDir").getAbsolutePath())
-
-        and:
-        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        failureCauseContains('setting the working directory of a worker is not supported')
     }
 
     @Requires(TestPrecondition.JDK_ORACLE)
@@ -117,7 +109,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                         bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath('foo'))}"))
                         defaultCharacterEncoding = "UTF-8"
                         enableAssertions = true
-                        workingDir = file('${outputFileDirPath}')
                         environment "foo", "bar"
                     }
                 }
@@ -211,8 +202,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                     assert arguments.contains("-ea");
 
                     assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
-
-                    assert new File(System.getProperty("user.dir")).equals(new File('${outputFileDirPath}'));
 
                     assert System.getenv("foo").equals("bar")
 

@@ -24,6 +24,9 @@ public class ${testClassName} {
 
     @org.junit.Test
     public void testOne() throws Exception {
+        if(Boolean.getBoolean("slowTasks")) {
+            Thread.sleep(10);
+        }
         for (int i = 0; i < 500; i++) {
             System.out.println("Some test output from ${testClassName}.testOne - " + i);
             System.err.println("Some test error  from ${testClassName}.testOne - " + i);

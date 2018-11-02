@@ -16,8 +16,6 @@
 
 package org.gradle;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
@@ -27,7 +25,6 @@ import java.util.List;
  *
  * @since 2.0
  */
-@Incubating
 public interface TaskExecutionRequest {
     /**
      * The arguments to use to select and optionally configure the tasks, as if provided on the command-line.

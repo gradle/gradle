@@ -1,8 +1,8 @@
 package org.gradle.test;
 
-import org.gradle.test.sub2.GroovyInterface;
+import org.gradle.test.sub2.Sub2Interface;
 
-public class JavaClassWithInnerTypes implements GroovyInterface {
+public class JavaClassWithInnerTypes implements Sub2Interface {
     /**
      * This is an inner enum.
      */
@@ -23,12 +23,12 @@ public class JavaClassWithInnerTypes implements GroovyInterface {
         }
     }
 
-    GroovyInterface getSomeProp() {
+    Sub2Interface getSomeProp() {
         // ignore classes in method bodies
         class IgnoreMe {}
 
         // ignore anonymous classes
-        return new GroovyInterface() { };
+        return new Sub2Interface() { };
     }
 
     // ignore anonymous classes

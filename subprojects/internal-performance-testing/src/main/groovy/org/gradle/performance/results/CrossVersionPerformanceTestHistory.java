@@ -167,6 +167,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
         }
 
+        @Override
+        public String getTeamCityBuildId() {
+            return result.getTeamCityBuildId();
+        }
+
         public String getVersionUnderTest() {
             return result.getVersionUnderTest();
         }

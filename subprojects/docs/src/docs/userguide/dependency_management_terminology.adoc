@@ -52,6 +52,22 @@ Releases of a <<#sub:terminology_module,module>> can provide metadata. Metadata 
 
 A module version represents a distinct set of changes of a released <<#sub:terminology_module,module>>. For example `18.0` represents the version of the module with the coordinates `com.google:guava:18.0`. In practice there's no limitation to the scheme of the module version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
 
+[[sub::terminology_platform]]
+== Platform
+
+A platform is a set of modules aimed to be used together. There are different categories of platforms, corresponding to different use cases:
+
+- module set: often a set of modules published together as a whole. Using one module of the set often means we want to use the same version for all modules of the set. For example, if using `groovy` 1.2, also use `groovy-json` 1.2.
+- runtime environment: a set of libraries known to work well together. e.g., the Spring Platform, recommending versions for both Spring and components that work well with Spring.
+- deployment environment: Java runtime, application server, ...
+
+In addition Gradle defines <<sec:virtual_platform,virtual platforms>>.
+
+[NOTE]
+====
+Maven's BOM (bill-of-material) is a popular kind of platform that <<sec:bom_import, Gradle supports>>.
+====
+
 [[sub:terminology_repository]]
 == Repository
 

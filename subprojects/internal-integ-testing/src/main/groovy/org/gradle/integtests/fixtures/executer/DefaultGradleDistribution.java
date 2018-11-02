@@ -118,10 +118,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("1.0-milestone-7");
     }
 
-    public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0-rc-1");
-    }
-
     public boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
     }
@@ -203,6 +199,25 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     public boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
+    }
+
+    @Override
+    public boolean isAddsTaskExecutionExceptionAroundAllTaskFailures() {
+        return isSameOrNewer("5.0");
+    }
+
+    @Override
+    public boolean isLogsConfigureSummary() {
+        return isSameOrNewer("2.14");
+    }
+
+    @Override
+    public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
+        if (isSameOrNewer("4.0") && isSameOrOlder("4.6")) {
+            // This only worked as expected for a while
+            return stderr;
+        }
+        return stdout;
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

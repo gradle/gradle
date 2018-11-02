@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
@@ -40,12 +41,19 @@ System.err.println 'this is stderr'
 
         when:
         withConnection { connection ->
-            return connection.getModel(GradleProject.class)
+            def builder = connection.model(GradleProject.class)
+            collectOutputs(builder)
+            return builder.get()
         }
 
         then:
         BuildException e = thrown()
         e.message.startsWith('Could not fetch model of type \'GradleProject\' using Gradle')
         e.cause.message.contains('A problem occurred evaluating root project')
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        assertHasConfigureFailedLogging()
     }
 }

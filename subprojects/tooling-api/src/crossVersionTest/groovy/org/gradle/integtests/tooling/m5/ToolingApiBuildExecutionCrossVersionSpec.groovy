@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
@@ -52,11 +53,15 @@ apply plugin: 'java'
         withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('jar')
+            collectOutputs(build)
             build.run()
         }
 
         then:
         file('build/libs/test.jar').assertIsFile()
+
+        and:
+        assertHasBuildSuccessfulLogging()
 
         when:
         withConnection { connection ->
@@ -90,13 +95,20 @@ System.err.println 'this is stderr'
 
         when:
         withConnection { connection ->
-            return connection.newBuild().forTasks('jar').run()
+            def build = connection.newBuild()
+            collectOutputs(build)
+            return build.forTasks('jar').run()
         }
 
         then:
         BuildException e = thrown()
         e.message.startsWith('Could not execute build using Gradle')
         e.cause.message.contains('A problem occurred evaluating root project')
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        assertHasBuildFailedLogging()
     }
 
     def "can build the set of tasks for an Eclipse project"() {

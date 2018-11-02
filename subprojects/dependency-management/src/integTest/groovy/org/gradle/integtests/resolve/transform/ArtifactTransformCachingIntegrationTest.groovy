@@ -34,7 +34,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
-    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer();
+    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     def setup() {
         settingsFile << """
@@ -70,15 +70,15 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "early-discovered transform is applied before consuming task is executed"() {
+    def "scheduled transformation is invoked before consuming task is executed"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
-        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
+        def transformationPosition1 = output.indexOf("> Transform artifact lib1.jar (project :lib) with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform artifact lib2.jar (project :lib) with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:
@@ -89,7 +89,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformationPosition2 < taskPosition
     }
 
-    def "early-discovered transform is only run once per transform"() {
+    def "scheduled transformation is only invoked once per subject"() {
         given:
         settingsFile << """
             include 'util2'
@@ -107,11 +107,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":util2:resolve"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
-        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with FileSizer") == 1
     }
 
-    def "early discovered chained transform is only run once per transform"() {
+    def "scheduled chained transformation is only invoked once per subject"() {
         given:
         settingsFile << """
             include 'app1'
@@ -208,17 +208,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         run ":app1:resolveRed", ":app2:resolveYellow"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
     def "each file is transformed once per set of configuration parameters"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
@@ -283,19 +283,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
             
             project(':util') {
                 dependencies {
@@ -338,7 +325,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class CustomType implements Serializable {
                 String value
             }
@@ -403,19 +390,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
             
             project(':util') {
                 dependencies {
@@ -455,7 +429,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     @Unroll
     def "can use configuration parameter of type #type"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
@@ -495,19 +469,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         println "files 1: " + values.collect { it.file.name }
                         println "files 2: " + values.collect { it.file.name }
                     }
-                }
-            }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
                 }
             }
             
@@ -553,7 +514,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "each file is transformed once per transform class"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class Sizer extends ArtifactTransform {
                 @javax.inject.Inject
                 Sizer(String target) {
@@ -621,19 +582,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
             
             project(':util') {
                 dependencies {
@@ -684,8 +632,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
-        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
+        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
 
@@ -1083,6 +1031,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             project(':lib') {
                 task jar1(type: Jar) {
                     archiveName = 'util1.jar'
+                    destinationDir = buildDir
                 }
                 artifacts {
                     compile jar1
@@ -1238,6 +1187,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 task jar2(type: Jar) {
                     archiveName = 'lib2.jar'
+                }
+                tasks.withType(Jar) {
+                    destinationDir = buildDir
                 }
                 artifacts {
                     compile jar1

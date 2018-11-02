@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -27,7 +26,6 @@ import java.util.Set;
  *
  * A SPI suitable for use with Java's {@link java.util.ServiceLoader}.
  */
-@Incubating
 public interface GradleApiSpecProvider {
 
     Spec get();

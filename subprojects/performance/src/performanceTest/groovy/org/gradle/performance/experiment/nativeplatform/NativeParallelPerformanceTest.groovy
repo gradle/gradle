@@ -29,12 +29,12 @@ class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = 'parallel builds'
         runner.buildSpec {
             projectName(testProject).displayName("parallel").invocation {
-                tasksToRun("clean", "assemble")
+                useDaemon().tasksToRun("clean", "assemble")
             }
         }
         runner.baseline {
             projectName(testProject).displayName("serial").invocation {
-                tasksToRun("clean", "assemble").disableParallelWorkers()
+                useDaemon().tasksToRun("clean", "assemble").disableParallelWorkers()
             }
         }
 

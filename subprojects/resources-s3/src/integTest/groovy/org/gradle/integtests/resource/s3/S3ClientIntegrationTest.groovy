@@ -34,9 +34,10 @@ import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -63,7 +64,7 @@ class S3ClientIntegrationTest extends Specification {
     }
 
     @Unroll
-    @Issue("Currently the 'javax.xml.bind' jigsaw module is not automatically required on the Gradle Jvm")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "should perform #authenticationType put get and list on an S3 bucket"() {
         setup:
         def fileContents = 'This is only a test'

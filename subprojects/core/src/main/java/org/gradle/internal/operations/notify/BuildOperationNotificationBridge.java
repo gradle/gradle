@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,9 +50,9 @@ public class BuildOperationNotificationBridge {
     private class State {
         private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
         private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-        private BuildOperationNotificationListener2 notificationListener;
+        private BuildOperationNotificationListener notificationListener;
 
-        private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
+        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
             if (this.notificationListener != null) {
                 throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
             }
@@ -114,29 +113,9 @@ public class BuildOperationNotificationBridge {
     };
 
     private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
-        @Override
-        public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-            State state = requireState();
-            BuildOperationNotificationListener2 adapted = adapt(notificationListener);
-            state.assignSingleListener(adapted);
-
-            // Remove the old adapter and start again.
-            // We explicitly do not want to receive finish notifications
-            // for any operations currently in flight,
-            // and we want to throw away the recorded notifications.
-            buildOperationListenerManager.removeListener(state.buildOperationListener);
-            state.buildOperationListener = new Adapter(adapted);
-            buildOperationListenerManager.addListener(state.buildOperationListener);
-            state.replayAndAttachListener = null;
-        }
 
         @Override
-        public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
-            register(adapt(notificationListener));
-        }
-
-        @Override
-        public void register(BuildOperationNotificationListener2 listener) {
+        public void register(BuildOperationNotificationListener listener) {
             State state = requireState();
             state.assignSingleListener(listener);
             state.replayAndAttachListener.attach(listener);
@@ -175,19 +154,19 @@ public class BuildOperationNotificationBridge {
      */
     private static class Adapter implements BuildOperationListener {
 
-        private final BuildOperationNotificationListener2 notificationListener;
+        private final BuildOperationNotificationListener notificationListener;
 
-        private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
-        private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
+        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
+        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
 
-        private Adapter(BuildOperationNotificationListener2 notificationListener) {
+        private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = buildOperation.getParentId();
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = buildOperation.getParentId();
 
             if (parentId != null) {
                 if (active.containsKey(parentId)) {
@@ -230,7 +209,7 @@ public class BuildOperationNotificationBridge {
             }
 
             // Find the nearest parent up that we care about and use that as the parent.
-            Object owner = findOwner(buildOperationId);
+            OperationIdentifier owner = findOwner(buildOperationId);
             if (owner == null) {
                 return;
             }
@@ -238,7 +217,7 @@ public class BuildOperationNotificationBridge {
             notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
         }
 
-        private Object findOwner(Object id) {
+        private OperationIdentifier findOwner(OperationIdentifier id) {
             if (active.containsKey(id)) {
                 return id;
             } else {
@@ -248,8 +227,8 @@ public class BuildOperationNotificationBridge {
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = parents.remove(id);
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = parents.remove(id);
             if (active.remove(id) == null) {
                 return;
             }
@@ -265,7 +244,7 @@ public class BuildOperationNotificationBridge {
 
     }
 
-    private static class RecordingListener implements BuildOperationNotificationListener2 {
+    private static class RecordingListener implements BuildOperationNotificationListener {
 
         private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
 
@@ -286,16 +265,16 @@ public class BuildOperationNotificationBridge {
 
     }
 
-    private static class ReplayAndAttachListener implements BuildOperationNotificationListener2 {
+    private static class ReplayAndAttachListener implements BuildOperationNotificationListener {
 
         private RecordingListener recordingListener = new RecordingListener();
 
-        private volatile BuildOperationNotificationListener2 listener = recordingListener;
+        private volatile BuildOperationNotificationListener listener = recordingListener;
 
-        private final AtomicBoolean needLock = new AtomicBoolean(true);
+        private boolean needLock = true;
         private final Lock lock = new ReentrantLock();
 
-        private synchronized void attach(BuildOperationNotificationListener2 realListener) {
+        private void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
             try {
                 for (Object storedEvent : recordingListener.storedEvents) {
@@ -312,13 +291,13 @@ public class BuildOperationNotificationBridge {
                 this.recordingListener = null; // release
             } finally {
                 lock.unlock();
-                needLock.set(false);
+                needLock = false;
             }
         }
 
         @Override
-        public synchronized void started(BuildOperationStartedNotification notification) {
-            if (needLock.get()) {
+        public void started(BuildOperationStartedNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.started(notification);
@@ -331,8 +310,8 @@ public class BuildOperationNotificationBridge {
         }
 
         @Override
-        public synchronized void progress(BuildOperationProgressNotification notification) {
-            if (needLock.get()) {
+        public void progress(BuildOperationProgressNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.progress(notification);
@@ -345,8 +324,8 @@ public class BuildOperationNotificationBridge {
         }
 
         @Override
-        public synchronized void finished(BuildOperationFinishedNotification notification) {
-            if (needLock.get()) {
+        public void finished(BuildOperationFinishedNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.finished(notification);
@@ -367,11 +346,11 @@ public class BuildOperationNotificationBridge {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
 
-        private Started(long timestamp, Object id, Object parentId, Object details) {
+        private Started(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -413,12 +392,12 @@ public class BuildOperationNotificationBridge {
 
     private static class Progress implements BuildOperationProgressNotification {
 
-        private final Object id;
+        private final OperationIdentifier id;
 
         private final long timestamp;
         private final Object details;
 
-        public Progress(Object id, long timestamp, Object details) {
+        Progress(OperationIdentifier id, long timestamp, Object details) {
             this.id = id;
             this.timestamp = timestamp;
             this.details = details;
@@ -445,13 +424,13 @@ public class BuildOperationNotificationBridge {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
         private final Object result;
         private final Throwable failure;
 
-        private Finished(long timestamp, Object id, Object parentId, Object details, Object result, Throwable failure) {
+        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -504,22 +483,4 @@ public class BuildOperationNotificationBridge {
         }
     }
 
-    private static BuildOperationNotificationListener2 adapt(final BuildOperationNotificationListener listener) {
-        return new BuildOperationNotificationListener2() {
-            @Override
-            public void started(BuildOperationStartedNotification notification) {
-                listener.started(notification);
-            }
-
-            @Override
-            public void progress(BuildOperationProgressNotification notification) {
-
-            }
-
-            @Override
-            public void finished(BuildOperationFinishedNotification notification) {
-                listener.finished(notification);
-            }
-        };
-    }
 }

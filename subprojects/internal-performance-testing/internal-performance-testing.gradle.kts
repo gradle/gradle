@@ -18,12 +18,12 @@ import accessors.*
 
 plugins {
     `javascript-base`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 val reports by configurations.creating
 val flamegraph by configurations.creating
-configurations.compileOnly.extendsFrom(flamegraph)
+configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {
     javaScript.googleApis()
@@ -63,9 +63,9 @@ val reportResources = tasks.register<Copy>("reportResources") {
     into("$generatedResourcesDir/org/gradle/reporting")
 }
 
-java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
+java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir) }
 
-tasks.named<Jar>("jar") {
+tasks.jar {
     inputs.files(flamegraph)
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }

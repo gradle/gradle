@@ -40,6 +40,16 @@ dependencyManagement {
 }
 <% } %>
 
+if(Boolean.getBoolean("slowTasks")) {
+    allprojects {
+        tasks.withType(JavaCompile) {
+            doLast {
+                Thread.sleep(100)
+            }
+        }
+    }
+}
+
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"
@@ -61,7 +71,11 @@ test {
     jvmArgs '-Xmx1g', '-XX:+HeapDumpOnOutOfMemoryError'
     <% if (binding.hasVariable("fullTestLogging")) { %>
         testLogging {
-            events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
+            if (Boolean.getBoolean("reducedOutput")) {
+                events "failed"
+            } else {
+                events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
+            }
         }
     <% } %>
     maxParallelForks 2

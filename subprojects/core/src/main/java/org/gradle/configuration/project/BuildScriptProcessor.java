@@ -31,14 +31,19 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         this.configurerFactory = configurerFactory;
     }
 
-    public void execute(ProjectInternal project) {
+    public void execute(final ProjectInternal project) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
         }
         final Timer clock = Time.startTimer();
         try {
-            ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
-            configurer.apply(project);
+            final ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
+            project.getMutationState().withMutableState(new Runnable() {
+                @Override
+                public void run() {
+                    configurer.apply(project);
+                }
+            });
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());

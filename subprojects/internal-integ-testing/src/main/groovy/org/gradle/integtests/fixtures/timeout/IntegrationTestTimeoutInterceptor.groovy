@@ -17,8 +17,6 @@
 package org.gradle.integtests.fixtures.timeout
 
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.spockframework.runtime.SpockAssertionError
 import org.spockframework.runtime.SpockTimeoutError
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -42,7 +40,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         try {
             super.intercept(invocation)
         } catch (SpockTimeoutError e) {
-            String allThreadStackTraces = getAllStackTraces(invocation)
+            String allThreadStackTraces = getAllStackTraces()
             throw new SpockAssertionError(allThreadStackTraces, e)
         } catch (Throwable t) {
             throw t
@@ -59,39 +57,13 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         })
     }
 
-    static boolean isInProcessExecuter(AbstractIntegrationSpec spec) {
-        return spec.executer.gradleExecuter.class == InProcessGradleExecuter
-    }
-
-    static String getAllStackTraces(IMethodInvocation invocation) {
+    static String getAllStackTraces() {
         try {
-            Object instance = invocation.getInstance()
-            if (instance instanceof AbstractIntegrationSpec && isInProcessExecuter(instance)) {
-                return getAllStackTracesInCurrentJVM()
-            } else {
-                return JavaProcessStackTracesMonitor.getAllStackTracesByJstack()
-            }
+            return JavaProcessStackTracesMonitor.getAllStackTracesByJstack()
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
             e.printStackTrace(new PrintStream(stream))
             return "Error in attempt to fetch  stacktraces: ${stream.toString()}"
         }
-    }
-
-    static String getAllStackTracesInCurrentJVM() {
-        Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces()
-        StringBuilder sb = new StringBuilder()
-        sb.append("Threads in current JVM:\n")
-        sb.append("--------------------------\n")
-        allStackTraces.each { Thread thread, StackTraceElement[] stackTraces ->
-            sb.append("Thread ${thread.getId()}: ${thread.getName()}\n")
-            sb.append("--------------------------\n")
-            stackTraces.each {
-                sb.append("${it}\n")
-            }
-            sb.append("--------------------------\n")
-        }
-
-        return sb.toString()
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.file.PathToFileResolver
-import org.gradle.internal.fingerprint.ClasspathFingerprinter
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.platform.PlayMajorVersion

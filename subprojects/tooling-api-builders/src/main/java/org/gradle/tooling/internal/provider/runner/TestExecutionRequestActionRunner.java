@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -39,9 +38,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         if (!(action instanceof TestExecutionRequestAction)) {
-            return;
+            return Result.nothing();
         }
         GradleInternal gradle = buildController.getGradle();
 
@@ -55,18 +54,17 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                 buildOperationListenerManager.removeListener(testExecutionResultEvaluator);
             }
             testExecutionResultEvaluator.evaluate();
-        } catch (RuntimeException rex) {
-            Throwable throwable = findRootCause(rex);
+        } catch (RuntimeException e) {
+            Throwable throwable = findRootCause(e);
             if (throwable instanceof TestExecutionException) {
-                // Tunnel the failure through the reporting
-                throw new ReportedException(new InternalTestExecutionException("Error while running test(s)", throwable));
+                return Result.failed(e, new InternalTestExecutionException("Error while running test(s)", throwable));
             } else {
-                throw rex;
+                return Result.failed(e);
             }
         }
 
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
+        return Result.of(new BuildActionResult(payloadSerializer.serialize(null), null));
     }
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController) {

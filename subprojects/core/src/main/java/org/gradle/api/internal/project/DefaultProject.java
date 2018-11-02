@@ -150,7 +150,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
-    private ServiceRegistry services;
+    private final ServiceRegistry services;
 
     private final ProjectInternal rootProject;
 
@@ -693,7 +693,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", getDisplayName()), e);
         }
         return this;
     }

@@ -236,8 +236,8 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     static String buildScanLicenseConfiguration() {
         """
             buildScan {
-                licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-                licenseAgree = 'yes'
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
             }
         """
     }

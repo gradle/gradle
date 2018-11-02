@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.bundling;
 
 import org.apache.tools.zip.ZipOutputStream;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
@@ -42,7 +41,7 @@ public class Zip extends AbstractArchiveTask {
     private String metadataCharset;
 
     public Zip() {
-        setExtension(ZIP_EXTENSION);
+        getArchiveExtension().set(ZIP_EXTENSION);
         allowZip64 = false;
     }
 
@@ -61,7 +60,7 @@ public class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps());
+        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps());
     }
 
     /**
@@ -90,7 +89,6 @@ public class Zip extends AbstractArchiveTask {
      *
      * @see #isZip64()
      */
-    @Incubating
     public void setZip64(boolean allowZip64) {
         this.allowZip64 = allowZip64;
     }
@@ -107,7 +105,6 @@ public class Zip extends AbstractArchiveTask {
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
     @Input
-    @Incubating
     public boolean isZip64() {
         return allowZip64;
     }
@@ -119,7 +116,6 @@ public class Zip extends AbstractArchiveTask {
      * @return null if using the platform's default character set for ZIP metadata
      * @since 2.14
      */
-    @Incubating
     @Nullable @Optional @Input
     public String getMetadataCharset() {
         return this.metadataCharset;
@@ -132,7 +128,6 @@ public class Zip extends AbstractArchiveTask {
      * @param metadataCharset the character set used to encode ZIP metadata like file names
      * @since 2.14
      */
-    @Incubating
     public void setMetadataCharset(String metadataCharset) {
         if (metadataCharset == null) {
             throw new InvalidUserDataException("metadataCharset must not be null");

@@ -31,4 +31,6 @@ public interface VersionedRoutesCompilerAdapter extends Serializable {
     Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
     Iterable<String> getClassLoaderPackages();
+
+    Boolean interpretResult(Object result) throws ClassNotFoundException;
 }

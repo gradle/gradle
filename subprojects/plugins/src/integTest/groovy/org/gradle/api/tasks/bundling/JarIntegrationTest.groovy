@@ -33,10 +33,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     def canCreateAnEmptyJar() {
         given:
         buildFile << """
-                task jar(type: Jar) {
-                    from 'test'
-                    destinationDir = buildDir
-                    archiveName = 'test.jar'
+        task jar(type: Jar) {
+            from 'test'
+            destinationDir = buildDir
+            archiveName = 'test.jar'
         }
         """
 
@@ -270,13 +270,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task jar(type: Jar) {
             archiveName = 'test.jar'
+            destinationDir = projectDir
             from 'dir1'
             from 'dir2'
             eachFile {
                 it.duplicatesStrategy = it.relativePath.toString().startsWith('META-INF/services/') ? 'include' : 'exclude'
             }
         }
-
         '''
 
         when:
@@ -293,6 +293,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task jar(type: Jar) {
             archiveName = 'test.jar'
+            destinationDir = projectDir
             from 'dir1'
             from 'dir2'
             duplicatesStrategy = 'exclude'
@@ -300,7 +301,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 duplicatesStrategy = 'include'
             }
         }
-
         '''
 
         when:
@@ -319,8 +319,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = buildDir
                 archiveName = 'test.jar'
                 manifest { $manifest }
-            }
-"""
+            }"""
         }
 
         createDir('test') {
@@ -660,6 +659,21 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         then:
         nonSkippedTasks.contains ":compileJava"
         skippedTasks.contains ":jar"
+    }
+
+    def "cannot create a JAR without destination dir"() {
+        given:
+        buildFile << """
+            task jar(type: Jar) {
+                archiveName = 'some.jar'
+            }
+        """
+
+        when:
+        fails('jar')
+
+        then:
+        failureCauseContains('No value has been specified for property \'archiveFile\'.')
     }
 
     private static String customJarManifestTask() {

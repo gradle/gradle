@@ -22,16 +22,15 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
-public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
+public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
 
     private final DependencySubstitutionInternal delegate;
     private ModuleVersionSelector requested;
@@ -39,6 +38,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     private String customDescription;
     private VersionConstraint useVersion;
     private ModuleComponentSelector useSelector;
+    private boolean dirty;
 
     public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate, ModuleVersionSelector requested) {
         this.delegate = delegate;
@@ -46,11 +46,9 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     private ComponentSelectionDescriptorInternal selectionReason() {
-        ComponentSelectionDescriptorInternal reason = VersionSelectionReasons.SELECTED_BY_RULE;
-        if (customDescription != null) {
-            reason = reason.withReason(Describables.of(customDescription));
-        }
-        return reason;
+        return customDescription == null
+            ? ComponentSelectionReasons.SELECTED_BY_RULE
+            : ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(customDescription));
     }
 
     @Override
@@ -63,54 +61,30 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
-        useVersion(new DefaultMutableVersionConstraint(version), selectionReason());
-    }
-
-    @Override
-    public void useVersion(VersionConstraint version, ComponentSelectionDescriptorInternal selectionReason) {
-        assert selectionReason != null;
-        if (version == null) {
-            throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
-        }
-
         useSelector = null;
-        useVersion = version;
-
-        if (delegate.getTarget() instanceof ModuleComponentSelector) {
-            ModuleComponentSelector target = (ModuleComponentSelector) delegate.getTarget();
-            if (!version.equals(target.getVersionConstraint())) {
-                delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getModuleIdentifier(), version, target.getAttributes()), selectionReason);
-            } else {
-                // Still 'updated' with reason when version remains the same.
-                delegate.useTarget(delegate.getTarget(), selectionReason);
-            }
-        } else {
-            // If the current target is a project component, it must be unmodified from the requested
-            ModuleComponentSelector newTarget = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName()), version);
-            delegate.useTarget(newTarget, selectionReason);
-        }
-
-    }
+        useVersion = new DefaultMutableVersionConstraint(version);
+        dirty = true;
+   }
 
     @Override
     public void useTarget(Object notation) {
         ModuleVersionSelector newTarget = ModuleVersionSelectorParsers.parser().parseNotation(notation);
         useVersion = null;
         useSelector = DefaultModuleComponentSelector.newSelector(newTarget);
-        useComponentSelector();
-    }
-
-    private void useComponentSelector() {
-        delegate.useTarget(useSelector, selectionReason());
+        dirty = true;
     }
 
     @Override
-    public ComponentSelectionDescriptorInternal getSelectionDescription() {
-        return delegate.getSelectionDescription();
+    public DependencyResolveDetails because(String description) {
+        customDescription = description;
+        dirty = true;
+        return this;
     }
 
     @Override
     public ModuleVersionSelector getTarget() {
+        complete();
+
         if (delegate.getTarget().equals(delegate.getRequested())) {
             return requested;
         }
@@ -122,23 +96,31 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         return requested;
     }
 
-    @Override
-    public DependencyResolveDetails because(String description) {
-        customDescription = description;
-
-        // we need to check if a call to `useVersion` or `useTarget` has been done before
-        // so that we can consistently set the reason independently of the order of invocations
-        if (useVersion != null) {
-            useVersion(useVersion, selectionReason());
-        } else if (useSelector != null) {
-            useComponentSelector();
+    public void complete() {
+        if (!dirty) {
+            return;
         }
 
-        return this;
-    }
+        ComponentSelectionDescriptorInternal selectionReason = selectionReason();
 
-    @Override
-    public boolean isUpdated() {
-        return delegate.isUpdated();
+        if (useSelector != null) {
+            delegate.useTarget(useSelector, selectionReason);
+        } else if (useVersion != null) {
+            if (delegate.getTarget() instanceof ModuleComponentSelector) {
+                ModuleComponentSelector target = (ModuleComponentSelector) delegate.getTarget();
+                if (!useVersion.equals(target.getVersionConstraint())) {
+                    delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getModuleIdentifier(), useVersion, target.getAttributes()), selectionReason);
+                } else {
+                    // Still 'updated' with reason when version remains the same.
+                    delegate.useTarget(delegate.getTarget(), selectionReason);
+                }
+            } else {
+                // If the current target is a project component, it must be unmodified from the requested
+                ModuleComponentSelector newTarget = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName()), useVersion);
+                delegate.useTarget(newTarget, selectionReason);
+            }
+        }
+
+        dirty = false;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -41,6 +42,11 @@ public class Collectors {
 
         @Override
         public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return true;
         }
 
         @Override
@@ -73,6 +79,11 @@ public class Collectors {
         }
 
         @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -96,9 +107,9 @@ public class Collectors {
     }
 
     public static class ElementFromProvider<T> implements ProvidedCollector<T> {
-        private final Provider<? extends T> providerOfElement;
+        private final ProviderInternal<? extends T> providerOfElement;
 
-        public ElementFromProvider(Provider<? extends T> providerOfElement) {
+        public ElementFromProvider(ProviderInternal<? extends T> providerOfElement) {
             this.providerOfElement = providerOfElement;
         }
 
@@ -126,6 +137,11 @@ public class Collectors {
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return Objects.equal(provider, providerOfElement);
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return providerOfElement.maybeVisitBuildDependencies(context);
         }
 
         @Override
@@ -175,6 +191,11 @@ public class Collectors {
         }
 
         @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -198,9 +219,9 @@ public class Collectors {
     }
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
-        private final Provider<? extends Iterable<? extends T>> provider;
+        private final ProviderInternal<? extends Iterable<? extends T>> provider;
 
-        public ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> provider) {
+        public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
             this.provider = provider;
         }
 
@@ -223,6 +244,11 @@ public class Collectors {
             }
             collector.addAll(value, collection);
             return true;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return provider.maybeVisitBuildDependencies(context);
         }
 
         @Override
@@ -274,6 +300,11 @@ public class Collectors {
         }
 
         @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return true;
+        }
+
+        @Override
         public int size() {
             return 0;
         }
@@ -302,6 +333,11 @@ public class Collectors {
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
             collectInto(collector, dest);
             return true;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
         }
 
         @Override
@@ -335,10 +371,6 @@ public class Collectors {
             delegate.collectInto(valueCollector, collection);
         }
 
-        public boolean maybeCollectInto(Collection<T> collection) {
-            return delegate.maybeCollectInto(valueCollector, collection);
-        }
-
         @Override
         public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
             delegate.collectInto(collector, dest);
@@ -352,6 +384,11 @@ public class Collectors {
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>)delegate).isProvidedBy(provider);
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return delegate.maybeVisitBuildDependencies(context);
         }
 
         @Override

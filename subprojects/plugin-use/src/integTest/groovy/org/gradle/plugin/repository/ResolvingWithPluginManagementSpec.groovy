@@ -328,7 +328,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("helloWorld")
 
         then:
-        failureDescriptionContains("could not resolve plugin module 'foo:bar:1.0'")
+        failureDescriptionContains("could not resolve plugin artifact 'foo:bar:1.0'")
     }
 
     def "succeeds build for resolvable custom artifact"() {

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
@@ -35,7 +34,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.SELECTED_BY_RULE
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionsSpec extends Specification {
     ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
@@ -101,7 +100,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         _ * moduleDetails.target >> moduleTarget
         _ * moduleDetails.requested >> moduleTarget
         1 * componentSelectorConverter.getSelector(moduleTarget) >> moduleOldRequested
-        1 * action.execute({ DependencyResolveDetailsInternal details ->
+        1 * action.execute({ DefaultDependencyResolveDetails details ->
             details.requested == moduleOldRequested
         })
         0 * _
@@ -117,7 +116,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         _ * projectDetails.target >> projectTarget
         _ * projectDetails.requested >> projectTarget
         1 * componentSelectorConverter.getSelector(projectTarget) >> projectOldRequested
-        1 * action.execute({ DependencyResolveDetailsInternal details ->
+        1 * action.execute({ DefaultDependencyResolveDetails details ->
             details.requested == projectOldRequested
         })
         0 * _

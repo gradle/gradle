@@ -20,7 +20,6 @@ import junit.framework.AssertionFailedError;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -141,10 +140,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         BuildResult result = doRun(outputStream, errorStream, buildListener);
-        try {
-            result.rethrowFailure();
-        } catch (Exception e) {
-            throw new UnexpectedBuildFailure(e);
+        if (result.getFailure() != null) {
+            throw new UnexpectedBuildFailure(result.getFailure());
         }
 
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
@@ -160,13 +157,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
-        try {
-            doRun(outputStream, errorStream, buildListener).rethrowFailure();
+        BuildResult result = doRun(outputStream, errorStream, buildListener);
+        if (result.getFailure() == null) {
             throw new AssertionError("expected build to fail but it did not.");
-        } catch (GradleException e) {
-            return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), e));
         }
+        return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
+            OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
     }
 
     private boolean isForkRequired() {
@@ -600,48 +596,46 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
         private final OutputScrapingExecutionFailure outputFailure;
-        private final GradleException failure;
-        private final String fileName;
-        private final String lineNumber;
+        private final Throwable failure;
+        private final List<String> fileNames = new ArrayList<String>();
+        private final List<String> lineNumbers = new ArrayList<String>();
         private final List<String> descriptions = new ArrayList<String>();
 
-        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
+        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
 
-            // Chop up the exception message into its expected parts
-            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
-            if (matcher.find()) {
-                fileName = matcher.group(1);
-                lineNumber = matcher.group(3);
-                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
-            } else {
-                fileName = "";
-                lineNumber = "";
-                descriptions.add(failure.getMessage().trim());
-            }
             if (failure instanceof MultipleBuildFailures) {
                 for (Throwable cause : ((MultipleBuildFailures) failure).getCauses()) {
-                    matcher = LOCATION_PATTERN.matcher(cause.getMessage());
-                    if (matcher.find()) {
-                        descriptions.add(cause.getMessage().substring(matcher.end()).trim());
-                    } else {
-                        descriptions.add(cause.getMessage().trim());
-                    }
+                    extractDetails(cause);
                 }
+            } else {
+                extractDetails(failure);
+            }
+        }
+
+        private void extractDetails(Throwable failure) {
+            String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
+            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
+            if (matcher.find()) {
+                fileNames.add(matcher.group(1));
+                lineNumbers.add(matcher.group(3));
+                descriptions.add(failureMessage.substring(matcher.end()).trim());
+            } else {
+                descriptions.add(failureMessage.trim());
             }
         }
 
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
             outputFailure.assertHasLineNumber(lineNumber);
-            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
+            assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
             return this;
         }
 
         public ExecutionFailure assertHasFileName(String filename) {
             outputFailure.assertHasFileName(filename);
-            assertThat(this.fileName, equalTo(filename));
+            assertThat(this.fileNames, hasItem(equalTo(filename)));
             return this;
         }
 

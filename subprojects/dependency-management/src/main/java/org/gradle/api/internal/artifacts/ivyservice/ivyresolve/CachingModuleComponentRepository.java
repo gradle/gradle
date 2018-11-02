@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
@@ -86,14 +85,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleRepositoryCaches caches,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                            ComponentMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
@@ -102,7 +99,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public String getId() {
@@ -205,7 +201,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
                 return;
             }
-            ModuleComponentResolveMetadata metadata = getProcessedMetadata(cachedMetadata);
+            ModuleComponentResolveMetadata metadata = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (requestMetaData.isChanging() || metadata.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
@@ -226,12 +222,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
         }
 
-        private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetadataCache.CachedMetadata cachedMetadata) {
-            ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata();
+        private ModuleComponentResolveMetadata getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
+            ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata(key);
             if (metadata == null) {
                 metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 // Save the processed metadata for next time.
-                cachedMetadata.setProcessedMetadata(metadata);
+                cachedMetadata.putProcessedMetadata(key, metadata);
             }
             return metadata;
         }
@@ -306,7 +302,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 }
                 return MetadataFetchingCost.CHEAP;
             }
-            ModuleComponentResolveMetadata metaData = getProcessedMetadata(cachedMetadata);
+            ModuleComponentResolveMetadata metaData = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
@@ -374,7 +370,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
-
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
             switch (result.getState()) {
                 case Missing:
@@ -385,7 +380,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleSource moduleSource = resolvedMetadata.getSource();
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
-                    cachedMetadata.setProcessedMetadata(processedMetadata);
+                    cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), processedMetadata);
                     moduleSource = new CachingModuleSource(processedMetadata.getOriginalContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
                     result.resolved(processedMetadata.withSource(moduleSource));
                     break;

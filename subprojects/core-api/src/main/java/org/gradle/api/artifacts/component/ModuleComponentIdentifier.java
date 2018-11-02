@@ -25,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 1.10
  */
 @UsedByScanPlugin
-@Incubating
 public interface ModuleComponentIdentifier extends ComponentIdentifier {
     /**
      * The module group of the component.
@@ -59,6 +58,7 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
      *
      * @since 4.9
      */
+    @Incubating
     ModuleIdentifier getModuleIdentifier();
 }
 

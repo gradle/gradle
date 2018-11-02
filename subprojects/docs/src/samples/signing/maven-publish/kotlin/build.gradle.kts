@@ -9,12 +9,12 @@ group = "com.example"
 version = "1.0"
 
 task<Jar>("sourcesJar") {
-    from(sourceSets["main"].allJava)
+    from(sourceSets.main.get().allJava)
     classifier = "sources"
 }
 
 task<Jar>("javadocJar") {
-    from(tasks["javadoc"])
+    from(tasks.javadoc)
     classifier = "javadoc"
 }
 
@@ -72,9 +72,9 @@ signing {
 }
 // end::sign-publication[]
 
-tasks.getByName<Javadoc>("javadoc") {
+tasks.javadoc {
     if (JavaVersion.current().isJava9Compatible) {
-        (options as StandardJavadocDocletOptions).addBooleanOption("html4", true)
+        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
 // end::all[]
