@@ -128,25 +128,11 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
     }
 
     /**
-     * The different common types of Maven repositories.
+     * Configures the content of this Maven repository.
+     * @param configureAction the configuration action
      *
      * @since 5.1
      */
     @Incubating
-    enum RepositoryKind {
-        RELEASES_ONLY,
-        SNAPSHOTS_ONLY,
-        MIXED
-    }
-
-    /**
-     * Sets the repository kind. By default, Gradle assumes
-     * a Maven repository may contain both snapshots and releases.
-     *
-     * @param kind the repository kind
-     *
-     * @since 5.1
-     */
-    @Incubating
-    void setKind(RepositoryKind kind);
+    void mavenContent(Action<? super RepositoryContentDescriptor> configureAction);
 }

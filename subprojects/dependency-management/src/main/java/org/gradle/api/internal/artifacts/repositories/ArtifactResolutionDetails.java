@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Details about an artifact resolution query. This is used whenever repository
- * {@link ArtifactRepository#contentFilter(Action)} content filtering is in place.
+ * content filtering is in place.
  * <p></p>
  * This interface gives access to the details of the artifact query. There are two
  * cases when filtering can be called:
@@ -52,9 +50,7 @@ import org.gradle.api.attributes.AttributeContainer;
  * to find out. It doesn't matter if the module is eventually not found, as Gradle would handle
  * this appropriately by looking at the next repository: the consequence is just a remote call.
  *
- * @since 5.1
  */
-@Incubating
 public interface ArtifactResolutionDetails {
     /**
      * The identifier of the module being looked for in this repository

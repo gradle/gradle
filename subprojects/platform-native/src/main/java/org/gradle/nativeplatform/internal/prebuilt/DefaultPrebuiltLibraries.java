@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.ArtifactResolutionDetails;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,7 +47,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     }
 
     @Override
-    public void contentFilter(Action<? super ArtifactResolutionDetails> action) {
+    public void content(Action<? super RepositoryContentDescriptor> configureAction) {
         throw new UnsupportedOperationException();
     }
 

@@ -24,14 +24,13 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
@@ -54,16 +53,16 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
-    private Action<? super ArtifactResolutionDetails> contentFilter;
+    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
+        this.repositoryContentDescriptor = createRepositoryDescriptor();
     }
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
     }
-
 
     public String getName() {
         return name;
@@ -104,22 +103,18 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         this.componentMetadataListerRuleConfiguration = configureAction;
     }
 
-    @Override
-    public void contentFilter(Action<? super ArtifactResolutionDetails> action) {
-        if (contentFilter == null) {
-            contentFilter = action;
-        } else {
-            contentFilter = Actions.composite(contentFilter, action);
-        }
-    }
-
-    void setContentFilter(@Nullable Action<? super ArtifactResolutionDetails> spec) {
-        contentFilter = spec;
+    protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+        return new DefaultRepositoryContentDescriptor();
     }
 
     @Nullable
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
-        return contentFilter;
+        return repositoryContentDescriptor.toContentFilter();
+    }
+
+    @Override
+    public void content(Action<? super RepositoryContentDescriptor> configureAction) {
+        configureAction.execute(repositoryContentDescriptor);
     }
 
     InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {

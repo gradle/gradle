@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.ArtifactResolutionDetails;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -120,8 +120,8 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         }
 
         @Override
-        public void contentFilter(Action<? super ArtifactResolutionDetails> action) {
-            delegate.contentFilter(action);
+        public void content(Action<? super RepositoryContentDescriptor> configureAction) {
+            delegate.content(configureAction);
         }
 
         @Override

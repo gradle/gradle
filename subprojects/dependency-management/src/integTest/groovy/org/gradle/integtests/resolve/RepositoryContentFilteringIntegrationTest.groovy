@@ -35,12 +35,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         resolve.prepare()
     }
 
-    def "doesn't search for module in repository when rule says so"() {
+    def "can exclude a module from a repository"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
-            maven("contentFilter { details -> details.notFound() }")
+            maven("content { excludeGroup('org') }")
             ivy()
         }
         buildFile << """
@@ -63,13 +63,41 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    def "doesn't try to list module versions in repository when rule says so"() {
+    def "can include a module from a repository"() {
+        def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("content { includeGroup('other') }")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.0"
+            }
+        """
+
+        when:
+        mod.ivy.expectGet()
+        mod.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+            }
+        }
+    }
+
+    def "doesn't try to list module versions in repository when rule excludes group"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def ivyDirectoryList = ivyHttpRepo.directoryList('org', 'foo')
 
         given:
         repositories {
-            maven("contentFilter { details -> details.notFound() }")
+            maven("content { excludeGroup('org') }")
             ivy()
         }
         buildFile << """
@@ -93,18 +121,82 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    def "can filter based on the module identifier"() {
+    def "doesn't try to list module versions in repository when rule includes group"() {
+        def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+        def ivyDirectoryList = ivyHttpRepo.directoryList('org', 'foo')
+
+        given:
+        repositories {
+            maven("content { includeGroup('other') }")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:+"
+            }
+        """
+
+        when:
+        ivyDirectoryList.allowGet()
+        mod.ivy.expectGet()
+        mod.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:+', 'org:foo:1.0')
+            }
+        }
+    }
+
+    def "can exclude a specific module"() {
         def mod1 = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def mod2Ivy = ivyHttpRepo.module('org', 'bar', '1.0').publish()
         def mod2Maven = mavenHttpRepo.module('org', 'bar', '1.0')
 
         given:
         repositories {
-            maven("""contentFilter { details ->
-                if (details.moduleId.name == 'foo') { 
-                   details.notFound() 
-                }
-            }""")
+            maven("""content { excludeModule('org', 'foo') }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.0"
+                conf "org:bar:1.0"
+            }
+        """
+
+        when:
+        mod1.ivy.expectGet()
+        mod1.artifact.expectGet()
+
+        mod2Maven.pom.expectGetMissing()
+        mod2Maven.artifact.expectHeadMissing()
+
+        mod2Ivy.ivy.expectGet()
+        mod2Ivy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+                module('org:bar:1.0')
+            }
+        }
+    }
+
+    def "can include a specific module"() {
+        def mod1 = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+        def mod2Ivy = ivyHttpRepo.module('org', 'bar', '1.0').publish()
+        def mod2Maven = mavenHttpRepo.module('org', 'bar', '1.0')
+
+        given:
+        repositories {
+            maven("""content { includeModule('org', 'bar') }""")
             ivy()
         }
         buildFile << """
@@ -141,15 +233,14 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
      * repositories while for tests, we would be more lenient. This can be achieved by checking the name
      * of the configuration being resolved, in the rule.
      */
-    def "can filter by configuration name"() {
+    @Unroll
+    def "can filter by configuration name (#notation)"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
-            maven("""contentFilter { details ->
-                if (details.consumerName == 'conf') { 
-                   details.notFound() 
-                }
+            maven("""content {
+                $notation
             }""")
             ivy()
         }
@@ -171,6 +262,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 module('org:foo:1.0')
             }
         }
+
+        where:
+        notation << [
+                'onlyForConfigurations("other")',
+                'excludeConfigurations("conf")'
+        ]
     }
 
     @Unroll
@@ -179,10 +276,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         given:
         repositories {
-            maven("""contentFilter { details ->
-                if (details.consumerName == 'conf') { 
-                   details.notFound() 
-                }
+            maven("""content { 
+                onlyForConfigurations("conf2")
             }""")
         }
         buildFile << """
@@ -225,11 +320,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         """
         given:
         repositories {
-            maven("""contentFilter { details ->
-                println(details.consumerAttributes)
-                if (details.consumerAttributes.getAttribute(colorAttribute) == 'blue') { 
-                   details.notFound() 
-                }
+            maven("""content { 
+                requiresAttribute(colorAttribute, 'red')
             }""")
             ivy()
         }
@@ -260,16 +352,45 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    def "can filter by module version"() {
+    def "can exclude by module version"() {
         def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
         def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 
         given:
         repositories {
-            maven("""contentFilter { details ->
-                if (details.componentId.version == '1.1') { 
-                   details.notFound() 
-                }
+            maven("""content { details ->
+                excludeVersion('org', 'foo', '1.1')
+            }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.1"
+            }
+        """
+
+        when:
+        modIvy.ivy.expectGet()
+        modIvy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.1')
+            }
+        }
+    }
+
+    def "can include by module version"() {
+        def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
+        def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""content {
+                includeVersion('org', 'foo', '1.0')
             }""")
             ivy()
         }
@@ -299,7 +420,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         given:
         repositories {
-            maven("""kind = 'RELEASES_ONLY'""")
+            maven("""mavenContent { releasesOnly() }""")
             ivy()
         }
         buildFile << """
@@ -333,7 +454,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         given:
         repositories {
-            maven("""kind = 'SNAPSHOTS_ONLY'""")
+            maven("""mavenContent { snapshotsOnly() }""")
             ivy()
         }
         buildFile << """
@@ -369,6 +490,43 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         unique << [true, false]
+    }
+
+    def "releases only and dynamic selector"() {
+        // doesn't really make sense to look for "SNAPSHOT" in an Ivy repository, but this is for the test
+        def modIvy = ivyHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+
+        // we explicitly want to ignore the Maven module
+        def modMaven = mavenHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+        def mavenVersionList = mavenHttpRepo.module('org', 'foo').rootMetaData
+        def mavenVersionList2 = mavenHttpRepo.directoryList('org', 'foo')
+        def ivyVersionList = ivyHttpRepo.directoryList('org', 'foo')
+
+        given:
+        repositories {
+            maven("""mavenContent { releasesOnly() }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.+"
+            }
+        """
+
+        when:
+        mavenVersionList.expectGet()
+        ivyVersionList.expectGet()
+        modIvy.ivy.expectGet()
+        modIvy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:1.+', 'org:foo:1.0-SNAPSHOT')
+            }
+        }
     }
 
     static String checkConfIsUnresolved() {

@@ -47,15 +47,11 @@ public interface ArtifactRepository {
     void setName(String name);
 
     /**
-     * Sets the content filter for this repository. A content filter can be used to
-     * avoid lookups on remote repositories whenever we know that a module will not
-     * be found.
-     *
-     * @param action the action to configure filtering
+     * Configures the content of this repository.
+     * @param configureAction the configuration action
      *
      * @since 5.1
      */
     @Incubating
-    void contentFilter(Action<? super ArtifactResolutionDetails> action);
-
+    void content(Action<? super RepositoryContentDescriptor> configureAction);
 }
