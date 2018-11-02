@@ -70,9 +70,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public String getVersion() {
-        return versionConstraint.getRequiredVersion().isEmpty()
-            ? versionConstraint.getPreferredVersion()
-            : versionConstraint.getRequiredVersion();
+        return versionConstraint.getRequiredVersion();
     }
 
     @Override
