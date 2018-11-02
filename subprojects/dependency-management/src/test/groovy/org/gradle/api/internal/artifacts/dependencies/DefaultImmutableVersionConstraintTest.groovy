@@ -146,4 +146,26 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         c.strictVersion == v.strictVersion
         c.rejectedVersions == v.rejectedVersions
     }
+
+
+    def "has useful displayName"() {
+        expect:
+        displayNameFor('1.0', '', '', []) == "{prefer 1.0}"
+        displayNameFor('', '1.0', '', []) == "1.0"
+        displayNameFor('', '', '1.0', []) == "{strictly 1.0}"
+        displayNameFor('', '', '', ['1.0', '2.0']) == "{reject 1.0 & 2.0}"
+
+        displayNameFor('1.0', '2.0', '3.0', ['1.0', '2.0']) == "{strictly 3.0; require 2.0; prefer 1.0; reject 1.0 & 2.0}"
+        displayNameFor('1.0', '', '', [], 'br') == "{prefer 1.0; branch br}"
+
+        displayNameFor('1.0', '1.0', '', []) == "1.0" // prefer == require
+        displayNameFor('', '1.0', '1.0', []) == "{strictly 1.0}" // strictly == require
+        displayNameFor('1.0', '', '1.0', []) == "{strictly 1.0}" // strictly == prefer
+        displayNameFor('1.0', '1.0', '1.0', []) == "{strictly 1.0}" // strictly == prefer == require
+    }
+
+    private String displayNameFor(String preferred, String required, String strict, List<String> rejects, branch = null) {
+        new DefaultImmutableVersionConstraint(preferred, required, strict, rejects, branch).displayName
+    }
+
 }

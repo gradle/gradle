@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
@@ -91,7 +92,7 @@ import java.util.List;
  * @since 4.4
  */
 @Incubating
-public interface VersionConstraint {
+public interface VersionConstraint extends Describable {
     /**
      * The branch to select versions from. When not {@code null} selects only those versions that were built from the specified branch.
      *

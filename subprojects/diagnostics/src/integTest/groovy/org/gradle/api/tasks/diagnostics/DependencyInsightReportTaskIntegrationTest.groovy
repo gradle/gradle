@@ -521,7 +521,7 @@ org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
    Failures:
-      - Could not resolve org:foo:1.0.:
+      - Could not resolve org:foo:{requires 1.0; strictly 1.0}.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'

@@ -45,10 +45,49 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     @Override
     public String toString() {
-        return getRequiredVersion()
-            + (getPreferredVersion().isEmpty() ? "" : " {prefers: " + getPreferredVersion() + "}")
-            + (getStrictVersion().isEmpty() ? "" : " {strictly: " + getStrictVersion() + "}")
-            + (getRejectedVersions().isEmpty() ? "" : " {rejects: " + Joiner.on(" & ").join(getRejectedVersions()) + "}")
-            + (getBranch() == null ? "" : " {branch: " + getBranch() + "}");
+        return getDisplayName();
+    }
+
+    private void append(String name, String version, StringBuilder builder) {
+        if (version == null || version.isEmpty()) {
+            return;
+        }
+        if (builder.length() != 1) {
+            builder.append("; ");
+        }
+        builder.append(name);
+        builder.append(" ");
+        builder.append(version);
+    }
+
+    @Override
+    public String getDisplayName() {
+        String requiredVersion = getRequiredVersion();
+        if (requiredOnly()) {
+            return requiredVersion;
+        }
+
+        String strictVersion = getStrictVersion();
+        String preferVersion = getPreferredVersion();
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        append("strictly", strictVersion, builder);
+        if (!requiredVersion.equals(strictVersion)) {
+            append("require", requiredVersion, builder);
+        }
+        if (!(preferVersion.equals(requiredVersion) || preferVersion.equals(strictVersion))) {
+            append("prefer", getPreferredVersion(), builder);
+        }
+        append("reject", Joiner.on(" & ").join(getRejectedVersions()), builder);
+        append("branch", getBranch(), builder);
+        builder.append("}");
+        return builder.toString();
+    }
+
+    private boolean requiredOnly() {
+        return (getPreferredVersion().isEmpty() || getRequiredVersion().equals(getPreferredVersion()))
+                && getStrictVersion().isEmpty()
+                && getRejectedVersions().isEmpty()
+                && getBranch() == null;
     }
 }
