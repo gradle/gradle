@@ -34,7 +34,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
 
     @Override
     public ResolutionState getResolutionState() {
-        return ResolutionState.RESOLVED;
+        return dependency.isConstraint() ? ResolutionState.RESOLVED_CONSTRAINT : ResolutionState.RESOLVED;
     }
 
     @Override
