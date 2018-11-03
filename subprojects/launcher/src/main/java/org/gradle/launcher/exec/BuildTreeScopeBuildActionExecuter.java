@@ -30,7 +30,7 @@ public class BuildTreeScopeBuildActionExecuter implements BuildActionExecuter<Bu
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         if (!(contextServices instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");
         }

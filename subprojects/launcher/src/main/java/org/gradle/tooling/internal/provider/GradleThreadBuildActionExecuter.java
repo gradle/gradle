@@ -20,6 +20,7 @@ import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
 
 public class GradleThreadBuildActionExecuter implements BuildExecuter {
@@ -30,7 +31,7 @@ public class GradleThreadBuildActionExecuter implements BuildExecuter {
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         GradleThread.setManaged();
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);

@@ -29,7 +29,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.DefaultContinuousExecutionGate;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -47,6 +46,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.util.DisconnectableInputStream;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -67,7 +67,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
         if (actionParameters.isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
@@ -111,28 +111,21 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         cancellableOperationManager.closeInput();
     }
 
-    private Object executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
+    private BuildActionResult executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
                                          CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
         BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
         Clock clock = buildSessionScopeServices.get(Clock.class);
 
-        Object lastResult;
+        BuildActionResult lastResult;
         while (true) {
             PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
-                try {
-                    lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
-                } catch (ReportedException t) {
-                    lastResult = t;
-                }
+                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
 
                 if (!waiter.isWatching()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
-                    if (lastResult instanceof ReportedException) {
-                        throw (ReportedException) lastResult;
-                    }
                     return lastResult;
                 } else {
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
@@ -164,9 +157,6 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
 
         logger.println("Build cancelled.");
-        if (lastResult instanceof ReportedException) {
-            throw (ReportedException) lastResult;
-        }
         return lastResult;
     }
 
@@ -182,7 +172,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
     }
 
-    private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
+    private BuildActionResult executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
         try {
             inputsListener.setFileSystemWaiter(waiter);
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);

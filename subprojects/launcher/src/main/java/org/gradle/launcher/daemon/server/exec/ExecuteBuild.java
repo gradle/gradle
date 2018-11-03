@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -28,6 +27,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 
 /**
  * Actually executes the build.
@@ -64,17 +64,8 @@ public class ExecuteBuild extends BuildCommandOnly {
                     }
                 });
             }
-            Object result = actionExecuter.execute(build.getAction(), buildRequestContext, build.getParameters(), contextServices);
+            BuildActionResult result = actionExecuter.execute(build.getAction(), buildRequestContext, build.getParameters(), contextServices);
             execution.setResult(result);
-        } catch (ReportedException e) {
-            /*
-                We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already
-                been logged by the GradleLauncher infrastructure, and that logging has been shipped over to the other side.
-
-                This doesn't seem right. Perhaps we should assume on the client side that all “build failures” (opposed to daemon infrastructure failures)
-                have already been logged and do away with this wrapper.
-            */
-            execution.setException(e);
         } finally {
             buildEventConsumer.waitForFinish();
             runningStats.buildFinished();

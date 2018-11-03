@@ -177,11 +177,12 @@ public class ProviderConnection {
             BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
-            BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters, sharedServices);
-            if (result.failure != null) {
-                throw (RuntimeException) payloadSerializer.deserialize(result.failure);
+            BuildActionResult result = executer.execute(action, buildRequestContext, providerParameters, sharedServices);
+            if (result.hasFailure()) {
+                result.rethrow();
+                throw (RuntimeException) payloadSerializer.deserialize(result.getFailure());
             }
-            return payloadSerializer.deserialize(result.result);
+            return payloadSerializer.deserialize(result.getResult());
         } finally {
             progressListenerConfiguration.failsafeWrapper.rethrowErrors();
         }

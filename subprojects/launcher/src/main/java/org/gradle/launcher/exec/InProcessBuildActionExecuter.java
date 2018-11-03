@@ -35,7 +35,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
         final PayloadSerializer payloadSerializer = contextServices.get(PayloadSerializer.class);
         BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
@@ -43,14 +43,14 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         buildOperationNotificationValve.start();
         try {
             RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null), buildRequestContext);
-            return rootBuild.run(new Transformer<Object, BuildController>() {
+            return rootBuild.run(new Transformer<BuildActionResult, BuildController>() {
                 @Override
-                public Object transform(BuildController buildController) {
+                public BuildActionResult transform(BuildController buildController) {
                     BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
                     if (result.getClientFailure() != null) {
-                        return new BuildActionResult(null, payloadSerializer.serialize(result.getClientFailure()));
+                        return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
                     }
-                    return new BuildActionResult(payloadSerializer.serialize(result.getClientResult()), null);
+                    return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
                 }
             });
         } finally {
