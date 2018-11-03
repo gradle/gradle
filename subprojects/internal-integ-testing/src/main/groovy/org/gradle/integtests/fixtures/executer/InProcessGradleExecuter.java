@@ -37,7 +37,6 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
@@ -57,12 +56,12 @@ import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
 import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
@@ -151,7 +150,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
+                OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
 
     @Override
@@ -168,7 +167,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         }
         return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
+                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
     }
 
     private boolean isForkRequired() {
@@ -321,16 +320,15 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    try {
-                        BuildActionResult result = (BuildActionResult) actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
-                        if (result.failure != null) {
-                            PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
-                            return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.failure));
-                        }
-                        return new BuildResult(null, null);
-                    } catch (ReportedException e) {
-                        return new BuildResult(null, e.getCause());
+                    BuildActionResult result = actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                    if (result.getException() != null) {
+                        return new BuildResult(null, result.getException());
                     }
+                    if (result.getFailure() != null) {
+                        PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
+                        return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
+                    }
+                    return new BuildResult(null, null);
                 } finally {
                     stopMeasurement();
                 }
@@ -409,7 +407,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final List<String> executedTasks;
         private final Set<String> skippedTasks;
 
-        public TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
+        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
             this.planned = planned;
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
@@ -449,7 +447,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
 
-        public InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
+        InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
             this.outputResult = outputResult;
@@ -620,7 +618,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final List<String> lineNumbers = new ArrayList<String>();
         private final List<String> descriptions = new ArrayList<String>();
 
-        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
+        InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
@@ -669,7 +667,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             if (count == 1) {
                 assertFalse(failure instanceof MultipleBuildFailures);
             } else {
-                assertEquals(((MultipleBuildFailures)failure).getCauses().size(), count);
+                assertEquals(((MultipleBuildFailures) failure).getCauses().size(), count);
             }
             return this;
         }

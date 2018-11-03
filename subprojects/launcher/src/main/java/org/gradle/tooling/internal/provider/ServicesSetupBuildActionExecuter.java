@@ -29,6 +29,7 @@ import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
 
 public class ServicesSetupBuildActionExecuter implements BuildExecuter {
@@ -41,7 +42,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         final ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter);

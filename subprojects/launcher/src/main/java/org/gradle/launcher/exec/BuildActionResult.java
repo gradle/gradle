@@ -21,14 +21,54 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+/**
+ * Encapsulates either a result object, or a failure as an exception, or a serialized failure.
+ */
 public class BuildActionResult implements Serializable {
-    @Nullable
-    public final SerializedPayload result;
-    @Nullable
-    public final SerializedPayload failure;
+    private final SerializedPayload result;
+    private final SerializedPayload serializedFailure;
+    private final RuntimeException failure;
 
-    public BuildActionResult(SerializedPayload result, SerializedPayload failure) {
+    private BuildActionResult(SerializedPayload result, SerializedPayload serializedFailure, RuntimeException failure) {
         this.result = result;
+        this.serializedFailure = serializedFailure;
         this.failure = failure;
+    }
+
+    public static BuildActionResult of(@Nullable SerializedPayload result) {
+        return new BuildActionResult(result, null, null);
+    }
+
+    public static BuildActionResult failed(SerializedPayload failure) {
+        return new BuildActionResult(null, failure, null);
+    }
+
+    public static BuildActionResult failed(RuntimeException failure) {
+        return new BuildActionResult(null, null, failure);
+    }
+
+    @Nullable
+    public SerializedPayload getResult() {
+        return result;
+    }
+
+    @Nullable
+    public SerializedPayload getFailure() {
+        return serializedFailure;
+    }
+
+    @Nullable
+    public RuntimeException getException() {
+        return failure;
+    }
+
+    public boolean hasFailure() {
+        return failure != null || serializedFailure != null;
+    }
+
+    public void rethrow() {
+        if (failure != null) {
+            throw failure;
+        }
     }
 }

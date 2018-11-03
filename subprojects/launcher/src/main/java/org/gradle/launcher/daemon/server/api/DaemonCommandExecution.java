@@ -39,7 +39,6 @@ public class DaemonCommandExecution {
     final private DaemonStateControl daemonStateControl;
     final private List<DaemonCommandAction> actions;
 
-    private Throwable exception;
     private Object result;
 
     public DaemonCommandExecution(DaemonServerConfiguration configuration, DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
@@ -84,28 +83,11 @@ public class DaemonCommandExecution {
 
     /**
      * The currently nominated result for the execution.
-     * <p>
-     * If {@link #getException()} returns non null, the actual “result” of executing the command should be considered
-     * to be that exception and not what is returned by this method.
-     * <p>
-     * May be null if no action has set the result yet.
+     *
+     * <p>May be null if no action has set the result yet.
      */
     public Object getResult() {
         return this.result;
-    }
-
-    /**
-     * If an exception happens in actioning the command that is to be expected (e.g. a build failure or error in the build)
-     */
-    public void setException(Throwable exception) {
-        this.exception = exception;
-    }
-
-    /**
-     * The currently nominated error that occurred during executing the commmand.
-     */
-    public Throwable getException() {
-        return this.exception;
     }
 
     /**

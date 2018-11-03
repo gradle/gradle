@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -47,7 +48,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.daemonParameters = daemonParameters;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         if (continuous && !doesConsumerSupportCancellation(buildRequestContext)) {
             throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");

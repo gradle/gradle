@@ -24,10 +24,14 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Attaches build operation listeners to forward relevant operations back to the client.
+ */
 public class SubscribableBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final BuildOperationListenerManager buildOperationListenerManager;
@@ -41,7 +45,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         boolean subscribable = action instanceof SubscribableBuildAction;
         if (subscribable) {
             BuildEventConsumer eventConsumer = requestContext.getEventConsumer();

@@ -52,12 +52,12 @@ public class RunBuildAction implements Runnable {
 
     public void run() {
         try {
-            BuildActionResult result = (BuildActionResult) executer.execute(
+            BuildActionResult result = executer.execute(
                     new ExecuteBuildAction(startParameter),
                     new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime, ConsoleStateUtil.isInteractive()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
                     buildActionParameters,
                     sharedServices);
-            if (result.failure != null) {
+            if (result.hasFailure()) {
                 // Don't need to unpack the serialized failure. It will already have been reported and is not used by anything downstream of this action.
                 throw new ReportedException();
             }

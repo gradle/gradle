@@ -24,6 +24,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
 
 public class ParallelismConfigurationBuildActionExecuter implements BuildExecuter {
@@ -36,7 +37,7 @@ public class ParallelismConfigurationBuildActionExecuter implements BuildExecute
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         parallelismConfigurationManager.setParallelismConfiguration(new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount()));
         try {

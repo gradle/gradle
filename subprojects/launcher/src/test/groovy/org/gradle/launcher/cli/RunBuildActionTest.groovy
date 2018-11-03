@@ -55,7 +55,7 @@ class RunBuildActionTest extends Specification {
             assert context.startTime == startTime
             assert build == parameters
             assert services == sharedServices
-            return new BuildActionResult(null, null)
+            return BuildActionResult.of(null)
         }
         1 * stoppable.stop()
         0 * _._
@@ -71,7 +71,7 @@ class RunBuildActionTest extends Specification {
         and:
         startParameter.logLevel >> LogLevel.ERROR
         1 * client.execute(_, _, _, _) >> {
-            return new BuildActionResult(null, new SerializedPayload("thing", []))
+            return BuildActionResult.failed(new SerializedPayload("thing", []))
         }
         1 * stoppable.stop()
         0 * _._

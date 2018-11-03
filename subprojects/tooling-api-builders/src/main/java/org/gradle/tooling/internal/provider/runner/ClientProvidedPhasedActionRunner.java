@@ -31,10 +31,10 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
 
@@ -113,13 +113,13 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
         private void run(@Nullable InternalBuildActionVersion2<?> action, PhasedActionResult.Phase phase) {
             if (action != null) {
-                BuildActionResult result = runAction(action, gradle);
-                PhasedBuildActionResult res = new PhasedBuildActionResult(result.result, phase);
+                SerializedPayload result = runAction(action, gradle);
+                PhasedBuildActionResult res = new PhasedBuildActionResult(result, phase);
                 getBuildEventConsumer(gradle).dispatch(res);
             }
         }
 
-        private <T> BuildActionResult runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
+        private <T> SerializedPayload runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
             DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
             T model;
             try {
@@ -130,7 +130,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             }
 
             PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-            return new BuildActionResult(payloadSerializer.serialize(model), null);
+            return payloadSerializer.serialize(model);
         }
     }
 }
