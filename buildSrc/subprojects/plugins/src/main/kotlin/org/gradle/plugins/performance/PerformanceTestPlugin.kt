@@ -78,8 +78,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "java")
 
-        registerEmptyPerformanceReportTask()
-
         registerForkPointDistributionTask()
 
         val performanceTestSourceSet = createPerformanceTestSourceSet()
@@ -96,13 +94,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
-    }
-
-    private
-    fun Project.registerEmptyPerformanceReportTask() {
-        // Some of CI builds have parameter `-x performanceReport` so simply removing `performanceReport` would result in an error
-        // This task acts as a workaround for transition
-        tasks.register("performanceReport")
     }
 
     private
