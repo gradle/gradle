@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
-import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildEventConsumer
@@ -26,7 +25,6 @@ import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
@@ -135,19 +133,18 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         0 * buildEventConsumer.dispatch(_)
     }
 
-    def "cancel exceptions are wrapped"() {
-        def exception = new BuildCancelledException()
+    def "build failures are propagated"() {
+        def failure = new RuntimeException()
+        def buildController = Mock(BuildController)
 
         when:
         def result = runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        result.buildFailure == exception
-        result.clientFailure instanceof InternalBuildCancelledException
-        result.clientFailure.cause == exception
-        1 * projectsLoadedAction.execute(_) >> {
-            throw exception
-        }
+        result.buildFailure == failure
+        result.clientFailure == failure
+        _ * buildController.gradle >> gradle
+        1 * buildController.run() >> { throw failure }
     }
 
     def "action not run if null"() {

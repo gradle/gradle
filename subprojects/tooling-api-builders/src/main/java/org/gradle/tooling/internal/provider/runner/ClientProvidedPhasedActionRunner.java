@@ -25,10 +25,8 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
@@ -64,12 +62,9 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             } else {
                 buildController.configure();
             }
-        } catch (BuildCancelledException e) {
-            buildFailure = e;
-            clientFailure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             buildFailure = e;
-            clientFailure = new BuildExceptionVersion1(e);
+            clientFailure = e;
         }
         if (listener.actionFailure != null && !(listener.actionFailure instanceof BuildCancelledException)) {
             clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
