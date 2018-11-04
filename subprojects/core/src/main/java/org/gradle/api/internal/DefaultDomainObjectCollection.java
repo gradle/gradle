@@ -244,7 +244,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return doAdd(toAdd, notification);
     }
 
-    private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
+    protected <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
