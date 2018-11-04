@@ -127,9 +127,17 @@ public interface GradleDistribution {
     boolean isAddsTaskExecutionExceptionAroundAllTaskFailures();
 
     /**
+     * Returns true if this version retains the original build failure on cancellation (with all context) in the client and build logging, rather than discarding contextual exceptions.
+     */
+    boolean isTapiRetainsOriginalFailureOnCancel();
+
+    /**
      * Returns the logging output stream that this version logs build failures to when invoked via the TAPI.
      */
     <T> T selectOutputWithFailureLogging(T stdout, T stderr);
 
+    /**
+     * Returns true if this version logs a different build outcome message for TAPI model/build action requests and task execution requests.
+     */
     boolean isLogsConfigureSummary();
 }

@@ -207,6 +207,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isTapiRetainsOriginalFailureOnCancel() {
+        return isSameOrNewer("5.1");
+    }
+
+    @Override
     public boolean isLogsConfigureSummary() {
         return isSameOrNewer("2.14");
     }
