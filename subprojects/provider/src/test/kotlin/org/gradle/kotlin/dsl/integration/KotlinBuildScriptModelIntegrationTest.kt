@@ -111,6 +111,29 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     @Test
+    fun `can fetch buildscript classpath for sub-project script when parent has errors`() {
+
+        withSettings("""include("sub")""")
+
+        withBuildScript("val p =")
+
+        val jar = withClassJar("libs/jar.jar")
+
+        val subProjectScript =
+            withFile("sub/build.gradle.kts", """
+                buildscript {
+                    dependencies { classpath(files("${jar.normalisedPath}")) }
+                }
+            """)
+
+        assertClassPathFor(
+            subProjectScript,
+            includes = setOf(jar),
+            excludes = setOf()
+        )
+    }
+
+    @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
         withSettings("include(\"foo\", \"bar\")")
@@ -152,6 +175,23 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch classpath of script plugin`() {
 
+        assertCanFetchClassPathOfScriptPlugin("")
+    }
+
+    @Test
+    fun `can fetch classpath of script plugin with compilation errors`() {
+
+        assertCanFetchClassPathOfScriptPlugin("val p = ")
+    }
+
+    @Test
+    fun `can fetch classpath of script plugin with buildscript block compilation errors`() {
+
+        assertCanFetchClassPathOfScriptPlugin("buildscript { val p = }")
+    }
+
+    private
+    fun assertCanFetchClassPathOfScriptPlugin(scriptPluginCode: String) {
         withBuildSrc()
 
         val buildSrcDependency =
@@ -169,14 +209,16 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val scriptPlugin = withFile("plugin.gradle.kts")
+        val scriptPlugin = withFile("plugin.gradle.kts", scriptPluginCode)
 
         val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
         assertThat(
             scriptPluginClassPath.map { it.name },
             allOf(
                 not(hasItem(rootProjectDependency.name)),
-                hasItem(buildSrcDependency.name)))
+                hasItem(buildSrcDependency.name)
+            )
+        )
         assertContainsBuildSrc(scriptPluginClassPath)
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }

@@ -114,12 +114,19 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
-    fun assertClassPathFor(buildScript: File, includes: Set<File>, excludes: Set<File>) =
+    fun assertClassPathFor(
+        buildScript: File,
+        includes: Set<File>,
+        excludes: Set<File>
+    ) {
+        val includeItems = hasItems(*includes.map { it.name }.toTypedArray())
+        val excludeItems = not(hasItems(*excludes.map { it.name }.toTypedArray()))
+        val condition = if (excludes.isEmpty()) includeItems else allOf(includeItems, excludeItems)
         assertThat(
             classPathFor(projectRoot, buildScript).map { it.name },
-            allOf(
-                hasItems(*includes.map { it.name }.toTypedArray()),
-                not(hasItems(*excludes.map { it.name }.toTypedArray()))))
+            condition
+        )
+    }
 
     protected
     fun assertClassPathContains(vararg files: File) =
