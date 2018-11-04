@@ -202,8 +202,10 @@ public class GradleUserHomeScopeServices {
         return new DefaultHashingClassLoaderFactory(classpathHasher);
     }
 
-    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher) {
-        return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
+    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher, ListenerManager listenerManager) {
+        DefaultClassLoaderCache cache = new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
+        listenerManager.addListener(cache);
+        return cache;
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, FileAccessTimeJournal fileAccessTimeJournal,

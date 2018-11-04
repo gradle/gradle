@@ -205,7 +205,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
                 new Action<PublishArtifact>() {
                     @Override
                     public void execute(PublishArtifact artifact) {
-                        if (artifact instanceof Signature) {
+                        if (artifact instanceof Signature || signatureFor(artifact).isPresent()) {
                             return;
                         }
 
@@ -220,6 +220,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
             });
         }
 
+    }
+
+    private Optional<Signature> signatureFor(Buildable source) {
+        return Iterables.tryFind(signatures, new Predicate<Signature>() {
+            @Override
+            public boolean apply(Signature input) {
+                return input.getSource().equals(source);
+            }
+        });
     }
 
     /**
@@ -269,12 +278,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void removeSignature(final Buildable source) {
-        Optional<Signature> signature = Iterables.tryFind(signatures, new Predicate<Signature>() {
-            @Override
-            public boolean apply(Signature input) {
-                return input.getSource().equals(source);
-            }
-        });
+        Optional<Signature> signature = signatureFor(source);
         if (signature.isPresent()) {
             signatures.remove(signature.get());
         }

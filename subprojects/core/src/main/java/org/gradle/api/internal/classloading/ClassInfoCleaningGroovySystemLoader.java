@@ -100,7 +100,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
                 Object classInfo = it.next();
                 if (classInfo != null) {
                     Class clazz = getClazz(classInfo);
-                    if (clazz.getClassLoader() == classLoader) {
+                    if (clazz != null && clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());

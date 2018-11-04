@@ -49,7 +49,7 @@ There are also many other {guidesUrl}/[tutorials and guides] available, which yo
 
 Some folks are hard-core command-line users, while others prefer to never leave the comfort of their IDE. Many people happily use both and Gradle endeavors not to discriminate. Gradle is supported by <<third_party_integration#ides,several major IDEs>> and everything that can be done from the <<command_line_interface#command_line_interface,command line>> is available to IDEs via the <<embedding#embedding,Tooling API>>.
 
-Android Studio and IntelliJ IDEA users should consider using https://gradle.github.io/kotlin-dsl-docs/[Kotlin DSL build scripts] for the superior IDE support when editing them.
+Android Studio and IntelliJ IDEA users should consider using <<kotlin_dsl#kotlin_dsl,Kotlin DSL build scripts>> for the superior IDE support when editing them.
 
 == Executing Gradle builds
 
