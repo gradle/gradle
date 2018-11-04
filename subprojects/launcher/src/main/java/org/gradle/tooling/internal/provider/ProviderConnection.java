@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
@@ -45,13 +46,18 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -154,7 +160,7 @@ public class ProviderConnection {
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
-                providerParameters, params);
+                    providerParameters, params);
         } finally {
             failsafePhasedActionResultListener.rethrowErrors();
         }
@@ -178,14 +184,35 @@ public class ProviderConnection {
             boolean interactive = providerParameters.getStandardInput() != null;
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
             BuildActionResult result = executer.execute(action, buildRequestContext, providerParameters, sharedServices);
-            if (result.hasFailure()) {
-                result.rethrow();
-                throw (RuntimeException) payloadSerializer.deserialize(result.getFailure());
-            }
+            throwFailure(result);
             return payloadSerializer.deserialize(result.getResult());
         } finally {
             progressListenerConfiguration.failsafeWrapper.rethrowErrors();
         }
+    }
+
+    private void throwFailure(BuildActionResult result) {
+        if (result.getException() != null) {
+            throw map(result.getException());
+        }
+        if (result.getFailure() != null) {
+            throw map((RuntimeException) payloadSerializer.deserialize(result.getFailure()));
+        }
+    }
+
+    private RuntimeException map(RuntimeException exception) {
+        // Unpack tunnelled failures
+        if (exception instanceof InternalTestExecutionException || exception instanceof InternalBuildActionFailureException || exception instanceof InternalUnsupportedModelException) {
+            return exception;
+        }
+        Throwable current = exception;
+        while (current != null) {
+            if (current instanceof BuildCancelledException) {
+                throw new InternalBuildCancelledException(exception);
+            }
+            current = current.getCause();
+        }
+        throw new BuildExceptionVersion1(exception);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {

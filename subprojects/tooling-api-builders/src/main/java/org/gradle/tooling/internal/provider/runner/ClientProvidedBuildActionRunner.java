@@ -27,10 +27,8 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
@@ -59,12 +57,9 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
             } else {
                 buildController.configure();
             }
-        } catch (BuildCancelledException e) {
-            buildFailure = e;
-            clientFailure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             buildFailure = e;
-            clientFailure = new BuildExceptionVersion1(e);
+            clientFailure = e;
         }
         if (listener.actionFailure != null && !(listener.actionFailure instanceof BuildCancelledException)) {
             clientFailure = new InternalBuildActionFailureException(listener.actionFailure);

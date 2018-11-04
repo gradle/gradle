@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
@@ -27,8 +26,6 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -58,12 +55,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
             } else {
                 buildController.configure();
             }
-        } catch (BuildCancelledException e) {
-            buildFailure = e;
-            clientFailure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             buildFailure = e;
-            clientFailure = new BuildExceptionVersion1(e);
+            clientFailure = e;
         }
         if (listener.modelFailure != null) {
             clientFailure = (RuntimeException) new InternalUnsupportedModelException().initCause(listener.modelFailure);

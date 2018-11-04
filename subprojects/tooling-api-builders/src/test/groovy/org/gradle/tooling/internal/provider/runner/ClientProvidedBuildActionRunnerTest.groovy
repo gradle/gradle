@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
-import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
@@ -28,7 +27,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -102,10 +100,10 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         1 * internalAction.execute(_) >> { throw failure }
     }
 
-    def "can run action and propagate cancellation exception"() {
+    def "can run action and propagate build exception"() {
         given:
-        def cancellation = new BuildCancelledException()
-        def output = Mock(SerializedPayload)
+        def failure = new RuntimeException()
+        def buildController = Mock(BuildController)
         def internalAction = Mock(InternalBuildAction)
 
         when:
@@ -113,13 +111,13 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         then:
         result.clientResult == null
-        result.buildFailure == cancellation
-        result.clientFailure instanceof InternalBuildCancelledException
-        result.clientFailure.cause == cancellation
+        result.buildFailure == failure
+        result.clientFailure == failure
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * internalAction.execute(_) >> { throw cancellation }
+        _ * buildController.gradle >> gradle
+        1 * buildController.configure() >> { throw failure }
     }
 
     def "can run tasks before run action"() {
