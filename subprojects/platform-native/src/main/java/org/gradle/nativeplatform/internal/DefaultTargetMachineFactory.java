@@ -91,41 +91,6 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
-        public TargetMachine ia64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.IA64));
-        }
-
-        @Override
-        public TargetMachine arm() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.ARM));
-        }
-
-        @Override
-        public TargetMachine arm64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.ARM64));
-        }
-
-        @Override
-        public TargetMachine ppc() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.PPC));
-        }
-
-        @Override
-        public TargetMachine ppc64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.PPC64));
-        }
-
-        @Override
-        public TargetMachine sparc() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.SPARC));
-        }
-
-        @Override
-        public TargetMachine sparc64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.SPARC64));
-        }
-
-        @Override
         public TargetMachine architecture(String architecture) {
             return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, architecture));
         }

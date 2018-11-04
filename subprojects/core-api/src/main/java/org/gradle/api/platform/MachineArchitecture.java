@@ -22,7 +22,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
 
 /**
- * Represents a target architecture of a component.  Typical architectures include "x86", "x64", "ia64", and "arm".
+ * Represents a target architecture of a component.  Typical architectures include "x86" and "x86-64".
  *
  * @since 5.1
  */
@@ -46,39 +46,4 @@ public abstract class MachineArchitecture implements Named {
      * The intel x86 64-bit architecture
      */
     public static final String X86_64 = "x86-64";
-
-    /**
-     * The Itanium 64-bit architecture
-     */
-    public static final String IA64 = "ia-64";
-
-    /**
-     * The ARM 32-bit architecture
-     */
-    public static final String ARM = "arm-v7";
-
-    /**
-     * The ARM 64-bit architecture
-     */
-    public static final String ARM64 = "arm-v8";
-
-    /**
-     * The PowerPC 32-bit architecture
-     */
-    public static final String PPC = "ppc";
-
-    /**
-     * The PowerPC 64-bit architecture
-     */
-    public static final String PPC64 = "ppc64";
-
-    /**
-     * The Sparc 32-bit architecture
-     */
-    public static final String SPARC = "sparc-v8";
-
-    /**
-     * The Sparc 64-bit architecture
-     */
-    public static final String SPARC64 = "sparc-v9";
 }
