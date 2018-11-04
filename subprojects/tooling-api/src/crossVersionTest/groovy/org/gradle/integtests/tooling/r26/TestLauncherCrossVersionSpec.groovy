@@ -48,11 +48,11 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         launchTests(testDescriptors("example.MyTest"));
         then:
         events.assertIsABuild()
-        assertTaskOperationSuccesfulOrSkippedWithNoSource(":compileJava")
-        assertTaskOperationSuccesfulOrSkippedWithNoSource(":processResources")
+        assertTaskOperationSuccessfulOrSkippedWithNoSource(":compileJava")
+        assertTaskOperationSuccessfulOrSkippedWithNoSource(":processResources")
         events.operation("Task :classes").successful
         events.operation("Task :compileTestJava").successful
-        assertTaskOperationSuccesfulOrSkippedWithNoSource(":processTestResources")
+        assertTaskOperationSuccessfulOrSkippedWithNoSource(":processTestResources")
         events.operation("Task :testClasses").successful
         events.operation("Task :test").successful
         events.operation("Task :secondTest").successful
@@ -289,7 +289,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertHasBuildFailedLogging()
     }
 
-    def "throws BuildCancelledException when build canceled"() {
+    def "throws BuildCancelledException when build canceled before request started"() {
         given:
         buildFile << "some invalid build code"
         when:
@@ -434,7 +434,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         }
     }
 
-    def assertTaskOperationSuccesfulOrSkippedWithNoSource(String taskPath) {
+    def assertTaskOperationSuccessfulOrSkippedWithNoSource(String taskPath) {
         ProgressEvents.Operation operation = events.operation("Task $taskPath")
         if (targetVersion < GRADLE_VERSION_34) {
             assert operation.successful

@@ -207,7 +207,7 @@ public class ProviderConnection {
         }
         Throwable current = exception;
         while (current != null) {
-            if (current instanceof BuildCancelledException) {
+            if (current.getClass().getName().equals(BuildCancelledException.class.getName())) {
                 throw new InternalBuildCancelledException(exception);
             }
             current = current.getCause();
