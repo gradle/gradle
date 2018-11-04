@@ -525,7 +525,7 @@ org:foo:1.0 FAILED
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:{strictly 1.0} FAILED
 \\--- lockedConf
@@ -2559,7 +2559,7 @@ org:bar: FAILED
       - Could not resolve org:bar:{reject +}.:
           - Module 'org:bar' has been rejected:
                Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar' rejects all versions because of the following reason: Nope, you won't use this
+               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject +}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject +} FAILED
 \\--- compileClasspath
@@ -2576,7 +2576,7 @@ org:foo: (by constraint) FAILED
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:' rejects any of "'1.0', '1.1', '1.2'"
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath

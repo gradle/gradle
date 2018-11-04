@@ -245,7 +245,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' strictly '1.0'
+   Dependency path ':test:unspecified' --> 'org:foo:{strictly 1.0}'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.1'""")
 
     }
@@ -454,7 +454,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:foo:17'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' strictly '15'""")
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -506,8 +506,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' strictly '17'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' strictly '15'""")
+   Dependency path ':test:unspecified' --> 'org:foo:{strictly 17}'
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -562,8 +562,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' strictly '[15,16]'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' strictly '[17,18]'""")
+   Dependency path ':test:unspecified' --> 'org:foo:{strictly [15,16]}'
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly [17,18]}'""")
 
     }
 
@@ -796,7 +796,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo:1.0' rejects '1.1'
+   Dependency path ':test:unspecified' --> 'org:foo:{require 1.0; reject 1.1}'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.1'""")
     }
 
@@ -1013,7 +1013,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:bar' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:bar:1'
-   Constraint path ':test:unspecified' --> 'org:bar' strictly '1'
+   Constraint path ':test:unspecified' --> 'org:bar:{strictly 1}'
    Dependency path ':test:unspecified' --> 'org:foo:2' --> 'org:bar:2'""")
     }
 
