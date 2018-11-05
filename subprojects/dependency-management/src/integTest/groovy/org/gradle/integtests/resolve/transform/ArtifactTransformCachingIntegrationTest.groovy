@@ -738,15 +738,21 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
 
         when:
-        if (action == "removed") {
-            outputDir1.deleteDir()
-            outputDir2.deleteDir()
-        } else if (action == "removed") {
-            outputDir1.file("dir1.classes.dir/child.txt") << "different"
-            outputDir2.file("lib1.jar.txt") << "different"
-        } else {
-            outputDir1.file("some-unrelated-file.txt") << "added"
-            outputDir2.file("some-unrelated-file.txt") << "added"
+        switch (action) {
+            case 'removed':
+                outputDir1.deleteDir()
+                outputDir2.deleteDir()
+                break
+            case 'changed':
+                outputDir1.file("dir1.classes.dir/child.txt") << "different"
+                outputDir2.file("lib1.jar.txt") << "different"
+                break
+            case 'added':
+                outputDir1.file("some-unrelated-file.txt") << "added"
+                outputDir2.file("some-unrelated-file.txt") << "added"
+                break
+            default:
+                throw new IllegalStateException("Unkown action: ${action}")
         }
 
         succeeds ":util:resolve", ":app:resolve"
@@ -769,7 +775,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
 
         where:
-        action << ["changed", "removed", "added"]
+        action << ['changed', 'removed', 'added']
     }
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
