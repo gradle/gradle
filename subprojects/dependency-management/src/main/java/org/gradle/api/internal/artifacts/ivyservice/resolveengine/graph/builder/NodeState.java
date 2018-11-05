@@ -184,16 +184,7 @@ class NodeState implements DependencyGraphNode {
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveIncoming.isEmpty() && !isRoot()) {
-            // If node was previously traversed, need to remove outgoing edges.
-            if (previousTraversalExclusions != null) {
-                removeOutgoingEdges();
-            }
-            boolean hasIncomingEdges = !incomingEdges.isEmpty();
-            if (hasIncomingEdges) {
-                LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
-            } else {
-                LOGGER.debug("{} has no incoming edges. ignoring.", this);
-            }
+            handleNonTransitiveNode(discoveredEdges);
             return;
         }
 
@@ -216,6 +207,25 @@ class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    /**
+     * Removes outgoing edges from no longer transitive node
+     * Also process {@code belongsTo} if node still has edges at all.
+     *
+     * @param discoveredEdges In/Out parameter collecting dependencies or platforms
+     */
+    private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
+        // If node was previously traversed, need to remove outgoing edges.
+        if (previousTraversalExclusions != null) {
+            removeOutgoingEdges();
+        }
+        if (!incomingEdges.isEmpty()) {
+            LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
+            visitOwners(discoveredEdges);
+        } else {
+            LOGGER.debug("{} has no incoming edges. ignoring.", this);
+        }
     }
 
     /**
