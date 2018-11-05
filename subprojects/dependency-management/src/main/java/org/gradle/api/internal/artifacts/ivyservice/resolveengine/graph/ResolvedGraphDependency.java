@@ -22,7 +22,11 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
 
-public interface DependencyResult {
+/**
+ * The final representation of a dependency in the resolved dependency graph.
+ * This is the type that is serialized on resolve and deserialized when we later need to build a `ResolutionResult`.
+ */
+public interface ResolvedGraphDependency {
 
     ComponentSelector getRequested();
 
@@ -40,4 +44,6 @@ public interface DependencyResult {
      */
     @Nullable
     ComponentSelectionReason getReason();
+
+    boolean isConstraint();
 }

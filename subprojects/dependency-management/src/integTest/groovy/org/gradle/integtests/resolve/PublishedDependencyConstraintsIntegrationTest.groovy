@@ -146,9 +146,10 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        def module = module("org:foo:1.1")
                         if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                            module.byConstraint('published dependency constraint')
+                            constraint("org:foo:1.1", "org:foo:1.1").byConstraint('published dependency constraint')
+                        } else {
+                            constraint("org:foo:1.1", "org:foo:1.1")
                         }
                     }
                 }
@@ -213,7 +214,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level1:1.0") {
                     if (available) {
-                        module("org:foo:1.1")
+                        constraint("org:foo:1.1", "org:foo:1.1")
                     }
                 }
                 module("org:first-level2:1.0") {
@@ -290,7 +291,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level:1.0") {
                     if (available) {
-                        edge("org:foo:[1.0,1.1]", "org:foo:1.1")
+                        constraint("org:foo:[1.0,1.1]", "org:foo:1.1")
                     }
                 }
             }
@@ -391,7 +392,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        edge("org:bar:1.1", "org:foo:1.1").selectedByRule()
+                        constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
                         edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                     } else {
                         module("org:foo:1.0")

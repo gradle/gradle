@@ -18,20 +18,26 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultDependencyResult implements DependencyResult {
+/**
+ * The deserialized representation of an edge in the resolution result.
+ * This is produced by first serializing an `EdgeState` and later deserializing when required.
+ */
+public class DetachedResolvedGraphDependency implements ResolvedGraphDependency {
 
     private final ComponentSelector requested;
     private final Long selected;
     private final ComponentSelectionReason reason;
     private ModuleVersionResolveException failure;
+    private boolean constraint;
 
-    public DefaultDependencyResult(ComponentSelector requested,
-                                   Long selected,
-                                   ComponentSelectionReason reason,
-                                   ModuleVersionResolveException failure) {
+    public DetachedResolvedGraphDependency(ComponentSelector requested,
+                                           Long selected,
+                                           ComponentSelectionReason reason,
+                                           ModuleVersionResolveException failure,
+                                           boolean constraint) {
         assert requested != null;
         assert failure != null || selected != null;
 
@@ -39,21 +45,31 @@ public class DefaultDependencyResult implements DependencyResult {
         this.reason = reason;
         this.selected = selected;
         this.failure = failure;
+        this.constraint = constraint;
     }
 
+    @Override
     public ComponentSelector getRequested() {
         return requested;
     }
 
+    @Override
     public Long getSelected() {
         return selected;
     }
 
+    @Override
     public ComponentSelectionReason getReason() {
         return reason;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         return failure;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 }

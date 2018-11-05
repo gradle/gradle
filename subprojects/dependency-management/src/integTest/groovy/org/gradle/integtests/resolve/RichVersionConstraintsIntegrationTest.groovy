@@ -105,8 +105,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0.0", "org:foo:1.1.0")
-                edge("org:foo:1.1.0", "org:foo:1.1.0")
+                constraint("org:foo:1.0.0", "org:foo:1.1.0")
+                constraint("org:foo:1.1.0", "org:foo:1.1.0")
                 edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0") {
                     byConstraint()
                     byReason("didn't match version 2.0.0")

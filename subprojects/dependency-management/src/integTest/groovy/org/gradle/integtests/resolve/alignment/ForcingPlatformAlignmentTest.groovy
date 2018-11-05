@@ -626,7 +626,7 @@ include 'other'
             root(":", ":test:") {
                 module("bom:bom:1.0") {
                     configuration = 'platform-runtime'
-                    edgeFromConstraint("org:xml:2.0", "org:xml:1.0")
+                    constraint("org:xml:2.0", "org:xml:1.0")
                 }
                 module("root:root:1.0") {
                     module('org:webapp:1.0') {
@@ -684,10 +684,10 @@ include 'other'
                 }
                 module('org:platform:2.7.9:default') {
                     noArtifacts()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
         }
@@ -741,14 +741,14 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                edgeFromConstraint('org:platform:2.7.9', 'org:platform:2.7.9') {
+                constraint('org:platform:2.7.9', 'org:platform:2.7.9') {
                     noArtifacts()
                     byConstraint("belongs to platform org:platform:2.7.9")
                     forced()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
             virtualConfiguration('org:platform:2.7.9')
@@ -817,10 +817,10 @@ include 'other'
                 }
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled()?'enforced-platform':'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
         }
@@ -885,14 +885,14 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                edgeFromConstraint('org:platform:2.7.9', 'org:platform:2.7.9') {
+                constraint('org:platform:2.7.9', 'org:platform:2.7.9') {
                     noArtifacts()
                     byConstraint("belongs to platform org:platform:2.7.9")
                     forced()
-                    module('org:core:2.7.9')
-                    module('org:databind:2.7.9')
-                    module('org:annotations:2.7.9')
-                    module('org:kotlin:2.7.9')
+                    constraint('org:core:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
             virtualConfiguration('org:platform:2.7.9')

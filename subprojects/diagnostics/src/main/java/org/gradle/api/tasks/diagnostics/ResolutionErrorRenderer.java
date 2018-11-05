@@ -123,6 +123,11 @@ class ResolutionErrorRenderer implements Action<Throwable> {
                 public ResolvedComponentResult getFrom() {
                     return null;
                 }
+
+                @Override
+                public boolean isConstraint() {
+                    return false;
+                }
             });
         }
         return matchesSpec;

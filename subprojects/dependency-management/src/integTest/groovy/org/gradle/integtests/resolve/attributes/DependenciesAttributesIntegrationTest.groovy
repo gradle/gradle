@@ -98,7 +98,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:test', 'org:test:1.0')
-                edge('org:test:1.0', 'org:test:1.0')
+                constraint('org:test:1.0', 'org:test:1.0')
             }
         }
 
@@ -464,7 +464,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                     configuration = expectedVariant
                     variant(expectedVariant, expectedAttributes)
                 }
-                module('org:test:1.0') {
+                constraint('org:test:1.0', 'org:test:1.0') {
                     configuration = expectedVariant
                     variant(expectedVariant, expectedAttributes)
                 }

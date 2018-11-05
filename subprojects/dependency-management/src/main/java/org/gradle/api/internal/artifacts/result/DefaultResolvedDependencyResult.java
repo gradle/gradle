@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
     private final ResolvedComponentResult selected;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested, ResolvedComponentResult selected, ResolvedComponentResult from) {
-        super(requested, from);
+    public DefaultResolvedDependencyResult(ComponentSelector requested, boolean constraint, ResolvedComponentResult selected, ResolvedComponentResult from) {
+        super(requested, from, constraint);
         this.selected = selected;
     }
 

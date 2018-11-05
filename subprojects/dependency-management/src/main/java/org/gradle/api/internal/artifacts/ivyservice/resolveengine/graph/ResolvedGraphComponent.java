@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * The final representation of a component in the resolved dependency graph.
  * This is the type that is serialized on resolve and deserialized when we later need to build a `ResolutionResult`.
  */
-public interface ComponentResult {
+public interface ResolvedGraphComponent {
     /**
      * Returns a simple id for this component, unique across components in the same graph.
      * This id cannot be used across graphs.

@@ -109,7 +109,7 @@ allprojects {
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
-        def expectedFirstLevel = graph.root.deps.findAll { !graph.constraints.contains(it.selected) }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+        def expectedFirstLevel = graph.root.deps.findAll { !it.constraint }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
         def actualFirstLevel = findLines(configDetails, 'first-level')
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
@@ -135,7 +135,7 @@ allprojects {
         compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
         def actualEdges = findLines(configDetails, 'dependency')
-        def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
+        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
@@ -321,7 +321,6 @@ allprojects {
         private NodeBuilder root
         private String defaultConfig
 
-        final Set<NodeBuilder> constraints = new LinkedHashSet<>()
         final Set<String> virtualConfigurations = []
 
         GraphBuilder(String defaultConfig) {
@@ -464,6 +463,7 @@ allprojects {
         final String requested
         final NodeBuilder from
         NodeBuilder selected
+        boolean constraint
 
         EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected) {
             this.from = from
@@ -595,12 +595,11 @@ allprojects {
         /**
          * Defines a link between nodes created through a dependency constraint.
          */
-        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+        NodeBuilder constraint(String requested, String selectedModuleVersionId = requested, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
-            deps << new EdgeBuilder(this, requested, node)
-            if (this == graph.root) {
-                graph.constraints.add(node)
-            }
+            def edge = new EdgeBuilder(this, requested, node)
+            edge.constraint = true
+            deps << edge
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
@@ -793,7 +792,7 @@ class GenerateGraphTask extends DefaultTask {
                 writer.println("component:${formatComponent(it)}")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+                writer.println("dependency:${it.constraint ? '[constraint]' : '' }[from:${it.from.id}][${it.requested}->${it.selected.id}]")
             }
             if (buildArtifacts) {
                 configuration.files.each {
