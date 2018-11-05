@@ -122,6 +122,11 @@ public interface GradleDistribution {
     boolean isToolingApiHasCauseOnCancel();
 
     /**
+     * Returns true if this version has a useful cause attached to the exception thrown by the tooling API client when daemon is killed to force cancellation.
+     */
+    boolean isToolingApiHasCauseOnForcedCancel();
+
+    /**
      * Returns true if this version logs a 'build failed' message on build cancellation.
      */
     boolean isToolingApiLogsFailureOnCancel();

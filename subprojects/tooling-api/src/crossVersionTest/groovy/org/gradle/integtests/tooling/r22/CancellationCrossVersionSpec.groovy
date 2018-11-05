@@ -230,8 +230,10 @@ task hang {
 
         then:
         resultHandler.assertFailedWith(BuildCancelledException)
-        assert resultHandler.failure.message.startsWith("Could not execute build using Gradle")
-        // TODO - the failure should have a cause explaining what went wrong and a failure report in the logging output
-        assert resultHandler.failure.cause == null
+        resultHandler.failure.message.startsWith("Could not execute build using Gradle")
+        if (targetDist.toolingApiHasCauseOnForcedCancel) {
+            resultHandler.failure.cause.message.startsWith("Daemon was stopped to handle build cancel request.")
+        }
+        // TODO - should have a failure report in the logging output
     }
 }

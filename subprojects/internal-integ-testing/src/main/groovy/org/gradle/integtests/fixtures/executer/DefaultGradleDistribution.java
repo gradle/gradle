@@ -198,8 +198,14 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiHasCauseOnCancel() {
-        // Versions before 3.2 would throw away the cause. There was also a regression 4.0
-        return isSameOrNewer("3.2") && !version.getBaseVersion().equals(GradleVersion.version("4.0"));
+        // Versions before 3.2 would throw away the cause. There was also a regression in 4.0.x
+        return isSameOrNewer("3.2") && !(isSameOrNewer("4.0") && isSameOrOlder("4.0.2"));
+    }
+
+    @Override
+    public boolean isToolingApiHasCauseOnForcedCancel() {
+        // Versions before 5.1 would discard context on forced cancel
+        return isSameOrNewer("5.1");
     }
 
     @Override
