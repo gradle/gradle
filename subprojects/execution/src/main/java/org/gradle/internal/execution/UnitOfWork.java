@@ -50,6 +50,16 @@ public interface UnitOfWork extends CacheableEntity {
 
     Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
 
+    /**
+     * Paths to locations changed by the unit of work.
+     *
+     * <p>
+     * We don't want to invalidate the whole file system mirror for artifact transformations, since I know exactly which parts need to be invalidated.
+     * For tasks though, we still need to invalidate everything.
+     * </p>
+     *
+     * @return {@link Optional#empty()} if the unit of work cannot guarantee that only some files have been changed or an iterable of the paths which were changed by the unit of work.
+     */
     Optional<? extends Iterable<String>> getChangingOutputs();
 
     interface OutputVisitor {
