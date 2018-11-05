@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.CacheHandler;

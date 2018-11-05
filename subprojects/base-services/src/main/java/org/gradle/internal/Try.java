@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
-
-import org.gradle.internal.UncheckedException;
+package org.gradle.internal;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -37,11 +35,11 @@ public abstract class Try<T> {
     }
 
     public static <U> Try<U> successful(U u) {
-        return new Success<>(u);
+        return new Success<U>(u);
     }
 
     public static <U> Try<U> failure(Throwable e) {
-        return new Failure<>(e);
+        return new Failure<U>(e);
     }
 
     public abstract T get();
@@ -50,8 +48,13 @@ public abstract class Try<T> {
 
     public abstract <U> Try<U> flatMap(Function<? super T, Try<U>> f);
 
-    public <U> Try<U> map(Function<? super T, U> f) {
-        return flatMap(x -> Try.successful(f.apply(x)));
+    public <U> Try<U> map(final Function<? super T, U> f) {
+        return flatMap(new Function<T, Try<U>>() {
+            @Override
+            public Try<U> apply(T input) {
+                return Try.successful(f.apply(input));
+            }
+        });
     }
 
     public abstract Try<T> mapFailure(Function<Throwable, Throwable> f);
@@ -93,6 +96,25 @@ public abstract class Try<T> {
         public void ifSuccessful(Consumer<T> consumer) {
             consumer.accept(value);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Success<?> success = (Success<?>) o;
+
+            return value.equals(success.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
     }
 
     private static class Failure<T> extends Try<T> {
@@ -124,6 +146,25 @@ public abstract class Try<T> {
 
         @Override
         public void ifSuccessful(Consumer<T> consumer) {
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Failure<?> failure1 = (Failure<?>) o;
+
+            return failure.equals(failure1.failure);
+        }
+
+        @Override
+        public int hashCode() {
+            return failure.hashCode();
         }
     }
 }
