@@ -956,8 +956,8 @@ conf
         output.contains """
 conf
 +--- group:moduleA:{require 1.+; prefer 1.0} -> 1.0
-+--- group:moduleB:{strictly 1.0}
-\\--- group:moduleC:{require 1.0; reject 1.1 & 1.2}
++--- group:moduleB:{strictly 1.0} -> 1.0
+\\--- group:moduleC:{require 1.0; reject 1.1 & 1.2} -> 1.0
 """
     }
 

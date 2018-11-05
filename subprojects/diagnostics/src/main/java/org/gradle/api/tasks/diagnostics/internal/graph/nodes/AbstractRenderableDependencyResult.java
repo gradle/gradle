@@ -31,7 +31,7 @@ public abstract class AbstractRenderableDependencyResult extends AbstractRendera
         ComponentSelector requested = getRequested();
         ComponentIdentifier selected = getActual();
 
-        if(requested.matchesStrictly(selected)) {
+        if(exactMatch(requested, selected)) {
             return getSimpleName();
         }
 
