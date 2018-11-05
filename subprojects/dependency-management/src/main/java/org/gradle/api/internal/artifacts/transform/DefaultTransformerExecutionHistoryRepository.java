@@ -29,7 +29,6 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.execution.history.impl.FileCollectionFingerprintSerializer;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -43,6 +42,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.Optional;
 
@@ -51,7 +51,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORM
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository, Stoppable {
+public class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository, Closeable {
     
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
     private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
@@ -102,7 +102,7 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     }
 
     @Override
-    public void stop() {
+    public void close() {
         cache.close();
     }
 
