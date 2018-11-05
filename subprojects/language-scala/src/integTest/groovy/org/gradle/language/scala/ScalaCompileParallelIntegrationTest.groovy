@@ -16,14 +16,12 @@
 
 package org.gradle.language.scala
 
-import org.gradle.api.internal.tasks.scala.ZincScalaCompilerUtil
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GradleVersion
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
@@ -55,9 +53,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << """
             allprojects {
-                $isolatedZincCacheHome
                 ${blockUntilAllCompilersAreReady('$path')}
-                $userProvidedZincDirSystemProperty
             }
             $lockTimeoutLoggerListenerSource
         """
@@ -68,10 +64,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        zincCacheInterfaceJars.size() == 1
-        configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
-        leakedTempFiles.isEmpty()
 
         // Check that we can successfully use an existing compiler-interface.jar as well
         when:
@@ -80,9 +72,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        zincCacheInterfaceJars.size() == 1
-        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
-        leakedTempFiles.isEmpty()
     }
 
     // This can be re-enabled once scala compile task uses the worker api
@@ -98,9 +87,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
             compileTasks << ":compile${componentName.capitalize()}Jar${componentName.capitalize()}Scala".toString()
         }
-        buildFile << isolatedZincCacheHome
         buildFile << blockUntilAllCompilersAreReady('$path')
-        buildFile << userProvidedZincDirSystemProperty
         buildFile << lockTimeoutLoggerListenerSource
         expectTasksWithParallelExecuter()
 
@@ -109,10 +96,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        zincCacheInterfaceJars.size() == 1
-        configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
-        leakedTempFiles.isEmpty()
     }
 
     def "multiple independent builds are multi-process safe" () {
@@ -132,9 +115,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             def projectName = "project$it"
             populateProject(projectName)
             projectDir(projectName).file('settings.gradle') << "rootProject.name = '${projectName}'"
-            projectBuildFile(projectName) << isolatedZincCacheHome
             projectBuildFile(projectName) << blockUntilAllCompilersAreReady(':$project.name:$name')
-            projectBuildFile(projectName) << userProvidedZincDirSystemProperty
             projectBuildFile(projectName) << lockTimeoutLoggerListenerSource
 
             buildFile << """
@@ -153,40 +134,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        zincCacheInterfaceJars.size() == 1
-        configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
-        leakedTempFiles.isEmpty()
-    }
-
-    def "no warning shown when zinc dir is not set by user"() {
-        given:
-        def projects = (1..4)
-        projects.each {
-            def projectName = "project$it"
-            populateProject(projectName)
-            settingsFile << """
-                include '$projectName'
-            """
-            compileTasks << ":${projectName}:compileMainJarMainScala".toString()
-        }
-        buildFile << """
-            allprojects {
-                $isolatedZincCacheHome
-                ${blockUntilAllCompilersAreReady('$path')}
-            }
-            $lockTimeoutLoggerListenerSource
-        """
-        expectTasksWithParallelExecuter()
-
-        when:
-        succeeds("build")
-
-        then:
-        noExceptionThrown()
-        zincCacheInterfaceJars.size() == 1
-        !output.contains(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE)
-        leakedTempFiles.isEmpty()
     }
 
     GradleExecuter expectTasksWithParallelExecuter() {
@@ -273,54 +220,12 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         return file("gradleUserHome")
     }
 
-    TestFile getConfiguredZincDir() {
-        return file("configuredZincDir")
-    }
-
-    TestFile getZincCacheHomeDir() {
-        return file("zincHome")
-    }
-
-    Set<File> getZincCacheInterfaceJars() {
-        return findInterfaceJars(zincCacheHomeDir.file("caches/${GradleVersion.current().version}/zinc-${DefaultScalaToolProvider.DEFAULT_ZINC_VERSION}"))
-    }
-
-    Set<File> getConfiguredZincDirInterfaceJars() {
-        return findInterfaceJars(configuredZincDir)
-    }
-
-    Set<File> getLeakedTempFiles() {
-        return zincCacheHomeDir.file("tmp").allDescendants().collect { file(it) }
-    }
-
-    Set<File> findInterfaceJars(TestFile zincDir) {
-        return zincDir.allDescendants()
-            .collect { file(it) }
-            .findAll { it.name.startsWith("compiler-interface-") && it.name.endsWith(".jar") }
-    }
-
     TestFile projectDir(String projectName) {
         return testDirectory.file(projectName)
     }
 
     TestFile projectBuildFile(String projectName) {
         return projectDir(projectName).file("build.gradle")
-    }
-
-    String getIsolatedZincCacheHome() {
-        return """
-            tasks.withType(PlatformScalaCompile) {
-                options.forkOptions.jvmArgs += "-D${ZincScalaCompilerUtil.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY}=${TextUtil.normaliseFileSeparators(zincCacheHomeDir.absolutePath)}"
-            }
-        """
-    }
-
-    String getUserProvidedZincDirSystemProperty() {
-        return """
-            tasks.withType(PlatformScalaCompile) {
-                options.forkOptions.jvmArgs += '-Dzinc.dir=${TextUtil.normaliseFileSeparators(configuredZincDir.absolutePath)}'
-            }
-        """
     }
 
     String blockUntilAllCompilersAreReady(String id) {

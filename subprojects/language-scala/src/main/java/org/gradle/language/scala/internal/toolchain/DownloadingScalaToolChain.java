@@ -63,8 +63,11 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     public ToolProvider select(ScalaPlatform targetPlatform) {
         try {
             Configuration scalaClasspath = resolveDependency("org.scala-lang:scala-compiler:" + targetPlatform.getScalaVersion());
-            Configuration zincClasspath = resolveDependency("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+            Configuration zincClasspath = resolveDependency("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
             Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
+            Configuration compilerBridge = resolveDependency("org.scala-sbt:compiler-bridge_" + targetPlatform.getScalaCompatibilityVersion()+ ":" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+            compilerBridge.setTransitive(false);
+            resolvedScalaClasspath.addAll(compilerBridge.resolve());
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
             return new DefaultScalaToolProvider(gradleUserHomeDir, daemonWorkingDir, workerDaemonFactory, forkOptionsFactory, resolvedScalaClasspath, resolvedZincClasspath);
 

@@ -26,11 +26,11 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         buildFile << """
             apply plugin: "scala"
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.scala-lang:scala-library:2.10.7"
-                zinc "com.typesafe.zinc:zinc:${version}"
+                zinc "org.scala-sbt:zinc_2.12:${version}"
             }
         """
         args("--info")

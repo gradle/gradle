@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,121 +16,317 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import com.google.common.collect.ImmutableList;
-import com.typesafe.zinc.IncOptions;
-import com.typesafe.zinc.Inputs;
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.cache.internal.MapBackedCache;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
+import sbt.internal.inc.Analysis;
+import sbt.internal.inc.ExternalLookup;
+import sbt.internal.inc.IncrementalCompilerImpl;
+import sbt.internal.inc.Locate;
+import sbt.internal.inc.LoggedReporter;
+import sbt.internal.inc.ScalaInstance;
+import sbt.internal.inc.Stamper;
+import scala.None$;
 import scala.Option;
+import scala.Some;
+import scala.collection.JavaConversions;
+import scala.collection.immutable.HashSet;
+import scala.collection.immutable.Set;
+import xsbti.T2;
+import xsbti.compile.AnalysisContents;
+import xsbti.compile.AnalysisStore;
+import xsbti.compile.Changes;
+import xsbti.compile.ClassFileManager;
+import xsbti.compile.ClasspathOptionsUtil;
+import xsbti.compile.CompileAnalysis;
+import xsbti.compile.CompileOptions;
+import xsbti.compile.CompileResult;
+import xsbti.compile.CompilerCache;
+import xsbti.compile.Compilers;
+import xsbti.compile.DefinesClass;
+import xsbti.compile.ExternalHooks;
+import xsbti.compile.FileHash;
+import xsbti.compile.IncOptions;
+import xsbti.compile.Inputs;
+import xsbti.compile.PerClasspathEntryLookup;
+import xsbti.compile.PreviousResult;
+import xsbti.compile.ScalaCompiler;
+import xsbti.compile.Setup;
+import xsbti.compile.analysis.Stamp;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
+public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
+
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
-    private final Iterable<File> scalaClasspath;
-    private Iterable<File> zincClasspath;
-    private final File gradleUserHome;
+    private static final xsbti.Logger SBT_LOGGER_ADAPTER = new SbtLoggerAdapter();
 
-    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
-        this.scalaClasspath = scalaClasspath;
-        this.zincClasspath = zincClasspath;
-        this.gradleUserHome = gradleUserHome;
+    private final ScalaInstance scalaInstance;
+    private final ScalaCompiler scalaCompiler;
+    private final Optional<File> javaHome;
+    private final AnalysisStoreProvider analysisStoreProvider;
+
+    private final static ClearableMapBackedCache<File, DefinesClass> DEFINE_CLASS_CACHE = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
+
+    private static long defineClassCacheTimestamp = -1;
+
+    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, Optional<File> javaHome, AnalysisStoreProvider analysisStoreProvider) {
+        this.scalaInstance = scalaInstance;
+        this.scalaCompiler = scalaCompiler;
+        this.javaHome = javaHome;
+        this.analysisStoreProvider = analysisStoreProvider;
     }
 
-    @Override
-    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return Compiler.execute(scalaClasspath, zincClasspath, gradleUserHome, spec);
+    public WorkResult execute(final ScalaJavaJointCompileSpec spec) {
+
+        LOGGER.info("Compiling with Zinc Scala compiler.");
+
+        Timer timer = Time.startTimer();
+
+        if (defineClassCacheTimestamp != spec.getBuildStartTimestamp()) {
+            DEFINE_CLASS_CACHE.clear();
+            LOGGER.info("Removed defineClassCache due to build timestamp ({}), old({})", spec.getBuildStartTimestamp(), defineClassCacheTimestamp);
+            defineClassCacheTimestamp = spec.getBuildStartTimestamp();
+        }
+
+        IncrementalCompilerImpl incremental = new IncrementalCompilerImpl();
+
+        Compilers compilers = incremental.compilers(scalaInstance, ClasspathOptionsUtil.boot(), Option.apply(Jvm.current().getJavaHome()), scalaCompiler);
+
+        List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
+        List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
+
+        CompileOptions compileOptions = CompileOptions.create()
+            .withSources(Iterables.toArray(spec.getSourceFiles(), File.class))
+            .withClasspath(Iterables.toArray(Iterables.concat(Arrays.asList(scalaInstance.allJars()), spec.getCompileClasspath()), File.class))
+            .withScalacOptions(scalacOptions.toArray(new String[scalacOptions.size()]))
+            .withClassesDirectory(spec.getDestinationDir())
+            .withJavacOptions(javacOptions.toArray(new String[javacOptions.size()]));
+
+        File analysisFile = spec.getAnalysisFile();
+        AnalysisStore analysisStore = analysisStoreProvider.get(analysisFile);
+
+        PreviousResult previousResult = analysisStore.get()
+            .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup())))
+            .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
+
+        IncOptions incOptions = IncOptions.of()
+                                .withExternalHooks(new LookupOnlyExternalHooks(new ExternalBinariesLookup()))
+                                .withRecompileOnMacroDef(Optional.of(false))
+                                .withTransitiveStep(5);
+
+        Setup setup = incremental.setup(new EntryLookup(spec),
+            false,
+            analysisFile,
+            CompilerCache.fresh(),
+            incOptions,
+            new LoggedReporter(100, SBT_LOGGER_ADAPTER, p -> p),
+            Option.empty(),
+            getExtra()
+            );
+
+        Inputs inputs = incremental.inputs(compileOptions, compilers, setup, previousResult);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(inputs.toString());
+        }
+        if (spec.getScalaCompileOptions().isForce()) {
+            GFileUtils.deleteDirectory(spec.getDestinationDir());
+            LOGGER.info("Removed dir {}", spec.getDestinationDir());
+        }
+        LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
+
+        try {
+            CompileResult compile = incremental.compile(inputs, SBT_LOGGER_ADAPTER);
+            AnalysisContents contentNext = AnalysisContents.create(compile.analysis(), compile.setup());
+            analysisStore.set(contentNext);
+        } catch (xsbti.CompileFailed e) {
+            throw new CompilationFailedException(e);
+        }
+        LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
+        return WorkResults.didWork(true);
     }
 
-    // need to defer loading of Zinc/sbt/Scala classes until we are
-    // running in the compiler daemon and have them on the class path
-    private static class Compiler {
-        static WorkResult execute(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, final ScalaJavaJointCompileSpec spec) {
-            LOGGER.info("Compiling with Zinc Scala compiler.");
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static T2<String, String>[] getExtra() {
+        return new T2[0];
+    }
 
-            final xsbti.Logger logger = new SbtLoggerAdapter();
+    private class EntryLookup implements PerClasspathEntryLookup {
+        private final Map<File, File> analysisMap;
 
-            Timer timer = Time.startTimer();
-            com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
-            LOGGER.info("Initialized Zinc Scala compiler: {}", timer.getElapsed());
-
-            List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
-            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
-            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getCompileClasspath()), ImmutableList.copyOf(spec.getSourceFiles()), spec.getDestinationDir(),
-                    scalacOptions, javacOptions, spec.getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
-            if (LOGGER.isDebugEnabled()) {
-                Inputs.debug(inputs, logger);
-            }
-
-            if (spec.getScalaCompileOptions().isForce()) {
-                GFileUtils.deleteDirectory(spec.getDestinationDir());
-            }
-            LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
-
-            try {
-                compiler.compile(inputs, logger);
-            } catch (xsbti.CompileFailed e) {
-                throw new CompilationFailedException(e);
-            }
-            LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
-
-            return WorkResults.didWork(true);
+        public EntryLookup(ScalaJavaJointCompileSpec spec) {
+            this.analysisMap = new HashMap<>();
+            analysisMap.put(spec.getDestinationDir(), spec.getAnalysisFile());
+            analysisMap.putAll(spec.getAnalysisMap());
         }
 
-        private static IncOptions getIncOptions() {
-            //The values are based on what I have found in sbt-compiler-maven-plugin.googlecode.com and zinc documentation
-            //Hard to say what effect they have on the incremental build
-            int transitiveStep = 3;
-            double recompileAllFraction = 0.5d;
-            boolean relationsDebug = false;
-            boolean apiDebug = false;
-            int apiDiffContextSize = 5;
-            Option<File> apiDumpDirectory = Option.empty();
-            boolean transactional = false;
-            Option<File> backup = Option.empty();
-
-            // We need to use the deprecated constructor as it is compatible with certain previous versions of the Zinc compiler
-            @SuppressWarnings("deprecation")
-            IncOptions options = new IncOptions(transitiveStep, recompileAllFraction, relationsDebug, apiDebug, apiDiffContextSize, apiDumpDirectory, transactional, backup);
-            return options;
+        @Override
+        public Optional<CompileAnalysis> analysis(File classpathEntry) {
+            return Optional.ofNullable(analysisMap.get(classpathEntry)).flatMap(f -> analysisStoreProvider.get(f).get().map(a -> a.getAnalysis()));
         }
 
+        @Override
+        public DefinesClass definesClass(File classpathEntry) {
+            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis)a : null).map(a -> new AnalysisBakedDefineClass(a));
+            return dc.orElseGet(() -> {
+                return DEFINE_CLASS_CACHE.get(classpathEntry, new Factory<DefinesClass>() {
+                    @Nullable
+                    @Override
+                    public DefinesClass create() {
+                        return Locate.definesClass(classpathEntry);
+                    }
+                });
+            });
+        }
+    }
+
+    private class ExternalBinariesLookup implements ExternalLookup {
+
+        @SuppressWarnings("unchecked")
+        public <T> Option<T> none() {
+            return (Option<T>) None$.MODULE$;
+        }
+
+        @Override
+        public Option<Changes<File>> changedSources(CompileAnalysis previousAnalysis) {
+            return none();
+        }
+
+
+        @Override
+        public Option<Set<File>> changedBinaries(CompileAnalysis previousAnalysis) {
+            java.util.List<File> result = new java.util.ArrayList<File>();
+
+            for (Map.Entry<File, Stamp> e: previousAnalysis.readStamps().getAllBinaryStamps().entrySet()) {
+                if (!e.getKey().exists() || !e.getValue().equals(Stamper.forLastModified().apply(e.getKey()))) {
+                    result.add(e.getKey());
+                }
+            }
+            //return new Some<Set<File>>(new HashSet<>());
+            //return Option.empty();
+            if (result.isEmpty()) {
+                return new Some<Set<File>>(new HashSet<>());
+            } else {
+                return new Some<Set<File>>(JavaConversions.asScalaBuffer(result).<File>toSet());
+            }
+        }
+
+
+        @Override
+        public Option<Set<File>> removedProducts(CompileAnalysis previousAnalysis) {
+            return new Some<Set<File>>(new HashSet<>()); //return none();
+        }
+
+        @Override
+        public boolean shouldDoIncrementalCompilation(Set<String> changedClasses, CompileAnalysis analysis) {
+            return true;
+        }
+
+
+        @Override
+        public Optional<FileHash[]> hashClasspath(File[] classpath) {
+            return Optional.empty();
+        }
+    }
+
+    private class LookupOnlyExternalHooks implements ExternalHooks {
+        private final Optional<Lookup> lookup;
+
+        public LookupOnlyExternalHooks(Lookup lookup) {
+            this.lookup = Optional.of(lookup);
+        }
+
+        @Override
+        public Optional<Lookup> getExternalLookup() {
+            return lookup;
+        }
+
+        @Override
+        public Optional<ClassFileManager> getExternalClassFileManager() {
+            return Optional.empty();
+        }
+
+        @Override
+        public ExternalHooks withExternalClassFileManager(ClassFileManager externalClassFileManager) {
+            return this;
+        }
+
+        @Override
+        public ExternalHooks withExternalLookup(Lookup externalLookup) {
+            return this;
+        }
+    }
+
+    private class AnalysisBakedDefineClass implements DefinesClass {
+        private final Analysis analysis;
+
+        public AnalysisBakedDefineClass(Analysis analysis) {
+            this.analysis = analysis;
+        }
+
+        @Override
+        public boolean apply(String className) {
+            return analysis.relations().productClassName().reverse(className).nonEmpty();
+        }
     }
 
     private static class SbtLoggerAdapter implements xsbti.Logger {
         @Override
-        public void error(xsbti.F0<String> msg) {
-            LOGGER.error(msg.apply());
+        public void error(Supplier<String> msg) {
+            LOGGER.error(msg.get());
         }
 
         @Override
-        public void warn(xsbti.F0<String> msg) {
-            LOGGER.warn(msg.apply());
+        public void warn(Supplier<String> msg) {
+            LOGGER.warn(msg.get());
         }
 
         @Override
-        public void info(xsbti.F0<String> msg) {
-            LOGGER.info(msg.apply());
+        public void info(Supplier<String> msg) {
+            LOGGER.info(msg.get());
         }
 
         @Override
-        public void debug(xsbti.F0<String> msg) {
-            LOGGER.debug(msg.apply());
+        public void debug(Supplier<String> msg) {
+            LOGGER.debug(msg.get());
         }
 
         @Override
-        public void trace(xsbti.F0<Throwable> exception) {
-            LOGGER.trace(exception.apply().toString());
+        public void trace(Supplier<Throwable> exception) {
+            LOGGER.trace(exception.get().toString());
+        }
+    }
+
+    private static class ClearableMapBackedCache<K, V> extends MapBackedCache<K, V> {
+
+        private final Map<K, V> map;
+
+        public ClearableMapBackedCache(Map<K, V> map) {
+            super(map);
+            this.map = map;
+        }
+
+        public void clear() {
+            map.clear();
         }
     }
 }
