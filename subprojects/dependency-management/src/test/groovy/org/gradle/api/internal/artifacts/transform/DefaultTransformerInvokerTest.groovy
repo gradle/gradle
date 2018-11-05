@@ -116,10 +116,13 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         given:
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
+        def transformer = Stub(Transformer) {
+            getSecondaryInputHash() >> hash
+        }
         _ * snapshotter.snapshot(_) >> snapshot(hash)
 
         expect:
-        !transformerInvoker.contains(inputFile, hash)
+        !transformerInvoker.hasCachedResult(inputFile, transformer)
     }
 
     def "contains result after transform ran once"() {
@@ -127,6 +130,9 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         def transformerRegistration = Mock(DefaultTransformer)
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
+        def transformer = Stub(Transformer) {
+            getSecondaryInputHash() >> hash
+        }
         _ * transformerRegistration.secondaryInputHash >> hash
         _ * snapshotter.snapshot(_) >> snapshot(hash)
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
@@ -135,7 +141,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        transformerInvoker.contains(inputFile, hash)
+        transformerInvoker.hasCachedResult(inputFile, transformer)
     }
 
     def "does not contain result if a different transform ran"() {
@@ -144,6 +150,9 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
         def otherHash = HashCode.fromInt(456)
+        def otherTransformer = Stub(Transformer) {
+            getSecondaryInputHash() >> otherHash
+        }
         _ * transformerRegistration.secondaryInputHash >> hash
         _ * snapshotter.snapshot(_) >> snapshot(hash)
         _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [file] }
@@ -152,7 +161,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        !transformerInvoker.contains(inputFile, otherHash)
+        !transformerInvoker.hasCachedResult(inputFile, otherTransformer)
     }
 
     def "reuses result when transform returns its input file"() {

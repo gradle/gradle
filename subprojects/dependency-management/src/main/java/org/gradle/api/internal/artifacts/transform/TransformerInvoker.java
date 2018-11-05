@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 
@@ -29,5 +28,5 @@ public interface TransformerInvoker {
      */
     Try<ImmutableList<File>> invoke(TransformerInvocation invocation);
 
-    boolean contains(File absoluteFile, HashCode inputsHash);
+    boolean hasCachedResult(File primaryInput, Transformer transformer);
 }

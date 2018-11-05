@@ -84,8 +84,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean contains(File absoluteFile, HashCode inputsHash) {
-        return resultHashToResult.containsKey(getCacheKey(absoluteFile, inputsHash));
+    public boolean hasCachedResult(File primaryInput, Transformer transformer) {
+        return resultHashToResult.containsKey(getCacheKey(primaryInput.getAbsoluteFile(), transformer.getSecondaryInputHash()));
     }
 
     @Override

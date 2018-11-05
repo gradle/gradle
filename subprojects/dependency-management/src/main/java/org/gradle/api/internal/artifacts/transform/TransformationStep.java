@@ -66,7 +66,7 @@ public class TransformationStep implements Transformation {
             return true;
         }
         for (File file : subject.getFiles()) {
-            if (!transformerInvoker.contains(file.getAbsoluteFile(), transformer.getSecondaryInputHash())) {
+            if (!transformerInvoker.hasCachedResult(file, transformer)) {
                 return false;
             }
         }
