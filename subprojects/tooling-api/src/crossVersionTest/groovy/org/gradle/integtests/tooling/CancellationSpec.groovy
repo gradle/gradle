@@ -95,14 +95,13 @@ latch.await()
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith("Could not execute build using Gradle")
         if (targetDist.toolingApiRetainsOriginalFailureOnCancel) {
-            assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, should probably suppress this
+            assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, could probably suppress this
             assert resultHandler.failure.cause.cause.message == "Execution failed for task '${taskPath}'."
             assert resultHandler.failure.cause.cause.cause.message == "Build cancelled during executing task '${taskPath}'"
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription("Execution failed for task '${taskPath}'.")
             failure.assertHasCause("Build cancelled during executing task '${taskPath}'")
         } else {
-            assert resultHandler.failure.cause.message.startsWith("Build cancelled")
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription("Build cancelled")
         }

@@ -17,9 +17,21 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Transformers;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 
 class CancellationExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
+    private CancellationExceptionTransformer() {
+    }
+
+    static Transformer<RuntimeException, RuntimeException> transformerFor(VersionDetails versionDetails) {
+        if (versionDetails.honorsContractOnCancel()) {
+            return Transformers.noOpTransformer();
+        }
+        return new CancellationExceptionTransformer();
+    }
+
     public RuntimeException transform(RuntimeException e) {
         for (Throwable t = e; t != null; t = t.getCause()) {
             if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())

@@ -86,17 +86,17 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * _
     }
 
-    def "throws an exception when build is cancelled and daemon is forcefully stopped"() {
+    def "fails with an exception when build is cancelled and daemon is forcefully stopped"() {
         def cancellationToken = Mock(BuildCancellationToken)
         def buildRequestContext = Stub(BuildRequestContext) {
             getCancellationToken() >> cancellationToken
         }
 
         when:
-        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), Stub(ServiceRegistry))
+        def result = client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), Stub(ServiceRegistry))
 
         then:
-        BuildCancelledException gce = thrown()
+        result.exception instanceof BuildCancelledException
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
@@ -112,38 +112,6 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.dispatch({it instanceof Finished})
         1 * cancellationToken.cancellationRequested >> true
         1 * cancellationToken.removeCallback(_)
-        1 * connection.stop()
-        0 * _
-    }
-
-    def "throws an exception when build is cancelled and correctly finishes build"() {
-        def cancellationToken = Mock(BuildCancellationToken)
-        def cancelledException = new BuildCancelledException()
-        def buildRequestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-        }
-
-        when:
-        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), Stub(ServiceRegistry))
-
-        then:
-        BuildCancelledException gce = thrown()
-        gce == cancelledException
-        1 * processEnvironment.maybeGetPid()
-        1 * connector.connect(compatibilitySpec) >> connection
-        _ * connection.daemon >> Stub(DaemonConnectDetails)
-        1 * cancellationToken.addCallback(_) >> { Runnable callback ->
-            // simulate cancel request processing
-            callback.run()
-            return false
-        }
-        1 * cancellationToken.removeCallback(_)
-
-        1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [ Stub(BuildStarted), new Failure(cancelledException)]
-        1 * connection.dispatch({it instanceof Cancel})
-        1 * connection.dispatch({it instanceof CloseInput})
-        1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
         0 * _
     }
