@@ -17,20 +17,18 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.Util;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -69,30 +67,30 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     @Override
     public History getHistory(final TaskInternal task, final TaskProperties taskProperties) {
         return new History() {
-            private boolean previousExecutionLoadAttempted;
-            private HistoricalTaskExecution previousExecution;
-            private CurrentTaskExecution currentExecution;
+            private boolean afterPreviousExecutionStateLoadAttempted;
+            private AfterPreviousExecutionState afterPreviousExecutionState;
+            private BeforeExecutionState beforeExecutionState;
 
             @Override
-            public HistoricalTaskExecution getPreviousExecution() {
-                if (!previousExecutionLoadAttempted) {
-                    previousExecutionLoadAttempted = true;
-                    previousExecution = loadPreviousExecution(task);
+            public AfterPreviousExecutionState getAfterPreviousExecutionState() {
+                if (!afterPreviousExecutionStateLoadAttempted) {
+                    afterPreviousExecutionStateLoadAttempted = true;
+                    afterPreviousExecutionState = loadPreviousExecution(task);
                 }
-                return previousExecution;
+                return afterPreviousExecutionState;
             }
 
             @Override
-            public CurrentTaskExecution getCurrentExecution() {
-                if (currentExecution == null) {
-                    currentExecution = createExecution(task, taskProperties, getPreviousExecution());
+            public BeforeExecutionState getBeforeExecutionState() {
+                if (beforeExecutionState == null) {
+                    beforeExecutionState = createExecution(task, taskProperties, getAfterPreviousExecutionState());
                 }
-                return currentExecution;
+                return beforeExecutionState;
             }
 
             @Override
             public void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-                CurrentTaskExecution execution = getCurrentExecution();
+                BeforeExecutionState execution = getBeforeExecutionState();
                 executionHistoryStore.store(
                     task.getPath(),
                     OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
@@ -107,7 +105,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable HistoricalTaskExecution previousExecution) {
+    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -119,20 +117,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @SuppressWarnings("RedundantTypeArguments")
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
-
-        ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(taskProperties);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = Util.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = Util.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
 
-        return new CurrentTaskExecution(
+        return new DefaultBeforeExecutionState(
             taskImplementation,
             taskActionImplementations,
             inputProperties,
-            outputPropertyNames,
             inputFiles,
             outputFiles
         );
@@ -172,33 +167,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Nullable
-    private HistoricalTaskExecution loadPreviousExecution(TaskInternal task) {
-        AfterPreviousExecutionState execution = executionHistoryStore.load(task.getPath());
-        if (execution == null) {
-            return null;
-        }
-        return new HistoricalTaskExecution(
-            execution.getImplementation(),
-            execution.getAdditionalImplementations(),
-            execution.getInputProperties(),
-            execution.getInputFileProperties(),
-            execution.getOutputFileProperties(),
-            execution.isSuccessful(),
-            execution.getOriginMetadata()
-        );
-    }
-
-    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskProperties taskProperties) {
-        ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties = taskProperties.getOutputFileProperties();
-        List<String> outputPropertyNames = Lists.newArrayListWithCapacity(fileProperties.size());
-        for (TaskOutputFilePropertySpec propertySpec : fileProperties) {
-            if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
-                CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
-                if (cacheablePropertySpec.getOutputFile() != null) {
-                    outputPropertyNames.add(propertySpec.getPropertyName());
-                }
-            }
-        }
-        return ImmutableSortedSet.copyOf(outputPropertyNames);
+    private AfterPreviousExecutionState loadPreviousExecution(TaskInternal task) {
+        return executionHistoryStore.load(task.getPath());
     }
 }
