@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -56,7 +57,7 @@ public interface TaskArtifactState {
     /**
      * Returns the calculated cache key for the task's current state.
      */
-    TaskOutputCachingBuildCacheKey calculateCacheKey();
+    TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties);
 
     /**
      * Ensure snapshot is taken of the task's inputs and outputs before it is executed.

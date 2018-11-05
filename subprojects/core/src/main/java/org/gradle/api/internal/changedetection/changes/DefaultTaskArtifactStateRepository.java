@@ -23,7 +23,6 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -33,6 +32,7 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -120,7 +120,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
-            CurrentTaskExecution currentExecution = history.getCurrentExecution();
+            BeforeExecutionState currentExecution = history.getCurrentExecution();
             AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
             return OverlappingOutputs.detect(
                 previousExecution == null
@@ -131,8 +131,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            return taskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
+        public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
+            return taskCacheKeyCalculator.calculate(task, history.getCurrentExecution(), taskProperties);
         }
 
         @Override
@@ -153,7 +153,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
             AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
-            CurrentTaskExecution currentExecution = history.getCurrentExecution();
+            BeforeExecutionState currentExecution = history.getCurrentExecution();
             return Util.fingerprintAfterOutputsGenerated(
                 previousExecution == null ? null : previousExecution.getOutputFileProperties(),
                 currentExecution.getOutputFileProperties(),
@@ -186,7 +186,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
                 // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-                CurrentTaskExecution currentExecution = history.getCurrentExecution();
+                BeforeExecutionState currentExecution = history.getCurrentExecution();
                 if (previousExecution == null || outputsRemoved) {
                     states = null;
                 } else {

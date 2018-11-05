@@ -134,8 +134,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            return delegate.calculateCacheKey();
+        public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
+            return delegate.calculateCacheKey(taskProperties);
         }
 
         @Override

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
@@ -139,7 +140,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public TaskOutputCachingBuildCacheKey calculateCacheKey() {
+    public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
         return NO_CACHE_KEY;
     }
 

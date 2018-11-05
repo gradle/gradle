@@ -59,7 +59,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskProperties() >> taskProperties
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.calculateCacheKey(taskProperties) >> cacheKey
 
         then:
         1 * taskProperties.hasDeclaredOutputs() >> true
@@ -83,7 +83,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> {
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskArtifactState.calculateCacheKey(taskProperties) >> {
             throw failure
         }
         0 * _
@@ -101,10 +102,10 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> noCacheKey
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskArtifactState.calculateCacheKey(taskProperties) >> noCacheKey
 
         then:
-        1 * taskContext.getTaskProperties() >> taskProperties
         1 * taskProperties.hasDeclaredOutputs() >> false
 
         then:
