@@ -18,25 +18,34 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class UnresolvedDependencyEdge implements DependencyEdge {
     private final UnresolvedDependencyResult dependency;
-    private final ModuleComponentIdentifier actual;
+    private final ComponentIdentifier actual;
 
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        // TODO:Prezi Is this cast safe? Can't this be a LibraryComponentSelector, say?
-        ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
-        actual = DefaultModuleComponentIdentifier.newId(attempted.getModuleIdentifier(), attempted.getVersion());
+
+        if (dependency.getAttempted() instanceof ModuleComponentSelector) {
+            ModuleComponentSelector attempted = (ModuleComponentSelector) dependency.getAttempted();
+            actual = DefaultModuleComponentIdentifier.newId(attempted.getModuleIdentifier(), attempted.getVersion());
+        } else if (dependency.getAttempted() instanceof DefaultProjectComponentSelector) {
+            DefaultProjectComponentSelector attempted = (DefaultProjectComponentSelector) dependency.getAttempted();
+            actual = new DefaultProjectComponentIdentifier(attempted.getBuildIdentifier(), attempted.getIdentityPath(), attempted.projectPath(), attempted.getProjectName());
+        } else {
+            actual = new OpaqueComponentIdentifier(dependency.getAttempted().getDisplayName());
+        }
     }
 
     public Throwable getFailure() {
@@ -54,7 +63,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
-    public ModuleComponentIdentifier getActual() {
+    public ComponentIdentifier getActual() {
         return actual;
     }
 
