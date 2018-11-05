@@ -18,29 +18,22 @@ package org.gradle.integtests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
-import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.broken
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
-@Issue('https://github.com/gradle/gradle-private/issues/1537')
-@Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @Rule HttpServer server = new HttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    void setup() {
+    def setup() {
         server.start()
-        server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
         file("build.gradle") << """
     task hello {
         doLast {
@@ -60,10 +53,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(new URI("${baseUrl}/gradlew/dist"))
     }
 
-    public void "downloads wrapper from http server and caches"() {
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    def "downloads wrapper from http server and caches"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
-        server.expectGet("/gradlew/dist", distribution.binDistribution)
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -78,10 +72,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
     }
 
-    public void "recovers from failed download"() {
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    def "recovers from failed download"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
-        server.addBroken("/")
+        server.expect(server.get("/gradlew/dist", broken()))
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -91,8 +86,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         failure.error.contains('Server returned HTTP response code: 500')
 
         when:
-        server.resetExpectations()
-        server.expectGet("/gradlew/dist", distribution.binDistribution)
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         and:
         wrapperExecuter.run()
@@ -101,7 +95,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         noExceptionThrown()
     }
 
-    public void "downloads wrapper via proxy"() {
+    def "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
         prepareWrapper(server.uri.toString())
@@ -110,7 +104,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     systemProp.http.proxyPort=${proxyServer.port}
     systemProp.http.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}
 """
-        server.expectGet("/gradlew/dist", distribution.binDistribution)
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -122,13 +116,13 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.requestCount == 1
     }
 
-    public void "downloads wrapper via authenticated proxy"() {
+    def "downloads wrapper via authenticated proxy"() {
         given:
         proxyServer.start('my_user', 'my_password')
 
         and:
         prepareWrapper(server.uri.toString())
-        server.expectGet("/gradlew/dist", distribution.binDistribution)
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
@@ -150,7 +144,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "downloads wrapper from basic authenticated server and caches"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+        server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -174,7 +169,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         prepareWrapper("http://localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+        server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -186,7 +182,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "warns about using basic authentication over insecure connection"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+        server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -195,30 +192,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         outputContains('Please consider using HTTPS')
     }
 
-    def "does not warn about using basic authentication over secure connection"() {
-        given:
-        TestKeyStore keyStore = TestKeyStore.init(resources.dir)
-        keyStore.enableSslWithServerCert(server)
-        // We need to set the SSL properties as arguments here even for non-embedded test mode
-        // because we want them to be set on the wrapper client JVM, not the daemon one
-        wrapperExecuter.withArgument("-Djavax.net.ssl.trustStore=$keyStore.trustStore.path")
-        wrapperExecuter.withArgument("-Djavax.net.ssl.trustStorePassword=$keyStore.trustStorePassword")
-
-        and:
-        prepareWrapper("https://jdoe:changeit@localhost:${server.sslPort}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
-
-        when:
-        result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        outputDoesNotContain('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
-    }
-
     def "does not leak basic authentication credentials in output"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+        server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -230,7 +208,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "does not leak basic authentication credentials in exception messages"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGetBroken("/gradlew/dist")
+        server.expect(server.get("/gradlew/dist", broken()))
 
         when:
         wrapperExecuter.withTasks('hello').run()
@@ -255,7 +233,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+        server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.file("/gradlew/dist", distribution.binDistribution))
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
