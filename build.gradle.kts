@@ -68,13 +68,13 @@ allprojects {
 
 
 // -- Integration testing ----------------------------------------------
-val prepareIntegrationTestFixtures by task<GradleBuild> {
+val prepareIntegrationTestFixtures by tasks.registering(GradleBuild::class) {
     dir = file("fixtures")
 }
 
 val customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
 
-val copyCurrentDistro by task<Copy> {
+val copyCurrentDistro by tasks.registering(Copy::class) {
     description = "Copies the current Gradle distro into '$customInstallationDir'."
 
     from(gradle.gradleHomeDir)
@@ -95,7 +95,7 @@ val copyCurrentDistro by task<Copy> {
     onlyIf { !customInstallationDir.exists() }
 }
 
-val customInstallation by task<Copy> {
+val customInstallation by tasks.registering(Copy::class) {
     description = "Copies latest gradle-kotlin-dsl snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(distribution)
@@ -104,7 +104,7 @@ val customInstallation by task<Copy> {
 
 
 // -- Performance testing ----------------------------------------------
-val benchmark by task<integration.Benchmark> {
+val benchmark by tasks.registering(integration.Benchmark::class) {
     excludingSamplesMatching(
         "android",
         "source-control"
@@ -153,8 +153,3 @@ idea {
         }
     }
 }
-
-
-// --- Utility functions -----------------------------------------------
-inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
-    tasks.registering(T::class, configuration)
