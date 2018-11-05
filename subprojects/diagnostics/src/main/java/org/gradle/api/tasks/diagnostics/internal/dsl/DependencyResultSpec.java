@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.dsl;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.specs.Spec;
@@ -44,9 +45,15 @@ class DependencyResultSpec implements Spec<DependencyResult> {
     private boolean matchesRequested(DependencyResult candidate) {
         ComponentSelector requested = candidate.getRequested();
 
-        if(requested instanceof ModuleComponentSelector) {
+        if (requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
             String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
+            return requestedCandidate.contains(stringNotation);
+        }
+
+        if (requested instanceof ProjectComponentSelector) {
+            ProjectComponentSelector project = (ProjectComponentSelector)requested;
+            String requestedCandidate = project.getProjectPath();
             return requestedCandidate.contains(stringNotation);
         }
 
@@ -55,7 +62,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
         ModuleVersionIdentifier selected = candidate.getSelected().getModuleVersion();
-        String selectedCandidate = selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
+        String selectedCandidate = selected.toString();
         return selectedCandidate.contains(stringNotation);
     }
 }

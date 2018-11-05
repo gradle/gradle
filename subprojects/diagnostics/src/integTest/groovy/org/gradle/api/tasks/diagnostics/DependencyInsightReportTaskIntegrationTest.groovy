@@ -1866,7 +1866,7 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        file("settings.gradle") << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
 
         file("build.gradle") << """
             allprojects {
@@ -1879,6 +1879,7 @@ org:leaf2:1.0
             }
             dependencies {
                 compile project(':impl')
+                compile project(':some:deeply:nested')
             }
             project(':api') {
                 dependencies {
@@ -1889,6 +1890,11 @@ org:leaf2:1.0
                 dependencies {
                     compile project(':api')
                     compile 'org:leaf4:1.0'
+                }
+            }
+            project(':some:deeply:nested') {
+                dependencies {
+                    compile 'org:leaf3:1.0'
                 }
             }
         """
@@ -1906,6 +1912,34 @@ project :api
 project :api
 \\--- project :impl
      \\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", ":nested"
+
+        then:
+        outputContains """
+project :some:deeply:nested
+   variant "apiElements" [
+      org.gradle.usage = java-api
+   ]
+
+project :some:deeply:nested
+\\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", ":some:deeply:nested"
+
+        then:
+        outputContains """
+project :some:deeply:nested
+   variant "apiElements" [
+      org.gradle.usage = java-api
+   ]
+
+project :some:deeply:nested
+\\--- compileClasspath
 """
     }
 
