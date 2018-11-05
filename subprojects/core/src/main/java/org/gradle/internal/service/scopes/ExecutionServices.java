@@ -70,7 +70,7 @@ public class ExecutionServices {
     }
 
     ExecutionHistoryStore createExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
-        return new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner);
+        return new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner, "");
     }
 
     OutputFilesRepository createOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {

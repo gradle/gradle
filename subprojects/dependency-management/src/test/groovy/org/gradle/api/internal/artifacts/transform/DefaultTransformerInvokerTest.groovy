@@ -16,18 +16,22 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import com.google.common.collect.ImmutableList
+
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.caching.internal.origin.OriginMetadata
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep
 import org.gradle.internal.execution.impl.steps.Step
 import org.gradle.internal.execution.impl.steps.UpToDateResult
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,18 +60,18 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     def historyRepository = new TransformerExecutionHistoryRepository() {
 
         @Override
-        Optional<List<File>> getPreviousExecution(HashCode cacheKey) {
+        Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey) {
             return Optional.ofNullable(history.get(cacheKey))
         }
 
         @Override
-        void persist(HashCode cacheKey, ImmutableList<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
-            // TODO
+        File getOutputDirectory(File toBeTransformed, String cacheKey) {
+            return new File(transformsStoreDirectory, toBeTransformed.getName() + "/" + cacheKey)
         }
 
         @Override
-        File getOutputDirectory(File toBeTransformed, HashCode cacheKey) {
-            return new File(transformsStoreDirectory, toBeTransformed.getName() + "/" + cacheKey)
+        void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
+            // TODO
         }
     }
     DefaultTransformerInvoker transformerInvoker

@@ -117,7 +117,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            new DefaultExecutionHistoryStore(cacheAccess, stringInterner),
+            new DefaultExecutionHistoryStore(cacheAccess, stringInterner, ""),
             classLoaderHierarchyHasher,
             SnapshotTestUtil.valueSnapshotter(),
             fingerprinterRegistry

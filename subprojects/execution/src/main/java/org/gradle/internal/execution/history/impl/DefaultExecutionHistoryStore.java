@@ -39,12 +39,12 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final PersistentIndexedCache<String, AfterPreviousExecutionState> store;
 
-    public DefaultExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
+    public DefaultExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner, String cachePrefix) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner));
 
         this.store = executionHistoryCacheAccess.createCache(
-            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
+            PersistentIndexedCacheParameters.of(cachePrefix + "executionHistory", String.class, serializer),
             10000,
             false
         );

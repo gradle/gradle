@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -29,22 +30,23 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.execution.history.impl.FileCollectionFingerprintSerializer;
-import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
+import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
-import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
@@ -56,10 +58,10 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
     private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
     
-    private final PersistentIndexedCache<HashCode, PreviousTransformerExecution> indexedCache;
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
     private final PersistentCache cache;
+    private final DefaultExecutionHistoryStore executionHistoryStore;
 
     public DefaultTransformerExecutionHistoryRepository(File transformsStoreDirectory, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileAccessTimeJournal fileAccessTimeJournal, StringInterner stringInterner) {
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -70,11 +72,17 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        indexedCache = cache.createCache(
-            PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new DefaultPreviousTransformerExecution.SerializerImpl(stringInterner))
-                .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true))
-        );
         fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        ExecutionHistoryCacheAccess executionHistoryCacheAccess = new ExecutionHistoryCacheAccess() {
+
+            @Override
+            public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+                return cache.createCache(parameters
+                    .withCacheDecorator(cacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
+                );
+            }
+        };
+        executionHistoryStore = new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner, CACHE_PREFIX);
     }
 
     private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
@@ -84,20 +92,31 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     }
 
     @Override
-    public Optional<PreviousTransformerExecution> getPreviousExecution(HashCode cacheKey) {
-        Optional<PreviousTransformerExecution> previousExecutionResult = Optional.ofNullable(indexedCache.get(cacheKey));
-        previousExecutionResult.ifPresent(execution -> fileAccessTracker.markAccessed(execution.getResult()));
-        return previousExecutionResult;
+    public Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey) {
+        Optional<AfterPreviousExecutionState> previousExecutionState = Optional.ofNullable(executionHistoryStore.load(cacheKey.toString()));
+        previousExecutionState.ifPresent(execution -> fileAccessTracker.markAccessed(extractOutputFiles(execution.getOutputFileProperties())));
+        return previousExecutionState;
+    }
+
+    private Collection<File> extractOutputFiles(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> outputFileProperties) {
+        return outputFileProperties.values().stream()
+            .flatMap(DefaultTransformerExecutionHistoryRepository::extractRootPaths)
+            .map(File::new)
+            .collect(Collectors.toList());
+    }
+
+    private static Stream<String> extractRootPaths(FileCollectionFingerprint fingerprint) {
+        return fingerprint.getRootHashes().keySet().stream();
     }
 
     @Override
-    public void persist(HashCode cacheKey, ImmutableList<File> currentExecutionResult, FileCollectionFingerprint outputFileFingerprint) {
-        fileAccessTracker.markAccessed(currentExecutionResult);
-        indexedCache.put(cacheKey, new DefaultPreviousTransformerExecution(currentExecutionResult, new SerializableFileCollectionFingerprint(outputFileFingerprint.getFingerprints(), outputFileFingerprint.getRootHashes())));
+    public void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
+        fileAccessTracker.markAccessed(extractOutputFiles(outputFingerprints));
+        executionHistoryStore.store(cacheKey.toString(), originMetadata, implementationSnapshot, ImmutableList.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), outputFingerprints, successful);
     }
 
     @Override
-    public File getOutputDirectory(File toBeTransformed, HashCode cacheKey) {
+    public File getOutputDirectory(File toBeTransformed, String cacheKey) {
         return new File(filesOutputDirectory, toBeTransformed.getName() + "/" + cacheKey);
     }
 
@@ -106,48 +125,4 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
         cache.close();
     }
 
-    public static class DefaultPreviousTransformerExecution implements PreviousTransformerExecution {
-
-        private final ImmutableList<File> result;
-        private final FileCollectionFingerprint outputDirectoryFingerprint;
-
-        public DefaultPreviousTransformerExecution(ImmutableList<File> result, FileCollectionFingerprint outputDirectoryFingerprint) {
-            this.result = result;
-            this.outputDirectoryFingerprint = outputDirectoryFingerprint;
-        }
-
-        @Override
-        public ImmutableList<File> getResult() {
-            return result;
-        }
-
-        @Override
-        public FileCollectionFingerprint getOutputDirectoryFingerprint() {
-            return outputDirectoryFingerprint;
-        }
-
-        public static class SerializerImpl implements Serializer<PreviousTransformerExecution> {
-
-            private final FileCollectionFingerprintSerializer fingerprintSerializer;
-            private final ListSerializer<File> listSerializer;
-
-            public SerializerImpl(StringInterner stringInterner) {
-                this.fingerprintSerializer = new FileCollectionFingerprintSerializer(stringInterner);
-                this.listSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
-            }
-
-            @Override
-            public PreviousTransformerExecution read(Decoder decoder) throws Exception {
-                ImmutableList<File> result = ImmutableList.copyOf(listSerializer.read(decoder));
-                FileCollectionFingerprint outputDirectoryFingerprint = fingerprintSerializer.read(decoder);
-                return new DefaultPreviousTransformerExecution(result, outputDirectoryFingerprint);
-            }
-
-            @Override
-            public void write(Encoder encoder, PreviousTransformerExecution value) throws Exception {
-                listSerializer.write(encoder, value.getResult());
-                fingerprintSerializer.write(encoder, value.getOutputDirectoryFingerprint());
-            }
-        }
-    }
 }
