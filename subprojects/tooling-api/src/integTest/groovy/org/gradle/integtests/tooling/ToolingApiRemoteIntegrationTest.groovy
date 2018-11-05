@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
@@ -45,6 +46,7 @@ import static org.gradle.test.fixtures.server.http.BlockingHttpServer.sendFile
 import static org.gradle.test.fixtures.server.http.BlockingHttpServer.userAgent
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
+@LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
