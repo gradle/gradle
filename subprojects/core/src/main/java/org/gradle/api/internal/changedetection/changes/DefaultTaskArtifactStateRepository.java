@@ -24,7 +24,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
-import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -33,6 +32,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -121,7 +121,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
             CurrentTaskExecution currentExecution = history.getCurrentExecution();
-            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
             return OverlappingOutputs.detect(
                 previousExecution == null
                     ? null
@@ -152,7 +152,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
-            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
             CurrentTaskExecution currentExecution = history.getCurrentExecution();
             return Util.fingerprintAfterOutputsGenerated(
                 previousExecution == null ? null : previousExecution.getOutputFileProperties(),
@@ -166,7 +166,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
                 history.persist(newOutputFingerprints, successful, originMetadata);
@@ -183,7 +183,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public Optional<ExecutionStateChanges> getExecutionStateChanges() {
             if (!statesCalculated) {
                 statesCalculated = true;
-                HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+                AfterPreviousExecutionState previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
                 // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
                 CurrentTaskExecution currentExecution = history.getCurrentExecution();

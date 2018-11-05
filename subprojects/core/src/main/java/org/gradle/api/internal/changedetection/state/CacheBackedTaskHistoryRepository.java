@@ -70,11 +70,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     public History getHistory(final TaskInternal task, final TaskProperties taskProperties) {
         return new History() {
             private boolean previousExecutionLoadAttempted;
-            private HistoricalTaskExecution previousExecution;
+            private AfterPreviousExecutionState previousExecution;
             private CurrentTaskExecution currentExecution;
 
             @Override
-            public HistoricalTaskExecution getPreviousExecution() {
+            public AfterPreviousExecutionState getPreviousExecution() {
                 if (!previousExecutionLoadAttempted) {
                     previousExecutionLoadAttempted = true;
                     previousExecution = loadPreviousExecution(task);
@@ -107,7 +107,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable HistoricalTaskExecution previousExecution) {
+    private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState previousExecution) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -172,20 +172,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Nullable
-    private HistoricalTaskExecution loadPreviousExecution(TaskInternal task) {
-        AfterPreviousExecutionState execution = executionHistoryStore.load(task.getPath());
-        if (execution == null) {
-            return null;
-        }
-        return new HistoricalTaskExecution(
-            execution.getImplementation(),
-            execution.getAdditionalImplementations(),
-            execution.getInputProperties(),
-            execution.getInputFileProperties(),
-            execution.getOutputFileProperties(),
-            execution.isSuccessful(),
-            execution.getOriginMetadata()
-        );
+    private AfterPreviousExecutionState loadPreviousExecution(TaskInternal task) {
+        return executionHistoryStore.load(task.getPath());
     }
 
     private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskProperties taskProperties) {

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
@@ -28,7 +29,7 @@ public interface TaskHistoryRepository {
 
     interface History {
         @Nullable
-        HistoricalTaskExecution getPreviousExecution();
+        AfterPreviousExecutionState getPreviousExecution();
 
         CurrentTaskExecution getCurrentExecution();
 
