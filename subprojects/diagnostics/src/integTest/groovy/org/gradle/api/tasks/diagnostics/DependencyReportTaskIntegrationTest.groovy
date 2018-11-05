@@ -338,7 +338,7 @@ conf
 """
     }
 
-    def "mentions web-bsed dependency report after legend"() {
+    def "mentions web-based dependency report after legend"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
@@ -912,6 +912,52 @@ conf
 |         \\--- group:moduleC:1.0
 +--- group:moduleA:2.0 (c)
 \\--- group:moduleC:1.0 (c)
+"""
+    }
+
+    def "renders version constraints"() {
+        mavenRepo.module('group', 'moduleA', '1.0').publish()
+        mavenRepo.module('group', 'moduleB', '1.0').publish()
+        mavenRepo.module('group', 'moduleC', '1.0').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations { conf }
+            dependencies {
+                constraints {
+                }
+            }
+            dependencies {
+                conf('group:moduleA') {
+                    version {
+                        require '1.+'
+                        prefer '1.0'
+                    }
+                }
+                conf('group:moduleB') {
+                    version {
+                        strictly '1.0'
+                    }
+                }
+                conf('group:moduleC') {
+                    version {
+                        require '1.0'
+                        reject '1.1', '1.2'
+                    }
+                }
+            }
+"""
+        when:
+        run ":dependencies", "--configuration", "conf"
+
+        then:
+        output.contains """
+conf
++--- group:moduleA:{require 1.+; prefer 1.0} -> 1.0
++--- group:moduleB:{strictly 1.0}
+\\--- group:moduleC:{require 1.0; reject 1.1 & 1.2}
 """
     }
 
