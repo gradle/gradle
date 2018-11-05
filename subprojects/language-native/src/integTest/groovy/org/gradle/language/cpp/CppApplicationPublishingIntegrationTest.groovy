@@ -16,13 +16,17 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.api.platform.MachineArchitecture
+import org.gradle.api.platform.OperatingSystemFamily
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.junit.Assume
 
 class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     def repo = new MavenFileRepository(file("repo"))
@@ -393,7 +397,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         executable.exec().out == app.expectedOutput
     }
 
-    def "can publish the binaries of an application with explicit target machines to a Maven repository"() {
+    def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
 
         given:
@@ -417,47 +421,11 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        def main = repo.module('some.group', 'test', '1.2')
-        main.assertArtifactsPublished("test-1.2.pom", "test-1.2.module")
-        main.parsedPom.scopes.isEmpty()
-        def mainMetadata = main.parsedModuleMetadata
-        mainMetadata.variants.size() == 6
-        mainMetadata.variant("debugWindowsX86Runtime").availableAt.coords == "some.group:test_debug_windows_x86:1.2"
-        mainMetadata.variant("releaseWindowsX86Runtime").availableAt.coords == "some.group:test_release_windows_x86:1.2"
-        mainMetadata.variant("debugLinuxX86Runtime").availableAt.coords == "some.group:test_debug_linux_x86:1.2"
-        mainMetadata.variant("releaseLinuxX86Runtime").availableAt.coords == "some.group:test_release_linux_x86:1.2"
-        mainMetadata.variant("debugMacosX86Runtime").availableAt.coords == "some.group:test_debug_macos_x86:1.2"
-        mainMetadata.variant("releaseMacosX86Runtime").availableAt.coords == "some.group:test_release_macos_x86:1.2"
+        assertMainModuleIsPublished('some.group', 'test', '1.2', ['windows', 'linux', 'macOS'], ['x86'])
 
-        def debug = repo.module('some.group', "test_debug_${currentOsFamilyNormalized}_x86", '1.2')
-        debug.assertPublished()
-        debug.assertArtifactsPublished(executableName("test_debug_${currentOsFamilyNormalized}_x86-1.2"), "test_debug_${currentOsFamilyNormalized}_x86-1.2.pom", "test_debug_${currentOsFamilyNormalized}_x86-1.2.module")
-        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/${currentOsFamilyName}/x86/test").file)
-
-        debug.parsedPom.scopes.isEmpty()
-
-        def debugMetadata = debug.parsedModuleMetadata
-        debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug${currentOsFamilyNormalized.capitalize()}X86Runtime")
-        debugRuntime.dependencies.empty
-        debugRuntime.files.size() == 1
-        debugRuntime.files[0].name == executableName('test')
-        debugRuntime.files[0].url == executableName("test_debug_${currentOsFamilyNormalized}_x86-1.2")
-
-        def release = repo.module('some.group', "test_release_${currentOsFamilyNormalized}_x86", '1.2')
-        release.assertPublished()
-        release.assertArtifactsPublished(executableName("test_release_${currentOsFamilyNormalized}_x86-1.2"), "test_release_${currentOsFamilyNormalized}_x86-1.2.pom", "test_release_${currentOsFamilyNormalized}_x86-1.2.module")
-        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/${currentOsFamilyName}/x86/test").strippedRuntimeFile)
-
-        release.parsedPom.scopes.isEmpty()
-
-        def releaseMetadata = release.parsedModuleMetadata
-        releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release${currentOsFamilyNormalized.capitalize()}X86Runtime")
-        releaseRuntime.dependencies.empty
-        releaseRuntime.files.size() == 1
-        releaseRuntime.files[0].name == executableName('test')
-        releaseRuntime.files[0].url == executableName("test_release_${currentOsFamilyNormalized}_x86-1.2")
+        and:
+        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86')
 
         when:
         consumer.file("build.gradle") << """
@@ -478,8 +446,97 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         executable.exec().out == app.expectedOutput
     }
 
-    private String getCurrentOsFamilyNormalized() {
-        return currentOsFamilyName.toLowerCase()
+    def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
+        def app = new CppApp()
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            apply plugin: 'maven-publish'
+
+            group = 'some.group'
+            version = '1.2'
+            application {
+                baseName = 'test'
+                targetMachines = [machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()]
+            }
+            publishing {
+                repositories { maven { url '$repo.uri' } }
+            }
+        """
+        app.writeToProject(testDirectory)
+
+        when:
+        run('publish')
+
+        then:
+        assertMainModuleIsPublished('some.group', 'test', '1.2', [currentOsFamilyName], ['x86', 'x86-64'])
+
+        and:
+        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86-64')
+        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86-64')
+
+        when:
+        consumer.file("build.gradle") << """
+            configurations {
+                install {
+                    attributes.attribute(Attribute.of('${OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE}', OperatingSystemFamily), objects.named(OperatingSystemFamily, '${currentOsFamilyName}'))
+                    attributes.attribute(Attribute.of('${MachineArchitecture.ARCHITECTURE_ATTRIBUTE}', MachineArchitecture), objects.named(MachineArchitecture, '${MachineArchitecture.X86}'))
+                }
+            }
+            dependencies {
+                install 'some.group:test:1.2'
+            }
+        """
+        executer.inDirectory(consumer)
+        run("install")
+
+        then:
+        def executable = executable("consumer/install/test")
+        executable.exec().out == app.expectedOutput
+    }
+
+    void assertMainModuleIsPublished(String group, String module, String version, List<String> osFamilies, List<String> architectures) {
+        def mainModule = repo.module(group, module, version)
+        mainModule.assertArtifactsPublished("${module}-${version}.pom", "${module}-${version}.module")
+        assert mainModule.parsedPom.scopes.isEmpty()
+        def mainMetadata = mainModule.parsedModuleMetadata
+        assert mainMetadata.variants.size() == 2 * osFamilies.size() * architectures.size()
+        ['debug', 'release'].each { buildType ->
+            osFamilies.each { osFamily ->
+                architectures.each { architecture ->
+                    String normalizedArchitecture = architecture.replace('-', '_')
+                    String osFamilyNormalized = osFamily.toLowerCase()
+                    assert mainMetadata.variant("${buildType}${osFamilyNormalized.capitalize()}${architecture.capitalize()}Runtime").availableAt.coords == "${group}:${module}_${buildType}_${osFamilyNormalized}_${normalizedArchitecture}:${version}"
+                }
+            }
+        }
+    }
+
+    void assertVariantIsPublished(String group, String module, String version, String buildType, String osFamily, String architecture) {
+        String normalizedArchitecture = architecture.replace('-', '_')
+        String variantModuleName = "${module}_${buildType}_${osFamily.toLowerCase()}_${normalizedArchitecture}"
+        String variantModuleNameWithVersion = "${variantModuleName}-${version}"
+        def publishedModule = repo.module(group, variantModuleName, version)
+        publishedModule.assertPublished()
+        publishedModule.assertArtifactsPublished(executableName(variantModuleNameWithVersion), "${variantModuleNameWithVersion}.pom", "${variantModuleNameWithVersion}.module")
+        def executable = executable("build/exe/main/${buildType}/${osFamily}/${architecture}/${module}")
+        def sourceFile = buildType == 'release' ? executable.strippedRuntimeFile : executable.file
+        publishedModule.artifactFile(type: executableExtension).assertIsCopyOf(sourceFile)
+
+        assert publishedModule.parsedPom.scopes.isEmpty()
+
+        def publishedMetadata = publishedModule.parsedModuleMetadata
+        assert publishedMetadata.variants.size() == 1
+        def publishedRuntimeVariant = publishedMetadata.variant("${buildType}${osFamily.toLowerCase().capitalize()}${architecture.capitalize()}Runtime")
+        assert publishedRuntimeVariant.dependencies.empty
+        assert publishedRuntimeVariant.files.size() == 1
+        assert publishedRuntimeVariant.files[0].name == executableName(module)
+        assert publishedRuntimeVariant.files[0].url == executableName(variantModuleNameWithVersion)
     }
 
     @Override

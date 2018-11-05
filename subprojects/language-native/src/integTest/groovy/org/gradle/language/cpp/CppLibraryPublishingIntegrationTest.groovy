@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
+import org.junit.Assume
 import spock.lang.Issue
 
 class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
@@ -730,4 +732,274 @@ dependencies { implementation 'some.group:greeter:1.2' }
         }
     }
 
+    def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile << "include 'deck', 'card', 'shuffle'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${mavenRepo.uri}' } }
+                }
+                
+                components.withType(CppComponent) {
+                    targetMachines = [machines.windows().architecture('${currentArchitecture}'), machines.linux().architecture('${currentArchitecture}'), machines.macOS().architecture('${currentArchitecture}')]
+                }
+            }
+            project(':deck') { 
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+        """
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
+
+        when:
+        run('publish')
+
+        then:
+        assertMainModuleIsPublished('some.group', 'deck', '1.2', ["some.group:card:1.2"], ['windows', 'linux', 'macOS'], [currentArchitecture])
+
+        and:
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, currentArchitecture)
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, currentArchitecture)
+
+        and:
+        assertMainModuleIsPublished('some.group', 'card', '1.2', [], ['windows', 'linux', 'macOS'], [currentArchitecture])
+
+        and:
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, currentArchitecture)
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, currentArchitecture)
+
+        and:
+        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', [], ['windows', 'linux', 'macOS'], [currentArchitecture])
+
+        and:
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, currentArchitecture)
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, currentArchitecture)
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file('settings.gradle') << ''
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+            repositories { maven { url '${mavenRepo.uri}' } }
+            dependencies { implementation 'some.group:deck:1.2' }
+        """
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        run("assemble")
+
+        then:
+        noExceptionThrown()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile << "include 'deck', 'card', 'shuffle'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${mavenRepo.uri}' } }
+                }
+                
+                components.withType(CppComponent) {
+                    targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                }
+            }
+            project(':deck') { 
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+        """
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
+
+        when:
+        run('publish')
+
+        then:
+        assertMainModuleIsPublished('some.group', 'deck', '1.2', ["some.group:card:1.2"], [currentOsFamilyName], ['x86', 'x86-64'])
+
+        and:
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, 'x86-64')
+        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, 'x86-64')
+
+        and:
+        assertMainModuleIsPublished('some.group', 'card', '1.2', [], [currentOsFamilyName], ['x86', 'x86-64'])
+
+        and:
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, 'x86-64')
+        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, 'x86-64')
+
+        and:
+        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', [], [currentOsFamilyName], ['x86', 'x86-64'])
+
+        and:
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, 'x86')
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, 'x86-64')
+        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, 'x86-64')
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file('settings.gradle') << ''
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+            repositories { maven { url '${mavenRepo.uri}' } }
+            dependencies { implementation 'some.group:deck:1.2' }
+        """
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        run("assemble")
+
+        then:
+        noExceptionThrown()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "fails when a dependency is published without a matching target architecture"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile << "include 'deck', 'card', 'shuffle'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${mavenRepo.uri}' } }
+                }
+                
+                components.withType(CppComponent) {
+                    targetMachines = [machines.host().x86_64()]
+                }
+            }
+            project(':deck') { 
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+        """
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
+
+        when:
+        run('publish')
+
+        then:
+        mavenRepo.module('some.group', 'deck', '1.2').assertPublished()
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file('settings.gradle') << ''
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+            repositories { maven { url '${mavenRepo.uri}' } }
+            dependencies { implementation 'some.group:deck:1.2' }
+            application { targetMachines = [machines.host().x86()] }
+        """
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        fails("assemble")
+
+        then:
+        failure.assertHasCause("Unable to find a matching variant of some.group:deck:1.2")
+        failure.assertHasErrorOutput("Required org.gradle.native.architecture 'x86' and found incompatible value 'x86-64'.")
+    }
+
+    void assertMainModuleIsPublished(String group, String module, String version, List<String> apiDependencies, List<String> osFamilies, List<String> architectures) {
+        def mainModule = mavenRepo.module(group, module, version)
+        mainModule.assertArtifactsPublished("${module}-${version}.pom", "${module}-${version}.module", "${module}-${version}-cpp-api-headers.zip")
+        assert mainModule.parsedPom.scopes.size() == apiDependencies.isEmpty() ? 0 : 1
+        if (!apiDependencies.isEmpty()) {
+            mainModule.parsedPom.scopes.runtime.assertDependsOn(apiDependencies as String[])
+        }
+
+        def mainMetadata = mainModule.parsedModuleMetadata
+        def mainApi = mainMetadata.variant("api")
+        mainApi.dependencies.size() == apiDependencies.size()
+        apiDependencies.eachWithIndex { dependency, index ->
+            def coordinates = dependency.split(':')
+            assert mainApi.dependencies[index].group == coordinates[0]
+            assert mainApi.dependencies[index].module == coordinates[1]
+            assert mainApi.dependencies[index].version == coordinates[2]
+        }
+
+        assert mainMetadata.variants.size() == (4 * osFamilies.size() * architectures.size()) + 1
+        ['debug', 'release'].each { buildType ->
+            ['Link', 'Runtime'].each { linkage ->
+                osFamilies.each { osFamily ->
+                    architectures.each { architecture ->
+                        String normalizedArchitecture = architecture.replace('-', '_')
+                        String normalizedOsFamily = osFamily.toLowerCase()
+                        assert mainMetadata.variant("${buildType}${normalizedOsFamily.capitalize()}${architecture.capitalize()}${linkage}").availableAt.coords == "${group}:${module}_${buildType}_${normalizedOsFamily}_${normalizedArchitecture}:${version}"
+                    }
+                }
+            }
+        }
+    }
+
+    void assertVariantIsPublished(String group, String module, String version, List<String> dependencies, String buildType, String osFamily, String architecture) {
+        String normalizedArchitecture = architecture.replace('-', '_')
+        String variantModuleName = "${module}_${buildType}_${osFamily.toLowerCase()}_${normalizedArchitecture}"
+        def variantModule = mavenRepo.module(group, variantModuleName, version)
+        variantModule.assertPublished()
+
+        assert variantModule.parsedPom.scopes.size() == dependencies.isEmpty() ? 0 : 1
+        if (!dependencies.isEmpty()) {
+            variantModule.parsedPom.scopes.runtime.assertDependsOn(dependencies as String[])
+        }
+
+        def variantMetadata = variantModule.parsedModuleMetadata
+        ['Link', 'Runtime'].each { linkage ->
+            def variant = variantMetadata.variant("${buildType}${osFamily.toLowerCase().capitalize()}${architecture.capitalize()}${linkage}")
+            assert variant.dependencies.size() == dependencies.size()
+            variant.dependencies.eachWithIndex { dependency, int i ->
+                assert dependency.coords == dependencies[i]
+            }
+        }
+    }
 }
