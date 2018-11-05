@@ -30,9 +30,9 @@ public interface TaskHistoryRepository {
 
     interface History {
         @Nullable
-        AfterPreviousExecutionState getPreviousExecution();
+        AfterPreviousExecutionState getAfterPreviousExecutionState();
 
-        BeforeExecutionState getCurrentExecution();
+        BeforeExecutionState getBeforeExecutionState();
 
         void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
     }

@@ -67,30 +67,30 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     @Override
     public History getHistory(final TaskInternal task, final TaskProperties taskProperties) {
         return new History() {
-            private boolean previousExecutionLoadAttempted;
-            private AfterPreviousExecutionState previousExecution;
-            private BeforeExecutionState currentExecution;
+            private boolean afterPreviousExecutionStateLoadAttempted;
+            private AfterPreviousExecutionState afterPreviousExecutionState;
+            private BeforeExecutionState beforeExecutionState;
 
             @Override
-            public AfterPreviousExecutionState getPreviousExecution() {
-                if (!previousExecutionLoadAttempted) {
-                    previousExecutionLoadAttempted = true;
-                    previousExecution = loadPreviousExecution(task);
+            public AfterPreviousExecutionState getAfterPreviousExecutionState() {
+                if (!afterPreviousExecutionStateLoadAttempted) {
+                    afterPreviousExecutionStateLoadAttempted = true;
+                    afterPreviousExecutionState = loadPreviousExecution(task);
                 }
-                return previousExecution;
+                return afterPreviousExecutionState;
             }
 
             @Override
-            public BeforeExecutionState getCurrentExecution() {
-                if (currentExecution == null) {
-                    currentExecution = createExecution(task, taskProperties, getPreviousExecution());
+            public BeforeExecutionState getBeforeExecutionState() {
+                if (beforeExecutionState == null) {
+                    beforeExecutionState = createExecution(task, taskProperties, getAfterPreviousExecutionState());
                 }
-                return currentExecution;
+                return beforeExecutionState;
             }
 
             @Override
             public void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-                BeforeExecutionState execution = getCurrentExecution();
+                BeforeExecutionState execution = getBeforeExecutionState();
                 executionHistoryStore.store(
                     task.getPath(),
                     OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
@@ -105,7 +105,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState previousExecution) {
+    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -117,7 +117,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @SuppressWarnings("RedundantTypeArguments")
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = Util.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
