@@ -19,7 +19,6 @@ package org.gradle.internal.work;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
@@ -45,6 +44,7 @@ import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -206,7 +206,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private boolean containsProjectLocks(Iterable<? extends ResourceLock> locks) {
         return Iterables.any(locks, new Predicate<ResourceLock>() {
             @Override
-            public boolean apply(@NullableDecl ResourceLock lock) {
+            public boolean apply(@Nullable ResourceLock lock) {
                 return lock instanceof ProjectLock;
             }
         });

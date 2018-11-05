@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -344,9 +343,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             Map<String, Object> model = new TreeMap<String, Object>();
 
             final Function<byte[], String> bytesToString = new Function<byte[], String>() {
-                @NullableDecl
+                @Nullable
                 @Override
-                public String apply(@NullableDecl byte[] input) {
+                public String apply(@Nullable byte[] input) {
                     if (input == null) {
                         return null;
                     }
@@ -386,7 +385,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             if (inputValueHashesBytes != null) {
                 model.put("inputValueHashes", Maps.transformEntries(inputValueHashesBytes, new Maps.EntryTransformer<String, byte[], String>() {
                     @Override
-                    public String transformEntry(@NullableDecl String key, @NullableDecl byte[] value) {
+                    public String transformEntry(@Nullable String key, @Nullable byte[] value) {
                         if (value == null) {
                             return null;
                         }
