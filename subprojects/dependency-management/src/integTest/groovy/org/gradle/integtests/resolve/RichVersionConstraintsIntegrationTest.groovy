@@ -598,7 +598,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:foo:15'
-   Dependency path ':test:unspecified' --> 'org:foo' strictly '[0,1]'""")
+   Dependency path ':test:unspecified' --> 'org:foo:{strictly [0,1]}'""")
     }
 
     void "should pass if strict version ranges overlap"() {
