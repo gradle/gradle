@@ -51,7 +51,6 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -291,26 +290,6 @@ public class GradleUserHomeScopeServices {
         TimeoutHandler timeoutHandler, ListenerManager listenerManager
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-        // TODO: Should we support cancellation?
-        BuildCancellationToken noopCancellationToken = new BuildCancellationToken() {
-            @Override
-            public boolean isCancellationRequested() {
-                return false;
-            }
-
-            @Override
-            public void cancel() {
-            }
-
-            @Override
-            public boolean addCallback(Runnable cancellationHandler) {
-                return false;
-            }
-
-            @Override
-            public void removeCallback(Runnable cancellationHandler) {
-            }
-        };
         OutputFilesRepository noopOutputFilesRepository = new OutputFilesRepository() {
             @Override
             public boolean isGeneratedByGradle(File file) {
@@ -330,7 +309,7 @@ public class GradleUserHomeScopeServices {
                             new CreateOutputsStep<Context, Result>(
                                 new CatchExceptionStep<Context>(
                                     new TimeoutStep<Context>(timeoutHandler,
-                                        new ExecuteStep(noopCancellationToken, outputChangeListener)
+                                        new ExecuteStep(outputChangeListener)
                                     )
                                 )
                             )

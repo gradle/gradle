@@ -42,6 +42,7 @@ import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CacheStep;
 import org.gradle.internal.execution.impl.steps.CachingContext;
+import org.gradle.internal.execution.impl.steps.CancelExecutionStep;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
@@ -126,7 +127,9 @@ public class ExecutionServices {
                                 new CreateOutputsStep<Context, Result>(
                                     new CatchExceptionStep<Context>(
                                         new TimeoutStep<Context>(timeoutHandler,
-                                            new ExecuteStep(cancellationToken, outputChangeListener)
+                                            new CancelExecutionStep<Context>(cancellationToken,
+                                                new ExecuteStep(outputChangeListener)
+                                            )
                                         )
                                     )
                                 )

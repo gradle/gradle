@@ -33,6 +33,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.steps.CancelExecutionStep
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep
 import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.ExecuteStep
@@ -70,7 +71,9 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             new SnapshotOutputStep<Context>(
                 buildId,
                 new CatchExceptionStep<Context>(
-                    new ExecuteStep(cancellationToken, outputChangeListener)
+                    new CancelExecutionStep<Context>(cancellationToken,
+                        new ExecuteStep(outputChangeListener)
+                    )
                 )
             )
         )
