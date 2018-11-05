@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.ssl.SSLInitializationException
 
 import org.gradle.internal.SystemProperties
-
+import spock.lang.Issue
 import spock.lang.Specification
 
 /**
@@ -101,6 +101,18 @@ class DefaultSslContextFactoryTest extends Specification {
 
         then:
         thrown(SSLInitializationException)
+    }
+
+    @Issue("gradle/gradle#7546")
+    void 'keystore type without keystore file'() {
+        given:
+        props['javax.net.ssl.keyStoreType'] = 'JKS'
+
+        when:
+        loader.load(props)
+
+        then:
+        notThrown(SSLInitializationException)
     }
 
     void 'valid keystore file without specifying password'() {
