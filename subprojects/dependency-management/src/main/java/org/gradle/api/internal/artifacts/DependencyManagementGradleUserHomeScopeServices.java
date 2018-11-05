@@ -22,15 +22,16 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
@@ -67,7 +68,16 @@ public class DependencyManagementGradleUserHomeScopeServices {
             public void afterTransformerInvocation(Describable transformer, Describable subject) {
             }
         }, historyRepository, outputFileCollectionFingerprinter);
-        listenerManager.addListener(transformerInvoker);
+        listenerManager.addListener(new RootBuildLifecycleListener() {
+            @Override
+            public void afterStart() {
+            }
+
+            @Override
+            public void beforeComplete() {
+                transformerInvoker.clearInMemoryCache();
+            }
+        });
         return transformerInvoker;
     }
 }

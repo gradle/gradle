@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.CacheHandler;
@@ -59,7 +58,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultTransformerInvoker implements TransformerInvoker, RootBuildLifecycleListener {
+public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
@@ -80,12 +79,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker, RootBuildL
         this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
     }
 
-    @Override
-    public void afterStart() {
-    }
-
-    @Override
-    public void beforeComplete() {
+    public void clearInMemoryCache() {
         resultHashToResult.clear();
     }
 
