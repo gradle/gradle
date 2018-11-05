@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.gradle.api.Action;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.hamcrest.Matcher;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -166,13 +167,17 @@ public class BlockingHttpServer extends ExternalResource {
      * Expect a GET request to the given path, and return the contents of the given file.
      */
     public ExpectedRequest file(String path, final File file) {
-        return new ExpectMethodAndRunAction("GET", path, new ErroringAction<HttpExchange>() {
+        return new ExpectMethodAndRunAction("GET", path, sendFile(file));
+    }
+
+    public static Action<? super HttpExchange> sendFile(File file) {
+        return new ErroringAction<HttpExchange>() {
             @Override
             protected void doExecute(HttpExchange httpExchange) throws Exception {
                 httpExchange.sendResponseHeaders(200, file.length());
                 Files.copy(file, httpExchange.getResponseBody());
             }
-        });
+        };
     }
 
     /**
@@ -192,6 +197,18 @@ public class BlockingHttpServer extends ExternalResource {
                 httpExchange.sendResponseHeaders(404, 0);
             }
         });
+    }
+
+    /**
+     * Expect a GET request to the given path, and return a 500 response.
+     */
+    public static Action<? super HttpExchange> broken() {
+        return new ErroringAction<HttpExchange>() {
+            @Override
+            protected void doExecute(HttpExchange httpExchange) throws Exception {
+                httpExchange.sendResponseHeaders(500, 0);
+            }
+        };
     }
 
     /**
@@ -312,6 +329,15 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public void expect(String expectedCall) {
         addNonBlockingHandler(Collections.singleton(new ExpectGetAndSendFixedContent(expectedCall)));
+    }
+
+    public static Action<? extends HttpExchange> userAgent(Matcher expectedUserAgent) {
+        return new Action<HttpExchange>() {
+            @Override
+            public void execute(HttpExchange httpExchange) {
+                assert expectedUserAgent.matches(httpExchange.getRequestHeaders().getFirst("User-Agent"));
+            }
+        };
     }
 
     /**
