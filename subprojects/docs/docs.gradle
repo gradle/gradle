@@ -290,6 +290,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
         toclevels           : 2,
         groovyDslPath       : "https://docs.gradle.org/${version}/dsl",
         javadocPath         : "https://docs.gradle.org/${version}/javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api",
         'source-highlighter': 'coderay'
 }
 
@@ -400,7 +401,8 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
         toclevels           : 1,
         'toc-title'         : 'Contents',
         groovyDslPath       : "../dsl",
-        javadocPath         : "../javadoc"
+        javadocPath         : "../javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api"
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
