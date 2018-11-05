@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
+import org.gradle.api.internal.tasks.compile.CompilationWithAnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
@@ -76,8 +76,8 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
         if (processors == null || processors.isEmpty()) {
             return new AnnotationProcessingData();
         }
-        if (result instanceof JdkJavaCompilerResult) {
-            AnnotationProcessingResult processingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
+        if (result instanceof CompilationWithAnnotationProcessingResult) {
+            AnnotationProcessingResult processingResult = ((CompilationWithAnnotationProcessingResult) result).getAnnotationProcessingResult();
             return convertProcessingResult(processingResult);
         }
         return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), "the chosen compiler did not support incremental annotation processing");

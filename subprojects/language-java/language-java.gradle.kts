@@ -26,6 +26,7 @@ gradlebuildJava {
 }
 
 testFixtures {
+    from(":baseServices")
     from(":core")
     from(":languageJvm", "testFixtures")
     from(":platformBase")

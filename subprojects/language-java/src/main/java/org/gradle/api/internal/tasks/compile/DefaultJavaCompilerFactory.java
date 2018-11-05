@@ -32,9 +32,10 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final PathToFileResolver fileResolver;
     private final ExecHandleFactory execHandleFactory;
-    private AnnotationProcessorDetector processorDetector;
+    private final AnnotationProcessorDetector processorDetector;
 
-    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, PathToFileResolver fileResolver, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector) {
+    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory,
+                                      PathToFileResolver fileResolver, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector) {
         this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;

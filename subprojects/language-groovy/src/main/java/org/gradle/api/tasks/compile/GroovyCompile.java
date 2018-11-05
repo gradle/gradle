@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
+import org.gradle.api.internal.tasks.compile.BuildOperationReportingCompiler;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -44,6 +45,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
@@ -74,7 +76,7 @@ public class GroovyCompile extends AbstractCompile {
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();
         DefaultGroovyJavaJointCompileSpec spec = createSpec();
-        WorkResult result = getCompiler(spec).execute(spec);
+        WorkResult result = new BuildOperationReportingCompiler<GroovyJavaJointCompileSpec>(this, getCompiler(spec), getServices().get(BuildOperationExecutor.class)).execute(spec);
         setDidWork(result.getDidWork());
     }
 

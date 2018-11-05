@@ -19,12 +19,17 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.workers.internal.DefaultWorkResult;
 
-public class JdkJavaCompilerResult extends DefaultWorkResult {
+public class CompilationWithAnnotationProcessingResult extends DefaultWorkResult {
 
-    private AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
+    private final AnnotationProcessingResult annotationProcessingResult;
 
-    JdkJavaCompilerResult() {
+    CompilationWithAnnotationProcessingResult() {
+        this(new AnnotationProcessingResult());
+    }
+
+    public CompilationWithAnnotationProcessingResult(AnnotationProcessingResult annotationProcessingResult) {
         super(true, null);
+        this.annotationProcessingResult = annotationProcessingResult;
     }
 
     public AnnotationProcessingResult getAnnotationProcessingResult() {

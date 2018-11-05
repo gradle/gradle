@@ -45,7 +45,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
-        JdkJavaCompilerResult result = new JdkJavaCompilerResult();
+        CompilationWithAnnotationProcessingResult result = new CompilationWithAnnotationProcessingResult();
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
@@ -54,7 +54,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return result;
     }
 
-    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, JdkJavaCompilerResult result) {
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, CompilationWithAnnotationProcessingResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();

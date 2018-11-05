@@ -16,16 +16,22 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.language.fixtures.HelperProcessorFixture
 import spock.lang.Issue
 
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        def annotationProjectDir = file("annotation")
-        def processorProjectDir = file("processor")
+    def fixture = new HelperProcessorFixture()
+    def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
+    def annotationProjectDir = file("annotation")
+    def processorProjectDir = file("processor")
+
+    def setup() {
         settingsFile << """
             include "annotation"
             include "processor"
@@ -45,8 +51,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compile project(':annotation')
             }
         """
-
-        def fixture = new HelperProcessorFixture()
 
         // A library class used by processor at runtime, but not the generated classes
         fixture.writeSupportLibraryTo(processorProjectDir)
@@ -144,6 +148,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureCauseContains('Compilation failed')
         file('build/classes/java/main/TestAppHelper.class').assertDoesNotExist()
+        compileWithAnnotationProcessingOperation(':compileJava').failure.contains('Compilation failed')
     }
 
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
@@ -200,34 +205,47 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         !file('build/classes/java/main/TestAppHelper.class').exists()
     }
 
-
     def "processors in the compile classpath don't emit deprecation warning if processing is disabled"() {
         buildFile << """
             dependencies {
                 compile project(":processor")
             }
             compileJava {
-              options.compilerArgs << "-proc:none"
+                options.compilerArgs << "-proc:none"
             }
         """
-
-        file('src/main/java/TestApp.java').text = '''
-            @Helper
-            class TestApp {
-                public static void main(String[] args) {
-                    System.out.println("Hello world!");
-                }
-            }
-        '''
+        removeUseOfGeneratedClass()
 
         expect:
         succeeds "compileJava"
         !file('build/classes/java/main/TestAppHelper.class').exists()
+        with(compileWithAnnotationProcessingOperation(':compileJava')) {
+            it.result.executionTimeByAnnotationProcessor == [:]
+        }
+    }
+
+    def "no code generation when annotation processing is disabled"() {
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            compileJava {
+                options.compilerArgs << "-proc:none"
+            }
+        """
+        removeUseOfGeneratedClass()
+
+        expect:
+        succeeds "compileJava"
+        !file('build/classes/java/main/TestAppHelper.class').exists()
+        with(compileWithAnnotationProcessingOperation(':compileJava')) {
+            it.result.executionTimeByAnnotationProcessor == [HelperProcessor: 0]
+        }
     }
 
     def "explicit -processor option overrides automatic detection"() {
         buildFile << """
-            
             dependencies {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
@@ -266,5 +284,51 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         '''
         then:
         succeeds "compileJava"
+    }
+
+    def "wraps processing in build operation"() {
+        given:
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+        """
+        fixture.delay = 1000
+        fixture.writeAnnotationProcessorTo(processorProjectDir)
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(compileWithAnnotationProcessingOperation(':annotation:compileJava')) {
+            it.displayName == 'Invoke compiler for :annotation:compileJava'
+            it.result.executionTimeByAnnotationProcessor == [:]
+        }
+        with(compileWithAnnotationProcessingOperation(':processor:compileJava')) {
+            it.displayName == 'Invoke compiler for :processor:compileJava'
+            it.result.executionTimeByAnnotationProcessor == [:]
+        }
+        with(compileWithAnnotationProcessingOperation(':compileJava')) {
+            it.displayName == 'Invoke compiler for :compileJava'
+            def execTimes = it.result.executionTimeByAnnotationProcessor
+            execTimes.keySet() == ['HelperProcessor'] as Set
+            execTimes['HelperProcessor'] > 0
+        }
+    }
+
+    private void removeUseOfGeneratedClass() {
+        file('src/main/java/TestApp.java').text = '''
+            @Helper
+            class TestApp {
+                public static void main(String[] args) {
+                    System.out.println("Hello world!");
+                }
+            }
+        '''
+    }
+
+    private BuildOperationRecord compileWithAnnotationProcessingOperation(String taskPath) {
+        operations.only(CompileWithAnnotationProcessingBuildOperationType) { it.details.taskPath == taskPath }
     }
 }

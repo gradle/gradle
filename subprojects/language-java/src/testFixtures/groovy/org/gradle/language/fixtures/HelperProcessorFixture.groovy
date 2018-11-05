@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
 class HelperProcessorFixture extends AnnotationProcessorFixture {
     String message = "greetings"
     private String suffix = ""
+    private long delay = 0
 
     HelperProcessorFixture() {
         super("Helper")
@@ -38,6 +39,10 @@ class HelperProcessorFixture extends AnnotationProcessorFixture {
 
     void setSuffix(String suffix) {
         this.suffix = suffix ? " " + suffix : ""
+    }
+
+    void setDelay(long delay) {
+        this.delay = delay
     }
 
     def writeSupportLibraryTo(TestFile projectDir) {
@@ -52,6 +57,13 @@ class HelperProcessorFixture extends AnnotationProcessorFixture {
 
     String getGeneratorCode() {
         """
+${delay > 0 ? """
+    try {
+        Thread.sleep($delay);
+    } catch (InterruptedException e) {
+        Thread.interrupted();
+    }
+""" : ""}
 for (Element element : elements) {
     TypeElement typeElement = (TypeElement) element;
     String className = typeElement.getSimpleName().toString() + "Helper";
