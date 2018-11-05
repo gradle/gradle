@@ -212,7 +212,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.addAll(['a', 'b', 'a'])
 
         expect:
-        list.lastIndexOf('a') == 2
+        list.lastIndexOf('a') == 0  // Duplicates are omitted
         list.lastIndexOf('other') == -1
     }
 

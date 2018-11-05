@@ -86,6 +86,23 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !iterator.hasNext()
     }
 
+    def "does not add elements with duplicate name"() {
+        given:
+        container.add(a)
+
+        when:
+        container.add(a)
+
+        then:
+        toList(container) == [a]
+
+        when:
+        container.addAll([a, b])
+
+        then:
+        toList(container) == [a, b]
+    }
+
     def "element added using provider is not realized when added"() {
         containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
@@ -309,10 +326,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addAll(a, b, c, d)
 
         then:
-        // TODO:DAZ This indicates a bug in the list implementation: should not be firing for duplicates
-        if (container instanceof List) {
-            1 * action.execute(a)
-        }
         1 * action.execute(b)
         1 * action.execute(c)
         1 * action.execute(d)

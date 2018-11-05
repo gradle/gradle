@@ -106,22 +106,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public boolean add(final T o) {
-        assertMutable("add(T)");
-        return add(o, getEventRegister().getAddActions());
-    }
-
-    @Override
-    protected <I extends T> boolean add(final I o, Action<? super I> notification) {
-        final String name = namer.determineName(o);
+    protected <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
+        final String name = namer.determineName(toAdd);
         if (index.get(name) == null) {
-            boolean added = super.add(o, notification);
+            boolean added = super.doAdd(toAdd, notification);
             if (added) {
-                whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, toAdd));
             }
             return added;
         } else {
-            handleAttemptToAddItemWithNonUniqueName(o);
+            handleAttemptToAddItemWithNonUniqueName(toAdd);
             return false;
         }
     }
