@@ -73,12 +73,7 @@ public class DependencyGraphsRenderer {
             legendRenderer.setHasUnresolvableConfigurations(true);
         }
         if (rootRenderer != NodeRenderer.NO_OP) {
-            renderer.visit(new Action<StyledTextOutput>() {
-                @Override
-                public void execute(StyledTextOutput styledTextOutput) {
-                    rootRenderer.renderNode(styledTextOutput, root, false);
-                }
-            }, true);
+            renderNode(root, true, false, rootRenderer);
         }
         HashSet<Object> visited = Sets.newHashSet();
         visited.add(root.getId());
@@ -103,23 +98,33 @@ public class DependencyGraphsRenderer {
     }
 
     private void doRender(final RenderableDependency node, boolean last, Set<Object> visited) {
-        Set<? extends RenderableDependency> children = node.getChildren();
+        // Do a shallow render of any constraint edges, and do not mark the node as visited.
+        if (node.getResolutionState() == RenderableDependency.ResolutionState.RESOLVED_CONSTRAINT) {
+            renderNode(node, last, false, dependenciesRenderer);
+            legendRenderer.setHasConstraints(true);
+            return;
+        }
+
         final boolean alreadyRendered = !visited.add(node.getId());
         if (alreadyRendered) {
             legendRenderer.setHasCyclicDependencies(true);
         }
 
-        renderer.visit(new Action<StyledTextOutput>() {
-            public void execute(StyledTextOutput output) {
-                dependenciesRenderer.renderNode(output, node, alreadyRendered);
-            }
-
-        }, last);
+        renderNode(node, last, alreadyRendered, dependenciesRenderer);
 
         if (!alreadyRendered) {
+            Set<? extends RenderableDependency> children = node.getChildren();
             renderChildren(children, visited);
         }
 
+    }
+
+    private void renderNode(final RenderableDependency node, final boolean isLast, final boolean isDuplicate, final NodeRenderer dependenciesRenderer) {
+        renderer.visit(new Action<StyledTextOutput>() {
+            public void execute(StyledTextOutput output) {
+                dependenciesRenderer.renderNode(output, node, isDuplicate);
+            }
+        }, isLast);
     }
 
     public void complete() {

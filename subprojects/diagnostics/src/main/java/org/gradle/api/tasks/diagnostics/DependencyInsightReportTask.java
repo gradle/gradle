@@ -330,6 +330,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" FAILED");
                     break;
                 case RESOLVED:
+                case RESOLVED_CONSTRAINT:
                     break;
                 case UNRESOLVED:
                     out.withStyle(Failure).text(" (n)");
