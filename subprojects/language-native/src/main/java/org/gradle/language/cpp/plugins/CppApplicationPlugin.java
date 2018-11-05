@@ -16,10 +16,8 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeContainer;
@@ -37,16 +35,19 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
@@ -62,12 +63,14 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -87,18 +90,19 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                application.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = application.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                application.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
+                    throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
                 for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
-                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
-                        String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
-                        String variantName = buildType.getName() + operatingSystemSuffix;
+                    for (TargetMachine targetMachine : targetMachines) {
+                        String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
+                        String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
+                        String variantName = buildType.getName() + operatingSystemSuffix + architectureSuffix;
 
                         Provider<String> group = project.provider(new Callable<String>() {
                             @Override
@@ -118,19 +122,21 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                         runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                         runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                         runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                        runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                        runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                        runtimeAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
-                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                             null,
                             new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
 
-                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, targetMachine);
 
                             CppExecutable executable = application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                             // Use the debug variant as the development binary
-                            if (buildType == BuildType.DEBUG) {
+                            // Prefer the host architecture, if present, else use the first architecture specified
+                            if (buildType == BuildType.DEBUG && (targetMachine.getArchitecture().equals(targetMachineFactory.host().getArchitecture()) || !application.getDevelopmentBinary().isPresent())) {
                                 application.getDevelopmentBinary().set(executable);
                             }
 
@@ -147,14 +153,5 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
 
-    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
-        return multivalueProperty.size() > 1;
-    }
 }

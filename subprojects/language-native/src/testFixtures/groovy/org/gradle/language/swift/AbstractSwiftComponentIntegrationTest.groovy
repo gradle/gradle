@@ -170,6 +170,42 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    def "ignores compile and link tasks when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.os('some-other-family')]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecuted(":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    def "fails configuration when no target machine is configured"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = []
+            }
+        """
+
+        expect:
+        fails taskNameToAssembleDevelopmentBinary
+        failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
+        failure.assertHasCause("A target machine needs to be specified")
+    }
+
     abstract String getDevelopmentBinaryCompileTask()
 
     abstract SourceElement getSwift3Component()

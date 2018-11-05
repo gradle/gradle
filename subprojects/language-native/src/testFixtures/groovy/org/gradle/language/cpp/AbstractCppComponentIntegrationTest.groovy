@@ -16,14 +16,13 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def "can build on current operating system family when explicitly specified"() {
+    def "can build on current operating system family and architecture when explicitly specified"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -31,14 +30,13 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
+                targetMachines = [machines.host()${currentHostArchitectureDsl}]
             }
         """
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     def "ignores compile and link tasks when current operating system family is excluded"() {
@@ -49,7 +47,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = [objects.named(OperatingSystemFamily, 'some-other-family')]
+                targetMachines = [machines.os('some-other-family')]
             }
         """
 
@@ -59,7 +57,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "fails configuration when no operating system family is configured"() {
+    def "fails configuration when no target machine is configured"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -67,22 +65,23 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = []
+                targetMachines = []
             }
         """
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
-        failure.assertHasCause("An operating system needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
+        failure.assertHasCause("A target machine needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
     }
 
     @Override
     protected String getDefaultArchitecture() {
-        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
-            return "x86"
-        }
-        return super.defaultArchitecture
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? "x86" : super.defaultArchitecture
+    }
+
+    protected String getCurrentHostArchitectureDsl() {
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
     }
 
     protected abstract SourceElement getComponentUnderTest()

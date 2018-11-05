@@ -46,7 +46,8 @@ import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -77,13 +78,15 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
     private final ToolChainSelector toolChainSelector;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -101,22 +104,22 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the unit test.");
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
+                    throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
                 }
 
-                boolean hasHostOperatingSystem = CollectionUtils.any(operatingSystemFamilies, new Spec<OperatingSystemFamily>() {
+                // TODO: should we not iterate over target machines?
+                TargetMachine targetMachine = CollectionUtils.findFirst(targetMachines, new Spec<TargetMachine>() {
                     @Override
-                    public boolean isSatisfiedBy(OperatingSystemFamily element) {
-                        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(element.getName());
+                    public boolean isSatisfiedBy(TargetMachine targetMachine) {
+                        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName());
                     }
                 });
 
-                if (hasHostOperatingSystem) {
+                if (targetMachine != null) {
                     String operatingSystemSuffix = "";
-                    OperatingSystemFamily operatingSystem = objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName());
                     Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                     Provider<String> group = project.provider(new Callable<String>() {
                         @Override
@@ -138,11 +141,11 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
 
                     // TODO: Fix this naming convention to follow C++ executable/library
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getBaseName(), group, version, true, false, operatingSystem,
+                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getBaseName(), group, version, true, false, targetMachine,
                         null,
                         new DefaultUsageContext("debug" + operatingSystemSuffix + "Runtime", runtimeUsage, attributesDebug));
 
-                    ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+                    ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, targetMachine);
                     testComponent.addExecutable(debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                     // TODO: Publishing for test executable?
 

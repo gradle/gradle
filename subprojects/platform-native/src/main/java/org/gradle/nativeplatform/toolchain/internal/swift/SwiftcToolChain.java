@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
@@ -88,6 +89,11 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         addDefaultTools(configurableToolChain);
         configureActions.execute(configurableToolChain);
 
+        // TODO: this is an approximation as we know swift currently supports only 64-bit runtimes - eventually, we'll want to query for this
+        if (!isCurrentArchitecture(targetPlatform)) {
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
+        }
+
         CommandLineToolSearchResult compiler = toolSearchPath.locate(ToolType.SWIFT_COMPILER, "swiftc");
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(compiler);
@@ -101,6 +107,10 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         }
 
         return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService, swiftcMetaData.getComponent());
+    }
+
+    private boolean isCurrentArchitecture(NativePlatformInternal targetPlatform) {
+        return targetPlatform.getArchitecture().equals(DefaultNativePlatform.getCurrentArchitecture());
     }
 
     @Override

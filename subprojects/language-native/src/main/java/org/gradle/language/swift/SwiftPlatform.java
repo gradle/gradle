@@ -18,7 +18,7 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Nested;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.api.platform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 /**

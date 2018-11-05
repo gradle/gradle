@@ -17,10 +17,8 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
@@ -54,7 +52,9 @@ import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.api.platform.MachineArchitecture;
+import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.api.platform.TargetMachine;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -77,13 +77,13 @@ import org.gradle.util.GUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -118,17 +118,18 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
+                    throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 BuildType buildType = BuildType.DEBUG;
-                for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
-                    String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
-                    String variantName = buildType.getName() + operatingSystemSuffix;
+                for (TargetMachine targetMachine : targetMachines) {
+                    String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
+                    String architecturePrefix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
+                    String variantName = buildType.getName() + operatingSystemSuffix + architecturePrefix;
 
                     Provider<String> group = project.provider(new Callable<String>() {
                         @Override
@@ -148,14 +149,15 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                     runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                     runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                    runtimeAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
-                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                         null,
                         new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
 
-                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, targetMachine);
 
                         // Create test suite executable
                         DefaultSwiftXCTestBinary binary;
@@ -202,17 +204,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testComponent.getBinaries().realizeNow();
             }
         });
-    }
-
-    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
-
-    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
-        return multivalueProperty.size() > 1;
     }
 
     private void configureTestSuiteBuildingTasks(final ProjectInternal project, final DefaultSwiftXCTestBinary binary) {

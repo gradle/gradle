@@ -68,6 +68,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.platform.TargetMachineFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
@@ -852,6 +853,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     @Inject
     public DefaultProjectLayout getLayout() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Inject
+    public TargetMachineFactory getMachines() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

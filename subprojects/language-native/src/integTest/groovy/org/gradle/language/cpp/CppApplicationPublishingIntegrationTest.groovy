@@ -393,7 +393,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         executable.exec().out == app.expectedOutput
     }
 
-    def "can publish the binaries of an application with explicit operating system family support to a Maven repository"() {
+    def "can publish the binaries of an application with explicit target machines to a Maven repository"() {
         def app = new CppApp()
 
         given:
@@ -405,12 +405,12 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             version = '1.2'
             application {
                 baseName = 'test'
-                operatingSystems = [objects.named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS), objects.named(OperatingSystemFamily, OperatingSystemFamily.LINUX), objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS)]
+                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86()]
             }
             publishing {
                 repositories { maven { url '$repo.uri' } }
             }
-"""
+        """
         app.writeToProject(testDirectory)
 
         when:
@@ -422,42 +422,42 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 6
-        mainMetadata.variant("debugWindowsRuntime").availableAt.coords == "some.group:test_debug_windows:1.2"
-        mainMetadata.variant("releaseWindowsRuntime").availableAt.coords == "some.group:test_release_windows:1.2"
-        mainMetadata.variant("debugLinuxRuntime").availableAt.coords == "some.group:test_debug_linux:1.2"
-        mainMetadata.variant("releaseLinuxRuntime").availableAt.coords == "some.group:test_release_linux:1.2"
-        mainMetadata.variant("debugMacosRuntime").availableAt.coords == "some.group:test_debug_macos:1.2"
-        mainMetadata.variant("releaseMacosRuntime").availableAt.coords == "some.group:test_release_macos:1.2"
+        mainMetadata.variant("debugWindowsX86Runtime").availableAt.coords == "some.group:test_debug_windows_x86:1.2"
+        mainMetadata.variant("releaseWindowsX86Runtime").availableAt.coords == "some.group:test_release_windows_x86:1.2"
+        mainMetadata.variant("debugLinuxX86Runtime").availableAt.coords == "some.group:test_debug_linux_x86:1.2"
+        mainMetadata.variant("releaseLinuxX86Runtime").availableAt.coords == "some.group:test_release_linux_x86:1.2"
+        mainMetadata.variant("debugMacosX86Runtime").availableAt.coords == "some.group:test_debug_macos_x86:1.2"
+        mainMetadata.variant("releaseMacosX86Runtime").availableAt.coords == "some.group:test_release_macos_x86:1.2"
 
-        def debug = repo.module('some.group', "test_debug_$currentOsFamilyName", '1.2')
+        def debug = repo.module('some.group', "test_debug_${currentOsFamilyNormalized}_x86", '1.2')
         debug.assertPublished()
-        debug.assertArtifactsPublished(executableName("test_debug_${currentOsFamilyName}-1.2"), "test_debug_${currentOsFamilyName}-1.2.pom", "test_debug_${currentOsFamilyName}-1.2.module")
-        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/${currentOsFamilyName}/test").file)
+        debug.assertArtifactsPublished(executableName("test_debug_${currentOsFamilyNormalized}_x86-1.2"), "test_debug_${currentOsFamilyNormalized}_x86-1.2.pom", "test_debug_${currentOsFamilyNormalized}_x86-1.2.module")
+        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/${currentOsFamilyName}/x86/test").file)
 
         debug.parsedPom.scopes.isEmpty()
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug${currentOsFamilyName.capitalize()}Runtime")
+        def debugRuntime = debugMetadata.variant("debug${currentOsFamilyNormalized.capitalize()}X86Runtime")
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == executableName('test')
-        debugRuntime.files[0].url == executableName("test_debug_${currentOsFamilyName}-1.2")
+        debugRuntime.files[0].url == executableName("test_debug_${currentOsFamilyNormalized}_x86-1.2")
 
-        def release = repo.module('some.group', "test_release_${currentOsFamilyName}", '1.2')
+        def release = repo.module('some.group', "test_release_${currentOsFamilyNormalized}_x86", '1.2')
         release.assertPublished()
-        release.assertArtifactsPublished(executableName("test_release_${currentOsFamilyName}-1.2"), "test_release_${currentOsFamilyName}-1.2.pom", "test_release_${currentOsFamilyName}-1.2.module")
-        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/${currentOsFamilyName}/test").strippedRuntimeFile)
+        release.assertArtifactsPublished(executableName("test_release_${currentOsFamilyNormalized}_x86-1.2"), "test_release_${currentOsFamilyNormalized}_x86-1.2.pom", "test_release_${currentOsFamilyNormalized}_x86-1.2.module")
+        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/${currentOsFamilyName}/x86/test").strippedRuntimeFile)
 
         release.parsedPom.scopes.isEmpty()
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release${currentOsFamilyName.capitalize()}Runtime")
+        def releaseRuntime = releaseMetadata.variant("release${currentOsFamilyNormalized.capitalize()}X86Runtime")
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == executableName('test')
-        releaseRuntime.files[0].url == executableName("test_release_${currentOsFamilyName}-1.2")
+        releaseRuntime.files[0].url == executableName("test_release_${currentOsFamilyNormalized}_x86-1.2")
 
         when:
         consumer.file("build.gradle") << """
@@ -469,13 +469,17 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             dependencies {
                 install 'some.group:test:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
         then:
         def executable = executable("consumer/install/test")
         executable.exec().out == app.expectedOutput
+    }
+
+    private String getCurrentOsFamilyNormalized() {
+        return currentOsFamilyName.toLowerCase()
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
+import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
@@ -39,16 +40,25 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
 
     def setup() {
         initScript = file("init.gradle") << """
-allprojects { p ->
-    apply plugin: ${toolChain.pluginClass}
-
-    model {
-          toolChains {
-            ${toolChain.buildScriptConfig}
-          }
-    }
-}
-"""
+            allprojects { p ->
+                apply plugin: ${toolChain.pluginClass}
+            
+                model {
+                      toolChains {
+                        ${toolChain.buildScriptConfig}
+                      }
+                }
+            }
+        """
+        if (toolChain.meets(ToolChainRequirement.WINDOWS_GCC)) {
+            initScript << """
+                allprojects { p ->
+                    components.withType(CppComponent) { component ->
+                        component.targetMachines.set([machines.host().x86()])        
+                    }            
+                }
+            """
+        }
         executer.beforeExecute({
             usingInitScript(initScript)
         })
@@ -175,5 +185,9 @@ allprojects { p ->
 
     protected String getCurrentOsFamilyName() {
         DefaultNativePlatform.currentOperatingSystem.toFamilyName()
+    }
+
+    protected String getCurrentArchitecture() {
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? Architectures.X86.canonicalName : DefaultNativePlatform.currentArchitecture.name
     }
 }

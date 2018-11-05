@@ -26,6 +26,16 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     }
 
     @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return [":compileDebugShared${getVariantSuffix(architecture)}Cpp", ":linkDebugShared${getVariantSuffix(architecture)}"]
+    }
+
+    @Override
+    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return ":assembleDebugShared${getVariantSuffix(architecture)}"
+    }
+
+    @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-library'

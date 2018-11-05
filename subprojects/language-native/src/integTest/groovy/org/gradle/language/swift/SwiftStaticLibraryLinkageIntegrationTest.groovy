@@ -16,12 +16,23 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
         return [":compileDebugSwift", ":createDebug"]
+    }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return [":compileDebug${getVariantSuffix(architecture)}Swift", ":createDebug${getVariantSuffix(architecture)}"]
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new SwiftLib()
     }
 
     @Override
