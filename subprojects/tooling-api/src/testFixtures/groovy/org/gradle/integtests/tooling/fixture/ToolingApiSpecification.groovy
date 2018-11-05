@@ -229,7 +229,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        if (targetDist.isLogsConfigureSummary()) {
+        if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
             assert stdout.toString().contains("BUILD SUCCESSFUL")
@@ -238,7 +238,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     void assertHasConfigureFailedLogging() {
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
-        if (targetDist.isLogsConfigureSummary()) {
+        if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
         } else {
             assert failureOutput.contains("BUILD FAILED")

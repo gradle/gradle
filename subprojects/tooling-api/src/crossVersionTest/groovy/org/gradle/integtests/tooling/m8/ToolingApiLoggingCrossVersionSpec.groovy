@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
@@ -88,7 +87,6 @@ project.logger.debug("debug logging yyy");
     }
 
     def "client receives same standard output and standard error as if running from the command-line"() {
-        Assume.assumeTrue targetDist.toolingApiNonAsciiOutputSupported
         toolingApi.verboseLogging = false
 
         file("build.gradle") << """

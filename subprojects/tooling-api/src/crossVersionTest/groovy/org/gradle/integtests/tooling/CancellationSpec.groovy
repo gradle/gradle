@@ -81,27 +81,30 @@ latch.await()
     void configureWasCancelled(TestResultHandler resultHandler, String failureMessage) {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith(failureMessage)
-        assert resultHandler.failure.cause.message == "Build cancelled."
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-        failure.assertHasDescription('Build cancelled.')
-        assertHasConfigureFailedLogging()
+        if (targetDist.toolingApiHasCauseOnCancel) {
+            assert resultHandler.failure.cause.message == "Build cancelled."
+        }
+        if (targetDist.toolingApiLogsFailureOnCancel) {
+            def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+            failure.assertHasDescription('Build cancelled.')
+            assertHasConfigureFailedLogging()
+        }
     }
 
     void taskWasCancelled(TestResultHandler resultHandler, String taskPath) {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith("Could not execute build using Gradle")
-        if (targetDist.tapiRetainsOriginalFailureOnCancel) {
-            assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'."
+        if (targetDist.toolingApiRetainsOriginalFailureOnCancel) {
+            assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, should probably suppress this
             assert resultHandler.failure.cause.cause.message == "Execution failed for task '${taskPath}'."
-        } else {
-            assert resultHandler.failure.cause.message == "Build cancelled during task: hang"
-        }
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-        if (targetDist.tapiRetainsOriginalFailureOnCancel) {
+            assert resultHandler.failure.cause.cause.cause.message == "Build cancelled during executing task '${taskPath}'"
+            def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription("Execution failed for task '${taskPath}'.")
             failure.assertHasCause("Build cancelled during executing task '${taskPath}'")
         } else {
-            failure.assertHasDescription("Build cancelled during task: ")
+            assert resultHandler.failure.cause.message.startsWith("Build cancelled")
+            def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+            failure.assertHasDescription("Build cancelled")
         }
         assertHasBuildFailedLogging()
     }

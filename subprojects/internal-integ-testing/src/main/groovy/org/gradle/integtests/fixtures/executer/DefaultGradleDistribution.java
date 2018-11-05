@@ -127,22 +127,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return worksWith(javaVersion);
     }
 
-    public boolean isToolingApiNonAsciiOutputSupported() {
-        if (OperatingSystem.current().isWindows()) {
-            return !isVersion("1.0-milestone-7") && !isVersion("1.0-milestone-8") && !isVersion("1.0-milestone-8a");
-        }
-        return true;
-    }
-
-    public boolean isToolingApiDaemonBaseDirSupported() {
-        return isSameOrNewer("2.2-rc-1");
-    }
-
-    @Override
-    public boolean isToolingApiEventsInEmbeddedModeSupported() {
-        return isSameOrNewer("2.6-rc-1");
-    }
-
     @Override
     public boolean isToolingApiLocksBuildActionClasses() {
         return isSameOrOlder("3.0");
@@ -207,12 +191,25 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean isTapiRetainsOriginalFailureOnCancel() {
+    public boolean isToolingApiRetainsOriginalFailureOnCancel() {
+        // Versions before 5.1 would unpack the exception and throw part of it, losing some context
         return isSameOrNewer("5.1");
     }
 
     @Override
-    public boolean isLogsConfigureSummary() {
+    public boolean isToolingApiHasCauseOnCancel() {
+        // Versions before 3.2 would throw away the cause. There was also a regression 4.0
+        return isSameOrNewer("3.2") && !version.getBaseVersion().equals(GradleVersion.version("4.0"));
+    }
+
+    @Override
+    public boolean isToolingApiLogsFailureOnCancel() {
+        // Versions before 4.1 would log "CONFIGURE SUCCESSFUL" for model/action execution (but "BUILD FAILED" for task/test execution)
+        return isSameOrNewer("4.1");
+    }
+
+    @Override
+    public boolean isToolingApiLogsConfigureSummary() {
         return isSameOrNewer("2.14");
     }
 
