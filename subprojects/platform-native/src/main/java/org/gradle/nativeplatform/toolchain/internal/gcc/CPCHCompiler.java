@@ -31,6 +31,11 @@ public class CPCHCompiler extends GccCompatibleNativeCompiler<CPCHCompileSpec> {
 
     private static class CPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CPCHCompileSpec> {
         @Override
+        protected boolean isNoStandardIncludes() {
+            return false;
+        }
+
+        @Override
         protected String getLanguage() {
             return "c-header";
         }
