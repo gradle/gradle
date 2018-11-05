@@ -166,7 +166,7 @@ Kotlin DSL::
  * `PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
 
 +
-Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC14#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
+Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl/releases/tag/v1.0.0#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
 
 Miscellaneous::
  * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination-java.io.File-[ConfigurableReport.setDestination(File)] instead.

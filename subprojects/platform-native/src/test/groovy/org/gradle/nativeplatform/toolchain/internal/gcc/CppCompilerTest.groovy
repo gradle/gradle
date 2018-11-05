@@ -34,6 +34,8 @@ class CppCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        [ '-x', 'c++' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        arguments.remove('-nostdinc')
+        [ '-x', 'c++' ] + arguments
     }
 }

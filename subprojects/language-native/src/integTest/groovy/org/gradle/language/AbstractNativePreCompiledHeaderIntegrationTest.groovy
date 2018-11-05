@@ -557,7 +557,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         updateCommonHeaderPath(app.getAlternateLibrarySources(), headerPath)
     }
 
-    SourceFile getCommonHeader(String path) {
+    SourceFile getCommonHeader(String path = "") {
         updateSourceFilePath(app.getCommonHeader(), path)
     }
 
