@@ -61,6 +61,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+                withModule("com.google.guava:guava", ExcludeDependencies::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
@@ -250,6 +251,17 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+
+open class ExcludeDependencies : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                clear()
             }
         }
     }
