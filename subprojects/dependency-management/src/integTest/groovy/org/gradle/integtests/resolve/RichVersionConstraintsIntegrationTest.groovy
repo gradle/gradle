@@ -567,6 +567,40 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
     }
 
+    def "should fail and include path to unresolvable strict version range"() {
+        given:
+        repository {
+            'org:foo:15'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:15'
+                conf('org:foo') {
+                    version {
+                        strictly '[0,1]'
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '15' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo:15'
+   Dependency path ':test:unspecified' --> 'org:foo' strictly '[0,1]'""")
+    }
+
     void "should pass if strict version ranges overlap"() {
         given:
         repository {
