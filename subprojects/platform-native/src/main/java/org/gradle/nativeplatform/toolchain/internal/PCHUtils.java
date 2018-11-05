@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -28,7 +29,9 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PCHUtils {
     public static File generatePCHObjectDirectory(File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
@@ -59,6 +62,28 @@ public class PCHUtils {
                     } else {
                         return "#include \"".concat(header).concat("\"");
                     }
+                }
+            }));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void generatePrefixHeaderMacroFile(Map<String, String> macros, File headerFile) {
+        if (!headerFile.getParentFile().exists()) {
+            headerFile.getParentFile().mkdirs();
+        }
+        try {
+            List<String> macroList = new ArrayList<String>();
+            for (String key : macros.keySet()) {
+                String val = macros.get(key);
+                String aMacro = key + ((val != null) ? " " + val : "");
+                macroList.add(aMacro);
+            }
+            FileUtils.writeLines(headerFile, CollectionUtils.collect(macroList, new Transformer<String, String>() {
+                @Override
+                public String transform(String macros) {
+                    return "#define ".concat(macros);
                 }
             }));
         } catch (IOException e) {

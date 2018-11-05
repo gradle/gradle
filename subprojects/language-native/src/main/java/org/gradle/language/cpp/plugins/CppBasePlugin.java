@@ -16,6 +16,16 @@
 
 package org.gradle.language.cpp.plugins;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
+
+import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
+import javax.inject.Inject;
+
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -35,22 +45,17 @@ import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.tasks.PrefixHeaderFileMacroGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -75,60 +80,83 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-        // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
+        // Enable the use of Gradle metadata. This is a temporary opt-in switch until
+        // available by default
         project.getGradle().getServices().get(FeaturePreviews.class).enableFeature(GRADLE_METADATA);
 
-        // Create the tasks for each C++ binary that is registered
-        project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
+        project.getComponents().withType(DefaultCppComponent.class, new Action<DefaultCppComponent>() {
+
             @Override
-            public void execute(final DefaultCppBinary binary) {
-                final Names names = binary.getNames();
+            public void execute(final DefaultCppComponent component) {
 
-                String language = "cpp";
-                final NativePlatform currentPlatform = binary.getTargetPlatform();
-                // TODO - make this lazy
-                final NativeToolChainInternal toolChain = binary.getToolChain();
+                final Map<String, String> macros = (component instanceof DefaultCppLibrary) ? ((DefaultCppLibrary)component).getPublicMacros():new LinkedHashMap<String, String>();
 
-                final Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                component.getBinaries().whenElementFinalized(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
+
                     @Override
-                    public List<File> call() {
-                        PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
-                        return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
-                    }
-                };
+                    public void execute(final DefaultCppBinary binary) {
+                        final Names names = binary.getNames();
 
-                TaskProvider<CppCompile> compile = tasks.register(names.getCompileTaskName(language), CppCompile.class, new Action<CppCompile>() {
-                    @Override
-                    public void execute(CppCompile compile) {
-                        compile.includes(binary.getCompileIncludePath());
-                        compile.getSystemIncludes().from(systemIncludes);
-                        compile.source(binary.getCppSource());
-                        if(!binary.getMacros().isEmpty()) {
-                            compile.setMacros(binary.getMacros());
-                        }
-                        if (binary.isDebuggable()) {
-                            compile.setDebuggable(true);
-                        }
-                        if (binary.isOptimized()) {
-                            compile.setOptimized(true);
-                        }
-                        compile.getTargetPlatform().set(currentPlatform);
-                        compile.getToolChain().set(toolChain);
-                        compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                        String language = "cpp";
+                        final NativePlatform currentPlatform = binary.getTargetPlatform();
+                        // TODO - make this lazy
+                        final NativeToolChainInternal toolChain = binary.getToolChain();
 
-                        if (binary instanceof CppSharedLibrary) {
-                            compile.setPositionIndependentCode(true);
-                        }
+                        final Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                            @Override
+                            public List<File> call() {
+                                PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
+                                return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
+                            }
+                        };
+
+                         TaskProvider<PrefixHeaderFileMacroGenerateTask> prefixGenTask = tasks.register(names.getName()+"prefixGenTask", PrefixHeaderFileMacroGenerateTask.class, new Action<PrefixHeaderFileMacroGenerateTask>() {
+                            @Override
+                            public void execute(PrefixHeaderFileMacroGenerateTask prefixGenTask) {
+                                prefixGenTask.setMacros(macros);
+                                //put project name in the header file name as well.
+                                prefixGenTask.getPrefixHeaderFile().set(new File("build/generated/"+names.getLowerBaseName().concat("-macros-header.h")));
+                            }
+                        });
+
+                        TaskProvider<CppCompile> compile = tasks.register(names.getCompileTaskName(language), CppCompile.class, new Action<CppCompile>() {
+                            @Override
+                            public void execute(CppCompile compile) {
+                                compile.includes(binary.getCompileIncludePath());
+                                compile.getSystemIncludes().from(systemIncludes);
+                                compile.source(binary.getCppSource());
+                                if(!binary.getMacros().isEmpty()) {
+                                    compile.setMacros(binary.getMacros());
+                                    compile.dependsOn(prefixGenTask);
+                                    compile.includes(prefixGenTask.get().getPrefixHeaderFile());
+                                }
+                                if (binary.isDebuggable()) {
+                                    compile.setDebuggable(true);
+                                }
+                                if (binary.isOptimized()) {
+                                    compile.setOptimized(true);
+                                }
+                                compile.getTargetPlatform().set(currentPlatform);
+                                compile.getToolChain().set(toolChain);
+                                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+
+                                if (binary instanceof CppSharedLibrary) {
+                                    compile.setPositionIndependentCode(true);
+                                }
+                                
+                            }
+                        });
+                        
+
+                        binary.getObjectsDir().set(compile.flatMap(new Transformer<Provider<? extends Directory>, CppCompile>() {
+                            @Override
+                            public Provider<? extends Directory> transform(CppCompile cppCompile) {
+                                return cppCompile.getObjectFileDir();
+                            }
+                        }));
+                        binary.getCompileTask().set(compile);
                     }
                 });
-
-                binary.getObjectsDir().set(compile.flatMap(new Transformer<Provider<? extends Directory>, CppCompile>() {
-                    @Override
-                    public Provider<? extends Directory> transform(CppCompile cppCompile) {
-                        return cppCompile.getObjectFileDir();
-                    }
-                }));
-                binary.getCompileTask().set(compile);
             }
         });
 
