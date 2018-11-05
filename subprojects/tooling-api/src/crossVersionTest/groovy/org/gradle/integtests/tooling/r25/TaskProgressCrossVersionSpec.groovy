@@ -185,9 +185,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     def "receive task progress events when tasks are executed in parallel"() {
         given:
         server.start()
-        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
-            toolingApi.requireDaemons()
-        }
         buildFile << """
             @ParallelizableTask
             class ParTask extends DefaultTask {
@@ -229,9 +226,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     def "receive task progress events when tasks are executed in parallel (with async work)"() {
         given:
         server.start()
-        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
-            toolingApi.requireDaemons()
-        }
         buildFile << """
             import org.gradle.workers.WorkerExecutor
             import org.gradle.workers.IsolationMode

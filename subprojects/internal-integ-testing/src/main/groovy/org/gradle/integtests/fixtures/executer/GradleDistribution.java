@@ -70,24 +70,9 @@ public interface GradleDistribution {
     boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion);
 
     /**
-     * Returns true if the tooling API of this distribution correctly handles non-ASCII characters in logging output.
-     */
-    boolean isToolingApiNonAsciiOutputSupported();
-
-    /**
      * Returns true if the tooling API of this distribution correctly handles logging in embedded mode.
      */
     boolean isToolingApiLoggingInEmbeddedModeSupported();
-
-    /**
-     * Returns true if the tooling API of this distribution supports specifying the daemon base dir.
-     */
-    boolean isToolingApiDaemonBaseDirSupported();
-
-    /**
-     * Returns true if the tooling API of this distribution correctly implements progress events when in embedded mode.
-     */
-    boolean isToolingApiEventsInEmbeddedModeSupported();
 
     /**
      * Returns true if the tooling API of this distribution incorrectly locks build action implementation classes.
@@ -129,15 +114,25 @@ public interface GradleDistribution {
     /**
      * Returns true if this version retains the original build failure on cancellation (with all context) in the client and build logging, rather than discarding contextual exceptions.
      */
-    boolean isTapiRetainsOriginalFailureOnCancel();
+    boolean isToolingApiRetainsOriginalFailureOnCancel();
 
     /**
-     * Returns the logging output stream that this version logs build failures to when invoked via the TAPI.
+     * Returns true if this version has a useful cause attached to the exception thrown by the tooling API client on build cancel.
+     */
+    boolean isToolingApiHasCauseOnCancel();
+
+    /**
+     * Returns true if this version logs a 'build failed' message on build cancellation.
+     */
+    boolean isToolingApiLogsFailureOnCancel();
+
+    /**
+     * Returns the logging output stream that this version logs build failures to when invoked via the tooling API.
      */
     <T> T selectOutputWithFailureLogging(T stdout, T stderr);
 
     /**
-     * Returns true if this version logs a different build outcome message for TAPI model/build action requests and task execution requests.
+     * Returns true if this version logs different build outcome messages for tooling API requests that run tasks and to requests that do not run tasks (eg fetch a model).
      */
-    boolean isLogsConfigureSummary();
+    boolean isToolingApiLogsConfigureSummary();
 }
