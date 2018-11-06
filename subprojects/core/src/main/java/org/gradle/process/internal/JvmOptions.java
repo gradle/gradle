@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
@@ -136,7 +137,8 @@ public class JvmOptions {
             args.add("-ea");
         }
         if (debug) {
-            args.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+            String port = JavaVersion.current().isJava9Compatible() ? "*:5005" : "5005";
+            args.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + port);
         }
         return args;
     }

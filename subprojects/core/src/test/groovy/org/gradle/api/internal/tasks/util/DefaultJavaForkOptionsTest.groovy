@@ -271,7 +271,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.debug = true
 
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005']
     }
 
     def "debug is enabled when set using jvmArgs"() {
