@@ -163,6 +163,7 @@ An important feature of the `Provider` API is that `Provider` instances can trac
 When a `Provider` that represents an output of a task is connected to a `Property` instance that represents a task input, Gradle automatically adds task dependencies between the tasks. This eliminates a class of configuration problems where the location of a task input and the producing task dependencies are not kept in sync as configuration changes are made.
 
 In this release, more `Provider` implementations track the tasks that produces the value of the provider:
+
 - Any provider returned by `TaskContainer`
 - Any property marked with `@OutputFile`, `@OutputDirectory`, `@OutputFiles` or `@OutputDirectories`.
 - Any `List` or `Set` property whose elements match these criteria.
