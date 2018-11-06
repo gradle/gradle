@@ -57,7 +57,7 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
         and:
         file("src/hello/cpp/includeFramework.cpp") << """
             #include "common.h"
-            void sayHello() {
+            void sayHelloFoundation() {
                 CFShow(CFSTR("Hello"));
             }
         """

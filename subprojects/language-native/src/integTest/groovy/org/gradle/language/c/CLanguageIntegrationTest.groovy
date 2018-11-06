@@ -263,7 +263,7 @@ model {
         file("src/main/c/includeFramework.c") << """
             #include <CoreFoundation/CoreFoundation.h>
 
-            void sayHello() {
+            void sayHelloFoundation() {
                 CFShow(CFSTR("Hello"));
             }
         """

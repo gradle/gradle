@@ -101,7 +101,7 @@ model {
         file("src/main/cpp/includeFramework.cpp") << """
             #include <CoreFoundation/CoreFoundation.h>
 
-            void sayHello() {
+            void sayHelloFoundation() {
                 CFShow(CFSTR("Hello"));
             }
         """
