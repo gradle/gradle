@@ -27,7 +27,8 @@ We would like to thank the following community contributors to this release of G
 [Martin Dünkelmann](https://github.com/MartinX3),
 [Thad House](https://github.com/ThadHouse),
 [Dan Sanduleac](https://github.com/dansanduleac),
-and [Felipe Lima](https://github.com/felipecsl).
+[Felipe Lima](https://github.com/felipecsl),
+and [thc202](https://github.com/thc202).
 
 
 ## Kotlin DSL 1.0
