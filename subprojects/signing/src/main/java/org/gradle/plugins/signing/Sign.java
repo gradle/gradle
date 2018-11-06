@@ -15,14 +15,9 @@
  */
 package org.gradle.plugins.signing;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
@@ -37,25 +32,25 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputFiles;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * A task for creating digital signature files for one or more; tasks, files, publishable artifacts or configurations.
@@ -65,65 +60,30 @@ import java.util.regex.Pattern;
  */
 public class Sign extends DefaultTask implements SignatureSpec {
 
-    private static final Pattern JAVA_PARTS = Pattern.compile("[^\\p{javaJavaIdentifierPart}]");
-
-    @Internal
     private SignatureType signatureType;
-    /**
-     * The signatory to the generated signatures.
-     */
-    @Internal
     private Signatory signatory;
-
     private boolean required = true;
     private final DefaultDomainObjectSet<Signature> signatures = new DefaultDomainObjectSet<Signature>(Signature.class);
 
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
-
-        getInputs().property("signatory", new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                Signatory signatory = getSignatory();
-                return signatory == null ? null : signatory.getKeyId();
-            }
-        }).optional(true);
     }
 
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFiles
+    @Internal
+    @Deprecated
     public Iterable<File> getInputFiles() {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getInputFiles()",
+            "Please use Sign.getSignatures() and Signature.getToSign() instead.");
         return Iterables.transform(signatures, Signature::getToSign);
     }
 
-    @OutputFiles
+    @Internal
+    @Deprecated
     public Map<String, File> getOutputFiles() {
-        ArrayListMultimap<String, File> filesWithPotentialNameCollisions = ArrayListMultimap.create();
-        for (Signature signature : getSignatures()) {
-            String name = JAVA_PARTS.matcher(signature.getName()).replaceAll("_");
-            if (name.length() > 0 && !Character.isJavaIdentifierStart(name.codePointAt(0))) {
-                name = "_" + name.substring(1);
-            }
-
-            filesWithPotentialNameCollisions.put(name, signature.getFile());
-        }
-
-        Map<String, File> files = Maps.newHashMap();
-        for (Map.Entry<String, Collection<File>> entry : filesWithPotentialNameCollisions.asMap().entrySet()) {
-            File[] filesWithSameName = entry.getValue().toArray(new File[0]);
-            boolean hasMoreThanOneFileWithSameName = filesWithSameName.length > 1;
-            for (int i = 0; i < filesWithSameName.length; i++) {
-                File file = filesWithSameName[i];
-                String key = entry.getKey();
-                if (hasMoreThanOneFileWithSameName) {
-                    key += "$" + (i + 1);
-                }
-                files.put(key, file);
-            }
-        }
-
-        return files;
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getOutputFiles()",
+            "Please use Sign.getSignatures() and Signature.getFile() instead.");
+        return signatures.stream().collect(toMap(Signature::toKey, Signature::getFile));
     }
 
     /**
@@ -132,7 +92,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     public void sign(Task... tasks) {
         for (Task task : tasks) {
             if (!(task instanceof AbstractArchiveTask)) {
-                throw new InvalidUserDataException("You cannot sign tasks that are not \'archive\' tasks, such as \'jar\', \'zip\' etc. (you tried to sign " + String.valueOf(task) + ")");
+                throw new InvalidUserDataException("You cannot sign tasks that are not \'archive\' tasks, such as \'jar\', \'zip\' etc. (you tried to sign " + task + ")");
             }
 
             signTask((AbstractArchiveTask) task);
@@ -142,15 +102,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     private void signTask(final AbstractArchiveTask archiveTask) {
         dependsOn(archiveTask);
-        addSignature(new Signature(new Callable<File>() {
-            public File call() {
-                return archiveTask.getArchivePath();
-            }
-        }, new Callable<String>() {
-            public String call() {
-                return archiveTask.getClassifier();
-            }
-        }, this, this));
+        addSignature(new Signature(archiveTask::getArchivePath, archiveTask::getClassifier, this, this));
     }
 
     /**
@@ -169,11 +121,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void signArtifact(final PublicationArtifact publicationArtifact) {
-        addSignature(new Signature(publicationArtifact, new Callable<File>() {
-            public File call() {
-                return publicationArtifact.getFile();
-            }
-        }, null, null, this, this));
+        addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
     }
 
     /**
@@ -201,34 +149,18 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     public void sign(Configuration... configurations) {
         for (Configuration configuration : configurations) {
-            configuration.getAllArtifacts().all(
-                new Action<PublishArtifact>() {
-                    @Override
-                    public void execute(PublishArtifact artifact) {
-                        if (artifact instanceof Signature || signatureFor(artifact).isPresent()) {
-                            return;
-                        }
-
-                        signArtifact(artifact);
-                    }
-                });
-            configuration.getAllArtifacts().whenObjectRemoved(new Action<PublishArtifact>() {
-                @Override
-                public void execute(final PublishArtifact publishArtifact) {
-                    removeSignature(publishArtifact);
+            configuration.getAllArtifacts().all(artifact -> {
+                if (artifact instanceof Signature || hasSignatureFor(artifact)) {
+                    return;
                 }
+                signArtifact(artifact);
             });
+            configuration.getAllArtifacts().whenObjectRemoved(this::removeSignature);
         }
-
     }
 
-    private Optional<Signature> signatureFor(Buildable source) {
-        return Iterables.tryFind(signatures, new Predicate<Signature>() {
-            @Override
-            public boolean apply(Signature input) {
-                return input.getSource().equals(source);
-            }
-        });
+    private boolean hasSignatureFor(Buildable source) {
+        return signatures.stream().anyMatch(hasSource(source));
     }
 
     /**
@@ -239,33 +171,16 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Incubating
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
-            final PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
-            dependsOn(new Callable<Set<? extends PublicationArtifact>>() {
-                @Override
-                public Set<? extends PublicationArtifact> call() {
-                    return publicationInternal.getPublishableArtifacts().matching(new Spec<PublicationArtifact>() {
-                        @Override
-                        public boolean isSatisfiedBy(PublicationArtifact artifact) {
-                            return isNoSignatureArtifact(artifact);
-                        }
-                    });
+            PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
+            dependsOn((Callable<Set<? extends PublicationArtifact>>) () -> {
+                return publicationInternal.getPublishableArtifacts().matching(this::isNoSignatureArtifact);
+            });
+            publicationInternal.allPublishableArtifacts(artifact -> {
+                if (isNoSignatureArtifact(artifact)) {
+                    signArtifact(artifact);
                 }
             });
-            publicationInternal.allPublishableArtifacts(
-                new Action<PublicationArtifact>() {
-                    @Override
-                    public void execute(PublicationArtifact artifact) {
-                        if (isNoSignatureArtifact(artifact)) {
-                            signArtifact(artifact);
-                        }
-                    }
-                });
-            publicationInternal.whenPublishableArtifactRemoved(new Action<PublicationArtifact>() {
-                @Override
-                public void execute(final PublicationArtifact artifact) {
-                    removeSignature(artifact);
-                }
-            });
+            publicationInternal.whenPublishableArtifactRemoved(this::removeSignature);
         }
     }
 
@@ -278,10 +193,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void removeSignature(final Buildable source) {
-        Optional<Signature> signature = signatureFor(source);
-        if (signature.isPresent()) {
-            signatures.remove(signature.get());
-        }
+        signatures.removeIf(hasSource(source));
+    }
+
+    private Predicate<Signature> hasSource(Buildable source) {
+        return signature -> signature.getSource().equals(source);
     }
 
     /**
@@ -321,6 +237,16 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     /**
+     * The signatures generated by this task mapped by a unique key used for up-to-date checking.
+     * @since 5.1
+     */
+    @Nested
+    @Incubating
+    public Map<String, Signature> getSignaturesByKey() {
+        return signatures.stream().collect(toMap(Signature::toKey, identity()));
+    }
+
+    /**
      * Returns the single signature generated by this task.
      *
      * @return The signature.
@@ -328,15 +254,10 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     @Internal
     public Signature getSingleSignature() {
-        final DomainObjectSet<Signature> signatureSet = getSignatures();
-        if (signatureSet.size() == 0) {
-            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no signatures.");
-        } else if (signatureSet.size() == 1) {
-            return signatureSet.iterator().next();
-        } else {
-            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no " + String.valueOf(signatureSet.size()) + " signatures.");
+        if (signatures.size() == 1) {
+            return signatures.iterator().next();
         }
-
+        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + signatures.size() + " signatures.");
     }
 
     @Inject
@@ -350,7 +271,8 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     @Internal
     public FileCollection getFilesToSign() {
-        return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign", Lists.newLinkedList(Iterables.filter(getInputFiles(), Predicates.notNull())));
+        return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign",
+            Lists.newLinkedList(Iterables.filter(getInputFiles(), Predicates.notNull())));
     }
 
     /**
@@ -362,6 +284,8 @@ public class Sign extends DefaultTask implements SignatureSpec {
             Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getFile), Predicates.notNull())));
     }
 
+    @Nested
+    @Optional
     public SignatureType getSignatureType() {
         return signatureType;
     }
@@ -374,6 +298,8 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns the signatory for this signing task.
      * @return the signatory
      */
+    @Nested
+    @Optional
     public Signatory getSignatory() {
         return signatory;
     }
