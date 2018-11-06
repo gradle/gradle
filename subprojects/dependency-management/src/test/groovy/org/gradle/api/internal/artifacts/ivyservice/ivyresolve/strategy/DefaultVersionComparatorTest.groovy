@@ -57,7 +57,9 @@ class DefaultVersionComparatorTest extends Specification {
         where:
         smaller     | larger
         "1.0.a"     | "1.0.b"
+        "1.0.A"     | "1.0.b"
         "1.0-alpha" | "1.0-beta"
+        "1.0-ALPHA" | "1.0-BETA"
         "1.0.alpha" | "1.0.b"
         "alpha"     | "beta"
     }
@@ -115,6 +117,26 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0-release" | "1.0-final"
         "1.0.0.RC1"   | "1.0.0.RC2"
         "1.0.0.RC2"   | "1.0.0.RELEASE"
+    }
+
+    def "compares special qualifiers against non-special strings"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "1.0-dev"      | "1.0-a"
+        "1.0-a"        | "1.0-rc"
+        "1.0-a"        | "1.0-release"
+        "1.0-a"        | "1.0-final"
+
+        "1.0-dev"      | "1.0-SNAPSHOT"
+        "1.0-SNAPSHOT" | "1.0-rc"
+        "1.0-SNAPSHOT" | "1.0-release"
+        "1.0-SNAPSHOT" | "1.0-final"
     }
 
     def "compares identical versions equal"() {
