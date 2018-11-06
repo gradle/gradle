@@ -44,8 +44,17 @@ data class ProgramText private constructor(val text: String) {
         if (ranges.isEmpty()) this
         else ProgramText(text.erase(ranges))
 
-    fun preserve(vararg ranges: IntRange): ProgramText {
+    fun preserve(vararg ranges: IntRange): ProgramText =
+        erase(complementOf(ranges))
 
+    fun subText(range: IntRange): ProgramText =
+        ProgramText(text.substring(range))
+
+    fun lineNumberOf(index: Int): Int =
+        text.lineAndColumnFor(index).first
+
+    private
+    fun complementOf(ranges: Array<out IntRange>): ArrayList<IntRange> {
         require(ranges.isNotEmpty())
 
         val sortedRanges = ranges.sortedBy { it.start }
@@ -61,15 +70,8 @@ data class ProgramText private constructor(val text: String) {
         if (lastIndexToPreserve < text.lastIndex) {
             rangesToErase.add(lastIndexToPreserve + 1..text.lastIndex)
         }
-
-        return erase(rangesToErase)
+        return rangesToErase
     }
-
-    fun subText(range: IntRange): ProgramText =
-        ProgramText(text.substring(range))
-
-    fun lineNumberOf(index: Int): Int =
-        text.lineAndColumnFor(index).first
 }
 
 
