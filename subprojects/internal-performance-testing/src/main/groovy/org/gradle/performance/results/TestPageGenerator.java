@@ -60,7 +60,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             p().text("Tasks: " + getTasks(testHistory)).end();
             p().text("Clean tasks: " + getCleanTasks(testHistory)).end();
 
-                addPerformanceGraphs();
+            addPerformanceGraphs();
 
             div().id("tooltip").end();
             div().id("controls").end();
@@ -197,9 +197,9 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 }
 
                 charts.forEach(chart -> {
-                    h3().text(StringUtils.capitalize(chart.getLabel())).end();
+                    h3().text(StringUtils.capitalize(chart.getLabel()) + " (" + chart.getUnit() + ")").end();
                     div().classAttr("chart").id(chart.getChartId());
-                        p().text("Locading...").end();
+                        p().text("Loading...").end();
                     end();
                 });
 

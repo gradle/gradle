@@ -23,66 +23,63 @@ import spock.lang.Subject
 class TestDataGeneratorTest extends ResultSpecification {
     @Subject
     TestDataGenerator generator = new TestDataGenerator()
-    Writer writer = Mock()
+    StringWriter writer = new StringWriter()
 
     def "can generate cross version json data"() {
         when:
         generator.render(mockCrossVersionHistory(), writer)
 
         then:
-        1 * writer.write(_, _, _) >> { String json, int off, int len ->
-            assert new JsonSlurper().parseText(json) == [
-                executionLabels: [
-                    [
-                        id: '1450575490',
-                        branch: 'master',
-                        date: '1970-01-01',
-                        commits: ['123456']
-                    ],
-                    [
-                        id: '1450575490',
-                        branch: 'master',
-                        date: '1970-01-01',
-                        commits: ['123456']
-                    ]
+        assert new JsonSlurper().parseText(writer.toString()) == [
+            executionLabels: [
+                [
+                    id: '1450575490',
+                    branch: 'master',
+                    date: '1970-01-01',
+                    commits: ['123456']
                 ],
-                totalTime: [
-                    [
-                        label: '5.0-mockbaseline-1',
-                        data: [[0, 1]]
-                    ],
-                    [
-                        label: '5.0-mockbaseline-2',
-                        data: [[1, 2]]
-                    ],
-                    [
-                        label: 'master',
-                        data: [[0, 2], [1, 1]]
-                    ]
+                [
+                    id: '1450575490',
+                    branch: 'master',
+                    date: '1970-01-01',
+                    commits: ['123456']
+                ]
+            ],
+            totalTime: [
+                [
+                    label: '5.0-mockbaseline-1',
+                    data: [[0, 1]]
                 ],
-                difference: [
-                    [
-                        label: 'master vs 5.0-mockbaseline-1',
-                        data: [[0, 100]]
-                    ],
-                    [
-                        label: 'master vs 5.0-mockbaseline-2',
-                        data: [[1, -50]]
-                    ],
+                [
+                    label: '5.0-mockbaseline-2',
+                    data: [[1, 2]]
                 ],
-                confidence: [
-                    [
-                        label: 'master vs 5.0-mockbaseline-1',
-                        data: [[0, 68.27]]
-                    ],
-                    [
-                        label: 'master vs 5.0-mockbaseline-2',
-                        data: [[1, 68.27]]
-                    ],
+                [
+                    label: 'master',
+                    data: [[0, 2], [1, 1]]
+                ]
+            ],
+            difference: [
+                [
+                    label: 'master vs 5.0-mockbaseline-1',
+                    data: [[0, 100]]
                 ],
-            ]
-        }
-        1 * writer.flush()
+                [
+                    label: 'master vs 5.0-mockbaseline-2',
+                    data: [[1, -50]]
+                ],
+            ],
+            confidence: [
+                [
+                    label: 'master vs 5.0-mockbaseline-1',
+                    data: [[0, 68.27]]
+                ],
+                [
+                    label: 'master vs 5.0-mockbaseline-2',
+                    data: [[1, 68.27]]
+                ],
+            ],
+        ]
     }
 
     def "can generate cross build json data"() {
@@ -90,34 +87,31 @@ class TestDataGeneratorTest extends ResultSpecification {
         generator.render(mockCrossBuildHistory(), writer)
 
         then:
-        1 * writer.write(_, _, _) >> { String json, int off, int len ->
-            assert new JsonSlurper().parseText(json) == [
-                executionLabels: [
-                    [
-                        id: '1424385918',
-                        branch: 'master',
-                        date: '1970-01-01',
-                        commits: ['abcdef']
-                    ],
-                    [
-                        id: '1424385918',
-                        branch: 'master',
-                        date: '1970-01-01',
-                        commits: ['abcdef']
-                    ]
+        assert new JsonSlurper().parseText(writer.toString()) == [
+            executionLabels: [
+                [
+                    id: '1424385918',
+                    branch: 'master',
+                    date: '1970-01-01',
+                    commits: ['abcdef']
                 ],
-                totalTime: [
-                    [
-                        label: 'build1',
-                        data: [[0, 1]]
-                    ],
-                    [
-                        label: 'build2',
-                        data: [[0, 2]]
-                    ]
+                [
+                    id: '1424385918',
+                    branch: 'master',
+                    date: '1970-01-01',
+                    commits: ['abcdef']
+                ]
+            ],
+            totalTime: [
+                [
+                    label: 'build1',
+                    data: [[0, 1]]
+                ],
+                [
+                    label: 'build2',
+                    data: [[0, 2]]
                 ]
             ]
-        }
-        1 * writer.flush()
+        ]
     }
 }

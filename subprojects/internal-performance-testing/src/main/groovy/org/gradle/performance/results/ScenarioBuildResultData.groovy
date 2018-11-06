@@ -104,7 +104,7 @@ class ScenarioBuildResultData {
         }
 
         String getDifferenceDisplay() {
-            return FormatSupport.formatDifference(baseVersion.totalTime, currentVersion.totalTime)
+            return FormatSupport.getFormattedDifference(baseVersion.totalTime, currentVersion.totalTime)
         }
 
         double getDifferencePercentage() {

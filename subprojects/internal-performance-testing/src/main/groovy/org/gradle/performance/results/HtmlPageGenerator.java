@@ -34,10 +34,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static org.gradle.performance.results.FormatSupport.executionTimestamp;
+import static org.gradle.performance.results.FormatSupport.getDifferenceRatio;
+import static org.gradle.performance.results.FormatSupport.getFormattedConfidence;
+import static org.gradle.performance.results.FormatSupport.getFormattedDifference;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected int getDepth() {
@@ -78,7 +82,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected void footer(Html html) {
         html.div()
             .id("footer")
-            .text(String.format("Generated at %s by %s", FormatSupport.executionTimestamp(), GradleVersion.current()))
+            .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))
             .end();
     }
 
@@ -169,8 +173,8 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 .map((DataSeries<Duration> data) -> data.isEmpty() ? null : data)
                 .collect(Collectors.toList());
 
-            Amount<Duration> min = totalTimeMedianStream(experiments).min(Comparator.comparing(Function.identity())).orElse(null);
-            Amount<Duration> max = totalTimeMedianStream(experiments).max(Comparator.comparing(Function.identity())).orElse(null);
+            Amount<Duration> min = totalTimeMedianStream(experiments).min(Comparator.naturalOrder()).orElse(null);
+            Amount<Duration> max = totalTimeMedianStream(experiments).max(Comparator.naturalOrder()).orElse(null);
 
             if (min != null && min.equals(max)) {
                 min = null;
@@ -206,10 +210,10 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             Optional<DataSeries<Duration>> first = executionVersions.stream().filter(Objects::nonNull).findFirst();
             Optional<DataSeries<Duration>> last = Lists.reverse(executionVersions).stream().filter(Objects::nonNull).findFirst();
             if (first.isPresent() && last.isPresent() && first.get() != last.get()) {
-                td().classAttr("numeric").text(FormatSupport.formatConfidence(first.get(), last.get())).end();
+                td().classAttr("numeric").text(getFormattedConfidence(first.get(), last.get())).end();
 
-                String differenceCss = FormatSupport.getDifference(first.get(), last.get()).doubleValue() > 0 ? "max-value" : "min-value";
-                td().classAttr("numeric " + differenceCss).text(FormatSupport.formatDifference(first.get(), last.get())).end();
+                String differenceCss = getDifferenceRatio(first.get(), last.get()).doubleValue() > 0 ? "max-value" : "min-value";
+                td().classAttr("numeric " + differenceCss).text(getFormattedDifference(first.get(), last.get())).end();
             } else {
                 td().text("").end();
                 td().text("").end();

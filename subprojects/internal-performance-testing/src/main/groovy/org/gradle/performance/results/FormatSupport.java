@@ -57,24 +57,24 @@ public class FormatSupport {
     }
 
     public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
-        return new BigDecimal(100.0 * getDifference(baseline.getTotalTime(), current.getTotalTime()).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal(100.0 * getDifferenceRatio(baseline.getTotalTime(), current.getTotalTime()).doubleValue()).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public static Number getDifference(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+    public static Number getDifferenceRatio(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
         double base = baselineVersion.getMedian().getValue().doubleValue();
         double current = currentVersion.getMedian().getValue().doubleValue();
         return (current - base) / base;
     }
 
-    public static String formatDifference(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+    public static String getFormattedDifference(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
         Amount<Duration> base = baselineVersion.getMedian();
         Amount<Duration> current = currentVersion.getMedian();
         Amount<Duration> diff = current.minus(base);
 
-        return String.format("%s (%.2f%%)", diff.format(), FormatSupport.getDifference(baselineVersion, currentVersion).doubleValue());
+        return String.format("%s (%.2f%%)", diff.format(), FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
     }
 
-    public static String formatConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+    public static String getFormattedConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
         return String.format("%.1f%%", 100.0 * confidenceInDifference(baselineVersion, currentVersion));
     }
 }
