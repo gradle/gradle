@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.server.http;
 
-import com.google.common.io.Files;
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
@@ -101,7 +100,7 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     public String callFromTaskAction(String resource) {
-        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) +  " } });";
+        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
     }
 
     /**
@@ -112,11 +111,14 @@ public class BlockingHttpServer extends ExternalResource {
         return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
     }
 
+    /**
+     * Expects that all requests use the basic authentication with the given credentials.
+     */
     public void withBasicAuthentication(final String username, final String password) {
         context.setAuthenticator(new BasicAuthenticator("get") {
             @Override
-            public boolean checkCredentials(String u, String pwd) {
-                return u.equals(username) && password.equals(pwd);
+            public boolean checkCredentials(String suppliedUser, String suppliedPassword) {
+                return suppliedUser.equals(username) && password.equals(suppliedPassword);
             }
         });
     }
@@ -126,8 +128,8 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public void expectConcurrent(String... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
-        for (String call : expectedRequests) {
-            expectations.add(new ExpectGetAndSendFixedContent(call));
+        for (String request : expectedRequests) {
+            expectations.add(doGet(request));
         }
         addNonBlockingHandler(expectations);
     }
@@ -137,8 +139,8 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public void expectConcurrent(Collection<String> expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
-        for (String call : expectedRequests) {
-            expectations.add(new ExpectGetAndSendFixedContent(call));
+        for (String request : expectedRequests) {
+            expectations.add(doGet(request));
         }
         addNonBlockingHandler(expectations);
     }
@@ -155,60 +157,12 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private void addNonBlockingHandler(final Collection<? extends ResourceExpectation> expectations) {
-        handler.addHandler(new ChainingHttpHandler.HandlerFactory() {
+        handler.addHandler(new ChainingHttpHandler.HandlerFactory<TrackingHttpHandler>() {
             @Override
             public TrackingHttpHandler create(WaitPrecondition previous) {
                 return new CyclicBarrierRequestHandler(lock, timeoutMs, previous, expectations);
             }
         });
-    }
-
-    /**
-     * Expect a GET request to the given path, and return the contents of the given file.
-     */
-    public ExpectedRequest file(String path, final File file) {
-        return new ExpectMethodAndRunAction("GET", path, sendFile(file));
-    }
-
-    public static Action<? super HttpExchange> sendFile(File file) {
-        return new ErroringAction<HttpExchange>() {
-            @Override
-            protected void doExecute(HttpExchange httpExchange) throws Exception {
-                httpExchange.sendResponseHeaders(200, file.length());
-                Files.copy(file, httpExchange.getResponseBody());
-            }
-        };
-    }
-
-    /**
-     * Expect a GET request to the given path, and return some arbitrary content.
-     */
-    public ExpectedRequest resource(String path) {
-        return new ExpectGetAndSendFixedContent(path);
-    }
-
-    /**
-     * Expect a GET request to the given path, and return a 404 response.
-     */
-    public ExpectedRequest missing(String path) {
-        return new ExpectMethodAndRunAction("GET", path, new ErroringAction<HttpExchange>() {
-            @Override
-            protected void doExecute(HttpExchange httpExchange) throws Exception {
-                httpExchange.sendResponseHeaders(404, 0);
-            }
-        });
-    }
-
-    /**
-     * Expect a GET request to the given path, and return a 500 response.
-     */
-    public static Action<? super HttpExchange> broken() {
-        return new ErroringAction<HttpExchange>() {
-            @Override
-            protected void doExecute(HttpExchange httpExchange) throws Exception {
-                httpExchange.sendResponseHeaders(500, 0);
-            }
-        };
     }
 
     /**
@@ -219,17 +173,23 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
-     */
-    public ExpectedRequest resource(String path, String content) {
-        return new ExpectGetAndSendFixedContent(path, content);
-    }
-
-    /**
      * Expect a GET request to the given path and run the given action to create the response.
      */
     public ExpectedRequest get(String path, Action<? super HttpExchange> action) {
         return new ExpectMethodAndRunAction("GET", path, action);
+    }
+
+    /**
+     * Expect a GET request to the given path. By default, sends a 200 response with some arbitrary content to the client.
+     *
+     * <p>The returned {@link BuildableExpectedRequest} can be used to modify the behaviour or expectations.
+     */
+    public BuildableExpectedRequest get(String path) {
+        return doGet(path);
+    }
+
+    private ExpectMethod doGet(String path) {
+        return new ExpectMethod("GET", path);
     }
 
     /**
@@ -270,7 +230,7 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHandler expectConcurrentAndBlock(int concurrent, String... expectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedCalls) {
-            expectations.add(new ExpectGetAndSendFixedContent(call));
+            expectations.add(doGet(call));
         }
         return addBlockingHandler(concurrent, expectations);
     }
@@ -282,7 +242,7 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHandler expectOptionalAndBlock(int concurrent, String... optionalExpectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : optionalExpectedCalls) {
-            expectations.add(new ExpectGetAndSendFixedContent(call));
+            expectations.add(doGet(call));
         }
         return addBlockingOptionalHandler(concurrent, expectations);
     }
@@ -328,23 +288,14 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given request to be made. Releases the request as soon as it is received.
      */
     public void expect(String expectedCall) {
-        addNonBlockingHandler(Collections.singleton(new ExpectGetAndSendFixedContent(expectedCall)));
-    }
-
-    public static Action<? extends HttpExchange> userAgent(Matcher expectedUserAgent) {
-        return new Action<HttpExchange>() {
-            @Override
-            public void execute(HttpExchange httpExchange) {
-                assert expectedUserAgent.matches(httpExchange.getRequestHeaders().getFirst("User-Agent"));
-            }
-        };
+        addNonBlockingHandler(Collections.singleton(doGet(expectedCall)));
     }
 
     /**
      * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
      */
     public BlockingHandler expectAndBlock(String expectedCall) {
-        return addBlockingHandler(1, Collections.singleton(new ExpectGetAndSendFixedContent(expectedCall)));
+        return addBlockingHandler(1, Collections.singleton(doGet(expectedCall)));
     }
 
     /**
@@ -401,6 +352,43 @@ public class BlockingHttpServer extends ExternalResource {
      * Represents some HTTP request expectation.
      */
     public interface ExpectedRequest {
+    }
+
+    public interface BuildableExpectedRequest extends ExpectedRequest {
+        /**
+         * Verifies that the user agent provided in the request matches the given criteria.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest expectUserAgent(Matcher expectedUserAgent);
+
+        /**
+         * Sends a 404 response with some arbitrary content as the response body.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest missing();
+
+        /**
+         * Sends a 500 response with some arbitrary content as the response body.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest broken();
+
+        /**
+         * Sends a 200 response with the contents of the given file as the response body.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest sendFile(File file);
+
+        /**
+         * Sends a 200 response with the given text (UTF-8 encoded) as the response body.
+         *
+         * @return this
+         */
+        BuildableExpectedRequest send(String content);
     }
 
     /**

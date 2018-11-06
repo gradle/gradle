@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.test.fixtures.server.http.ExpectMethodAndRunAction.removeLeadingSlash;
+
 class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResourceHandler, ResourceExpectation {
     private final String path;
     private final byte[] content;
@@ -42,7 +44,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     SendPartialResponseThenBlock(Lock lock, int timeoutMs, String path, byte[] content) {
         this.lock = lock;
         this.timeoutMs = timeoutMs;
-        this.path = ExpectGetAndSendFixedContent.removeLeadingSlash(path);
+        this.path = removeLeadingSlash(path);
         this.content = content;
         condition = lock.newCondition();
     }

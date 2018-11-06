@@ -19,8 +19,6 @@ package org.gradle.test.fixtures.server.http;
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.api.Action;
 
-import java.io.IOException;
-
 class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.ExpectedRequest, ResourceExpectation {
     private final String method;
     private final String path;
@@ -55,7 +53,7 @@ class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.Ex
     }
 
     @Override
-    public void writeTo(int requestId, HttpExchange exchange) throws IOException {
+    public void writeTo(int requestId, HttpExchange exchange) {
         action.execute(exchange);
     }
 }

@@ -34,14 +34,14 @@ class UriTextResourceIntegrationTest extends Specification {
         UriTextResource resource = new UriTextResource('<display-name>', new URI(fullURI))
 
         when:
-        server.expect(server.missing(unknownPath))
+        server.expect(server.get(unknownPath).missing())
         boolean exists = resource.exists
 
         then:
         !exists
 
         when:
-        server.expect(server.missing(unknownPath))
+        server.expect(server.get(unknownPath).missing())
         resource.text
 
         then:

@@ -35,8 +35,8 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
     def 'can use artifact resolution queries in parallel to file resolution'() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
-        def handler = server.expectConcurrentAndBlock(server.file(module.pom.path, module.pom.file), server.resource('/sync'))
-        server.expect(server.file(module.artifact.path, module.artifact.file))
+        def handler = server.expectConcurrentAndBlock(server.get(module.pom.path).sendFile(module.pom.file), server.get('/sync'))
+        server.expect(server.get(module.artifact.path).sendFile(module.artifact.file))
 
         settingsFile << 'include "query", "resolve"'
         buildFile << """ 

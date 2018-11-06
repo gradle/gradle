@@ -16,34 +16,24 @@
 
 package org.gradle.integtests.tooling
 
-import com.sun.net.httpserver.HttpExchange
-import org.gradle.api.Action
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.Actions
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import org.mortbay.jetty.MimeTypes
 import spock.lang.Issue
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-
-import static org.gradle.test.fixtures.server.http.BlockingHttpServer.broken
-import static org.gradle.test.fixtures.server.http.BlockingHttpServer.sendFile
-import static org.gradle.test.fixtures.server.http.BlockingHttpServer.userAgent
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 @LeaksFileHandles
@@ -65,7 +55,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task hello { doLast { println hello } }"
 
         and:
-        server.expect(server.get("/custom-dist.zip", Actions.composite(userAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())), sendFile(distribution.binDistribution))))
+        server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
@@ -92,7 +82,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << ""
 
         and:
-        server.expect(server.file("/custom-dist.zip", distribution.binDistribution))
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
@@ -134,7 +124,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << ""
 
         and:
-        server.expect(server.get("/custom-dist.zip", broken()))
+        server.expect(server.get("/custom-dist.zip").broken())
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
@@ -171,11 +161,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile << "";
         buildFile << "task hello { doLast { println hello } }"
-        CancellationTokenSource tokenSource = new DefaultCancellationTokenSource()
-        CountDownLatch latch = new CountDownLatch(1)
-        def distUri = URI.create("http://localhost:${server.port}/cancelled-dist.zip")
+        def tokenSource = new DefaultCancellationTokenSource()
+        def distUri = server.uri("cancelled-dist.zip")
 
-        server.expect(server.get("/cancelled-dist.zip", sendDataAndCancel(distribution.binDistribution, tokenSource, latch)))
+        def content = distribution.binDistribution.bytes[0..30000] as byte[] // more than one progress tick in output
+        def downloadHandle = server.sendSomeAndBlock("cancelled-dist.zip", content)
+        server.expect(downloadHandle)
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
@@ -185,17 +176,22 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def events = new ProgressEventsWithStatus()
+        def handler = new TestResultHandler()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("hello")
                 .withCancellationToken(tokenSource.token())
                 .addProgressListener(events)
-                .run()
+                .run(handler)
+            downloadHandle.waitUntilBlocked()
+            tokenSource.cancel()
+            handler.finished()
+            downloadHandle.release()
         }
 
         then:
-        BuildCancelledException e = thrown()
-        e.message.contains('Distribution download cancelled.')
+        handler.assertFailedWith(BuildCancelledException)
+        handler.failure.message.contains('Distribution download cancelled.')
 
         and:
         events.buildOperations.size() == 1
@@ -204,23 +200,5 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         !download.successful
         download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
-
-        cleanup:
-        latch.countDown()
-    }
-
-    static Action<? extends HttpExchange> sendDataAndCancel(TestFile file, CancellationTokenSource tokenSource, CountDownLatch latch) {
-        return { HttpExchange e ->
-            e.responseHeaders.put("Content-Type", [new MimeTypes().getMimeByExtension(file.name).toString()])
-            e.sendResponseHeaders(200, file.size())
-
-            def content = file.bytes
-            e.responseBody.write(content[0..30000].toArray(new byte[30000])) // more than one progress tick in output
-            println('call cancel')
-            tokenSource.cancel()
-            println('waiting for test to continue')
-            latch.await(10, TimeUnit.SECONDS)
-            println('test continued, closing connection')
-        }
     }
 }
