@@ -154,9 +154,9 @@ fun buildPluginAccessorsFor(
 
 private
 fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMethodSignature) {
+    val extension = accessor.extension
+    val receiverType = extension.receiverType
     publicStaticMethod(signature) {
-        val extension = accessor.extension
-        val receiverType = extension.receiverType
         when (accessor) {
             is PluginAccessor.ForGroup -> {
                 val returnType = extension.returnType
