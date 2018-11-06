@@ -44,6 +44,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies(library("aether_connector"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_compat"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                // We don't need the extra annotations provided by j2objc
+                withLibraryDependencies(library("google_http_client"), DependencyRemovalByNameRule::class, setOf("j2objc-annotations"))
 
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
@@ -61,6 +63,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+
+                // We don't need any of Guava's dependencies
                 withModule("com.google.guava:guava", ExcludeDependencies::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
