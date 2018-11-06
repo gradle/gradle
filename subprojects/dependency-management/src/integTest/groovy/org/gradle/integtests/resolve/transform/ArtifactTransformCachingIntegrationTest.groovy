@@ -1288,7 +1288,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
         def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
-        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+/outputDirectory)")
+        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+[/\\\\]outputDirectory)")
         for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
