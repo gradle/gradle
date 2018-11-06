@@ -262,15 +262,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             }
             return Try.ofFailable(() -> {
                 Path transformerResultsPath = getResultsFile().toPath();
-                return Files.lines(transformerResultsPath, StandardCharsets.UTF_8).map(path -> {
-                    if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                        return new File(getOutputDir(), path.substring(2));
-                    }
-                    if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
-                        return new File(primaryInput, path.substring(2));
-                    }
-                    throw new IllegalStateException("Cannot parse result path string: " + path);
-                }).collect(toImmutableList());
+                try (Stream<String> lines = Files.lines(transformerResultsPath, StandardCharsets.UTF_8)) {
+                    return lines.map(path -> {
+                        if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
+                            return new File(getOutputDir(), path.substring(2));
+                        }
+                        if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
+                            return new File(primaryInput, path.substring(2));
+                        }
+                        throw new IllegalStateException("Cannot parse result path string: " + path);
+                    }).collect(toImmutableList());
+                }
             });
         }
 
