@@ -89,6 +89,8 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * Collection of execution data files to analyze.
+     *
      * @deprecated Use {@code getExecutionData().setFrom(...)}
      */
     @Deprecated
@@ -107,6 +109,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * Source sets that coverage should be reported for.
      * @deprecated Use {@code getSourceDirectories().setFrom(...)}
      */
     @Deprecated
@@ -125,6 +128,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * Classes that coverage should be reported for.
      * @deprecated Use {@code getClassDirectories().setFrom(...)}
      */
     @Deprecated
@@ -144,6 +148,8 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * Additional class dirs that coverage data should be reported for.
+     *
      * @deprecated Use {@code getAdditionalClassDirs().setFrom(...)}
      */
     @Deprecated
@@ -167,6 +173,8 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * Additional source dirs for the classes coverage data is being reported for.
+     *
      * @deprecated Use {@code getAdditionalSourceDirs().setFrom(...)}
      */
     @Deprecated
