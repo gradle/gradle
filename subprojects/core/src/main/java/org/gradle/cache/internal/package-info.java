@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+@NonNullApi
+package org.gradle.cache.internal;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
-import java.util.List;
-
-@ThreadSafe
-public interface CachingTransformerExecutor {
-    /**
-     * Returns the result of applying the given transformer to the given file.
-     */
-    List<File> getResult(File primaryInput, Transformer transformer);
-
-    boolean contains(File absoluteFile, HashCode inputsHash);
-}
+import org.gradle.api.NonNullApi;

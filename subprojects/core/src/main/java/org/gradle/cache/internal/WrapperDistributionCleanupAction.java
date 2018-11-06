@@ -33,6 +33,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.InputStream;
@@ -161,6 +162,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         throw new IllegalArgumentException("No checked JAR file contained a build receipt: " + checkedJarFiles);
     }
 
+    @Nullable
     private GradleVersion readGradleVersionFromJarFile(File jarFile) throws Exception {
         ZipFile zipFile = null;
         try {
@@ -171,6 +173,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         }
     }
 
+    @Nullable
     private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws Exception {
         ZipEntry zipEntry = zipFile.getEntry(BUILD_RECEIPT_ZIP_ENTRY_PATH);
         if (zipEntry == null) {
@@ -195,7 +198,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         return listFiles(baseDir, null);
     }
 
-    private List<File> listFiles(File baseDir, FileFilter filter) {
+    private List<File> listFiles(File baseDir, @Nullable FileFilter filter) {
         File[] dirs = baseDir.listFiles(filter);
         return dirs == null ? Collections.<File>emptyList() : Arrays.asList(dirs);
     }

@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.TransformInvocationException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.IsolatableFactory
@@ -45,11 +46,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
-    def transformedFileCache = Mock(CachingTransformerExecutor)
+    def transformerInvoker = Mock(TransformerInvoker)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, Stub(ArtifactTransformListener))
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
 
     def "creates registration without configuration"() {
@@ -155,9 +155,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def failure = result.failure
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
-        failure.cause instanceof ObjectInstantiationException
-        failure.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
+        failure.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
         and:
         interaction {
@@ -193,12 +191,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
-        failure instanceof TransformInvocationException
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
-        failure.cause instanceof ObjectInstantiationException
-        failure.cause.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
-        failure.cause.cause instanceof IllegalArgumentException
-        failure.cause.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
+        failure instanceof ObjectInstantiationException
+        failure.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
+        failure.cause instanceof IllegalArgumentException
+        failure.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
 
         and:
         interaction {
@@ -229,10 +225,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
-        failure instanceof TransformInvocationException
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.BrokenTransform"
-        failure.cause instanceof RuntimeException
-        failure.cause.message == 'broken'
+        failure.message == 'broken'
 
         and:
         interaction {
@@ -324,7 +317,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File primaryInput) {
-        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
+            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory)) }
+        }
     }
 
     static class TestArtifactTransform extends ArtifactTransform {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +51,12 @@ public class TransformationStep implements Transformation {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
             TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
-            transformerInvoker.invoke(invocation);
-            if (invocation.getFailure() != null) {
-                return subjectToTransform.transformationFailed(invocation.getFailure());
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(invocation);
+
+            if (result.getFailure().isPresent()) {
+                return subjectToTransform.transformationFailed(result.getFailure().get());
             }
-            builder.addAll(invocation.getResult());
+            builder.addAll(result.get());
         }
         return subjectToTransform.transformationSuccessful(builder.build());
     }

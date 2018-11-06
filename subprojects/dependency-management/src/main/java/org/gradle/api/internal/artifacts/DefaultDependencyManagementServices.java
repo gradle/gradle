@@ -64,13 +64,10 @@ import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFacto
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -139,10 +136,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
             return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
-        }
-
-        TransformerInvoker createTransformerInvoker(CachingTransformerExecutor cachingTransformerExecutor, ArtifactTransformListener artifactTransformListener) {
-            return new DefaultTransformerInvoker(cachingTransformerExecutor, artifactTransformListener);
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

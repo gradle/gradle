@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import java.io.File;
-import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * The invocation of a transformer on a primary input file.
@@ -27,9 +25,6 @@ public class TransformerInvocation {
     private final Transformer transformer;
     private final File primaryInput;
     private final TransformationSubject subjectBeingTransformed;
-    
-    private List<File> result;
-    private Exception failure;
 
     public TransformerInvocation(Transformer transformer, File primaryInput, TransformationSubject subjectBeingTransformed) {
         this.transformer = transformer;
@@ -47,22 +42,5 @@ public class TransformerInvocation {
 
     public TransformationSubject getSubjectBeingTransformed() {
         return subjectBeingTransformed;
-    }
-
-    public void success(List<File> result) {
-        this.result = result;
-    }
-
-    public void failure(Exception failure) {
-        this.failure = failure;
-    }
-
-    public List<File> getResult() {
-        return result;
-    }
-
-    @Nullable
-    public Exception getFailure() {
-        return failure;
     }
 }

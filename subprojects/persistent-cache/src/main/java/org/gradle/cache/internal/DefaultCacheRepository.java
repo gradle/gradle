@@ -23,6 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class DefaultCacheRepository implements CacheRepository {
         return new PersistentCacheBuilder(baseDir);
     }
 
-    public CacheBuilder cache(Object scope, String key) {
+    public CacheBuilder cache(@Nullable Object scope, String key) {
         return new PersistentCacheBuilder(scope, key);
     }
 
@@ -62,7 +63,7 @@ public class DefaultCacheRepository implements CacheRepository {
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
         LockTarget lockTarget = LockTarget.DefaultTarget;
 
-        PersistentCacheBuilder(Object scope, String key) {
+        PersistentCacheBuilder(@Nullable Object scope, String key) {
             this.scope = scope;
             this.key = key;
             this.baseDir = null;

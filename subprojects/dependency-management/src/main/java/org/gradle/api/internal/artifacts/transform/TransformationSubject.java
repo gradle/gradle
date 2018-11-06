@@ -51,7 +51,7 @@ public abstract class TransformationSubject implements Describable {
     @Nullable
     public abstract Throwable getFailure();
 
-    public TransformationSubject transformationFailed(Exception failure) {
+    public TransformationSubject transformationFailed(Throwable failure) {
         return failure(getDisplayName(), failure);
     }
 

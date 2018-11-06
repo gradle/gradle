@@ -21,6 +21,7 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
@@ -63,6 +64,7 @@ public class VersionSpecificCacheDirectoryScanner {
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }
 
+    @Nullable
     private GradleVersion tryParseGradleVersion(File dir) {
         try {
             return GradleVersion.version(dir.getName());

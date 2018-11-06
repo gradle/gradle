@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
@@ -96,12 +97,16 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
                     commandFactory.createLoad(cacheKey, work, work.getLocalState(), new BuildCacheLoadListener() {
                         @Override
                         public void beforeLoad() {
-                            outputChangeListener.beforeOutputChange();
+                            Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
+                            changingOutputs.ifPresent(affectedPaths -> outputChangeListener.beforeOutputChange(affectedPaths));
+                            if (!changingOutputs.isPresent()) {
+                                outputChangeListener.beforeOutputChange();
+                            }
                         }
 
                         @Override
                         public void afterLoadFailedAndWasCleanedUp(Throwable error) {
-                            work.afterOutputsRemovedBeforeTask();
+                            work.outputsRemovedAfterFailureToLoadFromCache();
                         }
                     })
             );

@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
 
     implementation(library("asm"))
     implementation(library("asm_commons"))
@@ -68,6 +69,7 @@ testFixtures {
     from(":coreApi")
     from(":versionControl")
     from(":resourcesHttp")
+    from(":baseServices")
 }
 
 testFilesCleanup {

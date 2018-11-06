@@ -16,28 +16,24 @@
 
 package org.gradle.internal.execution.impl.steps;
 
-import org.gradle.api.BuildCancelledException;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED;
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE;
 
 public class ExecuteStep implements Step<Context, Result> {
 
-    private final BuildCancellationToken cancellationToken;
     private final OutputChangeListener outputChangeListener;
 
     public ExecuteStep(
-        BuildCancellationToken cancellationToken,
         OutputChangeListener outputChangeListener
     ) {
-        this.cancellationToken = cancellationToken;
         this.outputChangeListener = outputChangeListener;
     }
 
@@ -45,12 +41,12 @@ public class ExecuteStep implements Step<Context, Result> {
     public Result execute(Context context) {
         UnitOfWork work = context.getWork();
 
-        outputChangeListener.beforeOutputChange();
-        boolean didWork = work.execute();
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException("Build cancelled during executing " + work.getDisplayName());
+        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
+        changingOutputs.ifPresent(outputs -> outputChangeListener.beforeOutputChange(outputs));
+        if (!changingOutputs.isPresent()) {
+            outputChangeListener.beforeOutputChange();
         }
-
+        boolean didWork = work.execute();
         ExecutionOutcome outcome = didWork
             ? EXECUTED
             : UP_TO_DATE;

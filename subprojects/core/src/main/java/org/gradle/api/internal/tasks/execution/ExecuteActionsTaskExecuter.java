@@ -183,6 +183,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public Optional<? extends Iterable<String>> getChangingOutputs() {
+            return Optional.empty();
+        }
+
+        @Override
         public CacheHandler createCacheHandler() {
             return new CacheHandler() {
                 @Override
@@ -215,7 +220,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void afterOutputsRemovedBeforeTask() {
+        public void outputsRemovedAfterFailureToLoadFromCache() {
             context.getTaskArtifactState().afterOutputsRemovedBeforeTask();
         }
 
