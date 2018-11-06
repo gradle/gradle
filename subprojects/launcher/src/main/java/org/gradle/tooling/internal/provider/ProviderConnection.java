@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
@@ -193,25 +192,25 @@ public class ProviderConnection {
 
     private void throwFailure(BuildActionResult result) {
         if (result.getException() != null) {
-            throw map(result.getException());
+            throw map(result, result.getException());
         }
         if (result.getFailure() != null) {
-            throw map((RuntimeException) payloadSerializer.deserialize(result.getFailure()));
+            throw map(result, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
         }
     }
 
-    private RuntimeException map(RuntimeException exception) {
-        // Unpack tunnelled failures
+    private RuntimeException map(BuildActionResult result, RuntimeException exception) {
+        // Wrap build failure in 'cancelled' cross version exception
+        if (result.wasCancelled()) {
+            throw new InternalBuildCancelledException(exception);
+        }
+
+        // Forward special cases directly to consumer
         if (exception instanceof InternalTestExecutionException || exception instanceof InternalBuildActionFailureException || exception instanceof InternalUnsupportedModelException) {
             return exception;
         }
-        Throwable current = exception;
-        while (current != null) {
-            if (current.getClass().getName().equals(BuildCancelledException.class.getName())) {
-                throw new InternalBuildCancelledException(exception);
-            }
-            current = current.getCause();
-        }
+
+        // Wrap in generic 'build failed' cross version exception
         throw new BuildExceptionVersion1(exception);
     }
 

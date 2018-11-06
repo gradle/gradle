@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
@@ -66,7 +65,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             buildFailure = e;
             clientFailure = e;
         }
-        if (listener.actionFailure != null && !(listener.actionFailure instanceof BuildCancelledException)) {
+        if (listener.actionFailure != null) {
             clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
         }
 

@@ -22,29 +22,48 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
- * Encapsulates either a result object, or a failure as an exception, or a serialized failure.
+ * Encapsulates either a result object, or a failure as an exception or a serialized exception.
+ *
+ * <p>Exceptions should always be serialized, but currently are not when the failure happens outside the context of a build invocation because the serialization infrastructure is currently tied to some build scoped services.</p>
  */
 public class BuildActionResult implements Serializable {
     private final SerializedPayload result;
     private final SerializedPayload serializedFailure;
     private final RuntimeException failure;
+    private final boolean wasCancelled;
 
-    private BuildActionResult(SerializedPayload result, SerializedPayload serializedFailure, RuntimeException failure) {
+    private BuildActionResult(SerializedPayload result, SerializedPayload serializedFailure, RuntimeException failure, boolean wasCancelled) {
         this.result = result;
         this.serializedFailure = serializedFailure;
         this.failure = failure;
+        this.wasCancelled = wasCancelled;
     }
 
     public static BuildActionResult of(@Nullable SerializedPayload result) {
-        return new BuildActionResult(result, null, null);
+        return new BuildActionResult(result, null, null, false);
     }
 
     public static BuildActionResult failed(SerializedPayload failure) {
-        return new BuildActionResult(null, failure, null);
+        return new BuildActionResult(null, failure, null, false);
     }
 
     public static BuildActionResult failed(RuntimeException failure) {
-        return new BuildActionResult(null, null, failure);
+        return new BuildActionResult(null, null, failure, false);
+    }
+
+    public static BuildActionResult cancelled(SerializedPayload failure) {
+        return new BuildActionResult(null, failure, null, true);
+    }
+
+    public static BuildActionResult cancelled(RuntimeException failure) {
+        return new BuildActionResult(null, null, failure, true);
+    }
+
+    /**
+     * True when the build failed <em>and</em> was cancelled.
+     */
+    public boolean wasCancelled() {
+        return wasCancelled;
     }
 
     @Nullable
