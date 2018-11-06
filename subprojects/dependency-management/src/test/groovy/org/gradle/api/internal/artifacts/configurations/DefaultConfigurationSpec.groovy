@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
@@ -1624,6 +1625,58 @@ All Dependencies:
    DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}
 All Artifacts:
    none"""
+    }
+
+    def "copied configuration has independent listeners"() {
+        def original = conf()
+        def seenOriginal = [] as Set<ResolvableDependencies>
+        original.incoming.beforeResolve { seenOriginal.add(it) }
+
+        def copied = original.copy()
+        def seenCopied = [] as Set<ResolvableDependencies>
+        copied.incoming.beforeResolve { seenCopied.add(it) }
+
+        expectResolved([] as Set)
+
+        when:
+        original.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming] as Set
+        seenCopied.empty
+
+        when:
+        copied.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming, copied.incoming] as Set
+        seenCopied == [copied.incoming] as Set
+    }
+
+    def "copied configuration inherits withDependencies actions"() {
+        def original = conf()
+        def seenOriginal = [] as Set<DependencySet>
+        original.withDependencies { seenOriginal.add(it) }
+
+        def copied = original.copy()
+        def seenCopied = [] as Set<DependencySet>
+        copied.withDependencies { seenCopied.add(it) }
+
+        expectResolved([] as Set)
+
+        when:
+        original.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.dependencies] as Set
+        seenCopied.empty
+
+        when:
+        copied.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.dependencies, copied.dependencies] as Set
+        seenCopied == [copied.dependencies] as Set
     }
 
     def "collects exclude rules from hierarchy"() {
