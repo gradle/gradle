@@ -16,20 +16,18 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.api.platform.MachineArchitecture
-import org.gradle.api.platform.OperatingSystemFamily
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 
-class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
-    def repo = new MavenFileRepository(file("repo"))
+import static org.gradle.api.platform.MachineArchitecture.*
+import static org.gradle.api.platform.OperatingSystemFamily.*
+
+class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
     def consumer = file("consumer").createDir()
 
     def setup() {
@@ -38,7 +36,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         consumer.file("build.gradle") << """
             repositories {
                 maven { 
-                    url '${repo.uri}' 
+                    url '${mavenRepo.uri}' 
                 }
             }
             configurations {
@@ -69,7 +67,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 baseName = 'test'
             }
             publishing {
-                repositories { maven { url '$repo.uri' } }
+                repositories { maven { url '$mavenRepo.uri' } }
             }
 """
         app.writeToProject(testDirectory)
@@ -93,7 +91,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             ":publishMainReleasePublicationToMavenRepository",
             ":publish")
 
-        def main = repo.module('some.group', 'test', '1.2')
+        def main = mavenRepo.module('some.group', 'test', '1.2')
         main.assertPublished()
         main.assertArtifactsPublished("test-1.2.pom", "test-1.2.module")
         main.parsedPom.scopes.isEmpty()
@@ -102,7 +100,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         mainMetadata.variant("debugRuntime").availableAt.coords == "some.group:test_debug:1.2"
         mainMetadata.variant("releaseRuntime").availableAt.coords == "some.group:test_release:1.2"
 
-        def debug = repo.module('some.group', 'test_debug', '1.2')
+        def debug = mavenRepo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
         debug.assertArtifactsPublished(executableName("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2.module")
         debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
@@ -117,7 +115,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         debugRuntime.files[0].name == executableName('test')
         debugRuntime.files[0].url == executableName("test_debug-1.2")
 
-        def release = repo.module('some.group', 'test_release', '1.2')
+        def release = mavenRepo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
         release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2.module")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").strippedRuntimeFile)
@@ -158,7 +156,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repo.uri}' } }
+                    repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
             project(':app') { 
@@ -178,10 +176,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        def appModule = repo.module('some.group', 'app', '1.2')
+        def appModule = mavenRepo.module('some.group', 'app', '1.2')
         appModule.assertPublished()
 
-        def appDebugModule = repo.module('some.group', 'app_debug', '1.2')
+        def appDebugModule = mavenRepo.module('some.group', 'app_debug', '1.2')
         appDebugModule.assertPublished()
         appDebugModule.parsedPom.scopes.size() == 1
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
@@ -191,7 +189,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
-        def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
+        def appReleaseModule = mavenRepo.module('some.group', 'app_release', '1.2')
         appReleaseModule.assertPublished()
         appReleaseModule.parsedPom.scopes.size() == 1
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
@@ -201,13 +199,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
-        def greeterModule = repo.module('some.group', 'greeter', '1.2')
+        def greeterModule = mavenRepo.module('some.group', 'greeter', '1.2')
         greeterModule.assertPublished()
 
-        def greeterDebugModule = repo.module('some.group', 'greeter_debug', '1.2')
+        def greeterDebugModule = mavenRepo.module('some.group', 'greeter_debug', '1.2')
         greeterDebugModule.assertPublished()
 
-        def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
+        def greeterReleaseModule = mavenRepo.module('some.group', 'greeter_release', '1.2')
         greeterReleaseModule.assertPublished()
 
         when:
@@ -239,7 +237,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repo.uri}' } }
+                    repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
             project(':app') { 
@@ -272,10 +270,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        def appModule = repo.module('some.group', 'app', '1.2')
+        def appModule = mavenRepo.module('some.group', 'app', '1.2')
         appModule.assertPublished()
 
-        def appDebugModule = repo.module('some.group', 'app_debug', '1.2')
+        def appDebugModule = mavenRepo.module('some.group', 'app_debug', '1.2')
         appDebugModule.assertPublished()
         appDebugModule.parsedPom.scopes.size() == 1
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2", "some.group:logger:1.2")
@@ -285,7 +283,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugRuntime.dependencies.size() == 2
         appDebugRuntime.dependencies.collect { it.coords } == [ 'some.group:logger:1.2', 'some.group:greeter:1.2' ]
 
-        def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
+        def appReleaseModule = mavenRepo.module('some.group', 'app_release', '1.2')
         appReleaseModule.assertPublished()
         appReleaseModule.parsedPom.scopes.size() == 1
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
@@ -295,13 +293,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
-        repo.module('some.group', 'greeter', '1.2').assertPublished()
-        repo.module('some.group', 'greeter_debug', '1.2').assertPublished()
-        repo.module('some.group', 'greeter_release', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'greeter', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'greeter_debug', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'greeter_release', '1.2').assertPublished()
 
-        repo.module('some.group', 'logger', '1.2').assertPublished()
-        repo.module('some.group', 'logger_debug', '1.2').assertPublished()
-        repo.module('some.group', 'logger_release', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'logger', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'logger_debug', '1.2').assertPublished()
+        mavenRepo.module('some.group', 'logger_release', '1.2').assertPublished()
 
         when:
         def consumer = file("consumer").createDir()
@@ -331,7 +329,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repo.uri}' } }
+                    repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
             project(':app') { 
@@ -353,10 +351,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        def appModule = repo.module('some.group', 'testApp', '1.2')
+        def appModule = mavenRepo.module('some.group', 'testApp', '1.2')
         appModule.assertPublished()
 
-        def appDebugModule = repo.module('some.group', 'testApp_debug', '1.2')
+        def appDebugModule = mavenRepo.module('some.group', 'testApp_debug', '1.2')
         appDebugModule.assertPublished()
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
@@ -364,7 +362,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
 
-        def appReleaseModule = repo.module('some.group', 'testApp_release', '1.2')
+        def appReleaseModule = mavenRepo.module('some.group', 'testApp_release', '1.2')
         appReleaseModule.assertPublished()
 
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
@@ -372,13 +370,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
 
-        def greeterModule = repo.module('some.group', 'appGreeter', '1.2')
+        def greeterModule = mavenRepo.module('some.group', 'appGreeter', '1.2')
         greeterModule.assertPublished()
 
-        def greeterDebugModule = repo.module('some.group', 'appGreeter_debug', '1.2')
+        def greeterDebugModule = mavenRepo.module('some.group', 'appGreeter_debug', '1.2')
         greeterDebugModule.assertPublished()
 
-        def greeterReleaseModule = repo.module('some.group', 'appGreeter_release', '1.2')
+        def greeterReleaseModule = mavenRepo.module('some.group', 'appGreeter_release', '1.2')
         greeterReleaseModule.assertPublished()
 
         when:
@@ -399,6 +397,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
+        def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86)]
 
         given:
         buildFile << """
@@ -412,7 +411,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86()]
             }
             publishing {
-                repositories { maven { url '$repo.uri' } }
+                repositories { maven { url '$mavenRepo.uri' } }
             }
         """
         app.writeToProject(testDirectory)
@@ -421,11 +420,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        assertMainModuleIsPublished('some.group', 'test', '1.2', ['windows', 'linux', 'macOS'], ['x86'])
-
-        and:
-        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86')
+        assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         when:
         consumer.file("build.gradle") << """
@@ -450,6 +446,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
         def app = new CppApp()
+        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
         given:
         buildFile << """
@@ -463,7 +460,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
                 targetMachines = [machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()]
             }
             publishing {
-                repositories { maven { url '$repo.uri' } }
+                repositories { maven { url '$mavenRepo.uri' } }
             }
         """
         app.writeToProject(testDirectory)
@@ -472,20 +469,15 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         run('publish')
 
         then:
-        assertMainModuleIsPublished('some.group', 'test', '1.2', [currentOsFamilyName], ['x86', 'x86-64'])
-
-        and:
-        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'test', '1.2', 'debug', currentOsFamilyName, 'x86-64')
-        assertVariantIsPublished('some.group', 'test', '1.2', 'release', currentOsFamilyName, 'x86-64')
+        assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         when:
         consumer.file("build.gradle") << """
             configurations {
                 install {
-                    attributes.attribute(Attribute.of('${OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE}', OperatingSystemFamily), objects.named(OperatingSystemFamily, '${currentOsFamilyName}'))
-                    attributes.attribute(Attribute.of('${MachineArchitecture.ARCHITECTURE_ATTRIBUTE}', MachineArchitecture), objects.named(MachineArchitecture, '${MachineArchitecture.X86}'))
+                    attributes.attribute(Attribute.of('${OPERATING_SYSTEM_ATTRIBUTE}', OperatingSystemFamily), objects.named(OperatingSystemFamily, '${currentOsFamilyName}'))
+                    attributes.attribute(Attribute.of('${ARCHITECTURE_ATTRIBUTE}', MachineArchitecture), objects.named(MachineArchitecture, '${X86}'))
                 }
             }
             dependencies {
@@ -500,51 +492,39 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         executable.exec().out == app.expectedOutput
     }
 
-    void assertMainModuleIsPublished(String group, String module, String version, List<String> osFamilies, List<String> architectures) {
-        def mainModule = repo.module(group, module, version)
-        mainModule.assertArtifactsPublished("${module}-${version}.pom", "${module}-${version}.module")
-        assert mainModule.parsedPom.scopes.isEmpty()
-        def mainMetadata = mainModule.parsedModuleMetadata
-        assert mainMetadata.variants.size() == 2 * osFamilies.size() * architectures.size()
-        ['debug', 'release'].each { buildType ->
-            osFamilies.each { osFamily ->
-                architectures.each { architecture ->
-                    String normalizedArchitecture = architecture.replace('-', '_')
-                    String osFamilyNormalized = osFamily.toLowerCase()
-                    assert mainMetadata.variant("${buildType}${osFamilyNormalized.capitalize()}${architecture.capitalize()}Runtime").availableAt.coords == "${group}:${module}_${buildType}_${osFamilyNormalized}_${normalizedArchitecture}:${version}"
-                }
-            }
-        }
-    }
-
-    void assertVariantIsPublished(String group, String module, String version, String buildType, String osFamily, String architecture) {
-        String normalizedArchitecture = architecture.replace('-', '_')
-        String variantModuleName = "${module}_${buildType}_${osFamily.toLowerCase()}_${normalizedArchitecture}"
-        String variantModuleNameWithVersion = "${variantModuleName}-${version}"
-        def publishedModule = repo.module(group, variantModuleName, version)
-        publishedModule.assertPublished()
-        publishedModule.assertArtifactsPublished(executableName(variantModuleNameWithVersion), "${variantModuleNameWithVersion}.pom", "${variantModuleNameWithVersion}.module")
-        def executable = executable("build/exe/main/${buildType}/${osFamily}/${architecture}/${module}")
-        def sourceFile = buildType == 'release' ? executable.strippedRuntimeFile : executable.file
-        publishedModule.artifactFile(type: executableExtension).assertIsCopyOf(sourceFile)
-
-        assert publishedModule.parsedPom.scopes.isEmpty()
-
-        def publishedMetadata = publishedModule.parsedModuleMetadata
-        assert publishedMetadata.variants.size() == 1
-        def publishedRuntimeVariant = publishedMetadata.variant("${buildType}${osFamily.toLowerCase().capitalize()}${architecture.capitalize()}Runtime")
-        assert publishedRuntimeVariant.dependencies.empty
-        assert publishedRuntimeVariant.files.size() == 1
-        assert publishedRuntimeVariant.files[0].name == executableName(module)
-        assert publishedRuntimeVariant.files[0].url == executableName(variantModuleNameWithVersion)
+    @Override
+    List<String> getLinkages() {
+        return ['Runtime']
     }
 
     @Override
-    ExecutableFixture executable(Object path) {
-        ExecutableFixture executable = super.executable(path)
-        // Executables synced from a binary repo lose their executable bit
-        executable.file.setExecutable(true)
-        executable
+    List<String> getMainModuleArtifacts(String module, String version) {
+        return ["${module}-${version}.pom", "${module}-${version}.module"]
     }
 
+    @Override
+    List<String> getVariantModuleArtifacts(String variantModuleNameWithVersion) {
+        return [executableName(variantModuleNameWithVersion), "${variantModuleNameWithVersion}.pom", "${variantModuleNameWithVersion}.module"]
+    }
+
+    @Override
+    TestFile getVariantSourceFile(String module, String buildType, Map<String, String> targetMachine) {
+        def executable = executable("build/exe/main/${buildType}/${targetMachine.os.toLowerCase()}/${targetMachine.architecture}/${module}")
+        return buildType == 'release' ? executable.strippedRuntimeFile : executable.file
+    }
+
+    @Override
+    Map<String, String> getVariantFileInformation(String linkage, String module, String variantModuleNameWithVersion) {
+        return [ name: executableName(module), url: executableName(variantModuleNameWithVersion), extension: executableExtension ]
+    }
+
+    @Override
+    int getVariantCount(List<Map<String, String>> targetMachines) {
+        return 2 * linkages.size() * targetMachines.size()
+    }
+
+    @Override
+    boolean publishesArtifactForLinkage(String linkage) {
+        return linkage == 'Runtime'
+    }
 }

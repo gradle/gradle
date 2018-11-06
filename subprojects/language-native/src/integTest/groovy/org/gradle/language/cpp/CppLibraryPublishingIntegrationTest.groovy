@@ -16,20 +16,23 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Issue
 
-class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
+import static org.gradle.api.platform.MachineArchitecture.*
+import static org.gradle.api.platform.OperatingSystemFamily.*
+
+class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
@@ -734,6 +737,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
+        def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
 
         given:
         settingsFile << "include 'deck', 'card', 'shuffle'"
@@ -767,25 +771,16 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run('publish')
 
         then:
-        assertMainModuleIsPublished('some.group', 'deck', '1.2', ["some.group:card:1.2"], ['windows', 'linux', 'macOS'], [currentArchitecture])
+        assertMainModuleIsPublished('some.group', 'deck', '1.2', targetMachines, ["some.group:card:1.2"])
+        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName }, ["some.group:shuffle:1.2", "some.group:card:1.2"])
 
         and:
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, currentArchitecture)
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, currentArchitecture)
+        assertMainModuleIsPublished('some.group', 'card', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         and:
-        assertMainModuleIsPublished('some.group', 'card', '1.2', [], ['windows', 'linux', 'macOS'], [currentArchitecture])
-
-        and:
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, currentArchitecture)
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, currentArchitecture)
-
-        and:
-        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', [], ['windows', 'linux', 'macOS'], [currentArchitecture])
-
-        and:
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, currentArchitecture)
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, currentArchitecture)
+        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         when:
         def consumer = file("consumer").createDir()
@@ -812,6 +807,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
         def app = new CppAppWithLibrariesWithApiDependencies()
+        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
         given:
         settingsFile << "include 'deck', 'card', 'shuffle'"
@@ -845,31 +841,16 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run('publish')
 
         then:
-        assertMainModuleIsPublished('some.group', 'deck', '1.2', ["some.group:card:1.2"], [currentOsFamilyName], ['x86', 'x86-64'])
+        assertMainModuleIsPublished('some.group', 'deck', '1.2', targetMachines, ["some.group:card:1.2"])
+        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName }, ["some.group:shuffle:1.2", "some.group:card:1.2"])
 
         and:
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'debug', currentOsFamilyName, 'x86-64')
-        assertVariantIsPublished('some.group', 'deck', '1.2', ["some.group:shuffle:1.2", "some.group:card:1.2"], 'release', currentOsFamilyName, 'x86-64')
+        assertMainModuleIsPublished('some.group', 'card', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         and:
-        assertMainModuleIsPublished('some.group', 'card', '1.2', [], [currentOsFamilyName], ['x86', 'x86-64'])
-
-        and:
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'debug', currentOsFamilyName, 'x86-64')
-        assertVariantIsPublished('some.group', 'card', '1.2', [], 'release', currentOsFamilyName, 'x86-64')
-
-        and:
-        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', [], [currentOsFamilyName], ['x86', 'x86-64'])
-
-        and:
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, 'x86')
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'debug', currentOsFamilyName, 'x86-64')
-        assertVariantIsPublished('some.group', 'shuffle', '1.2', [], 'release', currentOsFamilyName, 'x86-64')
+        assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
+        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
 
         when:
         def consumer = file("consumer").createDir()
@@ -950,56 +931,43 @@ dependencies { implementation 'some.group:greeter:1.2' }
         failure.assertHasErrorOutput("Required org.gradle.native.architecture 'x86' and found incompatible value 'x86-64'.")
     }
 
-    void assertMainModuleIsPublished(String group, String module, String version, List<String> apiDependencies, List<String> osFamilies, List<String> architectures) {
-        def mainModule = mavenRepo.module(group, module, version)
-        mainModule.assertArtifactsPublished("${module}-${version}.pom", "${module}-${version}.module", "${module}-${version}-cpp-api-headers.zip")
-        assert mainModule.parsedPom.scopes.size() == apiDependencies.isEmpty() ? 0 : 1
-        if (!apiDependencies.isEmpty()) {
-            mainModule.parsedPom.scopes.runtime.assertDependsOn(apiDependencies as String[])
-        }
+    @Override
+    List<String> getLinkages() {
+        return ['Link', 'Runtime']
+    }
 
-        def mainMetadata = mainModule.parsedModuleMetadata
-        def mainApi = mainMetadata.variant("api")
-        mainApi.dependencies.size() == apiDependencies.size()
-        apiDependencies.eachWithIndex { dependency, index ->
-            def coordinates = dependency.split(':')
-            assert mainApi.dependencies[index].group == coordinates[0]
-            assert mainApi.dependencies[index].module == coordinates[1]
-            assert mainApi.dependencies[index].version == coordinates[2]
-        }
+    @Override
+    List<String> getMainModuleArtifacts(String module, String version) {
+        return ["${module}-${version}.pom", "${module}-${version}.module", "${module}-${version}-cpp-api-headers.zip"]
+    }
 
-        assert mainMetadata.variants.size() == (4 * osFamilies.size() * architectures.size()) + 1
-        ['debug', 'release'].each { buildType ->
-            ['Link', 'Runtime'].each { linkage ->
-                osFamilies.each { osFamily ->
-                    architectures.each { architecture ->
-                        String normalizedArchitecture = architecture.replace('-', '_')
-                        String normalizedOsFamily = osFamily.toLowerCase()
-                        assert mainMetadata.variant("${buildType}${normalizedOsFamily.capitalize()}${architecture.capitalize()}${linkage}").availableAt.coords == "${group}:${module}_${buildType}_${normalizedOsFamily}_${normalizedArchitecture}:${version}"
-                    }
-                }
-            }
+    @Override
+    List<String> getVariantModuleArtifacts(String variantModuleNameWithVersion) {
+        return [withLinkLibrarySuffix(variantModuleNameWithVersion), withSharedLibrarySuffix(variantModuleNameWithVersion), "${variantModuleNameWithVersion}.pom", "${variantModuleNameWithVersion}.module"]
+    }
+
+    @Override
+    TestFile getVariantSourceFile(String module, String buildType, Map<String, String> targetMachine) {
+        def library = sharedLibrary("${module}/build/lib/main/${buildType}/${targetMachine.os.toLowerCase()}/${targetMachine.architecture}/${module}")
+        return buildType == 'release' ? library.strippedRuntimeFile : library.file
+    }
+
+    @Override
+    Map<String, String> getVariantFileInformation(String linkage, String module, String variantModuleNameWithVersion) {
+        if (linkage == 'Runtime') {
+            return [name: sharedLibraryName(module), url: withSharedLibrarySuffix(variantModuleNameWithVersion), extension: sharedLibraryExtension]
+        } else {
+            return [name: linkLibraryName(module), url: withLinkLibrarySuffix(variantModuleNameWithVersion), extension: linkLibrarySuffix]
         }
     }
 
-    void assertVariantIsPublished(String group, String module, String version, List<String> dependencies, String buildType, String osFamily, String architecture) {
-        String normalizedArchitecture = architecture.replace('-', '_')
-        String variantModuleName = "${module}_${buildType}_${osFamily.toLowerCase()}_${normalizedArchitecture}"
-        def variantModule = mavenRepo.module(group, variantModuleName, version)
-        variantModule.assertPublished()
+    @Override
+    int getVariantCount(List<Map<String, String>> targetMachines) {
+        return 2 * linkages.size() * targetMachines.size() + 1
+    }
 
-        assert variantModule.parsedPom.scopes.size() == dependencies.isEmpty() ? 0 : 1
-        if (!dependencies.isEmpty()) {
-            variantModule.parsedPom.scopes.runtime.assertDependsOn(dependencies as String[])
-        }
-
-        def variantMetadata = variantModule.parsedModuleMetadata
-        ['Link', 'Runtime'].each { linkage ->
-            def variant = variantMetadata.variant("${buildType}${osFamily.toLowerCase().capitalize()}${architecture.capitalize()}${linkage}")
-            assert variant.dependencies.size() == dependencies.size()
-            variant.dependencies.eachWithIndex { dependency, int i ->
-                assert dependency.coords == dependencies[i]
-            }
-        }
+    @Override
+    boolean publishesArtifactForLinkage(String linkage) {
+        return true
     }
 }
