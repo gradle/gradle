@@ -63,6 +63,37 @@ compile
         output.contains '(*) - dependencies omitted (listed previously)'
     }
 
+    def "marks project dependency that can't be resolved as 'FAILED'"() {
+        given:
+        settingsFile << "include 'A', 'B', 'C'"
+
+        // Fail due to missing target configurations
+        file("build.gradle") << """
+            configurations.create('conf')
+            dependencies {
+              conf project(':A')
+              conf project(':B')
+            }
+            
+            project(':B') {
+                configurations.create('default')
+                dependencies.add("default", project(':C'))
+            }
+        """
+
+        when:
+        executer.noExtraLogging()
+        run "dependencies"
+
+        then:
+        output.contains """
+conf
++--- project :A FAILED
+\\--- project :B
+     \\--- project :C FAILED
+"""
+    }
+
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOnModules("unknown").publish()

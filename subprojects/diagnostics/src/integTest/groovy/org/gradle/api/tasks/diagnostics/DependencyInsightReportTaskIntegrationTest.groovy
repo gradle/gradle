@@ -1583,6 +1583,54 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
+    void "marks project dependencies that cannot be resolved as 'FAILED'"() {
+        given:
+        file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            configurations.create('conf')
+            dependencies {
+              conf project(':A')
+              conf project(':B')
+            }
+            
+            project(':B') {
+                configurations.create('default')
+                dependencies.add("default", project(':C'))
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", ":A"
+
+        then:
+        outputContains """
+project :A FAILED
+   Failures:
+      - Could not resolve project :A.:
+          - Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
+
+project :A FAILED
+\\--- conf
+"""
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", ":C"
+
+        then:
+        outputContains """
+project :C FAILED
+   Failures:
+      - Could not resolve project :C.:
+          - Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
+
+project :C FAILED
+\\--- project :B
+     \\--- conf
+"""
+
+    }
+
     def "deals with dependency cycles"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
