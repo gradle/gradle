@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.gradle.internal.UncheckedException;
@@ -83,22 +84,26 @@ class ChainingHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             int id = counter.incrementAndGet();
-            System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
+            String requestMethod = httpExchange.getRequestMethod();
+            String requestPath = httpExchange.getRequestURI().getPath();
+
+            System.out.println(String.format("[%d] handling %s %s", id, requestMethod, requestPath));
 
             ResourceHandler resourceHandler = selectHandler(id, httpExchange);
             if (resourceHandler != null) {
-                System.out.println(String.format("[%d] sending response for %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
+                System.out.println(String.format("[%d] sending response for %s %s", id, requestMethod, requestPath));
                 try {
                     resourceHandler.writeTo(id, httpExchange);
-                } catch (Throwable e) {
-                    failures.add(e);
+                } catch (Throwable t) {
+                    System.out.println(String.format("[%d] handling %s %s failed with exception", id, requestMethod, requestPath));
+                    failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
                 }
             } else {
-                System.out.println(String.format("[%d] sending error response", id));
-                if (httpExchange.getRequestMethod().equals("HEAD")) {
+                System.out.println(String.format("[%d] sending error response for unexpected request", id));
+                if (requestMethod.equals("HEAD")) {
                     httpExchange.sendResponseHeaders(500, -1);
                 } else {
-                    byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
+                    byte[] message = String.format("Failed %s request to %s", requestMethod, requestPath).getBytes(Charsets.UTF_8);
                     httpExchange.sendResponseHeaders(500, message.length);
                     httpExchange.getResponseBody().write(message);
                 }

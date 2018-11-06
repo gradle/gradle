@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.hamcrest.Matchers
 import org.junit.Rule
 
 class BlockingHttpServerTest extends ConcurrentSpec {
@@ -38,10 +39,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         a.scheme == "http"
         b.scheme == "http"
+        a.toURL().text == "hi"
+        b.toURL().text == "hi"
 
         when:
-        a.toURL().text
-        b.toURL().text
         server.stop()
 
         then:
@@ -70,9 +71,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         file.text = "123"
 
         given:
-        server.expect(server.resource("a"))
-        server.expect(server.file("b", file))
-        server.expect(server.resource("c", "this is the content"))
+        server.expect(server.get("a"))
+        server.expect(server.get("b").sendFile(file))
+        server.expect(server.get("c").send("this is the content"))
         server.start()
 
         when:
@@ -87,14 +88,36 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can specify to return 404 response to a GET request"() {
         given:
-        server.expect(server.missing("a"))
+        server.expect(server.get("a").missing())
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        def connection = server.uri("a").toURL().openConnection()
+        connection.inputStream.text
 
         then:
         thrown(FileNotFoundException)
+        connection.responseCode == 404
+
+        when:
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can specify to return 500 response to a GET request"() {
+        given:
+        server.expect(server.get("a").broken())
+        server.start()
+
+        when:
+        def connection = server.uri("a").toURL().openConnection()
+        connection.inputStream.text
+
+        then:
+        thrown(IOException)
+        connection.responseCode == 500
 
         when:
         server.stop()
@@ -122,6 +145,55 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can verify that user agent matches particular criteria"() {
+        def criteria = Matchers.equalTo("some-agent")
+
+        given:
+        server.expect(server.get("a").expectUserAgent(criteria))
+        server.expect(server.get("b").expectUserAgent(criteria))
+        server.expect(server.get("b").expectUserAgent(criteria))
+        server.start()
+
+        when:
+        def connection = server.uri("a").toURL().openConnection()
+        connection.setRequestProperty("user-agent", "some-agent")
+
+        then:
+        connection.responseCode == 200
+        connection.inputStream.text
+
+        when:
+        def connection2 = server.uri("b").toURL().openConnection()
+        connection2.setRequestProperty("user-agent", "not-correct")
+        connection2.inputStream.text
+
+        then:
+        thrown(IOException)
+        connection2.responseCode == 500
+
+        when:
+        def connection3 = server.uri("c").toURL().openConnection()
+        connection3.inputStream.text
+
+        then:
+        thrown(IOException)
+        connection3.responseCode == 500
+
+        when:
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'Failed to handle all HTTP requests.'
+        e.causes[0].message == 'Failed to handle GET /b'
+        e.causes[0].cause.message == 'Unexpected user agent in request'
+        e.causes.message.sort() == [
+            'Failed to handle GET /b',
+            'Failed to handle GET /c',
+            'Unexpected request GET c received. Waiting for [GET b], already received [].'
+        ]
     }
 
     def "can expect a PUT request"() {
@@ -228,7 +300,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can wait for multiple concurrent requests to same URL using request objects"() {
         given:
-        def expected = server.resource("a")
+        def expected = server.get("a")
         server.expectConcurrent(expected, expected, expected)
         server.start()
 
@@ -684,7 +756,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure3 = null
 
         given:
-        server.expectConcurrent(server.resource("a"), server.resource("b"), server.put("c"))
+        server.expectConcurrent(server.get("a"), server.get("b"), server.put("c"))
         server.start()
 
         when:
@@ -741,7 +813,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure3 = null
 
         given:
-        def handler = server.expectConcurrentAndBlock(server.resource("a"), server.resource("b"), server.put("c"))
+        server.expectConcurrentAndBlock(server.get("a"), server.get("b"), server.put("c"))
         server.start()
 
         when:
@@ -1146,9 +1218,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
-        e.causes.message.sort() == [
-            'Timeout waiting to be released after sending some content.'
-        ]
+        e.cause.message == 'Failed to handle GET /a'
+        e.cause.cause.message == 'Timeout waiting to be released after sending some content.'
     }
 
     def "fails when attempting to wait for a request that has not been released to send partial response"() {

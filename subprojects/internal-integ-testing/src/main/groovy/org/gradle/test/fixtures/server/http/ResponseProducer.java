@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package org.gradle.test.fixtures.server.http;
 
-interface ResourceHandler extends ResponseProducer {
-    /**
-     * Returns the method for this handler.
-     */
-    String getMethod();
+import com.sun.net.httpserver.HttpExchange;
 
+import java.io.IOException;
+
+public interface ResponseProducer {
     /**
-     * Returns the path for this handler.
+     * Called to handle a request. Is *not* called under lock.
      */
-    String getPath();
+    void writeTo(int requestId, HttpExchange exchange) throws IOException;
 }

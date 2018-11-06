@@ -220,16 +220,16 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         """
 
         server.expectConcurrent(
-            server.file(m1.pom.path, m1.pom.file),
-            server.file(m2.pom.path, m2.pom.file))
+            server.get(m1.pom.path).sendFile(m1.pom.file),
+            server.get(m2.pom.path).sendFile(m2.pom.file))
 
         def handle = server.expectConcurrentAndBlock(
-            server.resource("a.jar"),
-            server.resource("b.jar"),
-            server.file(m1.artifact.path, m1.artifact.file),
-            server.file(m2.artifact.path, m2.artifact.file))
-        def transform1 = server.expectAndBlock(server.resource("test-1.3.jar"))
-        server.expect(server.resource("test2-2.3.jar"))
+            server.get("a.jar"),
+            server.get("b.jar"),
+            server.get(m1.artifact.path).sendFile(m1.artifact.file),
+            server.get(m2.artifact.path).sendFile(m2.artifact.file))
+        def transform1 = server.expectAndBlock(server.get("test-1.3.jar"))
+        server.expect(server.get("test2-2.3.jar"))
 
         when:
         def build = executer.withArguments("--max-workers=4").withTasks(':resolve').start()

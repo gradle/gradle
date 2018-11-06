@@ -27,7 +27,7 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
-        server.expect(server.file("/gradle-bin.zip", distribution.binDistribution))
+        server.expect(server.get("/gradle-bin.zip").sendFile(distribution.binDistribution))
         server.start()
     }
 
