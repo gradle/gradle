@@ -1288,7 +1288,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
         def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
-        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
+        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+/outputDirectory)")
         for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
@@ -1310,12 +1310,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
-    TestFile resultsFile(TestFile outputDir) {
-        outputDir.parentFile.file(outputDir.name + "-results/results.bin")
-    }
-
     void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
-        writeLastFileAccessTimeToJournal(outputDir, millis)
-        writeLastFileAccessTimeToJournal(resultsFile(outputDir).parentFile, millis)
+        writeLastFileAccessTimeToJournal(outputDir.parentFile, millis)
     }
 }
