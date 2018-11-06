@@ -186,7 +186,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         if (result instanceof Failure) {
             Throwable failure = ((Failure) result).getValue();
             if (failure instanceof DaemonStoppedException && cancellationToken.isCancellationRequested()) {
-                return BuildActionResult.failed(new BuildCancelledException("Daemon was stopped to handle build cancel request.", failure));
+                return BuildActionResult.cancelled(new BuildCancelledException("Daemon was stopped to handle build cancel request.", failure));
             }
             throw UncheckedException.throwAsUncheckedException(failure);
         } else if (result instanceof DaemonUnavailable) {
