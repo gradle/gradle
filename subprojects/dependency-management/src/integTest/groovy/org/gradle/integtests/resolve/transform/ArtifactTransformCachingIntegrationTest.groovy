@@ -1311,11 +1311,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     TestFile resultsFile(TestFile outputDir) {
-        outputDir.parentFile.file(outputDir.name + "-results")
+        outputDir.parentFile.file(outputDir.name + "-results/results.bin")
     }
 
     void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
         writeLastFileAccessTimeToJournal(outputDir, millis)
-        writeLastFileAccessTimeToJournal(resultsFile(outputDir), millis)
+        writeLastFileAccessTimeToJournal(resultsFile(outputDir).parentFile, millis)
     }
 }

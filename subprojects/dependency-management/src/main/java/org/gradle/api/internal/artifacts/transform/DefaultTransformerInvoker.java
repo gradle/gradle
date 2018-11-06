@@ -215,7 +215,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         private File getResultsFile() {
-            return historyRepository.getOutputDirectory(primaryInput, cacheKey.getPersistentCacheKey() + "-results");
+            return historyRepository.getOutputDirectory(primaryInput, cacheKey.getPersistentCacheKey() + "-results/results.bin");
         }
 
         @Override
