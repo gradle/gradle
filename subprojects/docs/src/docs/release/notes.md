@@ -392,15 +392,15 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.0-rc-1 by updating your wrapper properties:
+Switch your build to use Gradle 5.0-rc-2 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.0-rc-1`
+`./gradlew wrapper --gradle-version=5.0-rc-2`
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## Reporting Problems
 
-If you find a problem with Gradle 5.0-rc-1, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with Gradle 5.0-rc-2, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle 5.0, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
