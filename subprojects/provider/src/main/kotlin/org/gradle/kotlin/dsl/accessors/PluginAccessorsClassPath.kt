@@ -178,13 +178,19 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 
 
 private
-fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: Iterable<PluginAccessor>) {
+fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<PluginAccessor>) {
     sourceFile.bufferedWriter().useToRun {
         appendln(fileHeader)
+
         appendln("""
             import ${PluginDependenciesSpec::class.qualifiedName}
             import ${PluginDependencySpec::class.qualifiedName}
         """.replaceIndent())
+
+        defaultPackageTypesIn(accessors).forEach {
+            appendln("import $it")
+        }
+
         accessors.runEach {
             newLine()
             newLine()
@@ -220,6 +226,20 @@ fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: Iterable<Plugi
         }
     }
 }
+
+
+private
+fun defaultPackageTypesIn(pluginAccessors: List<PluginAccessor>) =
+    defaultPackageTypesIn(
+        pluginImplementationClassesExposedBy(pluginAccessors)
+    )
+
+
+private
+fun pluginImplementationClassesExposedBy(pluginAccessors: List<PluginAccessor>) =
+    pluginAccessors
+        .filterIsInstance<PluginAccessor.ForPlugin>()
+        .map { it.implementationClass }
 
 
 private

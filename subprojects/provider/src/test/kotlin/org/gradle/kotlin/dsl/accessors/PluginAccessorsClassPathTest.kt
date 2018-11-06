@@ -32,6 +32,8 @@ import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -45,11 +47,10 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
     fun `#buildPluginAccessorsFor`() {
 
         // given:
-        val pluginsJar = file("plugins.jar").also {
-            zipTo(it, sequenceOf(
-                "META-INF/gradle-plugins/my.own.plugin.properties" to "implementation-class=my.Plugin".toByteArray()
-            ))
-        }
+        val pluginsJar = jarWithPluginDescriptors(
+            "my-plugin" to "MyPlugin",
+            "my.own.plugin" to "my.own.Plugin"
+        )
 
         val srcDir = newFolder("src")
         val binDir = newFolder("bin")
@@ -64,40 +65,43 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         // then:
         assertThat(
             srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().toPlatformLineSeparators(),
-            containsMultiLineString("""
+            allOf(
+                containsString("import MyPlugin"),
+                containsMultiLineString("""
 
-                /**
-                 * The `my` plugin group.
-                 */
-                class `MyPluginGroup`(internal val plugins: PluginDependenciesSpec)
-
-
-                /**
-                 * Plugin ids starting with `my`.
-                 */
-                val `PluginDependenciesSpec`.`my`: `MyPluginGroup`
-                    get() = `MyPluginGroup`(this)
+                    /**
+                     * The `my` plugin group.
+                     */
+                    class `MyPluginGroup`(internal val plugins: PluginDependenciesSpec)
 
 
-                /**
-                 * The `my.own` plugin group.
-                 */
-                class `MyOwnPluginGroup`(internal val plugins: PluginDependenciesSpec)
+                    /**
+                     * Plugin ids starting with `my`.
+                     */
+                    val `PluginDependenciesSpec`.`my`: `MyPluginGroup`
+                        get() = `MyPluginGroup`(this)
 
 
-                /**
-                 * Plugin ids starting with `my.own`.
-                 */
-                val `MyPluginGroup`.`own`: `MyOwnPluginGroup`
-                    get() = `MyOwnPluginGroup`(plugins)
+                    /**
+                     * The `my.own` plugin group.
+                     */
+                    class `MyOwnPluginGroup`(internal val plugins: PluginDependenciesSpec)
 
 
-                /**
-                 * The `my.own.plugin` plugin implemented by [my.Plugin].
-                 */
-                val `MyOwnPluginGroup`.`plugin`: PluginDependencySpec
-                    get() = plugins.id("my.own.plugin")
+                    /**
+                     * Plugin ids starting with `my.own`.
+                     */
+                    val `MyPluginGroup`.`own`: `MyOwnPluginGroup`
+                        get() = `MyOwnPluginGroup`(plugins)
+
+
+                    /**
+                     * The `my.own.plugin` plugin implemented by [my.own.Plugin].
+                     */
+                    val `MyOwnPluginGroup`.`plugin`: PluginDependencySpec
+                        get() = plugins.id("my.own.plugin")
             """)
+            )
         )
 
         // and:
@@ -138,4 +142,12 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
             verifyNoMoreInteractions(plugins)
         }
     }
+
+    private
+    fun jarWithPluginDescriptors(vararg pluginIdsToImplClasses: Pair<String, String>) =
+        file("plugins.jar").also {
+            zipTo(it, pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
+                "META-INF/gradle-plugins/$id.properties" to "implementation-class=$implClass".toByteArray()
+            })
+        }
 }
