@@ -325,7 +325,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
    Dependency path ':test:unspecified' --> 'org:foo:1.0'
-   Constraint path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{reject +}'""")
+   Constraint path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{reject all versions}'""")
 
     }
 

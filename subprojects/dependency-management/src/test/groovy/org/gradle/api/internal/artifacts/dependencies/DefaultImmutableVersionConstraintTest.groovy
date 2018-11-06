@@ -154,6 +154,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         displayNameFor('', '1.0', '', []) == "1.0"
         displayNameFor('', '', '1.0', []) == "{strictly 1.0}"
         displayNameFor('', '', '', ['1.0', '2.0']) == "{reject 1.0 & 2.0}"
+        displayNameFor('', '', '', ['+']) == "{reject all versions}"
 
         displayNameFor('1.0', '2.0', '3.0', ['1.0', '2.0']) == "{strictly 3.0; require 2.0; prefer 1.0; reject 1.0 & 2.0}"
         displayNameFor('1.0', '', '', [], 'br') == "{prefer 1.0; branch br}"

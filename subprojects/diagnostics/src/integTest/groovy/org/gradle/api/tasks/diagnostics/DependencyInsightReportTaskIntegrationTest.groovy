@@ -2556,12 +2556,12 @@ org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
    Failures:
-      - Could not resolve org:bar:{reject +}.:
+      - Could not resolve org:bar:{reject all versions}.:
           - Module 'org:bar' has been rejected:
                Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject +}' because of the following reason: Nope, you won't use this
+               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
-org:bar:{reject +} FAILED
+org:bar:{reject all versions} FAILED
 \\--- compileClasspath
 
 org:bar:[1.0,) FAILED

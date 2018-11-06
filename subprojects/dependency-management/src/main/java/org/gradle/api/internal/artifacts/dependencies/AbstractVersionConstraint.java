@@ -19,6 +19,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.VersionConstraint;
 
+import java.util.List;
+
 public abstract class AbstractVersionConstraint implements VersionConstraint {
     @Override
     public boolean equals(Object o) {
@@ -78,7 +80,7 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         if (!(preferVersion.equals(requiredVersion) || preferVersion.equals(strictVersion))) {
             append("prefer", getPreferredVersion(), builder);
         }
-        append("reject", Joiner.on(" & ").join(getRejectedVersions()), builder);
+        append("reject", rejectedVersionsString(), builder);
         append("branch", getBranch(), builder);
         builder.append("}");
         return builder.toString();
@@ -89,5 +91,14 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
                 && getStrictVersion().isEmpty()
                 && getRejectedVersions().isEmpty()
                 && getBranch() == null;
+    }
+
+    private String rejectedVersionsString() {
+        List<String> rejectedVersions = getRejectedVersions();
+        if (rejectedVersions.size() == 1 && rejectedVersions.get(0).equals("+")) {
+            return "all versions";
+        } else {
+            return Joiner.on(" & ").join(rejectedVersions);
+        }
     }
 }
