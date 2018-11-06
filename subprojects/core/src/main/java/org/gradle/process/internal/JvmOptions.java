@@ -205,7 +205,13 @@ public class JvmOptions {
             } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
                 xrunjdwpFound = true;
                 matches.add(extraJvmArg);
+            } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=*:5005")) {
+                xrunjdwpFound = true;
+                matches.add(extraJvmArg);
             } else if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
+                xagentlibJdwpFound = true;
+                matches.add(extraJvmArg);
+            } else if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")) {
                 xagentlibJdwpFound = true;
                 matches.add(extraJvmArg);
             }

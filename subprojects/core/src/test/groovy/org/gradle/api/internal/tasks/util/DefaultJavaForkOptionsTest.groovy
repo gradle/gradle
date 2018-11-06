@@ -281,6 +281,13 @@ class DefaultJavaForkOptionsTest extends Specification {
         then:
         options.debug
         options.jvmArgs == []
+        
+        when:
+        options.jvmArgs('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005')
+
+        then:
+        options.debug
+        options.jvmArgs == []
 
         when:
         options.allJvmArgs = []
@@ -302,6 +309,13 @@ class DefaultJavaForkOptionsTest extends Specification {
         then:
         !options.debug
         options.jvmArgs == ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        
+        when:
+        options.jvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=*:5005']
+
+        then:
+        !options.debug
+        options.jvmArgs == ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=*:5005']
 
         when:
         options.jvmArgs '-Xdebug'
@@ -325,10 +339,26 @@ class DefaultJavaForkOptionsTest extends Specification {
         then:
         options.debug
         options.jvmArgs == []
+        
+        when:
+        options.debug = false
+        options.allJvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=*:5005', '-Xdebug']
+
+        then:
+        options.debug
+        options.jvmArgs == []
 
         when:
         options.debug = false
         options.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+
+        then:
+        options.debug
+        options.jvmArgs == []
+        
+        when:
+        options.debug = false
+        options.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005']
 
         then:
         options.debug
