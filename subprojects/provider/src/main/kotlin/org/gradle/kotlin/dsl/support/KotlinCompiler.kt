@@ -76,7 +76,7 @@ fun compileKotlinScriptToDirectory(
     messageCollector: LoggingMessageCollector
 ): String =
 
-    withRootDisposable { rootDisposable ->
+    withRootDisposable {
 
         withCompilationExceptionHandler(messageCollector) {
 
@@ -89,7 +89,7 @@ fun compileKotlinScriptToDirectory(
                 addScriptDefinition(scriptDef)
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
-            val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
+            val environment = kotlinCoreEnvironmentFor(configuration).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
 
@@ -122,7 +122,7 @@ fun compileToDirectory(
     classPath: Iterable<File>
 ): Boolean {
 
-    withRootDisposable { disposable ->
+    withRootDisposable {
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
@@ -131,7 +131,7 @@ fun compileToDirectory(
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration, disposable)
+            val environment = kotlinCoreEnvironmentFor(configuration)
             return compileBunchOfSources(environment)
         }
     }
@@ -144,7 +144,7 @@ val kotlinStdlibJar: File
 
 
 private
-inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
+inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)
@@ -213,9 +213,9 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition)
 
 
 private
-fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable): KotlinCoreEnvironment {
+fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+    return KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 }
 
 
