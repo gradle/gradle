@@ -65,13 +65,13 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
 
         @Override
-        File getWorkspace(File toBeTransformed, HashCode cacheKey) {
-            return new File(transformsStoreDirectory, toBeTransformed.getName() + "/" + cacheKey)
+        void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
+            // TODO
         }
 
         @Override
-        void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
-            // TODO
+        File getWorkspace(File toBeTransformed, HashCode cacheKey) {
+            return null
         }
     }
     DefaultTransformerInvoker transformerInvoker
@@ -81,7 +81,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     }
 
     private DefaultTransformerInvoker createInvoker() {
-        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
+        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, projectFinder)
     }
 
     def "reuses result for given inputs and transform"() {
