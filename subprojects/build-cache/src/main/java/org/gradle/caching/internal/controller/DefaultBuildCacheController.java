@@ -114,7 +114,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             try {
                 local.load(command.getKey(), unpack);
             } catch (Exception e) {
-                throw new GradleException("Build cache entry " + command.getKey() + " from local build cache is invalid", e);
+                throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from local build cache is invalid", e);
             }
 
             if (unpack.result != null) {
@@ -143,7 +143,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                             unpack.execute(file);
                         } catch (Exception e) {
                             @SuppressWarnings("ConstantConditions") String roleDisplayName = loadedRole.getDisplayName();
-                            throw new GradleException("Build cache entry " + command.getKey() + " from " + roleDisplayName + " build cache is invalid", e);
+                            throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from " + roleDisplayName + " build cache is invalid", e);
                         }
                         if (local.canStore()) {
                             local.store(command.getKey(), file);
@@ -187,13 +187,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Unpack build cache entry " + command.getKey())
+                    return BuildOperationDescriptor.displayName("Unpack build cache entry " + command.getKey().getHashCode())
                         .details(new UnpackOperationDetails(command.getKey(), file.length()))
                         .progressDisplayName("Unpacking build cache entry");
                 }
             });
         }
-
     }
 
     @Override
