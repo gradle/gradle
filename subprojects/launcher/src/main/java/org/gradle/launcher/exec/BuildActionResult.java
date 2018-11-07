@@ -19,14 +19,13 @@ package org.gradle.launcher.exec;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 
 /**
  * Encapsulates either a result object, or a failure as an exception or a serialized exception.
  *
  * <p>Exceptions should always be serialized, but currently are not when the failure happens outside the context of a build invocation because the serialization infrastructure is currently tied to some build scoped services.</p>
  */
-public class BuildActionResult implements Serializable {
+public class BuildActionResult {
     private final SerializedPayload result;
     private final SerializedPayload serializedFailure;
     private final RuntimeException failure;
@@ -57,6 +56,10 @@ public class BuildActionResult implements Serializable {
 
     public static BuildActionResult cancelled(RuntimeException failure) {
         return new BuildActionResult(null, null, failure, true);
+    }
+
+    public static BuildActionResult failed(boolean wasCancelled, @Nullable SerializedPayload failure, @Nullable RuntimeException exception) {
+        return new BuildActionResult(null, failure, exception, wasCancelled);
     }
 
     /**
