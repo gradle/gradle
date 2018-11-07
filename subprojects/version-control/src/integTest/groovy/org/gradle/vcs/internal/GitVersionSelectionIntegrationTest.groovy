@@ -435,7 +435,7 @@ Required by:
 
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("""Could not find any version that matches test:test (branch: release).
+        failure.assertHasCause("""Could not find any version that matches test:test:{branch release}.
 Searched in the following locations: Git repository at ${repo.url}
 Required by:
     project :""")

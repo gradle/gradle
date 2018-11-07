@@ -521,13 +521,13 @@ org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
    Failures:
-      - Could not resolve org:foo:1.0.:
+      - Could not resolve org:foo:{strictly 1.0}.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
 
-org:foo:1.0 FAILED
+org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf
 
 org:foo:1.1 (by constraint) FAILED
@@ -2243,10 +2243,10 @@ org:foo:${displayVersion} -> $selected
 \\--- compileClasspath
 """
         where:
-        version                             | displayVersion | reason                                          | selected | rejected
-        "require '[1.0, 2.0)'"              | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
-        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
-        "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
+        version                             | displayVersion                    | reason                                          | selected | rejected
+        "require '[1.0, 2.0)'"              | '[1.0, 2.0)'                      | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "strictly '[1.1, 1.4]'"             | '{strictly [1.1, 1.4]}'           | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '{prefer [1.0, 1.4]; reject 1.4}' | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
     def "doesn't report duplicate reasons"() {
@@ -2337,7 +2337,7 @@ org:foo:[1.1,1.3] -> 1.3
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
 
-org:bar:[1.0,) -> 1.0
+org:bar:{require [1.0,); reject [1.1, 1.2]} -> 1.0
 \\--- compileClasspath
 
 org:foo:1.1
@@ -2349,7 +2349,7 @@ org:foo:1.1
    Selection reasons:
       - Was requested : rejected version 1.2
 
-org:foo:[1.0,) -> 1.1
+org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
 """
     }
@@ -2418,7 +2418,7 @@ org:foo:1.1
    Selection reasons:
       - Was requested : rejected version 1.2
 
-org:foo:[1.0,) -> 1.1
+org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
 """
     }
@@ -2604,12 +2604,12 @@ org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
    Failures:
-      - Could not resolve org:bar.:
+      - Could not resolve org:bar:{reject all versions}.:
           - Module 'org:bar' has been rejected:
                Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar' rejects all versions because of the following reason: Nope, you won't use this
+               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
-org:bar FAILED
+org:bar:{reject all versions} FAILED
 \\--- compileClasspath
 
 org:bar:[1.0,) FAILED
@@ -2621,12 +2621,12 @@ org:bar:[1.0,) FAILED
 
 org:foo: (by constraint) FAILED
    Failures:
-      - Could not resolve org:foo.:
+      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:' rejects any of "'1.0', '1.1', '1.2'"
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
-org:foo FAILED
+org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath
 
 org:foo:[1.0,) FAILED
@@ -2683,10 +2683,10 @@ org:foo:1.0
       - Was requested : rejected versions 1.2, 1.1
       - By constraint
 
-org:foo -> 1.0
+org:foo:{reject 1.2} -> 1.0
 \\--- compileClasspath
 
-org:foo:[1.0,) -> 1.0
+org:foo:{require [1.0,); reject 1.1} -> 1.0
 \\--- compileClasspath
 """
     }
