@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.TransformationException
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -41,9 +42,10 @@ class TransformerInvokerTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def historyRepository = Mock(TransformerExecutionHistoryRepository)
+    def historyRepository = Mock(GradleUserHomeTransformerExecutionHistoryRepository)
     def outputFileCollectionFingerprinter = Mock(OutputFileCollectionFingerprinter)
-    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher))
+    def projectFinder = Mock(ProjectFinder)
+    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder)
 
     def "wraps failures into TransformInvocationException"() {
         def failure = new RuntimeException()
@@ -62,6 +64,7 @@ class TransformerInvokerTest extends Specification {
         _ * executionResult.failure >> failure
         1 * transformer.implementationClass >> ArtifactTransform
         _ * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
+        2 * sourceSubject.getProducer() >> Optional.empty()
         1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
             action.apply(identity.getIdentity(), new File("workspace"))
         }

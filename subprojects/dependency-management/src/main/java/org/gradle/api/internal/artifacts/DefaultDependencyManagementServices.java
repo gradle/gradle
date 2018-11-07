@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
@@ -70,7 +71,9 @@ import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.GradleUserHomeTransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.ProjectTransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.ProjectTransformerWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -99,6 +102,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
@@ -226,13 +230,22 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
         }
 
+        ProjectTransformerWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout) {
+            return new ProjectTransformerWorkspaceProvider(projectLayout);
+        }
+
+        ProjectTransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(ProjectTransformerWorkspaceProvider transformerWorkspaceProvider, ExecutionHistoryStore executionHistoryStore) {
+            return new ProjectTransformerExecutionHistoryRepository(transformerWorkspaceProvider, executionHistoryStore);
+        }
+
         TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
-                                                    TransformerExecutionHistoryRepository historyRepository,
+                                                    GradleUserHomeTransformerExecutionHistoryRepository historyRepository,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
-                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher);
+                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                                    ProjectFinder projectFinder) {
+            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder);
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

@@ -20,9 +20,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Subject which is transformed or the result of a transformation.
@@ -45,6 +48,8 @@ public abstract class TransformationSubject implements Describable {
      * The files which should be transformed.
      */
     public abstract ImmutableList<File> getFiles();
+
+    public abstract Optional<ProjectComponentIdentifier> getProducer();
 
     /**
      * Gives access to the artifacts of the dependencies of the subject of the transformation
@@ -83,6 +88,10 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public ArtifactTransformDependencies getDependencies() {
             throw new UnsupportedOperationException();
+        }
+
+        public Optional<ProjectComponentIdentifier> getProducer() {
+            return Optional.empty();
         }
 
         @Nullable
@@ -145,6 +154,11 @@ public abstract class TransformationSubject implements Describable {
         public String getDisplayName() {
             return "file " + getFile();
         }
+
+        @Override
+        public Optional<ProjectComponentIdentifier> getProducer() {
+            return Optional.empty();
+        }
     }
 
     private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
@@ -166,6 +180,15 @@ public abstract class TransformationSubject implements Describable {
         public String getDisplayName() {
             return "artifact " + artifactId.getDisplayName();
         }
+
+        @Override
+        public Optional<ProjectComponentIdentifier> getProducer() {
+            ComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
+            if (componentIdentifier instanceof ProjectComponentIdentifier) {
+                return Optional.of((ProjectComponentIdentifier) componentIdentifier);
+            }
+            return Optional.empty();
+        }
     }
 
     private static class SubsequentTransformationSubject extends TransformationSubject {
@@ -185,6 +208,10 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public ArtifactTransformDependencies getDependencies() {
             return previous.getDependencies();
+        }
+
+        public Optional<ProjectComponentIdentifier> getProducer() {
+            return previous.getProducer();
         }
 
         @Override

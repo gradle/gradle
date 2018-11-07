@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
-public class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
+public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
     private final ExecutionHistoryStore executionHistoryStore;
     private final TransformerWorkspaceProvider workspaceProvider;
