@@ -16,15 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
-
-import java.io.File;
-import java.util.function.BiFunction;
-
-public interface TransformerWorkspaceProvider {
-    /**
-     * Provides a workspace for executing the transformation.
-     */
-    Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace);
+public interface TransformationIdentity {
+    String getInitialSubjectFileName();
+    String getIdentity();
 }

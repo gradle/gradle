@@ -65,21 +65,6 @@ import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.impl.DefaultWorkExecutor;
-import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
-import org.gradle.internal.execution.impl.steps.Context;
-import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
-import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
-import org.gradle.internal.execution.impl.steps.ExecuteStep;
-import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
-import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
-import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
-import org.gradle.internal.execution.impl.steps.TimeoutStep;
-import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.JarCache;
@@ -90,7 +75,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.id.LongIdGenerator;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -101,7 +85,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
@@ -281,45 +264,5 @@ public class GradleUserHomeScopeServices {
 
     TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
-    }
-
-    /**
-     * Work executer for usage above Gradle scope
-     *
-     * Currently used for running artifact transformations in buildscript blocks.
-     */
-    WorkExecutor<UpToDateResult> createWorkExecutor(
-        TimeoutHandler timeoutHandler, ListenerManager listenerManager
-    ) {
-        OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-        OutputFilesRepository noopOutputFilesRepository = new OutputFilesRepository() {
-            @Override
-            public boolean isGeneratedByGradle(File file) {
-                return true;
-            }
-
-            @Override
-            public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
-            }
-        };
-        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-        UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
-        return new DefaultWorkExecutor<UpToDateResult>(
-            new SkipUpToDateStep<Context>(
-                new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
-                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                        new SnapshotOutputStep<Context>(fixedUniqueId,
-                            new CreateOutputsStep<Context, Result>(
-                                new CatchExceptionStep<Context>(
-                                    new TimeoutStep<Context>(timeoutHandler,
-                                        new ExecuteStep(outputChangeListener)
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
     }
 }
