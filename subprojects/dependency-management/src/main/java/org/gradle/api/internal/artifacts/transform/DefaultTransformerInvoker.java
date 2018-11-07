@@ -241,7 +241,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 }
                 throw new IllegalStateException("Invalid result path: " + absolutePath);
             });
-            UncheckedException.asUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
+            UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
         public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {

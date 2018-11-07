@@ -68,7 +68,7 @@ public final class UncheckedException extends RuntimeException {
         }
     }
 
-    public static <T> T asUnchecked(Callable<T> callable) {
+    public static <T> T callUnchecked(Callable<T> callable) {
         try {
             return callable.call();
         } catch (Exception e) {
