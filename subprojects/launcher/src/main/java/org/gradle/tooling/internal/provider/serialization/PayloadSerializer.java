@@ -21,9 +21,11 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +37,11 @@ public class PayloadSerializer {
         classLoaderRegistry = registry;
     }
 
-    public SerializedPayload serialize(Object payload) {
+    public SerializedPayload serialize(@Nullable Object payload) {
+        if (payload == null) {
+            return new SerializedPayload(null, Collections.<byte[]>emptyList());
+        }
+
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
@@ -55,7 +61,11 @@ public class PayloadSerializer {
         }
     }
 
-    public Object deserialize(SerializedPayload payload) {
+    public @Nullable Object deserialize(SerializedPayload payload) {
+        if (payload.getSerializedModel().isEmpty()) {
+            return null;
+        }
+
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
