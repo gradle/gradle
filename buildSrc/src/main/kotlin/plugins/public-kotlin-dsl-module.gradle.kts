@@ -38,9 +38,11 @@ afterEvaluate {
     publishing {
 
         // with a jar named after `base.archivesBaseName`
-        publications.create<MavenPublication>("mavenJava") {
-            artifactId = base.archivesBaseName
-            from(components["java"])
+        publications {
+            create<MavenPublication>("mavenJava") {
+                artifactId = base.archivesBaseName
+                from(components["java"])
+            }
         }
 
         repositories {
