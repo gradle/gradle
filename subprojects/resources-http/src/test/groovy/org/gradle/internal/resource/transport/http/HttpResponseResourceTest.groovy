@@ -85,7 +85,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
     }
 
     HttpResponseResource resource() {
-        new HttpResponseResource(method, sourceUrl, response)
+        new HttpResponseResource(method, sourceUrl, new HttpClientResponse("GET", sourceUrl, response))
     }
 
     void addHeader(String name, String value) {

@@ -17,11 +17,15 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
+import java.util.concurrent.Callable
+
 abstract class PropertySpec<T> extends ProviderSpec<T> {
-    abstract Property<T> property()
+    /**
+     * Returns a property with _no_ value.
+     */
+    abstract PropertyInternal<T> property()
 
     abstract T someValue()
 
@@ -29,22 +33,24 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     abstract Class<T> type()
 
-    def "can set to null value to remove value"() {
-        given:
-        def property = property()
-        property.set(null)
-
+    def "has no value by default"() {
         expect:
+        def property = property()
         !property.present
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
-        property.getOrElse(null) == null
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
     }
 
     def "cannot get value when it has none"() {
         given:
         def property = property()
-        property.set(null)
 
         when:
         property.get()
@@ -284,10 +290,9 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         0 * _
     }
 
-    def "mapped provider has no value when property has no value and transformer is not invoked"() {
+    def "mapped provider has no value and transformer is not invoked when property has no value"() {
         def transformer = Mock(Transformer)
         def property = property()
-        property.set(null)
 
         when:
         def provider = property.map(transformer)
@@ -304,6 +309,302 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'No value has been specified for this provider.'
+    }
+
+    def "can finalize value when no value defined"() {
+        def property = property()
+
+        when:
+        property."$method"()
+
+        then:
+        !property.present
+        property.getOrNull() == null
+
+        where:
+        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+    }
+
+    def "can finalize value when value set"() {
+        def property = property()
+
+        when:
+        property.set(someValue())
+        property."$method"()
+
+        then:
+        property.present
+        property.getOrNull() == someValue()
+
+        where:
+        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+    }
+
+    def "replaces provider with fixed value when value finalized"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        present
+        result == someValue()
+        0 * _
+    }
+
+    def "replaces provider with fixed value when value finalized on next read"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.finalizeValueOnReadAndWarnAboutChanges()
+
+        then:
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        and:
+        present
+        result == someValue()
+    }
+
+    def "replaces provider with fixed value when value finalized after finalize on next read"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+        property.finalizeValueOnReadAndWarnAboutChanges()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        0 * _
+
+        and:
+        present
+        result == someValue()
+    }
+
+    def "replaces provider with fixed missing value when value finalized"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> null
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        !present
+        result == null
+        0 * _
+    }
+
+    def "replaces provider with fixed missing value when value finalized on next read"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+
+        when:
+        property.finalizeValueOnReadAndWarnAboutChanges()
+
+        then:
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        1 * function.call() >> null
+        0 * _
+
+        and:
+        !present
+        result == null
+    }
+
+    def "can finalize value when already finalized"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        when:
+        property.set(provider)
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        when:
+        property.finalizeValue()
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.finalizeValueOnReadAndWarnAboutChanges()
+
+        then:
+        0 * _
+    }
+
+    def "cannot set value after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.set(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores set value after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+    }
+
+    def "cannot set value after value finalized after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.set(someOtherValue())
+        property.finalizeValue()
+
+        when:
+        property.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot set value using provider after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.set(Mock(ProviderInternal))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores set value using provider after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.set(Mock(ProviderInternal))
+
+        then:
+        property.get() == someValue()
+    }
+
+    def "cannot set value using any type after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.setFromAnyValue(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.setFromAnyValue(Stub(ProviderInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores set value using any type after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.setFromAnyValue(someOtherValue())
+
+        then:
+        property.get() == someValue()
+
+        when:
+        property.setFromAnyValue(Stub(ProviderInternal))
+
+        then:
+        property.get() == someValue()
     }
 
     static class Thing { }

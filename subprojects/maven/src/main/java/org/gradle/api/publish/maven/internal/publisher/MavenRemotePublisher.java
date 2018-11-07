@@ -45,9 +45,6 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
 
     protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
         GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(packaging, projectIdentity, artifactRepository, repositoryTransportFactory);
-
-        // This isn't right, since it seems like `org.sonatype.aether.impl.internal.DefaultDeployer` assumes that
-        // this will point to an existing `.m2` repository, so it can list previous snapshot versions to create maven-metadata.xml
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         return deployTask;

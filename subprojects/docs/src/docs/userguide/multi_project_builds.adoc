@@ -779,7 +779,7 @@ With more and more CPU cores available on developer desktops and CI servers, it 
 * Reduce total build time for a multi-project build where execution is IO bound or otherwise does not consume all available CPU resources.
 * Provide faster feedback for execution of small projects without awaiting completion of other projects.
 
-Although Gradle already offers parallel test execution via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] the feature described in this section is parallel execution at a project level. Parallel execution is an incubating feature. Please use it and let us know how it works for you.
+Although Gradle already offers parallel test execution via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] the feature described in this section is parallel execution at a project level.
 
 Parallel project execution allows the separate projects in a decoupled multi-project build to be executed in parallel (see also <<#sec:decoupled_projects,Decoupled projects>>). While parallel execution does not strictly require decoupling at configuration time, the long-term goal is to provide a powerful set of features that will be available for fully decoupled projects. Such features include:
 

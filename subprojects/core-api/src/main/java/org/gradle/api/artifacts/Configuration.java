@@ -397,7 +397,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param action the action to execute when the configuration has no defined dependencies.
      * @return this
      */
-    @Incubating
     Configuration defaultDependencies(Action<? super DependencySet> action);
 
     /**
@@ -452,7 +451,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The outgoing artifacts of this configuration.
      * @since 3.4
      */
-    @Incubating
     ConfigurationPublications getOutgoing();
 
     /**
@@ -461,7 +459,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param action The action to perform the configuration.
      * @since 3.4
      */
-    @Incubating
     void outgoing(Action<? super ConfigurationPublications> action);
 
     /**
@@ -521,7 +518,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 3.3
      */
-    @Incubating
     void setCanBeConsumed(boolean allowed);
 
     /**
@@ -529,7 +525,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return true if this configuration can be consumed or published.
      * @since 3.3
      */
-    @Incubating
     boolean isCanBeConsumed();
 
     /**
@@ -537,7 +532,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 3.3
      */
-    @Incubating
     void setCanBeResolved(boolean allowed);
 
     /**
@@ -545,7 +539,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return true if this configuration can be queried or resolved.
      * @since 3.3
      */
-    @Incubating
     boolean isCanBeResolved();
 
 }

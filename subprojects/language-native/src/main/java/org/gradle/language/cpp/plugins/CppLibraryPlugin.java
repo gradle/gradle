@@ -105,13 +105,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                library.getOperatingSystems().lockNow();
+                library.getOperatingSystems().finalizeValue();
                 Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the library.");
                 }
 
-                library.getLinkage().lockNow();
+                library.getLinkage().finalizeValue();
                 Set<Linkage> linkages = library.getLinkage().get();
                 if (linkages.isEmpty()) {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");

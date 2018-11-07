@@ -24,6 +24,7 @@ import org.gradle.internal.remote.internal.ConnectException
 import org.gradle.internal.remote.internal.OutgoingConnector
 import org.gradle.internal.remote.internal.RemoteConnection
 import org.gradle.internal.serialize.Serializer
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
@@ -72,7 +73,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startBusyDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
         return new DaemonStartupInfo(daemonNum.toString(), null, null);
@@ -80,7 +81,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startIdleDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Idle))
     }

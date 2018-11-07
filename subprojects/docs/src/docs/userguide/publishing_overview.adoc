@@ -62,23 +62,19 @@ These provide the specific publication and repository classes needed to configur
 
 Let's assume we're working with a simple Java library project, so only the following plugins are applied:
 
-=== Example: Applying the necessary plugins
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=apply-plugins]
-----
+.Applying the necessary plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=apply-plugins]"]
+====
 
 Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
 
-=== Example: Configuring a Java library for publishing
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=configure-publishing]
-----
+.Configuring a Java library for publishing
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-publishing]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
+====
 
 This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<#glossary:component,component>> of the project.
 
@@ -108,13 +104,11 @@ Users often need to include additional artifacts with a publication, one of the 
 
 The following sample configures "-sources" and "-javadoc" JARs for a Java project and attaches them to the main (Maven) publication, i.e. the production JAR:
 
-=== Example: Adding an additional archive artifact to a MavenPublication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/javaProject/build.gradle[tag=publish-custom-artifact]
-----
+.Adding an additional archive artifact to a MavenPublication
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=publish-custom-artifact]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-custom-artifact]"]
+====
 
 There are several important things to note about the sample:
 
@@ -137,23 +131,19 @@ Inter-project dependencies have nothing to do with publishing, but both features
 
 You start by defining a custom artifact and attaching it to a Gradle <<#glossary:configuration,configuration>> of your choice. The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
 
-=== Example: Defining a custom artifact for a configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/publish-artifact/build.gradle[tag=custom-artifact]
-----
+.Defining a custom artifact for a configuration
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact]"]
+====
 
 The `artifacts.add()` method — from link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ArtifactHandler.html[ArtifactHandler] — returns an artifact object of type link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[PublishArtifact] that can then be used in defining a publication, as shown in the following sample:
 
-=== Example: Attaching a custom PublishArtifact to a publication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/publish-artifact/build.gradle[tag=custom-artifact-publication]
-----
+.Attaching a custom PublishArtifact to a publication
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact-publication]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact-publication]"]
+====
 
 Now you can publish the RPM as well as depend on it from another project using the `project(path: ':my-project', configuration: 'archives')` syntax.
 
@@ -194,25 +184,21 @@ include::{samplesPath}/signing/maven-publish/publishingMavenSignAndPublish.out[]
 
 When you have defined multiple publications or repositories, you often want to control which publications are published to which repositories. For instance, consider the following sample that defines two publications — one that consists of just a binary and another that contains the binary and associated sources — and two repositories — one for internal use and one for external consumers:
 
-=== Example: Adding multiple publications and repositories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=publishing]
-----
+.Adding multiple publications and repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=publishing]"]
+====
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
 Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
 
-=== Example: Configuring which artifacts should be published to which repositories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=task-config]
-----
+.Configuring which artifacts should be published to which repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=task-config]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=task-config]"]
+====
 
 .Output of `gradle publish`
 ----
@@ -225,13 +211,11 @@ You may also want to define your own aggregate tasks to help with your workflow.
 
 The following sample demonstrates how you can do this by defining an aggregate task — `publishToExternalRepository` — that depends on all the relevant publish tasks:
 
-=== Example: Defining your own shorthand tasks for publishing
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=shorthand-tasks]
-----
+.Defining your own shorthand tasks for publishing
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=shorthand-tasks]"]
+====
 
 This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
 
@@ -242,13 +226,11 @@ The publishing plugins create their non-aggregate tasks after the project has be
 
 For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
 
-=== Example: Configuring a dynamically named task created by the publishing plugins
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=configure-generate-task]
-----
+.Configuring a dynamically named task created by the publishing plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
+====
 
 The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don't have to worry about such conflicts since there will only be one POM file.
 

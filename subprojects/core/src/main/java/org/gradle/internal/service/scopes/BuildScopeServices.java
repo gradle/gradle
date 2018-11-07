@@ -74,6 +74,7 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -162,6 +163,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -468,5 +470,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
         return new DefaultBuildScanUserInputHandler(userInputHandler);
+    }
+
+    protected BuildInvocationDetails createBuildInvocationDetails(BuildStartedTime buildStartedTime) {
+        return new DefaultBuildInvocationDetails(buildStartedTime);
     }
 }

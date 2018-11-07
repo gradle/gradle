@@ -102,12 +102,10 @@ public class Project extends XmlPersistableConfigurationObject {
     /**
      * The vcs used by the project.
      */
-    @Incubating
     public String getVcs() {
         return vcs;
     }
 
-    @Incubating
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -115,12 +113,10 @@ public class Project extends XmlPersistableConfigurationObject {
     /**
      * The project-level libraries of the IDEA project.
      */
-    @Incubating
     public Set<ProjectLibrary> getProjectLibraries() {
         return projectLibraries;
     }
 
-    @Incubating
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }

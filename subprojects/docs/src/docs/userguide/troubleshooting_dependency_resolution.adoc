@@ -54,23 +54,19 @@ You can fine-tune certain aspects of caching programmatically using the link:{ja
 
 By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
 
-=== Example: Dynamic version cache control
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/troubleshooting/cache/dynamic/build.gradle[tag=dynamic-version-cache-control]
-----
+.Dynamic version cache control
+====
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+====
 
 By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
-=== Example: Changing module cache control
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/troubleshooting/cache/changing/build.gradle[tag=changing-module-cache-control]
-----
+.Changing module cache control
+====
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+====
 
 [[sec:controlling_dependency_caching_command_line]]
 == Controlling dependency caching from the command line
@@ -108,3 +104,21 @@ This file is then checked in and the versions in it are used on all subsequent r
 Legacy projects sometimes prefer to consume <<declaring_dependencies.adoc#sec:declaring_file_dependency,file dependencies>> instead of <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<introduction_dependency_management.adoc#sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
 
 As a result, the dependencies of the project are easier to maintain and organize. It's much easier to uncover potential API incompatibilities by the assigned version.
+
+[[sub:configuration_resolution_constraints]]
+== Constraints on configuration resolution
+
+Configurations need to be resolved safely when crossing project boundaries because resolving configurations can have side effects on Gradle's project model. Gradle can usually manage this safe access, but the configuration needs to be accessed in a way that enables Gradle to do so. There are a number of ways a configuration might be resolved unsafely and Gradle will produce a deprecation warning for each unsafe access.
+
+For example:
+
+* A task from one project directly resolves a configuration in another project.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for a project resolves a configuration in another project during evaluation.
+* A configuration is resolved in a user-managed thread (i.e., a thread not managed by Gradle).
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.  It's a symptom of these bad practices and cause strange and indeterminate errors.
+
+More importantly, resolving a configuration from a user-managed thread is not supported.  To ensure that the configuration is resolved safely, it must be resolved in a Gradle-managed thread.  Afterwards, the resolution result can be used in user-managed threads.
+
+In most cases, the deprecation warning can be fixed by defining a configuration in the project where the resolution is occurring and setting it to link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom-org.gradle.api.artifacts.Configuration++...++-[extend from] the configuration in the other project.

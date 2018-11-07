@@ -31,6 +31,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -107,6 +108,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             actionClasspathGroovy.shutdown();
+            CompositeStoppable.stoppable(workerClassLoader, actionClasspathLoader).stop();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
@@ -171,7 +173,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         public Object call() throws Exception {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
             DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
-            WorkerProtocol<ActionExecutionSpec> worker = new DefaultWorkerServer(instantiatorFactory.inject());
+            WorkerProtocol worker = new DefaultWorkerServer(instantiatorFactory.inject());
             return worker.execute(spec);
         }
     }

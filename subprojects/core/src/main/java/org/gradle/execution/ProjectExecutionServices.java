@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
-import org.gradle.api.internal.tasks.execution.FinalizeInputFilePropertiesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.OutputDirectoryCreatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
@@ -141,8 +141,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputChangesListener, executer, buildInvocationScopeId);
-        executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, taskOutputChangesListener, executer);
+        executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);

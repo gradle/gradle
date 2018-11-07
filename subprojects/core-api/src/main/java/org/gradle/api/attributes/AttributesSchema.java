@@ -17,7 +17,6 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import java.util.Set;
  * @since 3.3
  *
  */
-@Incubating
 public interface AttributesSchema {
 
     /**

@@ -7,7 +7,7 @@ repositories {
 }
 
 // tag::locking-one[]
-configurations.getByName("compileClasspath") {
+configurations.compileClasspath {
     resolutionStrategy.activateDependencyLocking()
 }
 // end::locking-one[]

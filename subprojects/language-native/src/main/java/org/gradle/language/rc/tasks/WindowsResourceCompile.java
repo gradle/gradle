@@ -161,6 +161,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * Returns the header directories to be used for compilation.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getIncludes() {
         return includes;
@@ -176,6 +177,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getSource() {
         return source;

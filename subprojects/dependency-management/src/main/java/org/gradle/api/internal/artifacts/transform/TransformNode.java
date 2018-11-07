@@ -26,11 +26,15 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -145,7 +149,27 @@ public abstract class TransformNode extends Node {
         }
 
         private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
-            return dependencyResolver.resolveDependenciesFor(null, artifactSet.getBuildDependencies());
+            return dependencyResolver.resolveDependenciesFor(null, new TaskDependencyContainer() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    artifactSet.collectBuildDependencies(new BuildDependenciesVisitor() {
+                        @Override
+                        public void visitDependency(Object dep) {
+                            context.add(dep);
+                        }
+
+                        @Override
+                        public void attachFinalizerTo(Task task, Action<? super Task> action) {
+                            context.attachFinalizerTo(task, action);
+                        }
+
+                        @Override
+                        public void visitFailure(Throwable failure) {
+                            throw UncheckedException.throwAsUncheckedException(failure);
+                        }
+                    });
+                }
+            });
         }
 
         private class InitialArtifactTransformationStepOperation implements RunnableBuildOperation {

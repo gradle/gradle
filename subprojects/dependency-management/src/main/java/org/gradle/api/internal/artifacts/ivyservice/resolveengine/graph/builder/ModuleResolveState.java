@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
@@ -361,5 +362,14 @@ class ModuleResolveState implements CandidateModule {
             }
         }
         return false;
+    }
+
+    void maybeCreateVirtualMetadata(ResolveState resolveState) {
+        for (ComponentState componentState : versions.values()) {
+            if (componentState.getMetadata() == null) {
+                // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
+                componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+            }
+        }
     }
 }

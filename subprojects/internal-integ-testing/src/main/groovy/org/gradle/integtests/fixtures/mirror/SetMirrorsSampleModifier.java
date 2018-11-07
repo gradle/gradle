@@ -29,6 +29,9 @@ import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_POR
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 
 public class SetMirrorsSampleModifier implements SampleModifier {
+
+    private File initScript = RepoScriptBlockUtil.createMirrorInitScript();
+
     @Override
     public Sample modify(Sample sample) {
         if (sample.getId().contains("usePluginsInInitScripts")) {
@@ -37,7 +40,6 @@ public class SetMirrorsSampleModifier implements SampleModifier {
         }
         List<Command> commands = sample.getCommands();
         List<Command> modifiedCommands = new ArrayList<Command>();
-        File initScript = RepoScriptBlockUtil.createMirrorInitScript();
         for (Command command : commands) {
             if ("gradle".equals(command.getExecutable())) {
                 List<String> args = new ArrayList<String>(command.getArgs());

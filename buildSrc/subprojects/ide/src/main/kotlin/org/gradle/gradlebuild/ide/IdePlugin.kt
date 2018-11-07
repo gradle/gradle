@@ -28,7 +28,6 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
-import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -38,6 +37,9 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaProject
+import org.gradle.plugins.ide.idea.model.Module
+import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.CodeStyleConfig
 import org.jetbrains.gradle.ext.CopyrightConfiguration
@@ -50,9 +52,6 @@ import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
-import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -549,12 +548,13 @@ open class IdePlugin : Plugin<Project> {
             "-Dorg.gradle.integtest.native.toolChains=default",
             "-Dorg.gradle.integtest.multiversion=default",
             "-Dorg.gradle.integtest.testkit.compatibility=current",
-            "-Xmx512m"
+            "-Xmx512m",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
         )
-
-        if (!BuildEnvironment.javaVersion.isJava8Compatible) {
-            vmParameter.add("-XX:MaxPermSize=512m")
-        }
         return vmParameter.joinToString(" ") {
             if (it.contains(" ") || it.contains("\$")) "\"$it\""
             else it

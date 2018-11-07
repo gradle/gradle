@@ -15,8 +15,6 @@
  */
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -27,7 +25,6 @@ import javax.annotation.Nullable;
  *
  * @since 3.3
  */
-@Incubating
 public interface CompatibilityCheckDetails<T> {
     /**
      * The value of the attribute as found on the consumer side.

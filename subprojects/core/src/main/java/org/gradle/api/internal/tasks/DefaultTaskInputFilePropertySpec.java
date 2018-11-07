@@ -124,6 +124,7 @@ public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFilePr
 
     @Override
     public void prepareValue() {
+        value.maybeFinalizeValue();
         Object obj = value.call();
         // TODO - move this to ValidatingValue instead
         if (obj instanceof LifecycleAwareTaskProperty) {

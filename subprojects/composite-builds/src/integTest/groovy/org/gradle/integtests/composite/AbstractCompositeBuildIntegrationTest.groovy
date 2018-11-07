@@ -20,7 +20,7 @@ import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.file.TestFile

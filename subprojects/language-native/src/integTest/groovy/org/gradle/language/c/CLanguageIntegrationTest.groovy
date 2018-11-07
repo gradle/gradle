@@ -19,6 +19,8 @@ import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -240,6 +242,36 @@ model {
         (1..brokenFileCount).each {
             failure.assertThatCause(containsText("C compiler failed while compiling broken${it}.c"))
         }
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "can compile and link C code using standard macOS framework"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeLibrarySpec) {
+                        binaries.all {
+                            linker.args "-framework", "CoreFoundation"
+                        }
+                    }
+                }
+            }
+         """
+
+        and:
+        file("src/main/c/includeFramework.c") << """
+            #include <CoreFoundation/CoreFoundation.h>
+
+            void sayHelloFoundation() {
+                CFShow(CFSTR("Hello"));
+            }
+        """
+
+        expect:
+        succeeds 'mainSharedLibrary'
+        result.assertTasksExecuted(":compileMainSharedLibraryMainC", ":linkMainSharedLibrary", ":mainSharedLibrary")
+        result.assertTasksNotSkipped(":compileMainSharedLibraryMainC", ":linkMainSharedLibrary", ":mainSharedLibrary")
     }
 }
 

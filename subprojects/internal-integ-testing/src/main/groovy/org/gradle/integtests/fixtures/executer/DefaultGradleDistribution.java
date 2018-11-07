@@ -118,10 +118,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("1.0-milestone-7");
     }
 
-    public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0-rc-1");
-    }
-
     public boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
     }
@@ -203,6 +199,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     public boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
+    }
+
+    @Override
+    public boolean isAddsTaskExecutionExceptionAroundAllTaskFailures() {
+        return isSameOrNewer("5.0");
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

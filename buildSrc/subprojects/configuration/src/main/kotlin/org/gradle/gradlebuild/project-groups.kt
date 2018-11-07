@@ -25,7 +25,7 @@ object ProjectGroups {
             it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance") }.toSet()
 
     val Project.javaProjects
-        get() = rootProject.subprojects - rootProject.project("distributionsDependencies")
+        get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
 
     val Project.publicJavaProjects
         get() = javaProjects - internalProjects

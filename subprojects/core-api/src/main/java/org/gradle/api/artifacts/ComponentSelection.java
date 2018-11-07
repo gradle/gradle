@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
  * to be evaluated in a component selection rule.
  */
 @HasInternalProtocol
-@Incubating
 public interface ComponentSelection {
     /**
      * Gets the candidate version of the module.
@@ -45,6 +44,7 @@ public interface ComponentSelection {
      * @return the {@code ComponentMetadata} or {@code null} if not available
      * @since 5.0
      */
+    @Incubating
     @Nullable
     ComponentMetadata getMetadata();
 
@@ -63,6 +63,7 @@ public interface ComponentSelection {
      * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
      * @since 5.0
      */
+    @Incubating
     @Nullable
     <T> T getDescriptor(Class<T> descriptorClass);
 

@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
+
 /**
  * A {@link MutationValidator} that can be used as a {@link Runnable} to be passed to
- * {@link org.gradle.api.internal.DefaultDomainObjectCollection#beforeChange(Runnable)}.
+ * {@link org.gradle.api.internal.DefaultDomainObjectSet#beforeCollectionChanges(Action)}.
  */
 public abstract class RunnableMutationValidator implements MutationValidator, Runnable {
     private final MutationType typeAsRunnable;

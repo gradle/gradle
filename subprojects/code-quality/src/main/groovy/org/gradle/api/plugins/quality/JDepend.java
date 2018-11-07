@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
@@ -77,14 +76,8 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         reports = getObjectFactory().newInstance(JDependReportsImpl.class, this);
     }
 
-    /**
-     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Incubating
     @Inject
-    public ObjectFactory getObjectFactory() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 

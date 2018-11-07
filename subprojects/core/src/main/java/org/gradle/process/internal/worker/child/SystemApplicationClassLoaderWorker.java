@@ -157,7 +157,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         private PrintStream ps;
 
         private PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
-            this.workerDirectory = workerDirectoryProvider.getIdleWorkingDirectory();
+            this.workerDirectory = workerDirectoryProvider.getWorkingDirectory();
         }
 
         @Override

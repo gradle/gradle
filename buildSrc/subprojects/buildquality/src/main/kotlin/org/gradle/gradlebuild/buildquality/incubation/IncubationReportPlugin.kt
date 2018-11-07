@@ -16,11 +16,9 @@
 
 package org.gradle.gradlebuild.buildquality.incubation
 
+import accessors.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
-import accessors.java
-
 import org.gradle.kotlin.dsl.*
 
 
@@ -32,7 +30,7 @@ class IncubationReportPlugin : Plugin<Project> {
             title.set(project.name)
             versionFile.set(rootProject.file("version.txt"))
             releasedVersionsFile.set(rootProject.file("released-versions.json"))
-            sources.set(main.java.sourceDirectories)
+            sources.setFrom(main.java.sourceDirectories)
             htmlReportFile.set(file("$buildDir/reports/incubation/${project.name}.html"))
             textReportFile.set(file("$buildDir/reports/incubation/${project.name}.txt"))
         }

@@ -165,6 +165,36 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
+    def "worker daemons are not reused when they fail unexpectedly"() {
+        buildFile << """
+            $runnableThatCanFailUnexpectedly
+
+            task runInWorker1(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+            }
+            
+            task runInWorker2(type: WorkerTask) {
+                // This will cause the worker process to fail with exit code 127
+                list = runInWorker1.list + ["poisonPill"]
+
+                isolationMode = IsolationMode.PROCESS
+            }
+        """
+
+        when:
+        succeeds "runInWorker1"
+
+        and:
+        executer.withStackTraceChecksDisabled()
+        fails "runInWorker2"
+
+        then:
+        assertSameDaemonWasUsed("runInWorker1", "runInWorker2")
+
+        then:
+        succeeds "runInWorker1"
+    }
+
     def "only compiler daemons are stopped with the build session"() {
         withRunnableClassInBuildScript()
         file('src/main/java').createDir()
@@ -204,5 +234,40 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
     String sinceSnapshot() {
         return daemons.daemon.log - logSnapshot
+    }
+
+    String getRunnableThatCanFailUnexpectedly() {
+        return """
+            import java.io.File;
+            import java.util.List;
+            import org.gradle.other.Foo;
+            import org.gradle.test.FileHelper;
+            import java.util.UUID;
+            import javax.inject.Inject;
+
+            public class TestRunnable implements Runnable {
+                private final List<String> files;
+                protected final File outputDir;
+                private final Foo foo;
+                private static final String id = UUID.randomUUID().toString();
+
+                @Inject
+                public TestRunnable(List<String> files, File outputDir, Foo foo) {
+                    this.files = files;
+                    this.outputDir = outputDir;
+                    this.foo = foo;
+                }
+
+                public void run() {
+                    for (String name : files) {
+                        File outputFile = new File(outputDir, name);
+                        FileHelper.write(id, outputFile);
+                    }
+                    if (files.contains("poisonPill")) {
+                        System.exit(127);
+                    }
+                }
+            }
+        """
     }
 }

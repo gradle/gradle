@@ -16,6 +16,6 @@
 
 package org.gradle.workers.internal;
 
-public interface WorkerProtocol<T extends WorkSpec> {
-    DefaultWorkResult execute(T spec);
+public interface WorkerProtocol {
+    DefaultWorkResult execute(ActionExecutionSpec spec);
 }

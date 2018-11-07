@@ -31,5 +31,7 @@ public interface DaemonServerConfiguration {
 
     List<String> getJvmOptions();
 
+    DaemonParameters.Priority getPriority();
+
     boolean isSingleUse();
 }

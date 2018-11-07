@@ -56,4 +56,25 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
             assert succeeds("myTask")
         }
     }
+
+    def "old build script classloaders are collected"() {
+        given:
+        buildFile << """
+            class Foo0 {
+                static final byte[] MEMORY_HOG = new byte[10 * 1024 * 1024]
+            }
+            task myTask() {
+                doLast {
+                    println new Foo0()
+                }
+            }
+        """
+
+        expect:
+        for(int i = 0; i < 35; i++) {
+            buildFile.text = buildFile.text.replace("Foo$i", "Foo${i + 1}")
+            executer.withBuildJvmOpts("-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError")
+            assert succeeds("myTask")
+        }
+    }
 }

@@ -16,6 +16,13 @@
 
 package org.gradle.api.tasks.testing;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -76,12 +83,6 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract class for all test task.
@@ -420,7 +421,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @TaskAction
     public void executeTests() {
-        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
+        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty()
+            || !filter.getCommandLineIncludePatterns().isEmpty()
+            || !filter.getExcludePatterns().isEmpty())) {
             addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
 

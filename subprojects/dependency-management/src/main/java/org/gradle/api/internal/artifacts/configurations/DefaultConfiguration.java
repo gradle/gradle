@@ -24,6 +24,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -53,6 +54,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -119,9 +121,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
@@ -161,6 +161,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
+    private final DocumentationRegistry documentationRegistry;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -186,7 +187,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Set<Object> excludeRules = new LinkedHashSet<Object>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private final ProjectState.SafeExclusiveLock resolutionLock;
+    private final ProjectStateRegistry.SafeExclusiveLock resolutionLock;
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
     private volatile InternalState resolvedState = UNRESOLVED;
@@ -223,7 +224,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
-                                ProjectStateRegistry projectStateRegistry
+                                ProjectStateRegistry projectStateRegistry,
+                                DocumentationRegistry documentationRegistry
 
     ) {
         this.identityPath = domainObjectContext.identityPath(name);
@@ -246,62 +248,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.projectStateRegistry = projectStateRegistry;
-        this.resolutionLock = getProjectSafeLock();
+        this.documentationRegistry = documentationRegistry;
+        this.resolutionLock = projectStateRegistry.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        this.ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
         this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class);
-        this.ownDependencyConstraints.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
         this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        this.ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
+        this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         path = domainObjectContext.projectPath(name);
-    }
-
-    private ProjectState.SafeExclusiveLock getProjectSafeLock() {
-        // We delay getting the actual lock until later because buildSrc configurations can be
-        // created before the buildSrc project is registered in the project registry
-        return new ProjectState.SafeExclusiveLock() {
-            ProjectState.SafeExclusiveLock delegate;
-
-            @Override
-            public void withLock(Runnable runnable) {
-                ProjectState.SafeExclusiveLock lock = getDelegate();
-                if (lock != null) {
-                    lock.withLock(runnable);
-                } else {
-                    // This configuration is not associated with a project
-                    runnable.run();
-                }
-            }
-
-            synchronized ProjectState.SafeExclusiveLock getDelegate() {
-                if (delegate == null) {
-                    if (domainObjectContext.getProjectPath() != null) {
-                        Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-                        // Project should only be null if we are resolving a configuration in places where we are running single
-                        // threaded anyways, like evaluating buildSrc or in an init script.
-                        if (project != null) {
-                            ProjectState projectState = projectStateRegistry.stateFor(project);
-                            delegate = projectState.newExclusiveOperationLock();
-                        }
-                    }
-                }
-
-                return delegate;
-            }
-        };
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -550,7 +518,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!hasMutableProjectState()) {
             // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
             // lenient locking to prevent deadlocks in user-managed threads.
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "configuration_resolution_constraints") + " for more details.");
             projectStateRegistry.withLenientState(new Runnable() {
                 @Override
                 public void run() {
@@ -608,15 +576,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     // Discard listeners
                     dependencyResolutionListeners.removeAll();
                 }
-                captureBuildOperationResult(context, incoming);
+                captureBuildOperationResult(context);
             }
 
-            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependenciesInternal incoming) {
+            private void captureBuildOperationResult(BuildOperationContext context) {
                 Throwable failure = cachedResolverResults.getFailure();
                 if (failure != null) {
                     context.failed(failure);
                 }
-                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(incoming, failure != null));
+                // When dependency resolution has failed, we don't want the build operation listeners to fail as well
+                // because:
+                // 1. the `failed` method will have been called with the user facing error
+                // 2. such an error may still lead to a valid dependency graph
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(cachedResolverResults.getResolutionResult()));
             }
 
             @Override
@@ -866,7 +838,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, projectStateRegistry);
+            rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1626,6 +1598,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 @Override
                 public void visitFailure(Throwable failure) {
                     failures.add(failure);
+                }
+
+                @Override
+                public void attachFinalizerTo(Task task, Action<? super Task> action) {
+                    context.attachFinalizerTo(task, action);
                 }
 
                 @Override

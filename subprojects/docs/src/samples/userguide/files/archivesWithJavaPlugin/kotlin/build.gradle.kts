@@ -18,7 +18,7 @@ dependencies {
 task<Jar>("uberJar") {
     appendix = "uber"
 
-    from(sourceSets["main"].output)
+    from(sourceSets.main.get().output)
 
     dependsOn(configurations.runtimeClasspath)
     from(Callable {

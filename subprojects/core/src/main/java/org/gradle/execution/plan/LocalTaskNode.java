@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.internal.ImmutableActionSet;
 
 import java.util.Set;
 
@@ -29,6 +30,7 @@ import java.util.Set;
  */
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
+    private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
 
     public LocalTaskNode(TaskInternal task) {
         this.task = task;
@@ -36,6 +38,16 @@ public class LocalTaskNode extends TaskNode {
 
     public TaskInternal getTask() {
         return task;
+    }
+
+    @Override
+    public Action<? super Task> getPostAction() {
+        return postAction;
+    }
+
+    @Override
+    public void appendPostAction(Action<? super Task> action) {
+        postAction = postAction.add(action);
     }
 
     @Override

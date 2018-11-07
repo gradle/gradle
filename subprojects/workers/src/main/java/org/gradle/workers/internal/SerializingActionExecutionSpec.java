@@ -21,24 +21,21 @@ import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Represents a {@link WorkSpec} that contains constructor parameters.
+ * Represents an {@link ActionExecutionSpec} that contains constructor parameters.
  */
 public class SerializingActionExecutionSpec implements ActionExecutionSpec {
     private final String displayName;
     private final Class<? extends Runnable> implementationClass;
-    private final File executionWorkingDir;
     private final byte[] params;
 
-    public SerializingActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
+    public SerializingActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
-        this.executionWorkingDir = executionWorkingDir;
         this.params = serialize(params);
     }
 
@@ -50,11 +47,6 @@ public class SerializingActionExecutionSpec implements ActionExecutionSpec {
     @Override
     public String getDisplayName() {
         return displayName;
-    }
-
-    @Override
-    public File getExecutionWorkingDir() {
-        return executionWorkingDir;
     }
 
     @Override

@@ -15,8 +15,12 @@
  */
 package org.gradle.scala
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
@@ -145,5 +149,65 @@ task someTask
         """
         expect:
         succeeds(":other:resolve")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7014")
+    def "can use Scala with war and ear plugins"() {
+        settingsFile << """
+            include 'war', 'ear'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+                apply plugin: 'scala'
+
+                dependencies {
+                    compile("org.scala-lang:scala-library:2.12.6")
+                }
+            }
+            project(":war") {
+                apply plugin: 'war'
+            }
+            project(":ear") {
+                apply plugin: 'ear'
+                dependencies {
+                    deploy project(path: ':war', configuration: 'archives')
+                }
+            }
+        """
+        file("war/src/main/scala/Bar.scala") << """
+            class Bar {
+            }
+        """
+        expect:
+        succeeds(":ear:assemble")
+        // The Scala incremental compilation mapping should not be exposed to anything else
+        file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("compileScala.mapping")))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6849")
+    def "can publish test-only projects"() {
+        using m2
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+            apply plugin: 'maven'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                compile("org.scala-lang:scala-library:2.12.6")
+            }
+        """
+        file("src/test/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("install")
     }
 }

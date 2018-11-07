@@ -26,7 +26,7 @@ dependencies {
     testImplementation("junit:junit:4.12")
 }
 
-tasks.getByName<Test>("test") {
+tasks.test {
     useJUnit()
 
     maxHeapSize = "1G"
@@ -36,12 +36,12 @@ tasks.getByName<Test>("test") {
 // tag::practical-integ-test-source-set[]
 sourceSets {
     create("intTest") {
-        compileClasspath += sourceSets["main"].output
-        runtimeClasspath += sourceSets["main"].output
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
     }
 }
 
-val intTestImplementation = configurations.getByName("intTestImplementation") {
+val intTestImplementation by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
@@ -53,7 +53,7 @@ dependencies {
 // end::practical-integ-test-source-set[]
 
 // tag::using-custom-doclet[]
-val asciidoclet = configurations.create("asciidoclet")
+val asciidoclet by configurations.creating
 
 dependencies {
     asciidoclet("org.asciidoctor:asciidoclet:1.+")
@@ -61,24 +61,25 @@ dependencies {
 
 task("configureJavadoc") {
     doLast {
-        val javadoc = tasks.getByName<Javadoc>("javadoc")
-        javadoc.options.doclet = "org.asciidoctor.Asciidoclet"
-        javadoc.options.docletpath = asciidoclet.files.toList()
+        tasks.javadoc {
+            options.doclet = "org.asciidoctor.Asciidoclet"
+            options.docletpath = asciidoclet.files.toList()
+        }
     }
 }
 
-tasks.getByName<Javadoc>("javadoc") {
+tasks.javadoc {
     dependsOn("configureJavadoc")
 }
 // end::using-custom-doclet[]
 
 
 // tag::skip-tests-condition[]
-tasks["test"].onlyIf { !project.hasProperty("mySkipTests") }
+tasks.test { onlyIf { !project.hasProperty("mySkipTests") } }
 // end::skip-tests-condition[]
 
 // tag::java-compiler-options[]
-tasks.getByName<JavaCompile>("compileJava") {
+tasks.compileJava {
     options.isIncremental = true
     options.isFork = true
     options.isFailOnError = false
@@ -95,19 +96,19 @@ val integrationTest = task<Test>("integrationTest") {
     shouldRunAfter("test")
 }
 
-tasks["check"].dependsOn(integrationTest)
+tasks.check { dependsOn(integrationTest) }
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
 task<Jar>("sourcesJar") {
     classifier = "sources"
-    from(sourceSets["main"].allJava)
+    from(sourceSets.main.get().allJava)
 }
 // end::defining-sources-jar-task[]
 
 
 // tag::defining-custom-javadoc-task[]
 task<Javadoc>("testJavadoc") {
-    source = sourceSets["test"].allJava
+    source = sourceSets.test.get().allJava
 }
 // end::defining-custom-javadoc-task[]

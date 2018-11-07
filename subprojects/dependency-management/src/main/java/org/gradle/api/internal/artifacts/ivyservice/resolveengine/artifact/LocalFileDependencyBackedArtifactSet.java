@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
@@ -159,7 +158,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(getBuildDependencies());
+            visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override
@@ -170,11 +169,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public ComponentArtifactIdentifier getArtifactId() {
             return artifactIdentifier;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return dependencyMetadata.getFiles().getBuildDependencies();
         }
     }
 }

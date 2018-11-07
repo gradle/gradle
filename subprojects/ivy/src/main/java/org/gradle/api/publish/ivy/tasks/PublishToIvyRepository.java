@@ -27,6 +27,7 @@ import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 
@@ -51,7 +52,9 @@ public class PublishToIvyRepository extends DefaultTask {
                 IvyPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
-        }).withPropertyName("publication.publishableFiles");
+        })
+            .withPropertyName("publication.publishableFiles")
+            .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files

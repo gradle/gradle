@@ -23,13 +23,16 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
 class WorkerDaemonClient implements Worker, Stoppable {
+    public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess;
+    private final WorkerDaemonProcess workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private int uses;
+    private boolean failed;
+    private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
@@ -74,5 +77,21 @@ class WorkerDaemonClient implements Worker, Stoppable {
 
     public LogLevel getLogLevel() {
         return logLevel;
+    }
+
+    public boolean isProcess(WorkerProcess workerProcess) {
+        return this.workerProcess.equals(workerProcess);
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.failed = failed;
+    }
+
+    public boolean isNotExpirable() {
+        return cannotBeExpired;
     }
 }

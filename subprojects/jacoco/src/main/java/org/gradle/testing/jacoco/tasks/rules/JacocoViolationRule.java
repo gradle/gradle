@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.io.Serializable;
@@ -28,7 +27,6 @@ import java.util.List;
  *
  * @since 3.4
  */
-@Incubating
 public interface JacocoViolationRule extends Serializable {
 
     void setEnabled(boolean enabled);

@@ -31,7 +31,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -53,13 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -264,10 +257,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
-                if (path instanceof ProducerAwareProperty) {
-                    ((ProducerAwareProperty) path).attachProducer(task);
-                }
                 StaticValue value = new StaticValue(path);
+                value.attachProducer(task);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
                 return outputFileSpec;
@@ -280,10 +271,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
-                if (path instanceof ProducerAwareProperty) {
-                    ((ProducerAwareProperty) path).attachProducer(task);
-                }
                 StaticValue value = new StaticValue(path);
+                value.attachProducer(task);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);
                 return outputDirSpec;

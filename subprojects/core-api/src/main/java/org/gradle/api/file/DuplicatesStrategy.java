@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 /**
  * Strategies for dealing with the potential creation of duplicate files for or archive entries.
  */
-@Incubating
 public enum DuplicatesStrategy {
 
     /**
@@ -61,5 +60,6 @@ public enum DuplicatesStrategy {
      *
      * @since 5.0
      */
+    @Incubating
     INHERIT
 }

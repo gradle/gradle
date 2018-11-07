@@ -66,6 +66,8 @@ When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
+`org.gradle.priority=(low,normal)`::
+Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Default is `normal`. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
 The following example demonstrates usage of various properties.
 
@@ -114,11 +116,12 @@ In a multi project build, “`systemProp.`” properties set in any project exce
 The following environment variables are available for the `gradle` command. Note that command-line options and system properties take precedence over environment variables.
 
 `GRADLE_OPTS`::
-Specifies <<command_line_interface.adoc#command_line_interface, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
+Specifies JVM arguments to use when starting the Gradle client VM. The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
+The actual build is run by the Gradle daemon, which is not affected by this environment variable.
 `GRADLE_USER_HOME`::
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
-Specifies the JDK installation directory to use.
+Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file.
 
 [[sec:project_properties]]
 == Project properties
@@ -127,12 +130,12 @@ You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Proj
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
-.Setting a project property via gradle.properties
+.Setting a project property via a system property
 ----
 org.gradle.project.foo=bar
 ----
 
-.Setting a project property via environment variable
+.Setting a project property via an environment variable
 ----
 ORG_GRADLE_PROJECT_foo=bar
 ----
@@ -156,32 +159,31 @@ You should check for existence of optional project properties before you access 
 [[sec:configuring_jvm_memory]]
 == Configuring JVM memory
 
-Gradle defaults to 1024 megabytes maximum heap per JVM process (`-Xmx1024m`), however, that may be too much or too little depending on the size of your project. There are many JVM options (this link:https://dzone.com/articles/java-performance-tuning[blog post on Java performance tuning] and link:http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html[this reference] may be helpful).
-
 You can adjust JVM options for Gradle in the following ways:
 
-The `JAVA_OPTS` environment variable is used for the Gradle client, but not forked JVMs.
+The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=256m"`
 
-.Changing JVM settings for Gradle client JVM
+.Changing JVM settings for the build VM
 ----
-JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 ----
 
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>.
+The `JAVA_OPTS` environment variable controls the command line client, which is only used to display console output. It defaults to `-Xmx64m`
 
-.Changing JVM settings for forked Gradle JVMs
+.Changing JVM settings for the client VM
 ----
-org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+JAVA_OPTS="-Xmx64m -XX:MaxPermSize=64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 
 [NOTE]
 ====
-Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
-
-When running with the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+There is one case where the client VM can also serve as the build VM:
+If you deactivate the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> and the client VM has the same settings as required for the build VM, the client VM will run the build directly.
+Otherwise the client VM will fork a new VM to run the actual build in order to honor the different settings.
 ====
 
-Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] for JUnit or TestNG tests. You must configure these through the tasks themselves.
+Certain tasks, like the `test` task, also fork additional JVM processes. You can configure these through the tasks themselves.
+They all use `-Xmx512m` by default.
 
 .Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
 ====

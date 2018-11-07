@@ -40,7 +40,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "broken"
-        failure.assertHasDescription("Timeout of task ':broken' must be positive, but was -0.001S")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
         result.assertNotOutput("Hello")
     }
 

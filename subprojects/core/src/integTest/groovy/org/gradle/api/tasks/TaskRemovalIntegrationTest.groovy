@@ -134,6 +134,5 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         "TaskContainer.retainAll(Collection)"      | "tasks.retainAll([foo])"
         "TaskContainer.iterator()#remove()"        | "def it = tasks.iterator(); it.next(); it.remove()"
         "TaskContainer.whenObjectRemoved(Action)"  | "tasks.whenObjectRemoved new Action<Task>() { void execute(Task t) {} }"
-        "TaskContainer.whenObjectRemoved(Closure)" | "tasks.whenObjectRemoved {}"
     }
 }

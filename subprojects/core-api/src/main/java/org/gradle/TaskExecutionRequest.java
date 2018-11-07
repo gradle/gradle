@@ -16,8 +16,6 @@
 
 package org.gradle;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
@@ -48,7 +46,6 @@ public interface TaskExecutionRequest {
      * @return the root project folder or {@code null} if the information is not available.
      * @since 3.3
      */
-    @Incubating
     @Nullable
     File getRootDir();
 }

@@ -92,16 +92,21 @@ allprojects {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
-        maven {
-            name = "kotlin-dev"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-        }
     }
 }
 
 dependencies {
     subprojects.forEach {
         "runtime"(project(it.path))
+    }
+}
+
+// Set gradlebuild.skipBuildSrcChecks Gradle property to "true" to disable all buildSrc verification tasks
+if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
+    allprojects {
+        tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
+            enabled = false
+        }
     }
 }
 
@@ -187,11 +192,12 @@ fun Project.applyGroovyProjectConventions() {
     }
 
     tasks.withType<Test>().configureEach {
-        //allow embedded executer to modify environment variables
-        jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-        //allow embedded executer to inject legacy types into the system classloader
-        jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
-        jvmArgs("--illegal-access=deny")
+        if (JavaVersion.current().isJava9Compatible()) {
+            //allow ProjectBuilder to inject legacy types into the system classloader
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+            jvmArgs("--illegal-access=deny")
+        }
+        
     }
 
     val compileGroovy: TaskProvider<GroovyCompile> = tasks.withType(GroovyCompile::class.java).named("compileGroovy")

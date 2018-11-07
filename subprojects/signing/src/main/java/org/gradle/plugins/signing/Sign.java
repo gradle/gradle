@@ -43,6 +43,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -109,6 +111,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
         }).optional(true);
     }
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     public Iterable<File> getInputFiles() {
         return Iterables.transform(signatures, SIGNATURE_TO_SIGN_FILE_FUNCTION);
@@ -222,7 +225,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
                 new Action<PublishArtifact>() {
                     @Override
                     public void execute(PublishArtifact artifact) {
-                        if (artifact instanceof Signature) {
+                        if (artifact instanceof Signature || signatureFor(artifact).isPresent()) {
                             return;
                         }
 
@@ -237,6 +240,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
             });
         }
 
+    }
+
+    private Optional<Signature> signatureFor(Buildable source) {
+        return Iterables.tryFind(signatures, new Predicate<Signature>() {
+            @Override
+            public boolean apply(Signature input) {
+                return input.getSource().equals(source);
+            }
+        });
     }
 
     /**
@@ -286,12 +298,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void removeSignature(final Buildable source) {
-        Optional<Signature> signature = Iterables.tryFind(signatures, new Predicate<Signature>() {
-            @Override
-            public boolean apply(Signature input) {
-                return input.getSource().equals(source);
-            }
-        });
+        Optional<Signature> signature = signatureFor(source);
         if (signature.isPresent()) {
             signatures.remove(signature.get());
         }

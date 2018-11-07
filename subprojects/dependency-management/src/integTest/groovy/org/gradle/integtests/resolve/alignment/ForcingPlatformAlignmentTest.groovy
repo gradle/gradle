@@ -84,6 +84,116 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
+    def "can force a virtual platform version by forcing one of its leaves through resolutionStrategy.force"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:databind:2.7.9")
+                conf("org:kotlin:2.9.4.1")        
+            }
+            
+            configurations {
+                conf.resolutionStrategy.force("org:databind:2.7.9")
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        expectAlignment {
+            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('databind') alignsTo('2.7.9') byVirtualPlatform()
+            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    forced()
+                }
+                module("org:databind:2.7.9") {
+                    module('org:annotations:2.7.9')
+                    module('org:core:2.7.9')
+                }
+                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9')
+                }
+            }
+        }
+    }
+
+    def "can force a virtual platform version by forcing one of its leaves through resolutionStrategy.substitution"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:databind:2.7.9")
+                conf("org:kotlin:2.9.4.1")        
+            }
+            
+            configurations {
+                conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org:databind") with module("org:databind:2.7.9")
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        expectAlignment {
+            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('databind') alignsTo('2.7.9') byVirtualPlatform()
+            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    forced()
+                }
+                module("org:databind:2.7.9") {
+                    module('org:annotations:2.7.9')
+                    module('org:core:2.7.9')
+                }
+                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9')
+                }
+            }
+        }
+    }
+
     @Unroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
@@ -141,6 +251,43 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 conf.resolutionStrategy {
                     force('org:core:2.9.4')
                     force('org:databind:2.7.9')
+                }
+            }
+            dependencies {
+                conf("org:core:2.9.4.1")
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.9.4.1")
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
+    }
+
+    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions through resolutionStrategy.dependencySubstitution"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy.dependencySubstitution {
+                    substitute module('org:core') with module('org:core:2.9.4')
+                    substitute module('org:databind') with module('org:databind:2.7.9')
                 }
             }
             dependencies {
@@ -495,7 +642,7 @@ include 'other'
 
     }
 
-    @Unroll
+    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -526,7 +673,7 @@ include 'other'
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
                 }
-                module("org:databind:2.7.9") {
+                edge("org:databind:2.9.4", "org:databind:2.7.9") {
                     module('org:annotations:2.7.9')
                     module('org:core:2.7.9')
                 }
@@ -548,7 +695,7 @@ include 'other'
         where: "order of dependencies doesn't matter"
         dependencies << [
             'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
+            'conf("org:databind:2.9.4")',
             'conf("org:kotlin:2.9.4.1")',
             'conf enforcedPlatform("org:platform:2.7.9")'
         ].permutations()*.join("\n")

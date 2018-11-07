@@ -15,7 +15,6 @@
  */
 package org.gradle.vcs.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.vcs.VersionControlSpec;
 
 import javax.annotation.Nullable;
@@ -26,7 +25,6 @@ import java.util.Set;
  * Allows the user to perform generic version control operations in ways
  * specified by the underlying implementations.
  */
-@Incubating
 public interface VersionControlSystem {
     /**
      * Returns a {@link Set} of {@link VersionRef}s representing

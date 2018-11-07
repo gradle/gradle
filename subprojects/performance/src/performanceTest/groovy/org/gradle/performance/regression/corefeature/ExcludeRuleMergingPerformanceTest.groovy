@@ -18,16 +18,14 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
-import spock.lang.Ignore
 
-@Ignore("Ignoring until it can be rebased as the fix for grdale/gradle#7050 introduces a small regression")
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
     def setup() {
         runner.minimumVersion = '4.0'
-        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.targetVersions = ["5.0-20181014170617+0000"]
     }
 
     def "merge exclude rules"() {

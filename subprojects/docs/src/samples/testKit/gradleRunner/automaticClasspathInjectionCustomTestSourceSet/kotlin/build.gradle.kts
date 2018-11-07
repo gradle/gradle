@@ -14,7 +14,7 @@ sourceSets {
         resources {
             srcDir(file("src/functionalTest/resources"))
         }
-        compileClasspath += sourceSets["main"].output + configurations.testRuntimeClasspath
+        compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
         runtimeClasspath += output + compileClasspath
     }
 }
@@ -24,7 +24,7 @@ task<Test>("functionalTest") {
     classpath = sourceSets["functionalTest"].runtimeClasspath
 }
 
-tasks["check"].dependsOn(tasks["functionalTest"])
+tasks.check { dependsOn(tasks["functionalTest"]) }
 
 gradlePlugin {
     testSourceSets(sourceSets["functionalTest"])

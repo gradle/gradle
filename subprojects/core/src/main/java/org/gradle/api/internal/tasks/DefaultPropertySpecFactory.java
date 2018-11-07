@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -96,10 +97,14 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
             return fileTree;
         }
 
-        @Nullable
         @Override
-        public Object getContainerValue() {
-            return fileTree;
+        public void attachProducer(Task producer) {
+            delegate.attachProducer(producer);
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            delegate.maybeFinalizeValue();
         }
 
         @Override

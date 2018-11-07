@@ -331,13 +331,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             CurrentFileCollectionFingerprint result;
-            try {
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(propertySpec.getNormalizer());
-                LOGGER.debug("Fingerprinting property {} for {}", propertySpec, task);
-                result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
-            } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Failed to capture fingerprint of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
-            }
+            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(propertySpec.getNormalizer());
+            LOGGER.debug("Fingerprinting property {} for {}", propertySpec, task);
+            result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
             builder.put(propertySpec.getPropertyName(), result);
         }
         return builder.build();

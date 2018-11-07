@@ -43,7 +43,7 @@ class JacocoReportRelocationIntegrationTest extends AbstractTaskRelocationIntegr
     protected void moveFilesAround() {
         buildFile << """
             sourceSets.test.java.outputDir = file("build/test-classes")
-            jacocoTestReport.executionData = files("build/jacoco.exec")
+            jacocoTestReport.executionData.from = files("build/jacoco.exec")
         """
         file("build/classes/test").assertIsDir().renameTo(file("build/test-classes"))
         file("build/jacoco/test.exec").assertIsFile().renameTo(file("build/jacoco.exec"))

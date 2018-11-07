@@ -20,6 +20,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 
+import java.util.List;
 import java.util.Properties;
 
 public class BuildProcess extends CurrentProcess {
@@ -34,6 +35,7 @@ public class BuildProcess extends CurrentProcess {
 
     /**
      * Attempts to configure the current process to run with the required build parameters.
+     *
      * @return True if the current process could be configured, false otherwise.
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
@@ -43,7 +45,7 @@ public class BuildProcess extends CurrentProcess {
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
             immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(requiredBuildParameters.getEffectiveSingleUseJvmArgs());
         }
-        if (javaHomeMatch && immutableJvmArgsMatch) {
+        if (javaHomeMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters.getEffectiveSingleUseJvmArgs())) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
@@ -51,5 +53,17 @@ public class BuildProcess extends CurrentProcess {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Checks whether the current process is using the default client VM setting of 64m, which is too low to run the majority of builds.
+     */
+    private boolean isLowDefaultMemory(List<String> effectiveSingleUseJvmArgs) {
+        for (String arg : effectiveSingleUseJvmArgs) {
+            if (arg.startsWith("-Xmx")) {
+                return false;
+            }
+        }
+        return "64m".equals(getJvmOptions().getMaxHeapSize());
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /***
@@ -56,7 +55,6 @@ import org.gradle.internal.HasInternalProtocol;
  * </pre>
  */
 @HasInternalProtocol
-@Incubating
 public interface ComponentSelectionRules {
     /**
      * Adds a simple component selection rule that will apply to all resolved components.

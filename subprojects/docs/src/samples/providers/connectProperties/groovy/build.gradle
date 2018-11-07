@@ -30,16 +30,16 @@ project.extensions.create('messages', MessageExtension, project.objects)
 
 // Create the greeting task
 task greeting(type: Greeting) {
-    // Attach configuration from the project extension
+    // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
     greeting.set(project.messages.greeting)
 
-    // Note that you can use an assignment statement instead
+    // Note that an assignment statement can be used instead of calling Property.set()
     greeting = project.messages.greeting
 }
 
 messages {
     // Configure the greeting on the extension
-    // Note that there is no need to reconfigure the `greeting.greeting` property. This is automatically updated as the extension property changes
+    // Note that there is no need to reconfigure the task's `greeting` property. This is automatically updated as the extension property changes
     greeting = 'Hi'
 }

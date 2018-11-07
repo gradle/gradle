@@ -264,7 +264,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
@@ -279,7 +278,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
