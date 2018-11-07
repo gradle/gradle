@@ -123,7 +123,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         given:
         buildFile << """
             dependencies {
-                conf 'org:xml:1.0'
+                conf('org:xml:1.0') {
+                    transitive = false
+                }
                 conf 'org:json:1.0'
                 conf 'org:core:1.1'
             }
@@ -144,7 +146,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
                 }
                 edge("org:json:1.0", "org:json:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")

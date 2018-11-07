@@ -642,7 +642,7 @@ include 'other'
 
     }
 
-    @Unroll
+    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -673,7 +673,7 @@ include 'other'
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
                 }
-                module("org:databind:2.7.9") {
+                edge("org:databind:2.9.4", "org:databind:2.7.9") {
                     module('org:annotations:2.7.9')
                     module('org:core:2.7.9')
                 }
@@ -695,7 +695,7 @@ include 'other'
         where: "order of dependencies doesn't matter"
         dependencies << [
             'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
+            'conf("org:databind:2.9.4")',
             'conf("org:kotlin:2.9.4.1")',
             'conf enforcedPlatform("org:platform:2.7.9")'
         ].permutations()*.join("\n")
