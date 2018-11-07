@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 public interface ArtifactTransforms {
     /**
      * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
      */
-    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants);
+    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ConfigurationInternal configuration);
 }

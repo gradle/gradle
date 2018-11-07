@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -32,7 +33,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation) {
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ConfigurationInternal configuration) {
         final List<TransformationStep> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
@@ -46,7 +47,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformationNode transformationNode = getOrCreate(singleArtifactSet, transformationChain);
+                TransformationNode transformationNode = getOrCreate(singleArtifactSet, transformationChain, configuration);
                 builder.add(transformationNode);
                 return true;
             }
@@ -54,14 +55,14 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         return builder.build();
     }
 
-    private TransformationNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain) {
+    private TransformationNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain, ConfigurationInternal configuration) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet);
+                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet, configuration);
             } else {
-                TransformationNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1));
+                TransformationNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), configuration);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
             transformations.put(key, transformationNode);
@@ -69,7 +70,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         return transformationNode;
     }
 
-    private static List<TransformationStep> unpackTransformation(Transformation transformation) {
+    static List<TransformationStep> unpackTransformation(Transformation transformation) {
         final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
         transformation.visitTransformationSteps(new Action<TransformationStep>() {
             @Override

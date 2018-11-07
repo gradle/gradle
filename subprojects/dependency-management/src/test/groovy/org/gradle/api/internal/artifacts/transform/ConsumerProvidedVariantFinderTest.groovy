@@ -23,11 +23,13 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ConsumerProvidedVariantFinderTest extends Specification {
     def matcher = Mock(AttributeMatcher)
@@ -220,20 +222,22 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    def "prefers shortest chain of transforms"() {
+    @Unroll
+    def "prefers shortest chain of transforms #registrationsIndex"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)
         def c4 = attributes().attribute(a1, "4")
         def c5 = attributes().attribute(a1, "5")
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, {})
+        def reg1 = registration(c2, c3, {})
         def reg2 = registration(c2, c4, transform1)
         def reg3 = registration(c3, c4, {})
         def reg4 = registration(c4, c5, transform2)
+        def registrations = [reg1, reg2, reg3, reg4]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3, reg4]
+        transformRegistrations.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
 
         when:
         def result = new ConsumerVariantMatchResult()
@@ -265,6 +269,9 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transform1.transform(new File("a")) >> [new File("b"), new File("c")]
         transform2.transform(new File("b")) >> [new File("d")]
         transform2.transform(new File("c")) >> [new File("e")]
+
+        where:
+        registrationsIndex << (0..3).permutations()
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
@@ -325,8 +332,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    private static TransformationSubject initialSubject(String path) {
-        TransformationSubject.initial(new File(path))
+    private TransformationSubject initialSubject(String path) {
+        TransformationSubject.initial(new File(path), Mock(ConfigurationInternal))
     }
 
     private AttributeContainerInternal attributes() {

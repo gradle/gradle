@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -31,20 +32,22 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
+    private final ConfigurationInternal configuration;
 
-    TransformingAsyncArtifactListener(Transformation transformation, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
+    TransformingAsyncArtifactListener(Transformation transformation, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults, ConfigurationInternal configuration) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
+        this.configuration = configuration;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file, configuration);
         initialSubjectAvailable(artifactId, initialSubject, artifactResults);
     }
 
@@ -61,7 +64,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void fileAvailable(File file) {
-        TransformationSubject initialSubject = TransformationSubject.initial(file);
+        TransformationSubject initialSubject = TransformationSubject.initial(file, configuration);
         initialSubjectAvailable(file, initialSubject, fileResults);
     }
 

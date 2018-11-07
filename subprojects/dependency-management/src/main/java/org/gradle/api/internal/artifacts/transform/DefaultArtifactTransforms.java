@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -35,8 +36,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         this.attributesFactory = attributesFactory;
     }
 
-    public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants);
+    public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ConfigurationInternal configuration) {
+        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, configuration);
     }
 
 }

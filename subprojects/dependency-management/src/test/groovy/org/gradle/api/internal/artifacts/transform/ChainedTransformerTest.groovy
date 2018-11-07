@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
-    private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
+    private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"), Mock(ConfigurationInternal))
 
     def "is cached if all parts are cached"() {
         given:

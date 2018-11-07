@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -32,12 +33,12 @@ public abstract class TransformationSubject implements Describable {
         return new TransformationFailedSubject(displayName, failure);
     }
 
-    public static TransformationSubject initial(File file) {
-        return new InitialFileTransformationSubject(file);
+    public static TransformationSubject initial(File file, ConfigurationInternal configuration) {
+        return new InitialFileTransformationSubject(file, configuration);
     }
 
-    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file) {
-        return new InitialArtifactTransformationSubject(artifactId, file);
+    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file, ConfigurationInternal configuration) {
+        return new InitialArtifactTransformationSubject(artifactId, file, configuration);
     }
 
     /**
@@ -50,6 +51,17 @@ public abstract class TransformationSubject implements Describable {
      */
     @Nullable
     public abstract Throwable getFailure();
+
+    /**
+     * The configuration in the context of which the transformation is happening.
+     * <p>
+     * {@code null} for a failed subject
+     */
+    @Nullable
+    public abstract ConfigurationInternal getConfiguration();
+
+    @Nullable
+    public abstract ComponentArtifactIdentifier getArtifactId();
 
     public TransformationSubject transformationFailed(Throwable failure) {
         return failure(getDisplayName(), failure);
@@ -79,9 +91,21 @@ public abstract class TransformationSubject implements Describable {
             return failure;
         }
 
+        @Nullable
+        @Override
+        public ConfigurationInternal getConfiguration() {
+            return null;
+        }
+
         @Override
         public String getDisplayName() {
             return displayName;
+        }
+
+        @Nullable
+        @Override
+        public ComponentArtifactIdentifier getArtifactId() {
+            return null;
         }
 
         @Override
@@ -119,8 +143,23 @@ public abstract class TransformationSubject implements Describable {
     }
 
     private static class InitialFileTransformationSubject extends AbstractInitialTransformationSubject {
-        public InitialFileTransformationSubject(File file) {
+        private final ConfigurationInternal configuration;
+
+        public InitialFileTransformationSubject(File file, ConfigurationInternal configuration) {
             super(file);
+            this.configuration = configuration;
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationInternal getConfiguration() {
+            return configuration;
+        }
+
+        @Nullable
+        @Override
+        public ComponentArtifactIdentifier getArtifactId() {
+            return null;
         }
 
         @Override
@@ -131,23 +170,35 @@ public abstract class TransformationSubject implements Describable {
 
     private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
         private final ComponentArtifactIdentifier artifactId;
+        private final ConfigurationInternal configuration;
 
-        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file) {
+        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file, ConfigurationInternal configuration) {
             super(file);
             this.artifactId = artifactId;
+            this.configuration = configuration;
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationInternal getConfiguration() {
+            return configuration;
         }
 
         @Override
         public String getDisplayName() {
             return "artifact " + artifactId.getDisplayName();
         }
+
+        public ComponentArtifactIdentifier getArtifactId() {
+            return artifactId;
+        }
     }
 
     public static class DefaultTransformationSubject extends TransformationSubject {
-        private final Describable previous;
+        private final TransformationSubject previous;
         private final ImmutableList<File> files;
 
-        public DefaultTransformationSubject(Describable previous, ImmutableList<File> files) {
+        public DefaultTransformationSubject(TransformationSubject previous, ImmutableList<File> files) {
             this.previous = previous;
             this.files = files;
         }
@@ -160,6 +211,18 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public Throwable getFailure() {
             return null;
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationInternal getConfiguration() {
+            return previous.getConfiguration();
+        }
+
+        @Nullable
+        @Override
+        public ComponentArtifactIdentifier getArtifactId() {
+            return previous.getArtifactId();
         }
 
         @Override

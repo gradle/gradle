@@ -18,7 +18,13 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Describable;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -48,6 +54,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +65,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -64,6 +73,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTransformerInvoker.class);
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
@@ -104,7 +115,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformInvocationException(invocation.getPrimaryInput().getAbsoluteFile(), invocation.getTransformer().getImplementationClass(), originalFailure);
     }
 
-    private Try<ImmutableList<File>> invoke(File primaryInput, Transformer transformer, Describable subject) {
+    private Try<ImmutableList<File>> invoke(File primaryInput, Transformer transformer, TransformationSubject subject) {
         CacheKey cacheKey = getCacheKey(primaryInput, transformer);
         ImmutableList<File> results = resultHashToResult.get(cacheKey);
         if (results != null) {
@@ -121,12 +132,35 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         });
     }
 
-    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, Describable subject, Supplier<Try<ImmutableList<File>>> execution) {
+    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
+            ComponentArtifactIdentifier transformedArtifactId = subject.getArtifactId();
+            if (transformedArtifactId != null) {
+                ResolutionResult resolutionResult = subject.getConfiguration().getIncoming().getResolutionResult();
+                Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
+                for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
+                    if (component.getId().equals(transformedArtifactId.getComponentIdentifier())) {
+                        getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
+                    }
+                }
+                LOGGER.warn("Found dependencies {} in resolution result for {}", dependenciesIdentifiers, transformedArtifactId);
+            }
+
             return execution.get();
         } finally {
             artifactTransformListener.afterTransformerInvocation(transformer, subject);
+        }
+    }
+
+    private void getDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Set<? extends DependencyResult> dependencies) {
+        for (DependencyResult dependency : dependencies) {
+            if (dependency instanceof ResolvedDependencyResult) {
+                ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
+                ResolvedComponentResult selected = resolvedDependency.getSelected();
+                dependenciesIdentifiers.add(selected.getId());
+                getDependenciesIdentifiers(dependenciesIdentifiers, selected.getDependencies());
+            }
         }
     }
 
