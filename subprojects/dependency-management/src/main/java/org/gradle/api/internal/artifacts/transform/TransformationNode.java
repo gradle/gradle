@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
@@ -51,8 +52,8 @@ public abstract class TransformationNode extends Node {
         return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
-        return new InitialTransformationNode(initial, artifact);
+    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ConfigurationInternal configuration) {
+        return new InitialTransformationNode(initial, artifact, configuration);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -100,13 +101,15 @@ public abstract class TransformationNode extends Node {
 
     private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
+        private final ConfigurationInternal configuration;
 
         public InitialTransformationNode(
             TransformationStep transformationStep,
-            BuildableSingleResolvedArtifactSet artifactSet
-        ) {
+            BuildableSingleResolvedArtifactSet artifactSet,
+            ConfigurationInternal configuration) {
             super(transformationStep);
             this.artifactSet = artifactSet;
+            this.configuration = configuration;
         }
 
         @Override
@@ -162,7 +165,7 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
+                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), configuration);
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
             }
