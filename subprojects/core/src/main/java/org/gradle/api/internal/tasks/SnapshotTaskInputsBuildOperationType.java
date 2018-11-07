@@ -57,7 +57,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         byte[] getHashBytes();
 
         /**
-         * The hash of the the classloader that loaded the task implementation.
+         * The hash of the classloader that loaded the task implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
