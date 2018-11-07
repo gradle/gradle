@@ -29,7 +29,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     def setup() {
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 version "2.0"
             """
         }
@@ -67,7 +67,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             }
         """
         pluginDependencyA.buildFile << """
-            tasks.jar.dependsOn(tasks.taskFromPluginBuild)
+            tasks.compileJava.dependsOn(tasks.taskFromPluginBuild)
         """
 
         includeBuild pluginBuild
@@ -77,7 +77,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "assemble")
 
         then:
-        executed ":pluginBuild:jar", ":pluginDependencyA:taskFromPluginBuild", ":pluginDependencyA:jar", ":jar"
+        executed ":pluginBuild:jar", ":pluginDependencyA:taskFromPluginBuild", ":pluginDependencyA:compileJava", ":jar"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5234")
