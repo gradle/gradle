@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.TransformInvocationException
 import org.gradle.api.internal.cache.StringInterner
@@ -61,7 +60,9 @@ class TransformerInvokerTest extends Specification {
         1 * workExecutor.execute(_) >> { throw failure }
         1 * transformer.implementationClass >> ArtifactTransform
         1 * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
-        1 * historyRepository.getWorkspace(_, _) >> new File("workspace")
+        1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
+            action.apply(identity.getIdentity(), new File("workspace"))
+        }
         1 * sourceSubject.artifactTransformDependencies >> null
         _ * artifactTransformListener._
         0 * _

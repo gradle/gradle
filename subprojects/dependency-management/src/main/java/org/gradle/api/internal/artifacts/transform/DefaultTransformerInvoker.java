@@ -23,23 +23,26 @@ import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.AbstractFingerprintChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputFileChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -55,9 +58,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -67,8 +68,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
-    private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
-    private final Map<CacheKey, ImmutableList<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, ImmutableList<File>>();
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository historyRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
@@ -84,19 +83,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
     }
 
-    public void clearInMemoryCache() {
-        resultHashToResult.clear();
-    }
-
     @Override
     public boolean hasCachedResult(File primaryInput, Transformer transformer) {
-        return resultHashToResult.containsKey(getCacheKey(primaryInput.getAbsoluteFile(), transformer.getSecondaryInputHash()));
+        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer));
     }
 
     @Override
     public Try<ImmutableList<File>> invoke(TransformerInvocation invocation) {
         return Try.ofFailable(() ->
-            invoke(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
+            doInvoke(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
         ).mapFailure(e -> wrapInTransformInvocationException(invocation, e));
     }
 
@@ -104,21 +99,25 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformInvocationException(invocation.getPrimaryInput().getAbsoluteFile(), invocation.getTransformer().getImplementationClass(), originalFailure);
     }
 
-    private Try<ImmutableList<File>> invoke(File primaryInput, Transformer transformer, TransformationSubject subject) {
-        CacheKey cacheKey = getCacheKey(primaryInput, transformer);
-        ImmutableList<File> results = resultHashToResult.get(cacheKey);
-        if (results != null) {
-            return Try.successful(results);
-        }
-        return fireTransformListeners(transformer, subject, () -> {
-            HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
-            File workspace = historyRepository.getWorkspace(primaryInput, persistentCacheKey);
-            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, persistentCacheKey, workspace, subject.getArtifactTransformDependencies());
-            UpToDateResult outcome = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
-            Try<ImmutableList<File>> result = execution.getResult(outcome);
-            result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
-            return result;
+    private Try<ImmutableList<File>> doInvoke(File primaryInput, Transformer transformer, TransformationSubject subject) {
+        TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer);
+        return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
+            return fireTransformListeners(transformer, subject, () -> {
+                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, subject.getArtifactTransformDependencies());
+                UpToDateResult outcome = workExecutor.execute(execution);
+                return execution.getResult(outcome);
+            });
         });
+    }
+
+    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer) {
+        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
+        return new ImmutableTransformationIdentity(
+            primaryInput.getName(),
+            snapshot.getAbsolutePath(),
+            snapshot.getHash(),
+            transformer.getSecondaryInputHash()
+        );
     }
 
     private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
@@ -130,69 +129,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
-        return getCacheKey(primaryInput, transformer.getSecondaryInputHash());
-    }
-
-    private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
-        return new CacheKey(inputsHash, snapshot.getAbsolutePath(), snapshot.getHash());
-    }
-
-    /**
-     * A lightweight key for in-memory caching of transformation results.
-     * Computing the hash key for the persistent cache is a rather expensive
-     * operation, so we only calculate it when we have a cache miss in memory.
-     */
-    private static class CacheKey {
-        private final String absolutePath;
-        private final HashCode fileContentHash;
-        private final HashCode inputHash;
-
-        public CacheKey(HashCode inputHash, String absolutePath, HashCode fileContentHash) {
-            this.absolutePath = absolutePath;
-            this.fileContentHash = fileContentHash;
-            this.inputHash = inputHash;
-        }
-
-        public HashCode getPersistentCacheKey() {
-            Hasher hasher = Hashing.newHasher();
-            hasher.putHash(inputHash);
-            hasher.putString(absolutePath);
-            hasher.putHash(fileContentHash);
-            return hasher.hash();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            CacheKey cacheKey = (CacheKey) o;
-
-            if (!fileContentHash.equals(cacheKey.fileContentHash)) {
-                return false;
-            }
-            if (!inputHash.equals(cacheKey.inputHash)) {
-                return false;
-            }
-            return absolutePath.equals(cacheKey.absolutePath);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = fileContentHash.hashCode();
-            result = 31 * result + absolutePath.hashCode();
-            result = 31 * result + inputHash.hashCode();
-            return result;
-        }
-    }
-
     private class TransformerExecution implements UnitOfWork {
+        private static final String PRIMARY_INPUT_PROPERTY_NAME = "primaryInput";
         private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
         private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
         private static final String INPUT_FILE_PATH_PREFIX = "i/";
@@ -202,16 +140,23 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final Transformer transformer;
         private final File outputDir;
         private final File resultsFile;
-        private final HashCode persistentCacheKey;
+        private final String identityString;
+        private final TransformerExecutionHistoryRepository historyRepository;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final ArtifactTransformDependencies artifactTransformDependencies;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, HashCode persistentCacheKey, File workspace, ArtifactTransformDependencies artifactTransformDependencies) {
+        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, String identityString, TransformerExecutionHistoryRepository historyRepository, ArtifactTransformDependencies artifactTransformDependencies) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
-            this.persistentCacheKey = persistentCacheKey;
+            this.identityString = "transform/" + identityString;
+            this.historyRepository = historyRepository;
             this.outputDir = new File(workspace, "outputDirectory");
             this.resultsFile = new File(workspace,  "results.bin");
             this.artifactTransformDependencies = artifactTransformDependencies;
+            CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
+            this.inputFileFingerprints = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
+                .put(PRIMARY_INPUT_PROPERTY_NAME, primaryInputFingerprint)
+                .build();
         }
 
         @Override
@@ -309,10 +254,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
             if (successful) {
-                historyRepository.persist(persistentCacheKey,
+                historyRepository.persist(identityString,
                     originMetadata,
                     // TODO: only use implementation hash
                     ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash()),
+                    inputFileFingerprints,
                     finalOutputs,
                     successful
                 );
@@ -321,11 +267,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<AfterPreviousExecutionState> previousExecution = historyRepository.getPreviousExecution(persistentCacheKey);
+            Optional<AfterPreviousExecutionState> previousExecution = historyRepository.getPreviousExecution(identityString);
             return previousExecution.map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
+                InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
-                return new TransformerExecutionStateChanges(outputFileChanges, previous);
+                return new TransformerExecutionStateChanges(inputFileChanges, outputFileChanges, previous);
                 }
             );
         }
@@ -351,7 +298,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public String getIdentity() {
-            return "fake";
+            return identityString;
         }
 
         @Override
@@ -365,10 +312,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         private class TransformerExecutionStateChanges implements ExecutionStateChanges {
+            private final InputFileChanges inputFileChanges;
             private final AllOutputFileChanges outputFileChanges;
             private final AfterPreviousExecutionState afterPreviousExecutionState;
 
-            public TransformerExecutionStateChanges(AllOutputFileChanges outputFileChanges, AfterPreviousExecutionState afterPreviousExecutionState) {
+            public TransformerExecutionStateChanges(InputFileChanges inputFileChanges, AllOutputFileChanges outputFileChanges, AfterPreviousExecutionState afterPreviousExecutionState) {
+                this.inputFileChanges = inputFileChanges;
                 this.outputFileChanges = outputFileChanges;
                 this.afterPreviousExecutionState = afterPreviousExecutionState;
             }
@@ -380,7 +329,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
             @Override
             public void visitAllChanges(ChangeVisitor visitor) {
-                outputFileChanges.accept(visitor);
+                new SummarizingChangeContainer(inputFileChanges, outputFileChanges).accept(visitor);
             }
 
             @Override
@@ -404,6 +353,64 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public boolean accept(ChangeVisitor visitor) {
             return accept(visitor, true);
+        }
+    }
+
+    public static class ImmutableTransformationIdentity implements TransformationIdentity {
+        private final String initialSubjectFileName;
+        private final String primaryInputAbsolutePath;
+        private final HashCode primaryInputHash;
+        private final HashCode secondaryInputHash;
+
+        public ImmutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
+            this.initialSubjectFileName = initialSubjectFileName;
+            this.primaryInputAbsolutePath = primaryInputAbsolutePath;
+            this.primaryInputHash = primaryInputHash;
+            this.secondaryInputHash = secondaryInputHash;
+        }
+
+        @Override
+        public String getInitialSubjectFileName() {
+            return initialSubjectFileName;
+        }
+
+        @Override
+        public String getIdentity() {
+            Hasher hasher = Hashing.newHasher();
+            hasher.putHash(secondaryInputHash);
+            hasher.putString(primaryInputAbsolutePath);
+            hasher.putHash(primaryInputHash);
+            return hasher.hash().toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ImmutableTransformationIdentity that = (ImmutableTransformationIdentity) o;
+
+            if (!primaryInputHash.equals(that.primaryInputHash)) {
+                return false;
+            }
+            if (!secondaryInputHash.equals(that.secondaryInputHash)) {
+                return false;
+            }
+            if (!initialSubjectFileName.equals(that.initialSubjectFileName)) {
+                return false;
+            }
+            return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = primaryInputHash.hashCode();
+            result = 31 * result + secondaryInputHash.hashCode();
+            return result;
         }
     }
 }

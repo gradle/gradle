@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+@NonNullApi
+package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
-
-import java.io.File;
-import java.util.function.BiFunction;
-
-public interface TransformerWorkspaceProvider {
-    /**
-     * Provides a workspace for executing the transformation.
-     */
-    Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace);
-}
+import org.gradle.api.NonNullApi;
