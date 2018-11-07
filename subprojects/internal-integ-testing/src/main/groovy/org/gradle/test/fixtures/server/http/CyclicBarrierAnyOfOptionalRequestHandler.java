@@ -22,7 +22,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * A cyclic barrier for {@link BlockingHttpServer} where expectations are optional.
  */
-public class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
+class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
     private final Lock lock;
 
     CyclicBarrierAnyOfOptionalRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
