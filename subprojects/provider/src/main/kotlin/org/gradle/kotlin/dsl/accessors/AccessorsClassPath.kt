@@ -147,20 +147,12 @@ fun buildAccessorsFor(
 
 
 internal
-fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
+fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
-        candidateTypesForImportIn(schemaSubset)
+        candidateTypes
             .filterIsInstance<TypeAccessibility.Accessible>()
             .map { it.type.kotlinString }
     )
-
-
-private
-fun candidateTypesForImportIn(projectSchema: ProjectSchema<TypeAccessibility>) = projectSchema.run {
-    (extensions.flatMap { listOf(it.target, it.type) }
-        + tasks.map { it.type }
-        + containerElements.map { it.type })
-}
 
 
 internal

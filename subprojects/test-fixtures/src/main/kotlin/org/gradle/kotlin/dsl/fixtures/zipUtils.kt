@@ -1,7 +1,10 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.kotlin.dsl.support.zipTo
+
 import java.io.ByteArrayOutputStream
+
+import kotlin.reflect.KClass
 
 
 fun zipOf(entries: Sequence<Pair<String, ByteArray>>): ByteArray =
@@ -9,6 +12,10 @@ fun zipOf(entries: Sequence<Pair<String, ByteArray>>): ByteArray =
         zipTo(this, entries)
         toByteArray()
     }
+
+
+fun classEntriesFor(classes: Array<out KClass<*>>) =
+    classEntriesFor(*classes.map { it.java }.toTypedArray())
 
 
 fun classEntriesFor(vararg classes: Class<*>): Sequence<Pair<String, ByteArray>> =

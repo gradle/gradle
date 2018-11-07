@@ -41,9 +41,18 @@ fun publicClass(
 
 internal
 fun beginPublicClass(name: InternalName, superName: InternalName = InternalNameOf.javaLangObject, interfaces: Array<String>? = null) =
-    ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
-        visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.value, null, superName.value, interfaces)
-    }
+    beginClass(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name, superName, interfaces)
+
+
+internal
+fun beginClass(
+    modifiers: Int,
+    name: InternalName,
+    superName: InternalName = InternalNameOf.javaLangObject,
+    interfaces: Array<String>? = null
+): ClassWriter = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
+    visit(Opcodes.V1_8, modifiers, name.value, null, superName.value, interfaces)
+}
 
 
 internal
@@ -54,7 +63,7 @@ fun ClassWriter.endClass(): ByteArray {
 
 
 internal
-fun ClassWriter.publicDefaultConstructor(superName: InternalName) {
+fun ClassWriter.publicDefaultConstructor(superName: InternalName = InternalNameOf.javaLangObject) {
     publicMethod("<init>", "()V") {
         ALOAD(0)
         INVOKESPECIAL(superName, "<init>", "()V")

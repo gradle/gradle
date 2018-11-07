@@ -43,11 +43,13 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -64,7 +66,7 @@ import java.io.File
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
     @Test
-    fun `buildAccessorsFor (Kotlin types)`() {
+    fun `#buildAccessorsFor (Kotlin types)`() {
 
         // given:
         val schema =
@@ -118,43 +120,87 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     @Test
     fun `#buildAccessorsFor (bytecode)`() {
 
-        testAccessorsBuiltBy { schema, srcDir, binDir ->
-            buildAccessorsFor(schema, srcDir, binDir)
-        }
+        testAccessorsBuiltBy(::buildAccessorsFor)
     }
 
     @Test
     fun `#buildAccessorsFor (source)`() {
 
-        testAccessorsBuiltBy { schema, srcDir, binDir ->
-            buildAccessorsFor(
-                schema,
-                srcDir,
-                newFolder("ignored")
-            )
-            require(
-                compileToDirectory(
-                    binDir,
-                    srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.asIterable(),
-                    loggerFor<ProjectAccessorsClassPathTest>(),
-                    testCompilationClassPath.asFiles
+        testAccessorsBuiltBy(::buildAccessorsFromSourceFor)
+    }
+
+    @Test
+    fun `#buildAccessorsFor (default package types)`() {
+
+        // given:
+        val defaultPackageTypes = classPathWithPublicTypes("Receiver", "Entry")
+        withClassLoaderFor(defaultPackageTypes) {
+            val receiverType = schemaTypeFor("Receiver")
+            val entryType = schemaTypeFor("Entry")
+            val schema =
+                TypedProjectSchema(
+                    extensions = listOf(
+                        ProjectSchemaEntry(receiverType, "entry", entryType)
+                    ),
+                    containerElements = listOf(
+                        // TODO: add test coverage
+                    ),
+                    conventions = listOf(
+                        // TODO: add test coverage
+                    ),
+                    tasks = listOf(
+                        // TODO: add test coverage
+                    ),
+                    configurations = listOf(
+                    )
                 )
+
+            val srcDir = newFolder("src")
+            val binDir = newFolder("bin")
+
+            // when:
+            buildAccessorsFromSourceFor(
+                schema,
+                testCompilationClassPath + defaultPackageTypes,
+                srcDir,
+                binDir
+            )
+
+            require(
+                kotlinFilesIn(srcDir).isNotEmpty()
             )
         }
     }
 
     private
-    fun buildAccessorsFor(schema: TypedProjectSchema, srcDir: File, binDir: File) {
+    fun buildAccessorsFromSourceFor(
+        schema: TypedProjectSchema,
+        classPath: ClassPath,
+        srcDir: File,
+        binDir: File
+    ) {
         buildAccessorsFor(
-            projectSchema = schema,
-            classPath = testCompilationClassPath,
-            srcDir = srcDir,
-            binDir = binDir
+            schema,
+            classPath,
+            srcDir,
+            newFolder("ignored")
+        )
+        require(
+            compileToDirectory(
+                binDir,
+                kotlinFilesIn(srcDir),
+                loggerFor<ProjectAccessorsClassPathTest>(),
+                classPath.asFiles
+            )
         )
     }
 
     private
-    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, File, File) -> Unit) {
+    fun kotlinFilesIn(srcDir: File) =
+        srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+
+    private
+    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit) {
 
         // given:
         val schema =
@@ -362,19 +408,20 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         schema: TypedProjectSchema,
         target: Project,
         script: String,
-        buildAccessorsFor: (TypedProjectSchema, File, File) -> Unit = ::buildAccessorsFor
+        classPath: ClassPath = testCompilationClassPath,
+        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit = ::buildAccessorsFor
     ) {
 
         val srcDir = newFolder("src")
         val binDir = newFolder("bin")
 
-        buildAccessorsFor(schema, srcDir, binDir)
+        buildAccessorsFor(schema, classPath, srcDir, binDir)
 
         eval(
             script = script,
             target = target,
             baseCacheDir = kotlinDslEvalBaseCacheDir,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath,
+            scriptCompilationClassPath = DefaultClassPath.of(binDir) + classPath,
             scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
     }

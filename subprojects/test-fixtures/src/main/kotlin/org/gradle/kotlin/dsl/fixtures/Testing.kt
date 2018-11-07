@@ -45,6 +45,10 @@ inline fun withClassLoaderFor(vararg classPath: File, action: ClassLoader.() -> 
     classLoaderFor(*classPath).use(action)
 
 
+inline fun withClassLoaderFor(classPath: ClassPath, action: ClassLoader.() -> Unit) =
+    classLoaderFor(classPath).use(action)
+
+
 fun classLoaderFor(classPath: ClassPath): URLClassLoader =
     classLoaderFor(*classPath.asFiles.toTypedArray())
 

@@ -17,8 +17,6 @@ import org.junit.Test
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 
-import java.net.URLClassLoader
-
 
 @Suppress("unused")
 class PublicGenericType<T>
@@ -217,5 +215,5 @@ class ProjectSchemaTest : TestWithClassPath() {
 
 
 internal
-fun URLClassLoader.schemaTypeFor(typeString: String): SchemaType =
+fun ClassLoader.schemaTypeFor(typeString: String): SchemaType =
     SchemaType(TypeOf.typeOf<Any?>(loadClass(typeString)))
