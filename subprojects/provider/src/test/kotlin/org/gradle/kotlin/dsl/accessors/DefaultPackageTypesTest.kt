@@ -16,10 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.kotlin.dsl.accessors.TypeAccessibility.Accessible
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.kotlin.dsl.support.useToRun
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -29,42 +25,20 @@ import org.junit.Test
 class DefaultPackageTypesTest : TestWithClassPath() {
 
     @Test
-    fun `#defaultPackageTypesIn generic type`() {
+    fun `#defaultPackageTypesIn (generic type)`() {
 
         assertThat(
-            defaultPackageTypesIn(listOf("gradle.Container<Extension>")),
-            equalTo(listOf("Extension"))
+            defaultPackageTypesIn(listOf("java.util.Map<Key, Value>")),
+            equalTo(listOf("Key", "Value"))
         )
     }
 
     @Test
-    fun `#importsRequiredBy takes container elements into account`() {
+    fun `#defaultPackageTypesIn (duplicate types)`() {
 
-        val classPath = classPathWithPublicTypes(
-            "Container",
-            "DefaultPackageType"
+        assertThat(
+            defaultPackageTypesIn(listOf("java.util.Map<Value, Value>")),
+            equalTo(listOf("Value"))
         )
-        classLoaderFor(classPath).useToRun {
-            assertThat(
-                importsRequiredBy(
-                    ProjectSchema(
-                        containerElements = listOf(
-                            ProjectSchemaEntry(
-                                Accessible(schemaTypeFor("Container")),
-                                "element",
-                                Accessible(schemaTypeFor("DefaultPackageType"))
-                            )
-                        ),
-                        extensions = emptyList(),
-                        conventions = emptyList(),
-                        tasks = emptyList(),
-                        configurations = emptyList()
-                    )
-                ),
-                equalTo(
-                    listOf("DefaultPackageType")
-                )
-            )
-        }
     }
 }

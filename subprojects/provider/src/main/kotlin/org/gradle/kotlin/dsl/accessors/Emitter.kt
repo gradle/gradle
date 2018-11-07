@@ -68,7 +68,7 @@ fun WriterThread.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): I
     }
 
     val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-    io { writeAccessorsTo(sourceFile, sourceCode.asSequence()) }
+    io { writeAccessorsTo(sourceFile, sourceCode.asSequence(), importsRequiredBy(accessor)) }
 
     val classHeader = metadataWriter.closeHeader()
     val classBytes = classWriter.endKotlinClass(classHeader)
@@ -77,6 +77,23 @@ fun WriterThread.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): I
 
     return className
 }
+
+
+private
+fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
+    when (this) {
+        is Accessor.ForExtension -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForConvention -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForTask -> importsRequiredBy(spec.type)
+        is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
+        else -> emptyList()
+    }
+}
+
+
+private
+fun importsRequiredBy(vararg candidateTypes: TypeAccessibility): List<String> =
+    importsRequiredBy(candidateTypes.asList())
 
 
 internal

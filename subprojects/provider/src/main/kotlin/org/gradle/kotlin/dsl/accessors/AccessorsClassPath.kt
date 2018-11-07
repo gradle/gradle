@@ -107,13 +107,13 @@ fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 
 private
-fun configuredProjectSchemaOf(project: Project) =
-    project.takeIf(::enabledJitAccessors)?.let {
+fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
+    if (enabledJitAccessors(project)) {
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
         schemaFor(project).takeIf { it.isNotEmpty() }
-    }
+    } else null
 
 
 internal
@@ -147,20 +147,12 @@ fun buildAccessorsFor(
 
 
 internal
-fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
+fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
-        candidateTypesForImportIn(schemaSubset)
+        candidateTypes
             .filterIsInstance<TypeAccessibility.Accessible>()
             .map { it.type.kotlinString }
     )
-
-
-private
-fun candidateTypesForImportIn(projectSchema: ProjectSchema<TypeAccessibility>) = projectSchema.run {
-    (extensions.flatMap { listOf(it.target, it.type) }
-        + tasks.map { it.type }
-        + containerElements.map { it.type })
-}
 
 
 internal
@@ -378,13 +370,13 @@ class ClassDataFromKotlinMetadataAnnotationVisitor(
 ) : AnnotationVisitor(ASM6) {
 
     /**
-     * @see kotlin.Metadata.d1
+     * @see kotlin.Metadata.data1
      */
     private
     var d1 = mutableListOf<String>()
 
     /**
-     * @see kotlin.Metadata.d2
+     * @see kotlin.Metadata.data2
      */
     private
     var d2 = mutableListOf<String>()

@@ -14,6 +14,12 @@ abstract class TestWithTempFiles {
     val root: File
         get() = tempFolder.root
 
+    /**
+     * See [org.junit.rules.TemporaryFolder.newFolder]
+     */
+    fun newFolder(): File =
+        tempFolder.newFolder()
+
     protected
     fun file(fileName: String) =
         File(root, fileName)
@@ -27,6 +33,6 @@ abstract class TestWithTempFiles {
         newFile(fileName).apply { writeText(text) }
 
     protected
-    fun newFolder(vararg folderNames: String) =
+    fun newFolder(vararg folderNames: String): File =
         tempFolder.newFolder(*folderNames)
 }
