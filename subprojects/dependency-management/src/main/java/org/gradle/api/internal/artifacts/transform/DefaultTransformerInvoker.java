@@ -306,19 +306,21 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            historyRepository.persist(persistentCacheKey,
-                originMetadata,
-                // TODO: only use implementation hash
-                ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash()),
-                finalOutputs,
-                successful
-            );
+            if (successful) {
+                historyRepository.persist(persistentCacheKey,
+                    originMetadata,
+                    // TODO: only use implementation hash
+                    ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash()),
+                    finalOutputs,
+                    successful
+                );
+            }
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
             Optional<AfterPreviousExecutionState> previousExecution = historyRepository.getPreviousExecution(persistentCacheKey);
-            return previousExecution.filter(AfterPreviousExecutionState::isSuccessful).map(previous -> {
+            return previousExecution.map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
                 return new TransformerExecutionStateChanges(outputFileChanges, previous);
