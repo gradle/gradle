@@ -19,17 +19,15 @@ package org.gradle.cache.internal;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.gradle.internal.Try;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 
@@ -50,15 +48,12 @@ public class VersionSpecificCacheDirectoryScanner {
     }
 
     public SortedSet<VersionSpecificCacheDirectory> getExistingDirectories() {
-        final SortedSet<VersionSpecificCacheDirectory> result = Sets.newTreeSet();
-        for (final File subDir : listVersionSpecificCacheDirs()) {
-            Try<GradleVersion> version = tryParseGradleVersion(subDir);
-            version.ifSuccessful(new Consumer<GradleVersion>() {
-                @Override
-                public void accept(GradleVersion gradleVersion) {
-                    result.add(new VersionSpecificCacheDirectory(subDir, gradleVersion));
-                }
-            });
+        SortedSet<VersionSpecificCacheDirectory> result = Sets.newTreeSet();
+        for (File subDir : listVersionSpecificCacheDirs()) {
+            GradleVersion version = tryParseGradleVersion(subDir);
+            if (version != null) {
+                result.add(new VersionSpecificCacheDirectory(subDir, version));
+            }
         }
         return result;
     }
@@ -69,12 +64,12 @@ public class VersionSpecificCacheDirectoryScanner {
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }
 
-    private Try<GradleVersion> tryParseGradleVersion(final File dir) {
-        return Try.ofFailable(new Callable<GradleVersion>() {
-            @Override
-            public GradleVersion call() {
-                return GradleVersion.version(dir.getName());
-            }
-        });
+    @Nullable
+    private GradleVersion tryParseGradleVersion(File dir) {
+        try {
+            return GradleVersion.version(dir.getName());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
