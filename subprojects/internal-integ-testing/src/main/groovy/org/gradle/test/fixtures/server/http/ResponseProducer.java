@@ -20,7 +20,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-public interface ResponseProducer {
+interface ResponseProducer {
     /**
      * Called to handle a request. Is *not* called under lock.
      */
