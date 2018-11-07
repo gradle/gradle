@@ -11,6 +11,8 @@ import org.gradle.kotlin.dsl.support.bytecode.endClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.zipTo
 
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACC_INTERFACE
 import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 
@@ -61,13 +63,33 @@ fun TestWithTempFiles.classPathWithType(name: String, vararg modifiers: Int): Cl
 
 
 internal
-fun TestWithTempFiles.classPathWithPublicTypes(vararg names: String): ClassPath = classPathOf(
-    newFolder().also { rootDir ->
-        for (name in names) {
-            writeClassFileTo(rootDir, name, ACC_PUBLIC)
-        }
-    }
-)
+fun TestWithTempFiles.classPathWith(builder: ClassPathBuilderScope.() -> Unit): ClassPath =
+    classPathOf(newFolder().also { builder(ClassPathBuilderScope(it)) })
+
+
+internal
+class ClassPathBuilderScope(val outputDir: File)
+
+
+internal
+fun ClassPathBuilderScope.publicClass(name: String) {
+    writeClassFileTo(outputDir, name, ACC_PUBLIC)
+}
+
+
+internal
+fun ClassPathBuilderScope.publicInterface(name: String, vararg interfaces: String) {
+    val internalName = InternalName.from(name)
+    writeClassFileTo(
+        outputDir,
+        internalName,
+        beginClass(
+            ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
+            internalName,
+            interfaces = interfaces.takeIf { it.isNotEmpty() }?.map(InternalName.Companion::from)
+        ).endClass()
+    )
+}
 
 
 internal
@@ -76,17 +98,24 @@ fun classPathOf(vararg files: File) = DefaultClassPath.of(files.asList())
 
 private
 fun writeClassFileTo(rootDir: File, name: String, vararg modifiers: Int) {
-    val internalName = name.replace(".", "/")
-    File(rootDir, "$internalName.class").apply {
+    val internalName = InternalName.from(name)
+    val classBytes = classBytesOf(modifiers.fold(0, Int::plus), internalName)
+    writeClassFileTo(rootDir, internalName, classBytes)
+}
+
+
+private
+fun writeClassFileTo(rootDir: File, className: InternalName, classBytes: ByteArray) {
+    File(rootDir, "$className.class").apply {
         parentFile.mkdirs()
-        writeBytes(classBytesOf(internalName, *modifiers))
+        writeBytes(classBytes)
     }
 }
 
 
 private
-fun classBytesOf(name: String, vararg modifiers: Int): ByteArray =
-    beginClass(modifiers.fold(0, Int::plus), InternalName(name)).run {
+fun classBytesOf(modifiers: Int, internalName: InternalName): ByteArray =
+    beginClass(modifiers, internalName).run {
         publicDefaultConstructor()
         endClass()
     }

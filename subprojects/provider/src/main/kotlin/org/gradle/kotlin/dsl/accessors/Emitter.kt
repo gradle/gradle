@@ -85,7 +85,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForExtension -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForConvention -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForTask -> importsRequiredBy(spec.type)
-        is Accessor.ForContainerElement -> importsRequiredBy(spec.type)
+        is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         else -> emptyList()
     }
 }

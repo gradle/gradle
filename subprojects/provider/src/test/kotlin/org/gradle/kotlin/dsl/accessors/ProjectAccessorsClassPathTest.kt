@@ -27,6 +27,8 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
+import org.gradle.api.Task
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraint
@@ -37,6 +39,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -53,6 +56,7 @@ import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.typeOf
 
 import org.gradle.nativeplatform.BuildType
 
@@ -133,23 +137,28 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     fun `#buildAccessorsFor (default package types)`() {
 
         // given:
-        val defaultPackageTypes = classPathWithPublicTypes("Receiver", "Entry")
+        val defaultPackageTypes = classPathWith {
+            publicClass("ExtensionReceiver")
+            publicClass("ConventionReceiver")
+            publicInterface("Entry")
+            publicInterface("Element", "Entry")
+            publicInterface("CustomTask", Task::class.qualifiedName!!)
+        }
         withClassLoaderFor(defaultPackageTypes) {
-            val receiverType = schemaTypeFor("Receiver")
             val entryType = schemaTypeFor("Entry")
             val schema =
                 TypedProjectSchema(
                     extensions = listOf(
-                        ProjectSchemaEntry(receiverType, "entry", entryType)
-                    ),
-                    containerElements = listOf(
-                        // TODO: add test coverage
+                        ProjectSchemaEntry(schemaTypeFor("ExtensionReceiver"), "extension", entryType)
                     ),
                     conventions = listOf(
-                        // TODO: add test coverage
+                        ProjectSchemaEntry(schemaTypeFor("ConventionReceiver"), "convention", entryType)
+                    ),
+                    containerElements = listOf(
+                        ProjectSchemaEntry(namedDomainObjectContainerOf(entryType), "element", schemaTypeFor("Element"))
                     ),
                     tasks = listOf(
-                        // TODO: add test coverage
+                        ProjectSchemaEntry(SchemaType.of<TaskContainer>(), "task", schemaTypeFor("CustomTask"))
                     ),
                     configurations = listOf(
                     )
@@ -166,11 +175,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 binDir
             )
 
+            // then:
             require(
                 kotlinFilesIn(srcDir).isNotEmpty()
             )
         }
     }
+
+    private
+    fun namedDomainObjectContainerOf(elementType: SchemaType) =
+        SchemaType(parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType.value))
 
     private
     fun buildAccessorsFromSourceFor(

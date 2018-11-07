@@ -25,11 +25,20 @@ import org.junit.Test
 class DefaultPackageTypesTest : TestWithClassPath() {
 
     @Test
-    fun `#defaultPackageTypesIn generic type`() {
+    fun `#defaultPackageTypesIn (generic type)`() {
 
         assertThat(
-            defaultPackageTypesIn(listOf("gradle.Container<Extension>")),
-            equalTo(listOf("Extension"))
+            defaultPackageTypesIn(listOf("java.util.Map<Key, Value>")),
+            equalTo(listOf("Key", "Value"))
+        )
+    }
+
+    @Test
+    fun `#defaultPackageTypesIn (duplicate types)`() {
+
+        assertThat(
+            defaultPackageTypesIn(listOf("java.util.Map<Value, Value>")),
+            equalTo(listOf("Value"))
         )
     }
 }

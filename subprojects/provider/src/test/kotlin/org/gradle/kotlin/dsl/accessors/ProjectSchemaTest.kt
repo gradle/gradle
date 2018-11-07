@@ -216,4 +216,9 @@ class ProjectSchemaTest : TestWithClassPath() {
 
 internal
 fun ClassLoader.schemaTypeFor(typeString: String): SchemaType =
-    SchemaType(TypeOf.typeOf<Any?>(loadClass(typeString)))
+    SchemaType(loadTypeOf(typeString))
+
+
+internal
+fun ClassLoader.loadTypeOf(typeString: String) =
+    TypeOf.typeOf<Any?>(loadClass(typeString))
