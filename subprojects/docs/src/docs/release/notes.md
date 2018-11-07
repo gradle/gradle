@@ -74,6 +74,13 @@ To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices,
 
 Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
 
+### Copied configuration no longer shares a list of `beforeResolve` actions with original
+
+The fix for gradle/gradle#6996 means that the list of `beforeResolve` actions are no longer shared between a copied configuration and the original.
+Instead, a copied configuration receives a copy of the `beforeResolve` actions at the time the copy is made.
+Any `beforeResolve` actions added after copying (to either configuration) will not be shared between the original and the copy.
+This may break plugins that relied on the previous behaviour.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
