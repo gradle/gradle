@@ -54,13 +54,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
@@ -250,17 +250,18 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             }
             return Try.ofFailable(() -> {
                 Path transformerResultsPath = resultsFile.toPath();
-                try (Stream<String> lines = Files.lines(transformerResultsPath, StandardCharsets.UTF_8)) {
-                    return lines.map(path -> {
-                        if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                            return new File(outputDir, path.substring(2));
-                        }
-                        if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
-                            return new File(primaryInput, path.substring(2));
-                        }
+                ImmutableList.Builder<File> builder = ImmutableList.builder();
+                List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
+                for (String path : paths) {
+                    if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
+                        builder.add(new File(outputDir, path.substring(2)));
+                    } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
+                        builder.add(new File(primaryInput, path.substring(2)));
+                    } else {
                         throw new IllegalStateException("Cannot parse result path string: " + path);
-                    }).collect(toImmutableList());
+                    }
                 }
+                return builder.build();
             });
         }
 
@@ -391,15 +392,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return afterPreviousExecutionState;
             }
         }
-    }
-    
-    private static <T> Collector<T, ?, ImmutableList<T>> toImmutableList() {
-        return Collector.of(
-            ImmutableList::<T>builder,
-            (builder, value) -> builder.add(value),
-            (builder1, builder2) -> builder1.addAll(builder2.build()),
-            builder -> builder.build()
-        );
     }
 
     private static class AllOutputFileChanges extends AbstractFingerprintChanges {
