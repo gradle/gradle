@@ -60,8 +60,6 @@ public enum CacheLayout {
     TRANSFORMS(null, "transforms", introducedIn("3.5-rc-1")
         .changedTo(2, "5.1")),
 
-    TRANSFORMS_META_DATA(TRANSFORMS, "metadata", introducedIn("3.5-rc-1")),
-
     TRANSFORMS_STORE(TRANSFORMS, "files", introducedIn("3.5-rc-1"));
 
     private final String name;

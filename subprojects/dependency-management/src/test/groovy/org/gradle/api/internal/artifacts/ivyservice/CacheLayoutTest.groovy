@@ -74,18 +74,6 @@ class CacheLayoutTest extends Specification {
         cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-2')
     }
 
-    def "use transforms metadata layout"() {
-        when:
-        CacheLayout cacheLayout = CacheLayout.TRANSFORMS_META_DATA
-
-        then:
-        cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-2.1'
-        cacheLayout.version == CacheVersion.parse("2.1")
-        cacheLayout.version.toString() == '2.1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.1')
-    }
-
     def "use transforms store layout"() {
         when:
         CacheLayout cacheLayout = CacheLayout.TRANSFORMS_STORE

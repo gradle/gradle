@@ -111,7 +111,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             return Try.successful(results);
         }
         return fireTransformListeners(transformer, subject, () -> {
-            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, cacheKey);
+            HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
+            File workspace = historyRepository.getWorkspace(primaryInput, persistentCacheKey);
+            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, persistentCacheKey, workspace);
             UpToDateResult outcome = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
             Try<ImmutableList<File>> result = execution.getResult(outcome);
             result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
@@ -146,7 +148,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final String absolutePath;
         private final HashCode fileContentHash;
         private final HashCode inputHash;
-        private HashCode persistentHashCode;
 
         public CacheKey(HashCode inputHash, String absolutePath, HashCode fileContentHash) {
             this.absolutePath = absolutePath;
@@ -155,14 +156,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         public HashCode getPersistentCacheKey() {
-            if (persistentHashCode == null) {
-                Hasher hasher = Hashing.newHasher();
-                hasher.putHash(inputHash);
-                hasher.putString(absolutePath);
-                hasher.putHash(fileContentHash);
-                persistentHashCode = hasher.hash();
-            }
-            return persistentHashCode;
+            Hasher hasher = Hashing.newHasher();
+            hasher.putHash(inputHash);
+            hasher.putString(absolutePath);
+            hasher.putHash(fileContentHash);
+            return hasher.hash();
         }
 
         @Override
@@ -202,30 +200,20 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         private final File primaryInput;
         private final Transformer transformer;
-        private final CacheKey cacheKey;
+        private final File outputDir;
+        private final File resultsFile;
+        private final HashCode persistentCacheKey;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, CacheKey cacheKey) {
+        public TransformerExecution(File primaryInput, Transformer transformer, HashCode persistentCacheKey, File workspace) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
-            this.cacheKey = cacheKey;
-        }
-
-        private File getOutputBaseDirectory() {
-            return historyRepository.getOutputDirectory(primaryInput, cacheKey.getPersistentCacheKey().toString());
-        }
-
-        private File getOutputDir() {
-            return new File(getOutputBaseDirectory(), "outputDirectory");
-        }
-
-        private File getResultsFile() {
-            return new File(getOutputBaseDirectory(),  "results.bin");
+            this.persistentCacheKey = persistentCacheKey;
+            this.outputDir = new File(workspace, "outputDirectory");
+            this.resultsFile = new File(workspace,  "results.bin");
         }
 
         @Override
         public boolean execute() {
-            File outputDir = getOutputDir();
-            File resultsFile = getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
@@ -261,11 +249,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return Try.failure(outcome.getFailure());
             }
             return Try.ofFailable(() -> {
-                Path transformerResultsPath = getResultsFile().toPath();
+                Path transformerResultsPath = resultsFile.toPath();
                 try (Stream<String> lines = Files.lines(transformerResultsPath, StandardCharsets.UTF_8)) {
                     return lines.map(path -> {
                         if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                            return new File(getOutputDir(), path.substring(2));
+                            return new File(outputDir, path.substring(2));
                         }
                         if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
                             return new File(primaryInput, path.substring(2));
@@ -283,8 +271,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void visitOutputs(OutputVisitor outputVisitor) {
-            outputVisitor.visitOutput(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(getOutputDir()));
-            outputVisitor.visitOutput(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(getResultsFile()));
+            outputVisitor.visitOutput(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(outputDir));
+            outputVisitor.visitOutput(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(resultsFile));
         }
 
         @Override
@@ -318,7 +306,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            historyRepository.persist(cacheKey.getPersistentCacheKey(),
+            historyRepository.persist(persistentCacheKey,
                 originMetadata,
                 // TODO: only use implementation hash
                 ImplementationSnapshot.of(transformer.getImplementationClass().getName(), transformer.getSecondaryInputHash()),
@@ -329,7 +317,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<AfterPreviousExecutionState> previousExecution = historyRepository.getPreviousExecution(cacheKey.getPersistentCacheKey());
+            Optional<AfterPreviousExecutionState> previousExecution = historyRepository.getPreviousExecution(persistentCacheKey);
             return previousExecution.filter(AfterPreviousExecutionState::isSuccessful).map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
@@ -340,7 +328,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
-            return Optional.of(ImmutableList.of(getOutputDir().getAbsolutePath()));
+            return Optional.of(ImmutableList.of(outputDir.getAbsolutePath()));
         }
 
 
@@ -350,8 +338,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {
-            CurrentFileCollectionFingerprint outputFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(getOutputDir()));
-            CurrentFileCollectionFingerprint resultsFileFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(getResultsFile()));
+            CurrentFileCollectionFingerprint outputFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(outputDir));
+            CurrentFileCollectionFingerprint resultsFileFingerprint = outputFileCollectionFingerprinter.fingerprint(ImmutableFileCollection.of(resultsFile));
             return ImmutableSortedMap.of(
                 OUTPUT_DIRECTORY_PROPERTY_NAME, outputFingerprint,
                 RESULTS_FILE_PROPERTY_NAME, resultsFileFingerprint);

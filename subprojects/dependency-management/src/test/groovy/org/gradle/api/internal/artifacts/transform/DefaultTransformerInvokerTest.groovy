@@ -65,7 +65,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
 
         @Override
-        File getOutputDirectory(File toBeTransformed, String cacheKey) {
+        File getWorkspace(File toBeTransformed, HashCode cacheKey) {
             return new File(transformsStoreDirectory, toBeTransformed.getName() + "/" + cacheKey)
         }
 
