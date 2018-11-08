@@ -321,7 +321,11 @@ The following methods have been deprecated and will be removed in Gradle 6.0:
 - `ProjectLayout.directoryProperty()` - Use `ObjectFactory.directoryProperty()` instead.
 - `ProjectLayout.fileProperty()` - Use `ObjectFactory.fileProperty()` instead.
 
-The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods (or any other mutation method) to set an initial value, if required.
+### Initial value for `Property` types
+
+The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` method (or any other mutation method) to set an initial value, if required.
+
+For `ListProperty` and `SetProperty`, you can use `empty()` to initialize the property to an empty collection. 
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
