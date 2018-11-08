@@ -215,14 +215,23 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isToolingApiHasCauseOnPhasedActionFail() {
+        return isSameOrNewer("5.1");
+    }
+
+    @Override
+    public boolean isToolingApiMergesStderrIntoStdout() {
+        return isSameOrNewer("4.7") && isSameOrOlder("5.0");
+    }
+
+    @Override
     public boolean isToolingApiLogsConfigureSummary() {
         return isSameOrNewer("2.14");
     }
 
     @Override
     public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
-        if (isSameOrNewer("4.0") && isSameOrOlder("4.6")) {
-            // This only worked as expected for a while
+        if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1")) {
             return stderr;
         }
         return stdout;

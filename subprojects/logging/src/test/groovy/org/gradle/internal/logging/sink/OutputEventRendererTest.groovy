@@ -286,7 +286,9 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        metaData.stdOut >> true
+        metaData.stdErr >> true
+        renderer.addRichConsole(console, metaData)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -301,8 +303,10 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
         def snapshot = renderer.snapshot()
+        metaData.stdOut >> true
+        metaData.stdErr >> false
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, true, false, metaData)
+        renderer.addRichConsole(console, metaData)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -317,8 +321,10 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
+        metaData.stdOut >> false
+        metaData.stdErr >> true
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, false, true, metaData)
+        renderer.addRichConsole(console, metaData)
 
         when:
         renderer.onOutput(start('description'))
@@ -334,7 +340,9 @@ class OutputEventRendererTest extends OutputSpecification {
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        metaData.stdOut >> true
+        metaData.stdErr >> true
+        renderer.addRichConsole(console, metaData)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -349,7 +357,9 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, true, metaData)
+        metaData.stdOut >> true
+        metaData.stdErr >> true
+        renderer.addRichConsole(console, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -364,7 +374,9 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, true, false, metaData)
+        metaData.stdOut >> true
+        metaData.stdErr >> false
+        renderer.addRichConsole(console, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -379,7 +391,9 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addRichConsole(console, false, true, metaData)
+        metaData.stdOut >> false
+        metaData.stdErr >> true
+        renderer.addRichConsole(console, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -405,8 +419,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
-        error.toString().empty
+        output.toString().readLines() == ['', '> description status', 'info']
+        error.toString().readLines() == ['un-grouped error', 'error']
     }
 
     def "renders log events in plain console when log level is debug"() {
@@ -422,8 +436,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
-        error.toString().empty
+        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info']
+        error.toString().readLines() == ['10:00:00.000 [ERROR] [category] error']
     }
 
     def "attaches plain console when stdout and stderr are attached"() {
@@ -438,8 +452,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['info', 'error']
-        error.toString().empty
+        output.toString().readLines() == ['info']
+        error.toString().readLines() == ['error']
         outputs.stdOut == ''
         outputs.stdErr == ''
     }

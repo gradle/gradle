@@ -27,7 +27,7 @@ public class WindowsConsoleDetector implements ConsoleDetector {
         // Use Jansi's detection mechanism
         try {
             new WindowsAnsiOutputStream(new ByteArrayOutputStream());
-            return FallbackConsoleMetaData.INSTANCE;
+            return FallbackConsoleMetaData.ATTACHED;
         } catch (IOException ignore) {
             // Not attached to a console
             return null;

@@ -22,12 +22,11 @@ import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.config.LoggingSourceSystem
 import org.gradle.internal.logging.config.LoggingSystem
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
-public class DefaultLoggingManagerTest extends Specification {
+class DefaultLoggingManagerTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     private final def slf4jLoggingSystem = Mock(LoggingSourceSystem)
@@ -490,7 +489,7 @@ public class DefaultLoggingManagerTest extends Specification {
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, FallbackConsoleMetaData.INSTANCE)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, null)
         0 * loggingRouter._
 
         when:
@@ -517,7 +516,7 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
 
         then:
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, FallbackConsoleMetaData.INSTANCE)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, null)
         0 * loggingRouter._
 
         when:
