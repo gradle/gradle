@@ -687,7 +687,7 @@ include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts
 The `kotlin-dsl` plugin
 
 * applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[org.jetbrains.kotlin.jvm] plugin,
-* configures an embedded repository that contains all Kotlin libraries embedded with the Gradle Kotlin DSL, pins them to the embedded Kotlin version,
+* configures an embedded repository that contains all Kotlin libraries embedded with the Gradle Kotlin DSL,
 * adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations,
 * configures the Kotlin compiler with the same set of Kotlin compiler settings that is used for Gradle Kotlin DSL scripts,
 * and, enables precompiled script plugins, see below.

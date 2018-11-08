@@ -40,8 +40,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         if (!hasKotlin) {
             executer.beforeExecute {
                 expectDeprecationWarning()
-                // Run Kotlin compiler in-process to avoid file locking issues
-                executer.withArgument("-Dkotlin.compiler.execution.strategy=in-process")
             }
             hasKotlin = true
         }
