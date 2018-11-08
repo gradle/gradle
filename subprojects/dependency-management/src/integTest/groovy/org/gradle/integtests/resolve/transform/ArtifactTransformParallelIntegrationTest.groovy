@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -287,5 +288,18 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         then:
         failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
         failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
+    }
+
+    @NotYetImplemented
+    def "only one transformer execution per gradle user home workspace"() {
+        // Use different projects requesting the same transformed artifact
+        expect:
+        false
+    }
+
+    @NotYetImplemented
+    def "only one transformer execution "() {
+        expect:
+        false
     }
 }
