@@ -64,11 +64,6 @@ class EmbeddedKotlinProvider constructor(
         }
     }
 
-    fun pinDependenciesOn(configuration: Configuration, vararg kotlinModules: String) {
-        val pinnedDependencies = transitiveClosureOf(*kotlinModules)
-        pinDependenciesOn(configuration, pinnedDependencies)
-    }
-
     internal
     fun pinDependenciesOn(configuration: Configuration, pinnedDependencies: Set<EmbeddedModule>) {
         configuration.resolutionStrategy.eachDependency { details ->

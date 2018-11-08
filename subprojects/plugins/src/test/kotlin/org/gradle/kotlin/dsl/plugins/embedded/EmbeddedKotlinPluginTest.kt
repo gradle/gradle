@@ -160,34 +160,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `embedded kotlin modules versions are pinned to the embedded Kotlin version`() {
-
-        withBuildScript("""
-
-            plugins {
-                `embedded-kotlin`
-            }
-
-            $repositoriesBlock
-
-            dependencies {
-                ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
-                compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
-            }
-
-            configurations["compileClasspath"].files.map { println(it) }
-
-        """)
-
-        val result = buildWithPlugin("dependencies")
-
-        listOf("stdlib", "reflect", "compiler-embeddable").forEach {
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> $embeddedKotlinVersion"))
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
-        }
-    }
-
-    @Test
     fun `can add embedded dependencies to custom configuration`() {
 
         withBuildScript("""
@@ -211,38 +183,12 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `embedded kotlin dependencies are pinned on custom configurations too`() {
-        withBuildScript("""
-
-            plugins {
-                `embedded-kotlin`
-            }
-
-            val customConfiguration by configurations.creating
-            customConfiguration.extendsFrom(configurations["embeddedKotlin"])
-
-            dependencies {
-                ${dependencyDeclarationsFor("customConfiguration", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
-                customConfiguration("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
-            }
-
-            $repositoriesBlock
-
-            configurations["customConfiguration"].files.map { println(it) }
-        """)
-
-        val result = buildWithPlugin("dependencies", "--configuration", "customConfiguration")
-
-        listOf("stdlib", "reflect", "compiler-embeddable").forEach {
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:1.1.1 -> $embeddedKotlinVersion"))
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
-        }
-    }
-
-    @Test
     fun `can be used with GRADLE_METADATA feature preview enabled`() {
 
-        withSettings("""enableFeaturePreview("GRADLE_METADATA")""")
+        withSettings("""
+            $defaultSettingsScript
+            enableFeaturePreview("GRADLE_METADATA")
+        """)
 
         withBuildScript("""
 
