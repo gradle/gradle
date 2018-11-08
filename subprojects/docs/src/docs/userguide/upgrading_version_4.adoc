@@ -40,12 +40,13 @@ In particular, you will need to use at least a 2.x version of the https://plugin
 In addition, Gradle has added several significant new and improved features that you should consider using in your builds:
 
  * <<#rel4.8:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
- * <<#changes_4.6,New and improved POM support>> for your builds.
+ * Use native <<#rel5.0:bom_import,BOM import>> in your builds.
  * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to run in parallel.
  * A new API for <<#rel4.9:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
 
 Other notable changes to be aware of that may break your build include:
 
+ * <<#rel5.0:pom_compile_runtime_separation,Separation of compile and runtime dependencies when consuming POMs>>
  * A change that means you should <<#rel4.8:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
  * The <<#rel4.8:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
  * A <<#rel4.6:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
@@ -60,8 +61,7 @@ If you are not already on version 4.10, skip down to the section that applies to
 
 === Other changes
 
- * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` flag is no longer necessary
- * The `enableFeaturePreview('STABLE_PUBLISHING')` flag is no longer necessary
+ * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` and `enableFeaturePreview('STABLE_PUBLISHING')` flags are no longer necessary. These features are now enabled by default.
  * Gradle now bundles <<#rel5.0:jaxb_and_java9, JAXB>> for Java 9 and above. You can remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
 
 === Potential breaking changes
@@ -70,9 +70,7 @@ The changes in this section have the potential to break your build, but the vast
 
 The following breaking changes are not from deprecations, but the result of changes in behavior:
 
- * Optional dependency declarations in POMs no longer influence the version of a dependency that Gradle picks.
-+
-This change is only applicable if you had the `IMPROVED_POM_SUPPORT` preview feature enabled.
+ * <<#rel5.0:pom_compile_runtime_separation,Separation of compile and runtime dependencies when consuming POMs>>
  * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
    Please use `afterEvaluate {}` if you need to defer evaluation.
  * The link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] and link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[`Groovydoc`] tasks now delete the destination dir for the documentation before executing. This has been added to remove stale output files from the last task execution.
@@ -184,7 +182,7 @@ Ideally you shouldn't use classes from this package, but, as a quick fix, you ca
  * The IdeaModule Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of `IdeaModule.getSourceDirs()` and `IdeaModule.getTestSourceDirs()`.
  * In previous Gradle versions, the `source` field in `SourceTask` was accessible from subclasses. This is not the case anymore as the `source` field is now declared as `private`.
  * In the Worker API, <<#rel5.0_worker_api, the working directory of a worker can no longer be set>>.
- * A change in behavior related to <<#rel5.0:dependency_resolution,dependency resolution>> may impact a small number of users.
+ * A change in behavior related to <<#rel5.0:dependency_constraints,dependency and version constraints>> may impact a small number of users.
  * There have been several changes to <<#rel5.0:changes_to_default_task,property factory methods on DefaultTask>> that may impact the creation of custom tasks.
 
 [[changes_4.10]]
@@ -262,14 +260,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
 [[changes_4.6]]
 == Upgrading from 4.5 and earlier
 
-There is now improved POM support in Gradle that includes the following:
-
- * <<#rel4.6:bom_import,BOM import>>
- * <<#rel4.6:pom_compile_runtime_separation,Separation of compile and runtime dependencies when consuming POMs>>
-
-Note that some of these features may break your build.
-
-=== Other deprecations
+=== Deprecations
 
 [[rel4.6:annotation_processor_configuration]]
  * You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
@@ -418,11 +409,41 @@ Several libraries that are used by Gradle have been upgraded:
  * The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
  * SLF4J has been upgraded from 1.7.16 to https://www.slf4j.org/news.html[1.7.25].
 
-[[rel5.0:dependency_resolution]]
-=== [5.0] Fixes to dependency resolution
+[[rel5.0:dependency_constraints]]
+=== [5.0] Improved support for dependency and version constraints
 
-Various issues have been fixed in Gradle's dependency resolution for this release. By definition this could impact the set of resolved dependencies of your build.
+Through the Gradle 4.x release stream, new `@Incubating` features were added to the dependency resolution engine.
+These include sophisticated version constraints (`prefer`, `strictly`, `reject`), dependency constraints, and `platform` dependencies.
+
 If you have been using the `IMPROVED_POM_SUPPORT` feature preview, playing with constraints or prefer, reject and other specific version indications, then make sure to take a good look at your dependency resolution results.
+
+[[rel5.0:bom_import]]
+=== [5.0] BOM import
+
+Gradle now provides support for importing bill of materials (BOM) files, which are effectively POM files that use `<dependencyManagement>` sections to control the versions of direct and transitive dependencies. All you need to do is declare the POM as a `platform` dependency.
+
+The following example picks the versions of the `gson` and `dom4j` dependencies from the declared Spring Boot BOM:
+
+----
+dependencies {
+    // import a BOM
+    implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
+
+    // define dependencies without versions
+    implementation 'com.google.code.gson:gson'
+    implementation 'dom4j:dom4j'
+}
+----
+
+[[rel5.0:pom_compile_runtime_separation]]
+=== [5.0] Separation of compile and runtime dependencies when consuming POMs
+
+Since Gradle 1.0, runtime-scoped dependencies have been included in the Java compilation classpath, which has some drawbacks:
+
+ * The compilation classpath is much larger than it needs to be, slowing down compilation.
+ * The compilation classpath includes runtime-scoped files that do not impact compilation, resulting in unnecessary re-compilation when those files change.
+
+With this new behavior, the Java and Java Library plugins both honor the <<java_library_plugin.adoc#sec:java_library_separation,separation of compile and runtime scopes>>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well. This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
 
 [[rel5.0:changes_to_default_task]]
 === [5.0] Changes to property factory methods on `DefaultTask`
@@ -684,34 +705,6 @@ The following have also seen similar changes:
  * link:{javadocPath}/org/gradle/nativeplatform/tasks/ExtractSymbols.html[ExtractSymbols]
  * link:{javadocPath}/org/gradle/language/swift/tasks/SwiftCompile.html[SwiftCompile]
  * link:{javadocPath}/org/gradle/nativeplatform/tasks/LinkMachOBundle.html[LinkMachOBundle]
-
-[[rel4.6:bom_import]]
-=== [4.6] BOM import
-
-Gradle now provides support for importing bill of materials (BOM) files, which are effectively POM files that use `<dependencyManagement>` sections to control the versions of direct and transitive dependencies. All you need to do is declare the POM as just another dependency.
-
-The following example picks the versions of the `gson` and `dom4j` dependencies from the declared Spring Boot BOM:
-
-----
-dependencies {
-    // import a BOM
-    implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
-
-    // define dependencies without versions
-    implementation 'com.google.code.gson:gson'
-    implementation 'dom4j:dom4j'
-}
-----
-
-[[rel4.6:pom_compile_runtime_separation]]
-=== [4.6] Separation of compile and runtime dependencies when consuming POMs
-
-Since Gradle 1.0, runtime-scoped dependencies have been included in the Java compilation classpath, which has some drawbacks:
-
- * The compilation classpath is much larger than it needs to be, slowing down compilation.
- * The compilation classpath includes runtime-scoped files that do not impact compilation, resulting in unnecessary re-compilation when those files change.
-
-With this new behavior, the Java and Java Library plugins both honor the <<java_library_plugin.adoc#sec:java_library_separation,separation of compile and runtime scopes>>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well. This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
 
 [[rel4.6:visual_studio_single_solution]]
 === [4.6] Visual Studio integration only supports a single solution file for all components of a build
