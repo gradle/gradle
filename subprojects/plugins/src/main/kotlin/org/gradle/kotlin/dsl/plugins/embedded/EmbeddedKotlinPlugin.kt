@@ -36,8 +36,7 @@ import javax.inject.Inject
  *
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
  * adds compile only dependencies on `kotlin-stdlib` and `kotlin-reflect`,
- * configures an embedded repository that contains all embedded Kotlin libraries,
- * and pins them to the embedded Kotlin version.
+ * configures an embedded repository that contains all embedded Kotlin libraries.
  */
 open class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider
@@ -60,10 +59,6 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
 
             kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
-            }
-
-            configurations.all {
-                embeddedKotlin.pinDependenciesOn(it, "stdlib-jdk8", "reflect", "compiler-embeddable")
             }
         }
     }
