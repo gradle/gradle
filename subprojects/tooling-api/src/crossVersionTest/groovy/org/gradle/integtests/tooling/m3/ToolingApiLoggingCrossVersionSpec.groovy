@@ -20,14 +20,15 @@ import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def "logging is live"() {
+        server.start()
         def waitingMessage = "logging task: connecting to ${server.uri}"
         def finishedMessage = "logging task: finished"
 
@@ -35,7 +36,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 task log {
     doLast {
         println "${waitingMessage}"
-        new URL("${server.uri}").text
+        ${server.callFromBuild("waiting")}
         println "${finishedMessage}"
     }
 }
@@ -43,21 +44,21 @@ task log {
 
         when:
         def resultHandler = new TestResultHandler()
+        def sync = server.expectAndBlock("waiting")
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            if (server.waitFor(false, 60)) {
-                ConcurrentTestUtil.poll {
-                    // Need to poll, as logging output is delivered asynchronously to client
-                    assert output.toString().contains(waitingMessage)
-                }
-                assert !output.toString().contains(finishedMessage)
-                server.release()
-                resultHandler.finished()
+            sync.waitForAllPendingCalls()
+            ConcurrentTestUtil.poll {
+                // Need to poll, as logging output is delivered asynchronously to client
+                assert output.toString().contains(waitingMessage)
             }
+            assert !output.toString().contains(finishedMessage)
+            sync.releaseAll()
+            resultHandler.finished()
             resultHandler.failWithFailure()
         }
 

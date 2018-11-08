@@ -17,16 +17,23 @@
 package org.gradle.internal.nativeintegration.console;
 
 public enum FallbackConsoleMetaData implements ConsoleMetaData {
-    INSTANCE;
+    ATTACHED(true),
+    NOT_ATTACHED(false);
+
+    private final boolean attached;
+
+    FallbackConsoleMetaData(boolean attached) {
+        this.attached = attached;
+    }
 
     @Override
     public boolean isStdOut() {
-        return true;
+        return attached;
     }
 
     @Override
     public boolean isStdErr() {
-        return true;
+        return attached;
     }
 
     @Override
