@@ -294,7 +294,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         tr();
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
-                            td().text(format.timestamp(execution.getTime())).end();
+                            td().text(FormatSupport.timestamp(execution.getTime())).end();
                             td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getCommitId()).text(execution.getCommitId()).end().end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();

@@ -20,10 +20,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
+import groovy.json.JsonOutput;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
-import org.gradle.performance.measure.DataSeries;
-import org.gradle.performance.measure.Duration;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -48,6 +46,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
     @Override
     public void render(final PerformanceTestHistory testHistory, Writer writer) throws IOException {
         // TODO: Add test name to the report
+        // @formatter:off
         new MetricsHtml(writer) {{
             html();
             head();
@@ -61,7 +60,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             p().text("Tasks: " + getTasks(testHistory)).end();
             p().text("Clean tasks: " + getCleanTasks(testHistory)).end();
 
-            addPerformanceGraph("Average total time", "totalTimeChart", "totalTime", "total time", "s");
+            addPerformanceGraphs();
 
             div().id("tooltip").end();
             div().id("controls").end();
@@ -105,6 +104,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             for (String label : testHistory.getScenarioLabels()) {
                 renderHeaderForSamples(label);
             }
+            th().text("Confidence").end();
+            th().text("Difference").end();
             th().text("Test version").end();
             th().text("Operating System").end();
             th().text("Host").end();
@@ -128,12 +129,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 renderVcsLinks(results, findPreviousExecutionInSameBranch(results, testHistory, i));
                 end();
 
-                final List<MeasuredOperationList> scenarios = results.getScenarios();
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getTotalTime();
-                    }
-                });
+                renderSamplesForExperiment(results.getScenarios());
                 textCell(results.getVersionUnderTest());
                 textCell(results.getOperatingSystem());
                 textCell(results.getHost());
@@ -154,8 +150,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
             private void renderDateAndLink(PerformanceTestExecution results) {
                 td();
-                    String date = format.timestamp(new Date(results.getStartTime()));
-                    if(results.getTeamCityBuildId() == null) {
+                    String date = FormatSupport.timestamp(new Date(results.getStartTime()));
+                    if (results.getTeamCityBuildId() == null) {
                         text(date);
                     } else {
                         a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
@@ -193,16 +189,56 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 return previousResults;
             }
 
-            private void addPerformanceGraph(String heading, String chartId, String jsonFieldName, String fieldLabel, String fieldUnit) {
-                h3().text(heading).end();
-                div().id(chartId).classAttr("chart");
-                p().text("Loading...").end();
+            private void addPerformanceGraphs() {
+                List<Chart> charts = Lists.newArrayList(new Chart("totalTime", "total time", "s", "totalTimeChart"));
+                if(testHistory instanceof CrossVersionPerformanceTestHistory) {
+                    charts.add(new Chart("confidence", "confidence", "%", "confidenceChart"));
+                    charts.add(new Chart("difference", "difference", "%", "differenceChart"));
+                }
+
+                charts.forEach(chart -> {
+                    h3().text(StringUtils.capitalize(chart.getLabel()) + " (" + chart.getUnit() + ")").end();
+                    div().classAttr("chart").id(chart.getChartId());
+                        p().text("Loading...").end();
+                    end();
+                });
+
                 script();
-                text("performanceTests.createPerformanceGraph('" + urlEncode(testHistory.getId()) + ".json', function(data) { return data." + jsonFieldName + "}, '" + fieldLabel + "', '" + fieldUnit + "', '" + chartId + "');");
-                end();
+                    raw("performanceTests.createPerformanceGraph('" + urlEncode(testHistory.getId()) + ".json', " + JsonOutput.toJson(charts) + ")");
                 end();
             }
         };
+    }
+    // @formatter:on
+
+    private static class Chart {
+        private String field;
+        private String label;
+        private String unit;
+        private String chartId;
+
+        private Chart(String field, String label, String unit, String chartId) {
+            this.field = field;
+            this.label = label;
+            this.unit = unit;
+            this.chartId = chartId;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public String getUnit() {
+            return unit;
+        }
+
+        public String getChartId() {
+            return chartId;
+        }
     }
 
     private static String getTasks(PerformanceTestHistory testHistory) {
