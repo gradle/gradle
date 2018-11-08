@@ -63,7 +63,10 @@ class TransformerInvokerTest extends Specification {
         1 * workExecutor.execute(_) >> { throw failure }
         1 * transformer.implementationClass >> ArtifactTransform
         1 * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
-        1 * historyRepository.getWorkspace(_, _) >> new File("workspace")
+        1 * sourceSubject.getProducer() >> Optional.empty()
+        1 * historyRepository.withWorkspace(_, _, _) >> { file, hash, action ->
+            action.apply(new File("workspace"))
+        }
         _ * artifactTransformListener._
         0 * _
     }

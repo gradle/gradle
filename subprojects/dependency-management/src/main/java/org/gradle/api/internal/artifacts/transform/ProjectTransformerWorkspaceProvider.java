@@ -19,20 +19,24 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.util.function.Function;
 
 public class ProjectTransformerWorkspaceProvider implements TransformerWorkspaceProvider {
 
     private final Provider<Directory> baseDirectory;
+    private final ProducerGuard<String> producing = ProducerGuard.adaptive();
 
     public ProjectTransformerWorkspaceProvider(ProjectLayout layout) {
         baseDirectory = layout.getBuildDirectory().dir("transforms-cache");
     }
 
     @Override
-    public File getWorkspace(File toBeTransformed, HashCode cacheKey) {
-        return new File(baseDirectory.get().getAsFile(), toBeTransformed.getName() + "/" + cacheKey);
+    public <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
+        String path = toBeTransformed.getName() + "/" + cacheKey;
+        return producing.guardByKey(path, () -> useWorkspace.apply(new File(baseDirectory.get().getAsFile(), path)));
     }
 }

@@ -39,6 +39,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
 
+import java.util.function.Function
+
 @UsesNativeServices
 @Ignore("FIXME wolfs - rewrite and replace by better test")
 class DefaultTransformerInvokerTest extends ConcurrentSpec {
@@ -56,7 +58,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
     }
     def workExecutor = new DefaultWorkExecutor(new CreateOutputsStep(executeStep))
-    Map<HashCode, List<File>> history = [:]
+    Map<HashCode, AfterPreviousExecutionState> history = [:]
     def historyRepository = new TransformerExecutionHistoryRepository() {
 
         @Override
@@ -70,7 +72,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
 
         @Override
-        File getWorkspace(File toBeTransformed, HashCode cacheKey) {
+        <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
             return null
         }
     }

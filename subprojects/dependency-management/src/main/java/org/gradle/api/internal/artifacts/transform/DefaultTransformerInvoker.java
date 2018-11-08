@@ -25,7 +25,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
@@ -69,7 +68,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
-    private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, ImmutableList<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, ImmutableList<File>>();
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository gradleUserHomeHistoryRepository;
@@ -117,9 +115,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return fireTransformListeners(transformer, subject, () -> {
             HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
             TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(subject);
-            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, persistentCacheKey, historyRepository);
-            UpToDateResult outcome = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
-            Try<ImmutableList<File>> result = execution.getResult(outcome);
+            Try<ImmutableList<File>> result = historyRepository.withWorkspace(primaryInput, persistentCacheKey, workspace -> {
+                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, persistentCacheKey, historyRepository);
+                UpToDateResult outcome = workExecutor.execute(execution);
+                return execution.getResult(outcome);
+            });
             result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
             return result;
         });
@@ -218,12 +218,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final HashCode persistentCacheKey;
         private final TransformerExecutionHistoryRepository historyRepository;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, HashCode persistentCacheKey, TransformerExecutionHistoryRepository historyRepository) {
+        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, HashCode persistentCacheKey, TransformerExecutionHistoryRepository historyRepository) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
             this.persistentCacheKey = persistentCacheKey;
             this.historyRepository = historyRepository;
-            File workspace = historyRepository.getWorkspace(primaryInput, persistentCacheKey);
             this.outputDir = new File(workspace, "outputDirectory");
             this.resultsFile = new File(workspace,  "results.bin");
         }

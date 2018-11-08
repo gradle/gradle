@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.util.function.Function;
 
 public interface TransformerWorkspaceProvider {
-    File getWorkspace(File toBeTransformed, HashCode cacheKey);
+    <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace);
 }
