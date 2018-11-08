@@ -2,7 +2,10 @@
 configurations {
     create("implementation") {
         withDependencies {
-            add(project.dependencies.create("org.gradle:my-util:1.0"))
+            val dep = this.find { it.name == "to-modify" } as ExternalModuleDependency
+            dep.version {
+                strictly("1.2")
+            }
         }
     }
 }
