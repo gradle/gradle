@@ -1812,9 +1812,6 @@ Found the following transforms:
             }
         """
 
-        // TODO LJA Investigate this
-        executer.expectDeprecationWarning()
-
         when:
         run "dependent"
 
