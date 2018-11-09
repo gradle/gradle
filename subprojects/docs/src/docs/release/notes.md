@@ -9,6 +9,7 @@ We would like to thank the following community contributors to this release of G
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Dan Sănduleac](https://github.com/dansanduleac),
+[Olivier Voortman](https://github.com/blop)
 
 ## Stricter validation with `validateTaskProperties`
 
@@ -89,6 +90,7 @@ We would like to thank the following community members for making contributions 
  - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Add Provider API types to `AbstractArchiveTask` task types (gradle/gradle#7435)
  - [Sebastian Schuberth](https://github.com/sschuberth) - Improve init-command comments for Kotlin projects (gradle/gradle#7592)
  - [Dan Sănduleac](https://github.com/dansanduleac) - Don't share dependency resolution listeners list when copying configuration (gradle/gradle#6996)
+ - [Olivier Voortman](https://github.com/blop) - Do not use a timestamp of 0 for tar file entries (gradle/gradle#7577).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
