@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -36,7 +37,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.inject.Inject
-import java.util.function.Supplier
 
 class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
@@ -80,7 +80,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT, configuration)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).files
 
         then:
         transformed.size() == 1
@@ -119,7 +119,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT, configuration)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -154,7 +154,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT, configuration))
+        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT))
 
         then:
         def failure = result.failure
@@ -191,7 +191,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT, configuration)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
         failure instanceof ObjectInstantiationException
@@ -225,7 +225,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT, configuration)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
         failure.message == 'broken'
@@ -321,7 +321,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     private void runTransformer(File primaryInput) {
         1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
-            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory, Mock(Supplier))) }
+            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
         }
     }
 

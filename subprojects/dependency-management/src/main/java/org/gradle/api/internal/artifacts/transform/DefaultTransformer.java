@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
@@ -26,7 +26,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public class DefaultTransformer implements Transformer {
@@ -44,8 +43,8 @@ public class DefaultTransformer implements Transformer {
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir, Supplier<FileCollection> artifactDependencies) {
-        ArtifactTransform transformer = newTransformer(artifactDependencies);
+    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
+        ArtifactTransform transformer = newTransformer(artifactTransformDependencies);
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);
@@ -75,11 +74,11 @@ public class DefaultTransformer implements Transformer {
         return outputs;
     }
 
-    private ArtifactTransform newTransformer(Supplier<FileCollection> artifactDependencies) {
+    private ArtifactTransform newTransformer(ArtifactTransformDependencies artifactTransformDependencies) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
-            FileCollection createArtifactDependencies() {
-                return artifactDependencies.get();
+            ArtifactTransformDependencies createArtifactDependencies() {
+                return artifactTransformDependencies;
             }
         });
         return instantiator.inject(registry).newInstance(implementationClass, parameters.isolate());

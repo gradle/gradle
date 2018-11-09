@@ -18,14 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -56,7 +49,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -65,7 +57,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -122,7 +113,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return fireTransformListeners(transformer, subject, () -> {
             HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
             File workspace = historyRepository.getWorkspace(primaryInput, persistentCacheKey);
-            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, persistentCacheKey, workspace, subject.getArtifactId(), subject.getConfiguration().getIncoming());
+            TransformerExecution execution = new TransformerExecution(primaryInput, transformer, persistentCacheKey, workspace, subject.getArtifactTransformDependencies());
             UpToDateResult outcome = producing.guardByKey(cacheKey, () -> workExecutor.execute(execution));
             Try<ImmutableList<File>> result = execution.getResult(outcome);
             result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
@@ -212,58 +203,24 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File outputDir;
         private final File resultsFile;
         private final HashCode persistentCacheKey;
-        private final ComponentArtifactIdentifier artifactId;
-        private final ResolvableDependencies incoming;
+        private final ArtifactTransformDependencies artifactTransformDependencies;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, HashCode persistentCacheKey, File workspace, @Nullable ComponentArtifactIdentifier artifactId, ResolvableDependencies incoming) {
+        public TransformerExecution(File primaryInput, Transformer transformer, HashCode persistentCacheKey, File workspace, ArtifactTransformDependencies artifactTransformDependencies) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
             this.persistentCacheKey = persistentCacheKey;
             this.outputDir = new File(workspace, "outputDirectory");
             this.resultsFile = new File(workspace,  "results.bin");
-            this.artifactId = artifactId;
-            this.incoming = incoming;
+            this.artifactTransformDependencies = artifactTransformDependencies;
         }
 
         @Override
         public boolean execute() {
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, createArtifactDependenciesSupplier()));
+            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, artifactTransformDependencies));
             writeResultsFile(outputDir, resultsFile, result);
             return true;
-        }
-
-        private Supplier<FileCollection> createArtifactDependenciesSupplier() {
-            return () -> {
-                FileCollection artifactFiles = null;
-                if (artifactId != null) {
-                    ResolutionResult resolutionResult = incoming.getResolutionResult();
-                    Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
-                    for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
-                        if (component.getId().equals(artifactId.getComponentIdentifier())) {
-                            getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
-                        }
-                    }
-                    artifactFiles = incoming.artifactView(conf -> {
-                        conf.componentFilter(element -> {
-                            return dependenciesIdentifiers.contains(element);
-                        });
-                    }).getArtifacts().getArtifactFiles();
-                }
-                return artifactFiles;
-            };
-        }
-
-        private void getDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Set<? extends DependencyResult> dependencies) {
-            for (DependencyResult dependency : dependencies) {
-                if (dependency instanceof ResolvedDependencyResult) {
-                    ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
-                    ResolvedComponentResult selected = resolvedDependency.getSelected();
-                    dependenciesIdentifiers.add(selected.getId());
-                    getDependenciesIdentifiers(dependenciesIdentifiers, selected.getDependencies());
-                }
-            }
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
