@@ -193,7 +193,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
-                                                                    DocumentationRegistry documentationRegistry) {
+                                                                    DocumentationRegistry documentationRegistry,
+                                                                    VariantTransformRegistry variantTransformRegistry) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -214,7 +215,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 componentSelectorConverter,
                 dependencyLockingProvider,
                 projectStateRegistry,
-                documentationRegistry
+                documentationRegistry,
+                variantTransformRegistry
             );
         }
 

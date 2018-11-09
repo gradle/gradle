@@ -79,6 +79,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
+    @Override
+    public boolean hasTransforms() {
+        return !transforms.isEmpty();
+    }
+
     private Object[] getTransformParameters(@Nullable Action<? super ActionConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;

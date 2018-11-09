@@ -35,6 +35,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.inject.Inject
+import java.util.function.Supplier
 
 class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
@@ -318,7 +319,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     private void runTransformer(File primaryInput) {
         1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
-            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory)) }
+            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory, Mock(Supplier))) }
         }
     }
 

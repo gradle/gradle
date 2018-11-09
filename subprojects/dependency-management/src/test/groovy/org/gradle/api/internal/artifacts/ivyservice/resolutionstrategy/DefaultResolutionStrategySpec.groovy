@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -51,6 +52,7 @@ class DefaultResolutionStrategySpec extends Specification {
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
     def vcsResolver = Mock(VcsResolver)
+    def variantTransformRegistry = Mock(VariantTransformRegistry)
     @Shared
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
 
@@ -59,7 +61,7 @@ class DefaultResolutionStrategySpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, variantTransformRegistry)
 
     def "allows setting forced modules"() {
         expect:
