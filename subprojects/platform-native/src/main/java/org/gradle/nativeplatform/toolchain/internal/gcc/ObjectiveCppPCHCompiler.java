@@ -34,10 +34,5 @@ public class ObjectiveCppPCHCompiler extends GccCompatibleNativeCompiler<Objecti
         protected String getLanguage() {
             return "objective-c++-header";
         }
-
-        @Override
-        protected boolean isNoStandardIncludes() {
-            return false;
-        }
     }
 }

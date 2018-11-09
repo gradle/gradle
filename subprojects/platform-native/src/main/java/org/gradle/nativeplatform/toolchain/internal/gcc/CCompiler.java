@@ -32,11 +32,6 @@ class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
         @Override
-        protected boolean isNoStandardIncludes() {
-            return false;
-        }
-
-        @Override
         protected String getLanguage() {
             return "c";
         }
