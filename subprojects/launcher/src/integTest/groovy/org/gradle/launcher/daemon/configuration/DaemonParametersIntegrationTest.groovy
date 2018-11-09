@@ -15,8 +15,13 @@
  */
 package org.gradle.launcher.daemon.configuration
 
+import org.gradle.api.JavaVersion
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.UsesNativeServices
 
 @UsesNativeServices
@@ -34,5 +39,47 @@ class DaemonParametersIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result == userHomeDir.file('daemon')
+    }
+
+    def "loads daemon.properties from installation"() {
+        given:
+        buildFile << """
+            task printJvmOptions() {
+                doLast {
+                    println java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()
+                }
+            }
+        """
+
+        and:
+        def distro = createDistribution()
+        distro.file("daemon.properties") << """
+            maxHeapSize = 499m
+            maxMetaspaceSize = 378m
+        """
+
+        when:
+        executer.withTasks('printJvmOptions')
+        executer.useOnlyRequestedJvmOpts()
+        executer.requireIsolatedDaemons()
+        result = runWithGradleHome(distro)
+
+        then:
+        outputContains("-Xmx499m")
+        outputContains(JavaVersion.current().isJava8Compatible() ? "-XX:MaxMetaspaceSize=378m" : "-XX:MaxPermSize=378m")
+    }
+
+    TestFile createDistribution() {
+        def distro = file("distro")
+        distro.copyFrom(distribution.getGradleHomeDir())
+        distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
+        distro
+    }
+
+    def runWithGradleHome(TestFile gradleHome) {
+        def copiedDistro = new DefaultGradleDistribution(executer.distribution.version, gradleHome, null)
+        def daemonExecuter = new DaemonGradleExecuter(copiedDistro, executer.testDirectoryProvider)
+        executer.copyTo(daemonExecuter)
+        return daemonExecuter.run()
     }
 }

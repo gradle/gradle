@@ -39,7 +39,7 @@ class DaemonParametersTest extends Specification {
         parameters.periodicCheckInterval == DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS
         parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         parameters.systemProperties.isEmpty()
-        parameters.effectiveJvmArgs.size() == 1  + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
+        parameters.effectiveJvmArgs.size() == 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
     }
 
     def "setting jvm to null means use the current jvm"() {
@@ -64,6 +64,7 @@ class DaemonParametersTest extends Specification {
 
         then:
         parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
+        parameters.jvmOptions.maxHeapSize == "17m"
     }
 
     def "does not apply defaults when jvmargs already specified"() {
@@ -74,6 +75,7 @@ class DaemonParametersTest extends Specification {
         then:
         parameters.effectiveJvmArgs.containsAll(["-Xmx17m"])
         parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
+        parameters.jvmOptions.maxHeapSize == "17m"
     }
 
     def "can apply defaults for Java 7 and earlier"() {
@@ -82,6 +84,8 @@ class DaemonParametersTest extends Specification {
 
         then:
         parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.contains("-XX:MaxPermSize=${DaemonParameters.DEFAULT_MAX_METASPACE_SIZE}" as String)
+        parameters.jvmOptions.maxHeapSize == DaemonParameters.DEFAULT_MAX_HEAP_SIZE
     }
 
     def "can apply defaults for Java 8 and later"() {
@@ -89,8 +93,9 @@ class DaemonParametersTest extends Specification {
         parameters.applyDefaultsFor(JavaVersion.VERSION_1_9)
 
         then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_8_ARGS)
-        !parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.contains("-XX:MaxMetaspaceSize=${DaemonParameters.DEFAULT_MAX_METASPACE_SIZE}" as String)
+        parameters.jvmOptions.maxHeapSize == DaemonParameters.DEFAULT_MAX_HEAP_SIZE
     }
 
     def "can configure debug mode"() {

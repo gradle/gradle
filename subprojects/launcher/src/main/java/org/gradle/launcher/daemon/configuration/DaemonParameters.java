@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
@@ -30,13 +32,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512mm", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-XX:+HeapDumpOnOutOfMemoryError");
+    public static final String DEFAULT_MAX_HEAP_SIZE = "512m";
+    public static final String DEFAULT_MAX_METASPACE_SIZE = "256m";
     public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens", "java.base/java.util=ALL-UNNAMED");
 
     private final File gradleUserHomeDir;
@@ -123,18 +127,33 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+        if (javaVersion.isJava9Compatible()) {
             jvmOptions.jvmArgs(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
             jvmOptions.jvmArgs(GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS);
         }
         if (hasJvmArgs) {
             return;
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
+        Properties properties = loadDaemonPropertiesFromInstallation();
+        jvmOptions.setMaxHeapSize(properties.getProperty("maxHeapSize", DEFAULT_MAX_HEAP_SIZE));
+        String maxMetaspaceSize = properties.getProperty("maxMetaspaceSize", DEFAULT_MAX_METASPACE_SIZE);
+        if (javaVersion.isJava8Compatible()) {
+            jvmOptions.jvmArgs("-XX:MaxMetaspaceSize=" + maxMetaspaceSize);
         } else {
-            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
+            jvmOptions.jvmArgs("-XX:MaxPermSize=" + maxMetaspaceSize);
         }
+        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
+    }
+
+    private Properties loadDaemonPropertiesFromInstallation() {
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation != null) {
+            File daemonProperties = new File(gradleInstallation.getGradleHome(), "daemon.properties");
+            if (daemonProperties.isFile()) {
+                return GUtil.loadProperties(daemonProperties);
+            }
+        }
+        return new Properties();
     }
 
     public Map<String, String> getSystemProperties() {
