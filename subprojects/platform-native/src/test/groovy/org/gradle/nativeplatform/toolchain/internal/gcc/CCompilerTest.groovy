@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.internal.os.OperatingSystem
+
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
