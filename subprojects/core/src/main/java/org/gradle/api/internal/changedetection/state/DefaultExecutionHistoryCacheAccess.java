@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -24,6 +23,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -32,10 +32,10 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
 
-    public DefaultExecutionHistoryCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultExecutionHistoryCacheAccess(@Nullable Object scope, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
-                .cache(gradle, "executionHistory")
+                .cache(scope, "executionHistory")
                 .withDisplayName("execution history cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();

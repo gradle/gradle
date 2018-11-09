@@ -1016,7 +1016,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastFileAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -1288,7 +1288,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
         def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
-        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
+        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+[/\\\\]outputDirectory)")
         for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
@@ -1310,5 +1310,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
-
+    void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
+        writeLastFileAccessTimeToJournal(outputDir.parentFile, millis)
+    }
 }

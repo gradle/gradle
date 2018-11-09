@@ -23,7 +23,7 @@ import java.util.function.Function;
 
 public abstract class Try<T> {
 
-    protected Try() {
+    private Try() {
     }
 
     public static <U> Try<U> ofFailable(Callable<U> failable) {

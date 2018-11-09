@@ -302,12 +302,13 @@ public class GradleUserHomeScopeServices {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
+        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
+        UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         return new DefaultWorkExecutor<UpToDateResult>(
             new SkipUpToDateStep<Context>(
                 new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
                     new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-                        new SnapshotOutputStep<Context>(UniqueId.generate(),
+                        new SnapshotOutputStep<Context>(fixedUniqueId,
                             new CreateOutputsStep<Context, Result>(
                                 new CatchExceptionStep<Context>(
                                     new TimeoutStep<Context>(timeoutHandler,
