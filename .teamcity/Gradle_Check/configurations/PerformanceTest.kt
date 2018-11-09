@@ -56,7 +56,6 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
                 gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7Home=%linux.jdk.for.gradle.compile%"
-                buildFile = "gradle/buildTagging.gradle"
             }
         }
     }

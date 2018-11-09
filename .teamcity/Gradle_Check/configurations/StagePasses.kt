@@ -83,7 +83,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
                 gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
-                buildFile = "gradle/buildTagging.gradle"
             }
         }
     }

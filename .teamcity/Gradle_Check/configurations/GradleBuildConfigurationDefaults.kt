@@ -178,7 +178,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
                 gradleParams = "$gradleParameterString -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
-                buildFile = "gradle/buildTagging.gradle"
             }
         }
     }
