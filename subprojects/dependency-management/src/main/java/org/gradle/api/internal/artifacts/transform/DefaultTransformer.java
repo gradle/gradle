@@ -18,22 +18,25 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
     private final Isolatable<Object[]> parameters;
-    private final Instantiator instantiator;
+    private final InstantiatorFactory instantiator;
     private final HashCode inputsHash;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiator) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiator = instantiator;
@@ -41,8 +44,8 @@ public class DefaultTransformer implements Transformer {
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir) {
-        ArtifactTransform transformer = newTransformer();
+    public List<File> transform(File primaryInput, File outputDir, Supplier<FileCollection> artifactDependencies) {
+        ArtifactTransform transformer = newTransformer(artifactDependencies);
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);
@@ -72,8 +75,14 @@ public class DefaultTransformer implements Transformer {
         return outputs;
     }
 
-    private ArtifactTransform newTransformer() {
-        return instantiator.newInstance(implementationClass, parameters.isolate());
+    private ArtifactTransform newTransformer(Supplier<FileCollection> artifactDependencies) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new Object() {
+            FileCollection createArtifactDependencies() {
+                return artifactDependencies.get();
+            }
+        });
+        return instantiator.inject(registry).newInstance(implementationClass, parameters.isolate());
     }
 
     @Override

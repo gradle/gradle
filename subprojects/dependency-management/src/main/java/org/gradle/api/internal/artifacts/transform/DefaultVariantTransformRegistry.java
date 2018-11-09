@@ -71,7 +71,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject(), transformerInvoker);
+        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
         transforms.add(registration);
     }
 
