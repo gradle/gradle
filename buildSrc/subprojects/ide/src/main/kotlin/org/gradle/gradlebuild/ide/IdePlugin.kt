@@ -592,7 +592,6 @@ open class IdePlugin : Plugin<Project> {
             "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
             "-Dorg.gradle.integtest.executer=embedded",
             "-Dorg.gradle.integtest.versions=latest",
-            "-Dorg.gradle.integtest.native.toolChains=default",
             "-Dorg.gradle.integtest.multiversion=default",
             "-Dorg.gradle.integtest.testkit.compatibility=current",
             "-Xmx512m",

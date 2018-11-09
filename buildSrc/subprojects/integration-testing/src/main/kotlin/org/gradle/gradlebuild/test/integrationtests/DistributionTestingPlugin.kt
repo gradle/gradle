@@ -141,9 +141,6 @@ class DistributionTestingPlugin : Plugin<Project> {
         fun ifProperty(name: String, then: String): String? =
             then.takeIf { project.findProperty(name) == true }
 
-        systemProperties["org.gradle.integtest.native.toolChains"] =
-            ifProperty("testAllPlatforms", "all") ?: "default"
-
         systemProperties["org.gradle.integtest.multiversion"] =
             ifProperty("testAllVersions", "all") ?: "default"
     }

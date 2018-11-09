@@ -19,48 +19,60 @@ package org.gradle.integtests.fixtures
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
-class MultiVersionSpecRunner extends AbstractMultiTestRunner {
-
-    private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions"
-    public static final String MULTI_VERSION_SYS_PROP = "org.gradle.integtest.multiversion"
+class MultiVersionSpecRunner extends AbstractConfigurableMultiVersionSpecRunner {
+    def versions
+    def coverage
 
     MultiVersionSpecRunner(Class<?> target) {
         super(target)
+        versions = target.getAnnotation(TargetVersions)
+        coverage = target.getAnnotation(TargetCoverage)
     }
 
     @Override
-    protected void createExecutions() {
-        boolean enableAllVersions = "all".equals(System.getProperty(MULTI_VERSION_SYS_PROP, "default"))
-        def selectionCriteria = System.getProperty(VERSIONS_SYSPROP_NAME, "latest").split(",") as List
-        def versions = target.getAnnotation(TargetVersions)
-        def coverage = target.getAnnotation(TargetCoverage)
-        def versionUnderTest
+    void createExecutionsForContext(CoverageContext context) {
+        def possibleVersions = getAllVersions()
+        def versionsUnderTest
 
+        switch(context) {
+            case CoverageContext.DEFAULT:
+                versionsUnderTest = [possibleVersions.last()]
+                break
+            case CoverageContext.PARTIAL:
+                versionsUnderTest = [possibleVersions.first(), possibleVersions.last()]
+                break
+            case CoverageContext.FULL:
+                versionsUnderTest = possibleVersions
+                break
+            default:
+                throw new RuntimeException("Unhandled coverage context: " + context);
+        }
+
+        versionsUnderTest.each { add(new VersionExecution(it)) }
+    }
+
+    @Override
+    void createSelectedExecutions(List<String> selectionCriteria) {
+        def possibleVersions = getAllVersions()
+        def versionsUnderTest = [] as Set
+
+        if ("latest" in selectionCriteria) {
+            versionsUnderTest.add(possibleVersions.last())
+        }
+
+        versionsUnderTest.addAll(possibleVersions.findAll { it.toString() in selectionCriteria })
+
+        versionsUnderTest.each { add(new VersionExecution(it)) }
+    }
+
+    List<String> getAllVersions() {
         if (versions != null) {
-            versionUnderTest = selectVersions(enableAllVersions, versions.value() as List, selectionCriteria)
+            return versions.value()
         } else if (coverage != null) {
-            def coverageTargets = coverage.value().newInstance(target, target).call()
-            versionUnderTest = selectVersions(enableAllVersions, coverageTargets as List, selectionCriteria)
+            return coverage.value().newInstance(target, target).call() as List
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
-        versionUnderTest.each { add(new VersionExecution(it)) }
-    }
-
-    private static List<String> selectVersions(boolean enableAllVersions, List<String> possibleVersions, List<String> selectionCriteria) {
-        final List result
-        if (enableAllVersions) {
-            result = possibleVersions
-        } else {
-            if (selectionCriteria.size() == 1 && selectionCriteria[0] == "latest") {
-                result = [ possibleVersions.last() ]
-            } else {
-                result = possibleVersions.findAll {
-                    it.toString() in selectionCriteria
-                }
-            }
-        }
-        return result.toUnique()
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {

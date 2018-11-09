@@ -16,15 +16,73 @@
 
 package org.gradle.nativeplatform.fixtures;
 
-import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
+import com.google.common.collect.Maps;
+import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.AbstractConfigurableMultiVersionSpecRunner;
+import org.gradle.util.CollectionUtils;
+
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
-public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
-    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.native.toolChains";
+public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionSpecRunner {
 
     public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
-        super(target, "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default")));
+        super(target);
+    }
+
+    @Override
+    protected void createExecutionsForContext(CoverageContext context) {
+        List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
+
+        switch(context) {
+            case DEFAULT:
+                add(new ToolChainExecution(toolChains.get(0)));
+                break;
+            case PARTIAL:
+                for (AvailableToolChains.ToolChainCandidate toolChain : getLatestAvailableToolchainFromEachFamily(toolChains)) {
+                    add(new ToolChainExecution(toolChain));
+                }
+                break;
+            case FULL:
+                for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
+                    add(new ToolChainExecution(toolChain));
+                }
+                break;
+            default:
+                throw new RuntimeException("Unhandled coverage context: " + context);
+        }
+    }
+
+    @Override
+    protected void createSelectedExecutions(List<String> selectionCriteria) {
+        if (selectionCriteria.size() == 0 && selectionCriteria.get(0).equals("latest")) {
+            List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
+            add(new ToolChainExecution(toolChains.get(0)));
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    private List<AvailableToolChains.ToolChainCandidate> getAvailableToolChains(List<AvailableToolChains.ToolChainCandidate> toolChains) {
+        return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
+            @Override
+            public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
+                return toolChain.isAvailable() && canUseToolChain(toolChain);
+            }
+        });
+    }
+
+    private Collection<AvailableToolChains.ToolChainCandidate> getLatestAvailableToolchainFromEachFamily(List<AvailableToolChains.ToolChainCandidate> toolChains) {
+        Map<AvailableToolChains.ToolFamily, AvailableToolChains.ToolChainCandidate> availableByFamily = Maps.newEnumMap(AvailableToolChains.ToolFamily.class);
+        for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
+            AvailableToolChains.ToolChainCandidate current = availableByFamily.get(toolChain.getFamily());
+            if (current == null || current.getVersion().compareTo(toolChain.getVersion()) < 0) {
+                availableByFamily.put(toolChain.getFamily(), toolChain);
+            }
+        }
+
+        return availableByFamily.values();
     }
 
     @Override
