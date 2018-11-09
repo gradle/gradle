@@ -16,28 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
-import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collections;
 
-/**
- * The actual code which needs to be executed to transform a file.
- *
- * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
- */
-public interface Transformer extends Describable {
-    Class<? extends ArtifactTransform> getImplementationClass();
+public class EmptyArtifactTransformDependencies implements ArtifactTransformDependencies {
 
-    List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies);
+    public static final ArtifactTransformDependencies INSTANCE = new EmptyArtifactTransformDependencies();
 
-    /**
-     * The hash of the secondary inputs of the transformer.
-     *
-     * This includes the parameters and the implementation.
-     */
-    HashCode getSecondaryInputHash();
+    private EmptyArtifactTransformDependencies() {
+        // Singleton
+    }
+    @Override
+    public Iterable<File> getDependencies() {
+        return Collections.emptyList();
+    }
 }

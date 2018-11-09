@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
@@ -333,7 +332,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     private TransformationSubject initialSubject(String path) {
-        TransformationSubject.initial(new File(path), Mock(ConfigurationInternal))
+        TransformationSubject.initial(new File(path))
     }
 
     private AttributeContainerInternal attributes() {

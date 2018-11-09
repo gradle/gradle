@@ -75,19 +75,20 @@ project(':app') {
 }
 
 import javax.inject.Inject
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 
 class FileSizer extends ArtifactTransform {
 
-    FileCollection artifactDependencies
+    ArtifactTransformDependencies artifactDependencies
 
     @Inject
-    FileSizer(FileCollection artifactDependencies) {
+    FileSizer(ArtifactTransformDependencies artifactDependencies) {
         this.artifactDependencies = artifactDependencies
         println "Creating FileSizer"
     }
     
     List<File> transform(File input) {
-        println "Received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
+        println "Received dependencies files \${artifactDependencies.dependencies*.name} for processing \${input.name}"
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")

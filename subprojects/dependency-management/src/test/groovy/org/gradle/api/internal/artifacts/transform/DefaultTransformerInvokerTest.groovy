@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.file.FileCollection
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
@@ -39,8 +39,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
-
-import java.util.function.Supplier
 
 @UsesNativeServices
 @Ignore("FIXME wolfs - rewrite and replace by better test")
@@ -243,7 +241,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     def "multiple threads can transform files concurrently"() {
         def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, Supplier<FileCollection> artifactDependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
                 instant.a
                 thread.blockUntil.b
                 instant.a_done
@@ -251,7 +249,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
         def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, Supplier<FileCollection> artifactDependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
                 instant.b
                 thread.blockUntil.a
                 instant.b_done
