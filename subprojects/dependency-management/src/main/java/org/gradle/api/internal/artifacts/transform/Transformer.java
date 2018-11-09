@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The actual code which needs to be executed to transform a file.
@@ -31,7 +33,7 @@ import java.util.List;
 public interface Transformer extends Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
 
-    List<File> transform(File file, File file2);
+    List<File> transform(File primaryInput, File outputDir, Supplier<FileCollection> artifactDependencies);
 
     /**
      * The hash of the secondary inputs of the transformer.

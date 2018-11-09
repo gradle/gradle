@@ -17,15 +17,16 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Issue
+import org.gradle.util.ToBeImplemented
 
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def "transform can access artifact dependencies as FileCollection when using ArtifactView"() {
+    def setup() {
+        // TODO LJA Investigate, this makes little sense
+        executer.expectDeprecationWarning()
 
-        given:
         settingsFile << """
-            rootProject.name = 'root'
+            rootProject.name = 'transform-deps'
             include 'lib'
             include 'app'
         """
@@ -71,13 +72,43 @@ project(':app') {
             artifactTransform(FileSizer)
         }
     }
+}
 
+import javax.inject.Inject
+
+class FileSizer extends ArtifactTransform {
+
+    FileCollection artifactDependencies
+
+    @Inject
+    FileSizer(FileCollection artifactDependencies) {
+        this.artifactDependencies = artifactDependencies
+        println "Creating FileSizer"
+    }
+    
+    List<File> transform(File input) {
+        println "Received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
+
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name + ".txt")
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+"""
+    }
+
+    def "transform can access artifact dependencies as FileCollection when using ArtifactView"() {
+
+        given:
+
+        buildFile << """
+project(':app') {
     task resolve(type: Copy) {
         def artifacts = configurations.compileClasspath.incoming.artifactView {
             attributes { it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size')) }
-            if (project.hasProperty("lenient")) {
-                lenient(true)
-            }
         }.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
@@ -90,30 +121,52 @@ project(':app') {
     }
 }
 
-class FileSizer extends ArtifactTransform {
-    FileSizer() {
-        println "Creating FileSizer"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
 """
 
-        // TODO LJA Investigate, this makes little sense
-        executer.expectDeprecationWarning()
+        when:
+        run "resolve"
 
+        then:
+        output.count('Transforming') == 4
+        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+    }
+
+    @ToBeImplemented("See assertions")
+    def "transform can access artifact dependencies as FileCollection when using configuration attributes"() {
+
+        given:
+
+        buildFile << """
+project(':app') {
+    configurations {
+        sizeConf {
+            attributes.attribute(artifactType, 'size')
+            extendsFrom compileClasspath
+        }
+    }
+
+    task resolve(type: Copy) {
+        def artifacts = configurations.sizeConf.incoming.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+        doLast {
+            println "files: " + artifacts.collect { it.file.name }
+            println "ids: " + artifacts.collect { it.id }
+            println "components: " + artifacts.collect { it.id.componentIdentifier }
+            println "variants: " + artifacts.collect { it.variant.attributes }
+        }
+    }
+}
+"""
 
         when:
         run "resolve"
 
         then:
         output.count("Transforming") == 4
+        // The asserts below should not have the .txt part
+        output.contains('Received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar')
+        output.contains('Received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar')
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.TransformInvocationException
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.WorkExecutor
@@ -35,6 +36,7 @@ class TransformerInvokerTest extends Specification {
 
     def transformer = Mock(Transformer)
     def sourceSubject = Mock(TransformationSubject)
+    def configurationInternal = Mock(ConfigurationInternal)
     def sourceFile = new File("source")
     WorkExecutor<UpToDateResult> workExecutor = Mock()
     def fileHasher = new TestFileHasher()
@@ -63,6 +65,8 @@ class TransformerInvokerTest extends Specification {
         1 * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
         1 * historyRepository.getWorkspace(_, _) >> new File("workspace")
         1 * sourceSubject.artifactId >> null
+        1 * sourceSubject.configuration >> configurationInternal
+        1 * configurationInternal.incoming >> null
         _ * artifactTransformListener._
         0 * _
     }
