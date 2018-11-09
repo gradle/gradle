@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -32,11 +33,6 @@ class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
     }
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
-        @Override
-        protected boolean isNoStandardIncludes() {
-            return !OperatingSystem.current().isMacOsX();
-        }
-
         @Override
         protected String getLanguage() {
             return "c";

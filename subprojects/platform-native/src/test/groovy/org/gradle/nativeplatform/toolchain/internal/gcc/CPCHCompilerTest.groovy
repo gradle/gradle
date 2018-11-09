@@ -36,9 +36,6 @@ class CPCHCompilerTest extends GccCompatibleNativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
         def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
-        if (OperatingSystem.current().macOsX) {
-            arguments.remove('-nostdinc')
-        }
         return [ '-x', 'c-header' ] + arguments
     }
 }

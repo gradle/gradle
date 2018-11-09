@@ -33,11 +33,6 @@ class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
         @Override
-        protected boolean isNoStandardIncludes() {
-            return !OperatingSystem.current().isMacOsX();
-        }
-
-        @Override
         protected String getLanguage() {
             return "c++";
         }
