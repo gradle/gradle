@@ -16,19 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
 abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        def arguments = [ '-c', '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-nostdinc', '-I', includeDir.absoluteFile.toString(), '-isystem', systemIncludeDir.absoluteFile.toString() ]
-        // TODO: We need to add support for Framework system includes on macOS
-        if (OperatingSystem.current().macOsX) {
-            arguments.remove('-nostdinc')
-        }
-        return arguments
+        return [ '-c', '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-nostdinc', '-I', includeDir.absoluteFile.toString(), '-isystem', systemIncludeDir.absoluteFile.toString() ]
     }
 
     def "arguments include GCC output flag and output file name"() {
