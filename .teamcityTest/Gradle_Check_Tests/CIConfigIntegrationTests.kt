@@ -109,7 +109,7 @@ class CIConfigIntegrationTests {
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
                                     TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java10)),
+                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java11)),
                             omitsSlowProjects = true)
                 )
         )
