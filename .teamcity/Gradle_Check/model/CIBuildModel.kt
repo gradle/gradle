@@ -34,7 +34,7 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java10)), omitsSlowProjects = true),
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java11)), omitsSlowProjects = true),
             Stage(StageNames.QUICK_FEEDBACK,
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
@@ -48,7 +48,7 @@ data class CIBuildModel (
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java10)),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java11)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage(StageNames.READY_FOR_NIGHTLY,
@@ -56,17 +56,17 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java10))
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java11))
             ),
             Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
-                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java10),
+                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java11),
                             TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java10),
+                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java11),
                             TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
                             TestCoverage(TestType.forceRealizeDependencyManagement, OS.linux, JvmVersion.java8)),
                     performanceTests = listOf(
@@ -79,8 +79,8 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java11, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java11, vendor = JvmVendor.openjdk))
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
+                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java12, vendor = JvmVendor.openjdk))
             )
         ),
         val subProjects : List<GradleSubproject> = listOf(
@@ -254,7 +254,7 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java8, java9, java10, java11
+    java8, java9, java10, java11, java12
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
