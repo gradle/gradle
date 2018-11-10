@@ -79,8 +79,8 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java11),
-                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java11))
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java11, vendor = JvmVendor.openjdk),
+                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java11, vendor = JvmVendor.openjdk))
             )
         ),
         val subProjects : List<GradleSubproject> = listOf(
@@ -273,7 +273,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 }
 
 enum class JvmVendor {
-    oracle, ibm
+    oracle, ibm, openjdk
 }
 
 enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {
