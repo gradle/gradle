@@ -17,7 +17,6 @@ package org.gradle.build.docs
 
 import org.asciidoctor.gradle.AsciidoctorProxy
 import org.asciidoctor.gradle.AsciidoctorTask
-import org.asciidoctor.gradle.ResourceCopyProxy
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
@@ -34,12 +33,6 @@ import org.gradle.api.tasks.util.PatternSet
 
 @CacheableTask
 class CacheableAsciidoctorTask extends AsciidoctorTask {
-
-    @Internal
-    @Override
-    AsciidoctorProxy getAsciidoctor() {
-        return super.getAsciidoctor()
-    }
 
     @Internal
     @Override
@@ -98,12 +91,6 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
     @Internal
     Set<File> getOutputDirectories() {
         super.getOutputDirectories()
-    }
-
-    @Internal
-    @Override
-    ResourceCopyProxy getResourceCopyProxy() {
-        return super.getResourceCopyProxy()
     }
 
     /**
