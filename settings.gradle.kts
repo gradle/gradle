@@ -167,13 +167,5 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
     }
-    resolutionStrategy {
-        eachPlugin {
-            when (requested.id.id) {
-                // FIXME: Publish plugin marker artifacts for the ci tagging plugin
-                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.43")
-            }
-        }
-    }
 }
 
