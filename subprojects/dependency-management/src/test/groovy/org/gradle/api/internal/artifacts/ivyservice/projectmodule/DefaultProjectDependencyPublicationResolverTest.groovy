@@ -23,6 +23,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
+import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -34,7 +35,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def publication = Mock(ProjectPublication)
 
     def setup() {
-        project.path >> ":path"
+        project.identityPath >> Path.path(":path")
         project.displayName >> "<project>"
     }
 
@@ -222,7 +223,7 @@ Found the following publications in <project>:
     private void dependentProjectHasPublications(ProjectPublication... added) {
         projectDependency.dependencyProject >> project
         projectConfigurer.configureFully(project)
-        publicationRegistry.getPublications(":path") >> (added as LinkedHashSet)
+        publicationRegistry.getPublications(Path.path(":path")) >> (added as LinkedHashSet)
     }
 
     private ProjectPublication pub(def name, def group, def module, def version) {

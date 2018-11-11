@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -207,6 +208,12 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     @Override
     public GradleInternal getConfiguredBuild() {
         return getGradleLauncher().getConfiguredBuild();
+    }
+
+    @Override
+    public <T> T withState(Transformer<T, ? super GradleInternal> action) {
+        // This should apply some locking, but most access to the build state does not happen via this method yet
+        return action.transform(getGradleLauncher().getGradle());
     }
 
     @Override

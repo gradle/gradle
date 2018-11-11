@@ -164,7 +164,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public void execute(Project project) {
                         DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
+                        ProjectInternal projectInternal = (ProjectInternal) project;
+                        publicationRegistry.registerPublication(projectInternal, new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
                     }
                 });
             }
