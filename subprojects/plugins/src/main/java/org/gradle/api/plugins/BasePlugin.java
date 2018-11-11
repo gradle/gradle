@@ -132,8 +132,8 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureUploadArchivesTask() {
-        configurationActionContainer.add(new Action<Project>() {
-            public void execute(Project project) {
+        configurationActionContainer.add(new Action<ProjectInternal>() {
+            public void execute(ProjectInternal project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) {
                     return;
@@ -147,7 +147,7 @@ public class BasePlugin implements Plugin<Project> {
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 Module module = configuration.getModule();
                 ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-                publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
+                publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
             }
         });
     }

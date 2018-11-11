@@ -16,19 +16,50 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
+import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry {
-    private final SetMultimap<String, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
+    private final SetMultimap<Path, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
+    private final List<Reference> allPublications = new ArrayList<Reference>();
 
-    public Set<ProjectPublication> getPublications(String projectPath) {
-        return publicationsByProject.get(projectPath);
+    @Override
+    public Set<ProjectPublication> getPublications(Path projectIdentityPath) {
+        synchronized (publicationsByProject) {
+            return ImmutableSet.copyOf(publicationsByProject.get(projectIdentityPath));
+        }
     }
 
-    public void registerPublication(String projectPath, ProjectPublication publication) {
-        publicationsByProject.put(projectPath, publication);
+    @Override
+    public Collection<Reference> getPublications() {
+        return ImmutableList.copyOf(allPublications);
+    }
+
+    @Override
+    public void registerPublication(ProjectInternal project, ProjectPublication publication) {
+        synchronized (publicationsByProject) {
+            publicationsByProject.put(project.getIdentityPath(), publication);
+            allPublications.add(new Reference() {
+                @Override
+                public ProjectPublication get() {
+                    return publication;
+                }
+
+                @Override
+                public Project getOwningProject() {
+                    return project;
+                }
+            });
+        }
     }
 }

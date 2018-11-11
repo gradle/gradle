@@ -21,12 +21,13 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.gradle.ProjectPublications
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
 class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
 
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
-        getPublications(":") >> [Stub(ProjectPublication) {
+        getPublications(Path.ROOT) >> [Stub(ProjectPublication) {
             getCoordinates(ModuleVersionIdentifier) >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> "group"
                 getName() >> "name"

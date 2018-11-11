@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -46,4 +47,6 @@ public interface IncludedBuildState extends NestedBuildState {
     void finishBuild();
     void addTasks(Iterable<String> tasks);
     void execute(Iterable<String> tasks, Object listener);
+
+    <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

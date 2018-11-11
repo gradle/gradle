@@ -136,7 +136,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public void execute(Project project) {
                         DefaultCppComponent componentInternal = (DefaultCppComponent) component;
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
+                        ProjectInternal projectInternal = (ProjectInternal) project;
+                        publicationRegistry.registerPublication(projectInternal, new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
                     }
                 });
             }
