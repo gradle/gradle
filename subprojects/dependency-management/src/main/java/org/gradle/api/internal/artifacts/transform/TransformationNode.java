@@ -166,8 +166,8 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                ArtifactTransformDependencies artifactTransformDependencies = new DefaultArtifactTransformDependencies(artifact.getId(), configuration);
-                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), artifactTransformDependencies);
+                ArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifact.getId(), configuration);
+                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), dependencies);
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
             }

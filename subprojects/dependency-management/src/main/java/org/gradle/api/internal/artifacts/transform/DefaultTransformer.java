@@ -24,27 +24,27 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import javax.annotation.Nullable;
 
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
     private final Isolatable<Object[]> parameters;
-    private final InstantiatorFactory instantiator;
+    private final InstantiatorFactory instantiatorFactory;
     private final HashCode inputsHash;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiator) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
-        this.instantiator = instantiator;
+        this.instantiatorFactory = instantiatorFactory;
         this.inputsHash = inputsHash;
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ArtifactTransform transformer = newTransformer(artifactTransformDependencies);
+    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+        ArtifactTransform transformer = newTransformer(dependencies);
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);
@@ -81,7 +81,7 @@ public class DefaultTransformer implements Transformer {
                 return artifactTransformDependencies;
             }
         });
-        return instantiator.inject(registry).newInstance(implementationClass, parameters.isolate());
+        return instantiatorFactory.inject(registry).newInstance(implementationClass, parameters.isolate());
     }
 
     @Override

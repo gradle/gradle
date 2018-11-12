@@ -218,7 +218,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     def "multiple threads can transform files concurrently"() {
         def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
                 instant.a
                 thread.blockUntil.b
                 instant.a_done
@@ -226,7 +226,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
         def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
                 instant.b
                 thread.blockUntil.a
                 instant.b_done
