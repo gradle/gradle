@@ -34,7 +34,7 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java11)), omitsSlowProjects = true),
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java11, vendor = JvmVendor.openjdk)), omitsSlowProjects = true),
             Stage(StageNames.QUICK_FEEDBACK,
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
@@ -48,7 +48,7 @@ data class CIBuildModel (
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java11)),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage(StageNames.READY_FOR_NIGHTLY,
@@ -56,17 +56,17 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java11))
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java11, vendor = JvmVendor.openjdk))
             ),
             Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
-                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java11),
+                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java11, vendor = JvmVendor.openjdk),
                             TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java11),
+                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java11, vendor = JvmVendor.openjdk),
                             TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
                             TestCoverage(TestType.forceRealizeDependencyManagement, OS.linux, JvmVersion.java8)),
                     performanceTests = listOf(
