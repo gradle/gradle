@@ -37,12 +37,13 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T>, HasPublicType {
 
+    //TODO pass proper build op executor
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+        super(type, instantiator, namer, null);
     }
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        super(type, instantiator, Named.Namer.forType(type));
+        super(type, instantiator, Named.Namer.forType(type), null);
     }
 
     /**

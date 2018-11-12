@@ -143,6 +143,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
+
             String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath().toString();
             return BuildOperationDescriptor.displayName(name);
         }

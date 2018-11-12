@@ -68,6 +68,7 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
     @Override
     public void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
         subscribe(type);
+
         addActions = addActions.add(addAction);
     }
 

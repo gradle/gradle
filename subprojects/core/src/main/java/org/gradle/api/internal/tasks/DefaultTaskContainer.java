@@ -29,6 +29,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
@@ -95,8 +96,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private MutableModelNode modelNode;
 
-    public DefaultTaskContainer(final ProjectInternal project, Instantiator instantiator, final ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
-        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator));
+    public DefaultTaskContainer(final ProjectInternal project,
+                                Instantiator instantiator,
+                                final ITaskFactory taskFactory,
+                                ProjectAccessListener projectAccessListener,
+                                TaskStatistics statistics,
+                                BuildOperationExecutor buildOperationExecutor,
+                                CrossProjectConfigurator crossProjectConfigurator,
+                                DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
+        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), domainObjectCollectionCallbackDecorator);
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;
@@ -235,7 +243,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
                         DeprecationLogger.nagUserOfDeprecated(
                             "Replacing an existing task with an incompatible type",
-                            "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal)task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
+                            "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal) task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
                         onCreate = getEventRegister().getAddActions();
                     } else {
                         onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));

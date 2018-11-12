@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -190,13 +191,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new TaskInstantiator(taskFactory, project);
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator);
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, DomainObjectCollectionCallbackDecorator decorator) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator);
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer() {
+    protected SoftwareComponentContainer createSoftwareComponentContainer(BuildOperationExecutor buildOperationExecutor) {
         Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, buildOperationExecutor);
     }
 
     protected ProjectFinder createProjectFinder() {

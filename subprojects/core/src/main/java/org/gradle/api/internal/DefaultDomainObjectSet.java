@@ -34,7 +34,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     private ImmutableActionSet<Void> beforeContainerChange = ImmutableActionSet.empty();
 
     public DefaultDomainObjectSet(Class<? extends T> type) {
-        super(type, new IterationOrderRetainingSetElementSource<T>());
+        super(type, new IterationOrderRetainingSetElementSource<T>(), null);
     }
 
     /**
@@ -58,7 +58,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store) {
-        super(type, store);
+        super(type, store, null);
     }
 
     protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter) {
@@ -66,7 +66,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     }
 
     protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
-        super(type, store, eventRegister);
+        super(type, store, eventRegister, null);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     private NamedDomainObjectSet<T> enabled;
 
     public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator) {
-        super(type, instantiator, Report.NAMER);
+        super(type, instantiator, Report.NAMER, null);
 
         enabled = matching(new Spec<T>() {
             public boolean isSatisfiedBy(T element) {

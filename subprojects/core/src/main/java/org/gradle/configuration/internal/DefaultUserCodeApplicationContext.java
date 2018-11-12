@@ -24,7 +24,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicLong;
 
-class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
+public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
@@ -51,7 +51,7 @@ class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
         }
     }
 
-    void reapply(UserCodeApplicationId id, Runnable runnable) {
+    public void reapply(UserCodeApplicationId id, Runnable runnable) {
         Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
         stack.push(id);
         try {

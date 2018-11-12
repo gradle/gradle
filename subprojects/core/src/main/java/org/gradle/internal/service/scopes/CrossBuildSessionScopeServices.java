@@ -17,6 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.DefaultDomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -114,6 +116,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return buildOperationNotificationBridge.getValve();
     }
 
+    DomainObjectCollectionCallbackDecorator createDomainObjectCollectionCallbackDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+        return services.get(DomainObjectCollectionCallbackDecorator.class);
+    }
+
     @Override
     public void close() throws IOException {
         new CompositeStoppable().add(
@@ -166,6 +172,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         DefaultListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
             return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
+        }
+
+        DomainObjectCollectionCallbackDecorator createDomainObjectCollectionCallbackDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultDomainObjectCollectionCallbackDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
     }
 }

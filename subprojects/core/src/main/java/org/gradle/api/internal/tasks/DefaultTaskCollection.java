@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
@@ -48,20 +49,20 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     private final MutationGuard parentMutationGuard;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(type, instantiator, NAMER);
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard, DomainObjectCollectionCallbackDecorator decorator) {
+        super(type, instantiator, NAMER, decorator);
         this.project = project;
         this.parentMutationGuard = parentMutationGuard;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(collection, filter, instantiator, NAMER);
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard, DomainObjectCollectionCallbackDecorator decorator) {
+        super(collection, filter, instantiator, NAMER, decorator);
         this.project = project;
         this.parentMutationGuard = parentMutationGuard;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, getDecorator());
     }
 
     @Override

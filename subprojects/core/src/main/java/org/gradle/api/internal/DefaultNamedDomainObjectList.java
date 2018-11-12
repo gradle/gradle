@@ -35,11 +35,11 @@ import java.util.ListIterator;
 
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        super(objects, filter, instantiator, namer);
+        super(objects, filter, instantiator, namer, null);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ListElementSource<T>(), instantiator, namer);
+        super(type, new ListElementSource<T>(), instantiator, namer, null);
     }
 
     public void add(int index, T element) {

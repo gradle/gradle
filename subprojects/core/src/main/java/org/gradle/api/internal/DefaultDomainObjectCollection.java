@@ -46,16 +46,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
+    private DomainObjectCollectionCallbackDecorator decorator;
     private final ElementSource<T> store;
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
-        this(type, store, new BroadcastingCollectionEventRegister<T>(type));
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackDecorator decorator) {
+        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(decorator, new BroadcastingCollectionEventRegister<T>(type)), decorator);
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackDecorator decorator) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
+        this.decorator = decorator;
         this.store.onRealize(new Action<T>() {
             @Override
             public void execute(T value) {
@@ -64,8 +66,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         });
     }
 
-    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
+    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, DomainObjectCollectionCallbackDecorator decorator) {
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), decorator);
     }
 
     protected void realized(ProviderInternal<? extends T> provider) {
@@ -78,6 +80,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     protected ElementSource<T> getStore() {
         return store;
+    }
+
+    public DomainObjectCollectionCallbackDecorator getDecorator() {
+        return decorator;
     }
 
     protected CollectionEventRegister<T> getEventRegister() {
@@ -97,7 +103,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectCollection<S>(this, filter);
+        return new DefaultDomainObjectCollection<S>(this, filter, decorator);
     }
 
     protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {
@@ -430,6 +436,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     /**
      * Subclasses may override this method to prevent add/remove methods.
+     *
      * @see DefaultDomainObjectSet
      */
     protected void assertMutableCollectionContents() {
@@ -512,4 +519,5 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             delegate.registerRemoveAction(filter.getType(), Actions.filter(removeAction, filter));
         }
     }
+
 }

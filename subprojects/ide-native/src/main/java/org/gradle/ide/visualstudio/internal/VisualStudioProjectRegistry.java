@@ -28,7 +28,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private final IdeArtifactRegistry ideArtifactRegistry;
 
     public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry) {
-        super(DefaultVisualStudioProject.class, instantiator);
+        super(DefaultVisualStudioProject.class, instantiator, null);
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
     }
