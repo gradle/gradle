@@ -30,6 +30,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
 import java.util.Collection;
 
@@ -51,15 +52,15 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
             for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (build == consumingBuild) {
-                    // Do not substitute plugins from same build
+                if (build == consumingBuild || build.isImplicitBuild()) {
+                    // Do not substitute plugins from same build or builds that were not explicitly included
                     continue;
                 }
                 PluginResolution resolution = build.withState(new Transformer<PluginResolution, GradleInternal>() {
                     @Override
                     public PluginResolution transform(GradleInternal gradleInternal) {
                         ProjectPublicationRegistry publicationRegistry = gradleInternal.getServices().get(ProjectPublicationRegistry.class);
-                        for (ProjectPublicationRegistry.Reference reference : publicationRegistry.getPublications()) {
+                        for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
                             PluginId pluginId = reference.get().getCoordinates(PluginId.class);
                             if (pluginId != null && pluginId.equals(pluginRequest.getId())) {
                                 return new PluginResolution() {
@@ -70,7 +71,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
                                     @Override
                                     public void execute(PluginResolveContext context) {
-                                        context.addLegacy(pluginId, reference.getOwningProject().getDependencies().create(reference.getOwningProject()));
+                                        context.addLegacy(pluginId, reference.getProducingProject().getDependencies().create(reference.getProducingProject()));
                                     }
                                 };
                             }

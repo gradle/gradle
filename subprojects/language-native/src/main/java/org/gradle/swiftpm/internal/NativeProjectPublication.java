@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.swiftpm.internal;
 
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
-public class DefaultProjectPublication implements ProjectComponentPublication {
+public class NativeProjectPublication implements ProjectComponentPublication {
     private final DisplayName displayName;
-    private final Object id;
-    private final boolean legacy;
+    private final SwiftPmTarget swiftPmTarget;
 
-    public DefaultProjectPublication(DisplayName displayName, Object id, boolean legacy) {
+    public NativeProjectPublication(DisplayName displayName, SwiftPmTarget swiftPmTarget) {
         this.displayName = displayName;
-        this.id = id;
-        this.legacy = legacy;
+        this.swiftPmTarget = swiftPmTarget;
     }
 
     @Override
@@ -37,16 +36,11 @@ public class DefaultProjectPublication implements ProjectComponentPublication {
         return displayName;
     }
 
-    @Override
-    public boolean isLegacy() {
-        return legacy;
-    }
-
     @Nullable
     @Override
     public <T> T getCoordinates(Class<T> type) {
-        if (type.isInstance(id)) {
-            return type.cast(id);
+        if (type.isAssignableFrom(SwiftPmTarget.class)) {
+            return type.cast(swiftPmTarget);
         }
         return null;
     }
@@ -59,6 +53,11 @@ public class DefaultProjectPublication implements ProjectComponentPublication {
 
     @Override
     public boolean isAlias() {
+        return false;
+    }
+
+    @Override
+    public boolean isLegacy() {
         return false;
     }
 }

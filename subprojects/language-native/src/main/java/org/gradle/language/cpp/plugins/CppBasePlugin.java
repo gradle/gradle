@@ -25,7 +25,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -43,6 +42,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
+import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 
 import javax.inject.Inject;
@@ -137,7 +137,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(Project project) {
                         DefaultCppComponent componentInternal = (DefaultCppComponent) component;
                         ProjectInternal projectInternal = (ProjectInternal) project;
-                        publicationRegistry.registerPublication(projectInternal, new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
+                        publicationRegistry.registerPublication(projectInternal, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get())));
                     }
                 });
             }

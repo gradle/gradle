@@ -27,7 +27,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -46,6 +45,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
 
@@ -165,7 +165,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(Project project) {
                         DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
                         ProjectInternal projectInternal = (ProjectInternal) project;
-                        publicationRegistry.registerPublication(projectInternal, new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
+                        publicationRegistry.registerPublication(projectInternal, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
                     }
                 });
             }

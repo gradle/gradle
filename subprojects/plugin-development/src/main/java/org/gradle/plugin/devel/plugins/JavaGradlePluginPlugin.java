@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.plugins.PluginDescriptor;
@@ -53,6 +52,7 @@ import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -140,7 +140,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         extension.getPlugins().all(new Action<PluginDeclaration>() {
             @Override
             public void execute(PluginDeclaration pluginDeclaration) {
-                registry.registerPublication(projectInternal, new PluginPublication(pluginDeclaration));
+                registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration));
             }
         });
     }
@@ -405,10 +405,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         }
     }
 
-    private static class PluginPublication implements ProjectPublication {
+    private static class LocalPluginPublication implements PluginPublication {
         private final PluginDeclaration pluginDeclaration;
 
-        PluginPublication(PluginDeclaration pluginDeclaration) {
+        LocalPluginPublication(PluginDeclaration pluginDeclaration) {
             this.pluginDeclaration = pluginDeclaration;
         }
 
