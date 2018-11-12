@@ -69,9 +69,10 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
-        assert !operations.isEmpty();
         Operation operation = operations.remove(progressCompleteEvent.getProgressOperationId());
-        completeOperation(progressCompleteEvent, operation);
+        if(operation != null) {
+            completeOperation(progressCompleteEvent, operation);
+        }
     }
 
     private void completeOperation(ProgressCompleteEvent progressCompleteEvent, Operation operation) {
