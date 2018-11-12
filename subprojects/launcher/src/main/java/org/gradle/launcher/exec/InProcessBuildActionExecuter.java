@@ -42,7 +42,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
         buildOperationNotificationValve.start();
         try {
-            RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null), buildRequestContext);
+            RootBuildState rootBuild = buildRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
             return rootBuild.run(new Transformer<BuildActionResult, BuildController>() {
                 @Override
                 public BuildActionResult transform(BuildController buildController) {
