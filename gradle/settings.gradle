@@ -1,3 +1,0 @@
-// TODO: This only needs to exist so the build no longer fails
-rootProject.name = "tagging"
-
