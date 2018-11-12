@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -48,10 +48,8 @@ public interface IdeArtifactRegistry {
      */
     FileCollection getIdeProjectFiles(Class<? extends IdeProjectMetadata> type);
 
-    interface Reference<T extends IdeProjectMetadata> {
+    interface Reference<T extends IdeProjectMetadata> extends TaskDependencyContainer {
         T get();
-
-        TaskDependency getBuildDependencies();
 
         ProjectComponentIdentifier getOwningProject();
     }

@@ -18,7 +18,7 @@ package org.gradle.api.publish.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -26,7 +26,7 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 
-public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectPublication {
+public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
     ModuleVersionIdentifier getCoordinates();
 
     ImmutableAttributes getAttributes();

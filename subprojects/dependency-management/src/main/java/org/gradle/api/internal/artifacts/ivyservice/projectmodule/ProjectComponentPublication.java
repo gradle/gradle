@@ -16,5 +16,31 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+
+import javax.annotation.Nullable;
+
 public interface ProjectComponentPublication extends ProjectPublication {
+    /**
+     * Returns the coordinates of the publication in the given namespace.
+     */
+    @Nullable
+    <T> T getCoordinates(Class<T> type);
+
+    /**
+     * Returns the component that is to be published, if relevant for this publication.
+     */
+    @Nullable
+    SoftwareComponentInternal getComponent();
+
+    /**
+     * Specifies that this publication is just an alias for another one and should not
+     * be considered when converting project dependencies to published metadata.
+     */
+    boolean isAlias();
+
+    /**
+     * Should this publication be ignored when there are others available?
+     */
+    boolean isLegacy();
 }

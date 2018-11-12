@@ -61,7 +61,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                     public PluginResolution transform(GradleInternal gradleInternal) {
                         ProjectPublicationRegistry publicationRegistry = gradleInternal.getServices().get(ProjectPublicationRegistry.class);
                         for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
-                            PluginId pluginId = reference.get().getCoordinates(PluginId.class);
+                            PluginId pluginId = reference.get().getPluginId();
                             if (pluginId != null && pluginId.equals(pluginRequest.getId())) {
                                 return new PluginResolution() {
                                     @Override
