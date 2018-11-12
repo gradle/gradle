@@ -46,7 +46,7 @@ public class ProjectProfile extends Operation {
      * Returns the task executions for this project.
      */
     public CompositeOperation<TaskExecution> getTasks() {
-        List<TaskExecution> taskExecutions = CollectionUtils.sort(tasks.values(), Operation.slowestFirst());
+        List<TaskExecution> taskExecutions = CollectionUtils.sort(tasks.values(), slowestFirst());
         return new CompositeOperation<TaskExecution>(taskExecutions);
     }
 
