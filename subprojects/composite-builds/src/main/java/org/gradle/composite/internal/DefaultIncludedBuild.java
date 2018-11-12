@@ -203,8 +203,13 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
+    public void loadSettings() {
+        gradleLauncher.getLoadedSettings();
+    }
+
+    @Override
     public SettingsInternal getLoadedSettings() {
-        return gradleLauncher.getLoadedSettings();
+        return gradleLauncher.getGradle().getSettings();
     }
 
     @Override
@@ -220,9 +225,6 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public void finishBuild() {
-        if (gradleLauncher == null) {
-            return;
-        }
         gradleLauncher.finishBuild();
     }
 

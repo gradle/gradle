@@ -43,6 +43,8 @@ public interface IncludedBuildState extends NestedBuildState {
      */
     ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 
+    void loadSettings();
+
     GradleInternal getConfiguredBuild();
     void finishBuild();
     void addTasks(Iterable<String> tasks);

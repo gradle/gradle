@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.SettingsInternal;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -65,7 +64,7 @@ public interface BuildStateRegistry {
      *
      * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
-    void registerRootBuild(SettingsInternal settings);
+    void finalizeIncludedBuilds();
 
     /**
      * Notification that the root build is about to be configured.
