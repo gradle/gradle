@@ -92,6 +92,7 @@ data class CIBuildModel (
             GradleSubproject("buildCacheHttp"),
             GradleSubproject("buildCachePackaging"),
             GradleSubproject("buildComparison"),
+            GradleSubproject("buildProfile"),
             GradleSubproject("buildOption"),
             GradleSubproject("buildInit"),
             GradleSubproject("cli", functionalTests = false),
