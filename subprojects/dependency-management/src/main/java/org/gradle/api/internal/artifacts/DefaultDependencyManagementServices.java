@@ -91,7 +91,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -240,19 +239,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
-                                                    FileSystemSnapshotter fileSystemSnapshotter, GradleUserHomeTransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter, ProjectFinder projectFinder) {
-            DefaultTransformerInvoker transformerInvoker = new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, projectFinder);
-            listenerManager.addListener(new RootBuildLifecycleListener() {
-                @Override
-                public void afterStart() {
-                }
-
-                @Override
-                public void beforeComplete() {
-                    transformerInvoker.clearInMemoryCache();
-                }
-            });
-            return transformerInvoker;
+                                                    FileSystemSnapshotter fileSystemSnapshotter, GradleUserHomeTransformerExecutionHistoryRepository historyRepository, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter, ProjectFinder projectFinder) {
+            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, projectFinder);
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

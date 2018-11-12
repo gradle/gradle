@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -25,6 +26,7 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.internal.Try;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
@@ -65,9 +67,10 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     }
 
     @Override
-    public <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
-        return producing.guardByKey(cacheKey, () -> {
-            File workspace = new File(filesOutputDirectory, toBeTransformed.getName() + "/" + cacheKey);
+    public Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace) {
+        HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
+        return producing.guardByKey(persistentCacheKey, () -> {
+            File workspace = new File(filesOutputDirectory, primaryInput.getName() + "/" + persistentCacheKey);
             fileAccessTracker.markAccessed(workspace);
             return useWorkspace.apply(workspace);
         });

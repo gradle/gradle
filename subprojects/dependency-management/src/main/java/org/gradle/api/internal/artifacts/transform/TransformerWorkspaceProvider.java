@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.hash.HashCode;
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Try;
 
 import java.io.File;
 import java.util.function.Function;
 
 public interface TransformerWorkspaceProvider {
-    <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace);
+    /**
+     * Provides a workspace for executing the transformation.
+     */
+    Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace);
 }

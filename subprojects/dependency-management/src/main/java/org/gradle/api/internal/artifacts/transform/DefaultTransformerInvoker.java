@@ -43,8 +43,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -56,9 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -68,7 +64,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
-    private final Map<CacheKey, ImmutableList<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, ImmutableList<File>>();
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository gradleUserHomeHistoryRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
@@ -86,13 +81,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.projectFinder = projectFinder;
     }
 
-    public void clearInMemoryCache() {
-        resultHashToResult.clear();
-    }
-
     @Override
-    public boolean hasCachedResult(File primaryInput, Transformer transformer) {
-        return resultHashToResult.containsKey(getCacheKey(primaryInput.getAbsoluteFile(), transformer.getSecondaryInputHash()));
+    public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject) {
+        return determineHistoryRepository(subject).hasCachedResult(getCacheKey(primaryInput, transformer));
     }
 
     @Override
@@ -107,21 +98,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     private Try<ImmutableList<File>> invoke(File primaryInput, Transformer transformer, TransformationSubject subject) {
-        CacheKey cacheKey = getCacheKey(primaryInput, transformer);
-        ImmutableList<File> results = resultHashToResult.get(cacheKey);
-        if (results != null) {
-            return Try.successful(results);
-        }
-        return fireTransformListeners(transformer, subject, () -> {
-            HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
-            TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(subject);
-            Try<ImmutableList<File>> result = historyRepository.withWorkspace(primaryInput, persistentCacheKey, workspace -> {
+        TransformationCacheKey cacheKey = getCacheKey(primaryInput, transformer);
+        TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(subject);
+        return historyRepository.withWorkspace(primaryInput, cacheKey, workspace -> {
+            return fireTransformListeners(transformer, subject, () -> {
+                HashCode persistentCacheKey = cacheKey.getPersistentCacheKey();
                 TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, persistentCacheKey, historyRepository);
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
-            result.ifSuccessful(transformerResult -> resultHashToResult.put(cacheKey, transformerResult));
-            return result;
         });
     }
 
@@ -143,66 +128,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
+    private TransformationCacheKey getCacheKey(File primaryInput, Transformer transformer) {
         return getCacheKey(primaryInput, transformer.getSecondaryInputHash());
     }
 
-    private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
+    private TransformationCacheKey getCacheKey(File inputFile, HashCode secondaryInputHash) {
         FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
-        return new CacheKey(inputsHash, snapshot.getAbsolutePath(), snapshot.getHash());
-    }
-
-    /**
-     * A lightweight key for in-memory caching of transformation results.
-     * Computing the hash key for the persistent cache is a rather expensive
-     * operation, so we only calculate it when we have a cache miss in memory.
-     */
-    private static class CacheKey {
-        private final String absolutePath;
-        private final HashCode fileContentHash;
-        private final HashCode inputHash;
-
-        public CacheKey(HashCode inputHash, String absolutePath, HashCode fileContentHash) {
-            this.absolutePath = absolutePath;
-            this.fileContentHash = fileContentHash;
-            this.inputHash = inputHash;
-        }
-
-        public HashCode getPersistentCacheKey() {
-            Hasher hasher = Hashing.newHasher();
-            hasher.putHash(inputHash);
-            hasher.putString(absolutePath);
-            hasher.putHash(fileContentHash);
-            return hasher.hash();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            CacheKey cacheKey = (CacheKey) o;
-
-            if (!fileContentHash.equals(cacheKey.fileContentHash)) {
-                return false;
-            }
-            if (!inputHash.equals(cacheKey.inputHash)) {
-                return false;
-            }
-            return absolutePath.equals(cacheKey.absolutePath);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = fileContentHash.hashCode();
-            result = 31 * result + absolutePath.hashCode();
-            result = 31 * result + inputHash.hashCode();
-            return result;
-        }
+        return new TransformationCacheKey(secondaryInputHash, snapshot.getAbsolutePath(), snapshot.getHash());
     }
 
     private class TransformerExecution implements UnitOfWork {

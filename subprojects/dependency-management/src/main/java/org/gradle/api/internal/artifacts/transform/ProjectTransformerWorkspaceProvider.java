@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.Try;
 
 import java.io.File;
 import java.util.function.Function;
@@ -35,8 +36,8 @@ public class ProjectTransformerWorkspaceProvider implements TransformerWorkspace
     }
 
     @Override
-    public <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
-        String path = toBeTransformed.getName() + "/" + cacheKey;
+    public Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace) {
+        String path = primaryInput.getName() + "/" + cacheKey.getPersistentCacheKey();
         return producing.guardByKey(path, () -> useWorkspace.apply(new File(baseDirectory.get().getAsFile(), path)));
     }
 }

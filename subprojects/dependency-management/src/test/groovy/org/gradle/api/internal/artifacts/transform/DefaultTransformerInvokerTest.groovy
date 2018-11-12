@@ -17,29 +17,23 @@
 package org.gradle.api.internal.artifacts.transform
 
 
-import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep
 import org.gradle.internal.execution.impl.steps.Step
 import org.gradle.internal.execution.impl.steps.UpToDateResult
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
-
-import java.util.function.Function
 
 @UsesNativeServices
 @Ignore("FIXME wolfs - rewrite and replace by better test")
@@ -59,23 +53,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     }
     def workExecutor = new DefaultWorkExecutor(new CreateOutputsStep(executeStep))
     Map<HashCode, AfterPreviousExecutionState> history = [:]
-    def historyRepository = new TransformerExecutionHistoryRepository() {
-
-        @Override
-        Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey) {
-            return Optional.ofNullable(history.get(cacheKey))
-        }
-
-        @Override
-        void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
-            // TODO
-        }
-
-        @Override
-        <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
-            return null
-        }
-    }
+    def historyRepository = Mock(GradleUserHomeTransformerExecutionHistoryRepository)
     DefaultTransformerInvoker transformerInvoker
 
     def setup() {
@@ -128,7 +106,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         _ * snapshotter.snapshot(_) >> snapshot(hash)
 
         expect:
-        !transformerInvoker.hasCachedResult(inputFile, transformer)
+        !transformerInvoker.hasCachedResult(inputFile, transformer, subject)
     }
 
     def "contains result after transform ran once"() {
@@ -147,7 +125,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        transformerInvoker.hasCachedResult(inputFile, transformer)
+        transformerInvoker.hasCachedResult(inputFile, transformer, subject)
     }
 
     def "does not contain result if a different transform ran"() {
@@ -167,7 +145,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         transformerInvoker.invoke(inputFile, transformerRegistration, subject)
 
         then:
-        !transformerInvoker.hasCachedResult(inputFile, otherTransformer)
+        !transformerInvoker.hasCachedResult(inputFile, otherTransformer, subject)
     }
 
     def "reuses result when transform returns its input file"() {

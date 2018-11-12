@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -26,13 +27,16 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
     private final ExecutionHistoryStore executionHistoryStore;
     private final TransformerWorkspaceProvider workspaceProvider;
+    private final Map<TransformationCacheKey, ImmutableList<File>> inMemoryResultCache = new ConcurrentHashMap<TransformationCacheKey, ImmutableList<File>>();
 
     public DefaultTransformerExecutionHistoryRepository(TransformerWorkspaceProvider workspaceProvider, ExecutionHistoryStore executionHistoryStore) {
         this.workspaceProvider = workspaceProvider;
@@ -50,7 +54,28 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
     }
 
     @Override
-    public <T> T withWorkspace(File toBeTransformed, HashCode cacheKey, Function<File, T> useWorkspace) {
-        return workspaceProvider.withWorkspace(toBeTransformed, cacheKey, useWorkspace);
+    public boolean hasCachedResult(TransformationCacheKey cacheKey) {
+        return inMemoryResultCache.containsKey(cacheKey);
+    }
+
+    @Override
+    public Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace) {
+        ImmutableList<File> resultFromCache = inMemoryResultCache.get(cacheKey);
+        if (resultFromCache != null) {
+            return Try.successful(resultFromCache);
+        }
+        return workspaceProvider.withWorkspace(primaryInput, cacheKey, workspace -> {
+            ImmutableList<File> fromCache = inMemoryResultCache.get(cacheKey);
+            if (fromCache != null) {
+                return Try.successful(fromCache);
+            }
+            Try<ImmutableList<File>> transformationResult = useWorkspace.apply(workspace);
+            transformationResult.ifSuccessful(files -> inMemoryResultCache.put(cacheKey, files));
+            return transformationResult;
+        });
+    }
+
+    public void clearInMemoryCache() {
+        inMemoryResultCache.clear();
     }
 }

@@ -28,6 +28,8 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
@@ -55,7 +57,18 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new GradleUserHomeWorkspaceProvider(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal);
     }
 
-    GradleUserHomeTransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(GradleUserHomeWorkspaceProvider transformerWorkspaceProvider, ExecutionHistoryStore executionHistoryStore) {
-        return new GradleUserHomeTransformerExecutionHistoryRepository(transformerWorkspaceProvider, executionHistoryStore);
+    GradleUserHomeTransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(GradleUserHomeWorkspaceProvider transformerWorkspaceProvider, ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
+        GradleUserHomeTransformerExecutionHistoryRepository executionHistoryRepository = new GradleUserHomeTransformerExecutionHistoryRepository(transformerWorkspaceProvider, executionHistoryStore);
+        listenerManager.addListener(new RootBuildLifecycleListener() {
+            @Override
+            public void afterStart() {
+            }
+
+            @Override
+            public void beforeComplete() {
+                executionHistoryRepository.clearInMemoryCache();
+            }
+        });
+        return executionHistoryRepository;
     }
 }

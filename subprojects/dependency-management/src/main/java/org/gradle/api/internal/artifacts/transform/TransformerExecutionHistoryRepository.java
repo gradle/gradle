@@ -28,4 +28,5 @@ import java.util.Optional;
 public interface TransformerExecutionHistoryRepository extends TransformerWorkspaceProvider {
     Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey);
     void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful);
+    boolean hasCachedResult(TransformationCacheKey cacheKey);
 }
