@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
 
+import java.io.Closeable
+
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -36,7 +38,7 @@ object BuildServices {
 internal
 class DefaultAsyncIOScopeFactory(
     executorServiceProvider: () -> ExecutorService
-) : AutoCloseable, AsyncIOScopeFactory {
+) : Closeable, AsyncIOScopeFactory {
 
     private
     val executorService = lazy(executorServiceProvider)
