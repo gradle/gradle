@@ -20,14 +20,12 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import java.io.File;
 import java.util.Optional;
 
-public interface TransformerExecutionHistoryRepository {
-    Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey);
-    File getWorkspace(File toBeTransformed, HashCode cacheKey);
-    void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful);
+public interface TransformerExecutionHistoryRepository extends TransformerWorkspaceProvider {
+    Optional<AfterPreviousExecutionState> getPreviousExecution(String identity);
+    void persist(String identity, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> primaryInputFingerprints, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful);
+    boolean hasCachedResult(TransformationIdentity identity);
 }
