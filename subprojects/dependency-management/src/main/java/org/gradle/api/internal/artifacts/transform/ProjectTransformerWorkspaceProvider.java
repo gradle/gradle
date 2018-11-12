@@ -24,20 +24,23 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Try;
 
 import java.io.File;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class ProjectTransformerWorkspaceProvider implements TransformerWorkspaceProvider {
 
     private final Provider<Directory> baseDirectory;
-    private final ProducerGuard<String> producing = ProducerGuard.adaptive();
+    private final ProducerGuard<TransformationIdentity> producing = ProducerGuard.adaptive();
 
     public ProjectTransformerWorkspaceProvider(ProjectLayout layout) {
         baseDirectory = layout.getBuildDirectory().dir("transforms-cache");
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace) {
-        String path = primaryInput.getName() + "/" + cacheKey.getPersistentCacheKey();
-        return producing.guardByKey(path, () -> useWorkspace.apply(new File(baseDirectory.get().getAsFile(), path)));
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+        return producing.guardByKey(identity, () -> {
+            String identityString = identity.getIdentity();
+            String path = identity.getInitialSubjectFileName() + "/" + identityString;
+            return useWorkspace.apply(identityString, new File(baseDirectory.get().getAsFile(), path));
+        });
     }
 }

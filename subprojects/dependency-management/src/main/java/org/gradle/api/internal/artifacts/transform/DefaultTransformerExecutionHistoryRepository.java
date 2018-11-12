@@ -23,20 +23,19 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
     private final ExecutionHistoryStore executionHistoryStore;
     private final TransformerWorkspaceProvider workspaceProvider;
-    private final Map<TransformationCacheKey, ImmutableList<File>> inMemoryResultCache = new ConcurrentHashMap<TransformationCacheKey, ImmutableList<File>>();
+    private final Map<TransformationIdentity, ImmutableList<File>> inMemoryResultCache = new ConcurrentHashMap<>();
 
     public DefaultTransformerExecutionHistoryRepository(TransformerWorkspaceProvider workspaceProvider, ExecutionHistoryStore executionHistoryStore) {
         this.workspaceProvider = workspaceProvider;
@@ -44,33 +43,33 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
     }
 
     @Override
-    public Optional<AfterPreviousExecutionState> getPreviousExecution(HashCode cacheKey) {
-        return Optional.ofNullable(executionHistoryStore.load(cacheKey.toString()));
+    public Optional<AfterPreviousExecutionState> getPreviousExecution(String identity) {
+        return Optional.ofNullable(executionHistoryStore.load(identity));
     }
 
     @Override
-    public void persist(HashCode cacheKey, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
-        executionHistoryStore.store(cacheKey.toString(), originMetadata, implementationSnapshot, ImmutableList.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), outputFingerprints, successful);
+    public void persist(String identity, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> primaryInputFingerprints, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
+        executionHistoryStore.store(identity, originMetadata, implementationSnapshot, ImmutableList.of(), ImmutableSortedMap.of(), primaryInputFingerprints, outputFingerprints, successful);
     }
 
     @Override
-    public boolean hasCachedResult(TransformationCacheKey cacheKey) {
-        return inMemoryResultCache.containsKey(cacheKey);
+    public boolean hasCachedResult(TransformationIdentity identity) {
+        return inMemoryResultCache.containsKey(identity);
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(File primaryInput, TransformationCacheKey cacheKey, Function<File, Try<ImmutableList<File>>> useWorkspace) {
-        ImmutableList<File> resultFromCache = inMemoryResultCache.get(cacheKey);
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+        ImmutableList<File> resultFromCache = inMemoryResultCache.get(identity);
         if (resultFromCache != null) {
             return Try.successful(resultFromCache);
         }
-        return workspaceProvider.withWorkspace(primaryInput, cacheKey, workspace -> {
-            ImmutableList<File> fromCache = inMemoryResultCache.get(cacheKey);
+        return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
+            ImmutableList<File> fromCache = inMemoryResultCache.get(identity);
             if (fromCache != null) {
                 return Try.successful(fromCache);
             }
-            Try<ImmutableList<File>> transformationResult = useWorkspace.apply(workspace);
-            transformationResult.ifSuccessful(files -> inMemoryResultCache.put(cacheKey, files));
+            Try<ImmutableList<File>> transformationResult = useWorkspace.apply(identityString, workspace);
+            transformationResult.ifSuccessful(files -> inMemoryResultCache.put(identity, files));
             return transformationResult;
         });
     }
