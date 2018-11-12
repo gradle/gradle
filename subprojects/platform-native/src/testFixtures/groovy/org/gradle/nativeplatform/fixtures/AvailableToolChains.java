@@ -603,7 +603,7 @@ public class AvailableToolChains {
 
         @Override
         public String getDisplayName() {
-            return getFamily() + " " + displayVersion;
+            return getFamily().displayName + " " + displayVersion;
         }
 
         @Override

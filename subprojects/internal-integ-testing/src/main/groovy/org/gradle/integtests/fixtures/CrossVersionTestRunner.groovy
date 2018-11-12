@@ -40,7 +40,7 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     }
 
     @Override
-    protected void createExecutions() {
+    protected void createConfiguredExecutions() {
         for (GradleDistribution version : previous) {
             add(new PreviousVersionExecution(version, isEnabled(version)))
         }

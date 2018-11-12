@@ -42,7 +42,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
-    protected void createExecutions() {
+    protected void createConfiguredExecutions() {
         if (implicitVersion) {
             add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
         }

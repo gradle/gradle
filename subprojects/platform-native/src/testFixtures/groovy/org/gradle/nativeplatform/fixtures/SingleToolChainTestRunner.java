@@ -35,10 +35,13 @@ public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionS
     @Override
     protected void createExecutionsForContext(CoverageContext context) {
         List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
-
+        
         switch(context) {
             case DEFAULT:
-                add(new ToolChainExecution(toolChains.get(0)));
+            case LATEST:
+                if (!toolChains.isEmpty()) {
+                    add(new ToolChainExecution(toolChains.get(0)));
+                }
                 break;
             case PARTIAL:
                 for (AvailableToolChains.ToolChainCandidate toolChain : getLatestAvailableToolchainFromEachFamily(toolChains)) {
@@ -57,7 +60,7 @@ public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionS
 
     @Override
     protected void createSelectedExecutions(List<String> selectionCriteria) {
-        if (selectionCriteria.size() == 0 && selectionCriteria.get(0).equals("latest")) {
+        if (selectionCriteria.size() == 1 && selectionCriteria.get(0).equals("latest")) {
             List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
             add(new ToolChainExecution(toolChains.get(0)));
         }
@@ -85,21 +88,6 @@ public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionS
         return availableByFamily.values();
     }
 
-    @Override
-    protected void createExecutions() {
-        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-
-        for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-            if (!toolChain.isAvailable()) {
-                //throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
-                continue;
-            }
-            if (canUseToolChain(toolChain)) {
-                add(new ToolChainExecution(toolChain));
-            }
-        }
-    }
-
     // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc).
     //
     // Many of our old tests assume that available tool chains can compile many/most languages, so they do not try to
@@ -113,9 +101,9 @@ public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionS
     //
     // In the future... we want to go back to old tests and annotate them with tool chains requirements.
     private boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
-        if (toolChain.meets(ToolChainRequirement.SWIFTC)) {
-            RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
-            return toolChainRequirement!=null;
+        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+        if (toolChainRequirement != null) {
+            return toolChain.meets(toolChainRequirement.value());
         }
         return true;
     }

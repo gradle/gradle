@@ -61,7 +61,7 @@ buildTypes {
         tasks("test", "integTest", "crossVersionTest")
     }
 
-    // Used for builds to run all tests, but not necessarily on all platforms
+    // Used for builds to run all tests
     create("fullTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
         projectProperties("testAllVersions" to true)
@@ -70,10 +70,7 @@ buildTypes {
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties(
-            "testAllVersions" to true,
-            "testAllPlatforms" to true
-        )
+        projectProperties("testPartialVersions" to true)
     }
 
     // Tests not using the daemon mode
@@ -114,6 +111,7 @@ buildTypes {
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
         tasks("allVersionsCrossVersionTests")
+        projectProperties("testAllVersions" to true)
     }
 
     create("quickFeedbackCrossVersionTest") {

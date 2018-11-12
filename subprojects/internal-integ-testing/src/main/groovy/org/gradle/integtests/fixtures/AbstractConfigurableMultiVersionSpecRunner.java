@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 public abstract class AbstractConfigurableMultiVersionSpecRunner extends AbstractMultiTestRunner {
-    public static final String MULTI_VERSION_SYS_PROP = "org.gradle.integtest.multiversion";
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
     protected abstract void createExecutionsForContext(CoverageContext context);
@@ -34,18 +33,18 @@ public abstract class AbstractConfigurableMultiVersionSpecRunner extends Abstrac
 
     @Override
     protected void createExecutions() {
-        String explicitVersions = System.getProperty(VERSIONS_SYSPROP_NAME);
-        if (explicitVersions != null) {
-            List<String> selectionCriteria = Lists.newArrayList(explicitVersions.split(","));
+        String versions = System.getProperty(VERSIONS_SYSPROP_NAME, CoverageContext.DEFAULT.selector);
+        CoverageContext coverageContext = CoverageContext.from(versions);
+        if (coverageContext == CoverageContext.UNKNOWN) {
+            List<String> selectionCriteria = Lists.newArrayList(versions.split(","));
             createSelectedExecutions(selectionCriteria);
         } else {
-            CoverageContext coverageContext = CoverageContext.from(System.getProperty(MULTI_VERSION_SYS_PROP, CoverageContext.DEFAULT.selector));
             createExecutionsForContext(coverageContext);
         }
     }
 
     protected enum CoverageContext {
-        DEFAULT("default"), PARTIAL("partial"), FULL("all");
+        DEFAULT("default"), LATEST("latest"), PARTIAL("partial"), FULL("all"), UNKNOWN(null);
 
         final String selector;
 
@@ -55,11 +54,11 @@ public abstract class AbstractConfigurableMultiVersionSpecRunner extends Abstrac
 
         static CoverageContext from(String requested) {
             for (CoverageContext context : values()) {
-                if (context.selector == requested) {
+                if (context != UNKNOWN && context.selector.equals(requested)) {
                     return context;
                 }
             }
-            throw new IllegalArgumentException("There is no coverage context matching the string: ${requested}");
+            return UNKNOWN;
         }
     }
 }

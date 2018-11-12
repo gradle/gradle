@@ -133,15 +133,16 @@ class DistributionTestingPlugin : Plugin<Project> {
         val integTestVersionsSysProp = "org.gradle.integtest.versions"
         if (project.hasProperty("testVersions")) {
             systemProperties[integTestVersionsSysProp] = project.property("testVersions")
+        } else {
+            if (project.findProperty("testPartialVersions") == true) {
+                systemProperties[integTestVersionsSysProp] = "partial"
+            }
+            if (project.findProperty("testAllVersions") == true) {
+                systemProperties[integTestVersionsSysProp] = "all"
+            }
+            if (integTestVersionsSysProp !in systemProperties) {
+                systemProperties[integTestVersionsSysProp] = "default"
+            }
         }
-        if (integTestVersionsSysProp !in systemProperties) {
-            systemProperties[integTestVersionsSysProp] = "latest"
-        }
-
-        fun ifProperty(name: String, then: String): String? =
-            then.takeIf { project.findProperty(name) == true }
-
-        systemProperties["org.gradle.integtest.multiversion"] =
-            ifProperty("testAllVersions", "all") ?: "default"
     }
 }

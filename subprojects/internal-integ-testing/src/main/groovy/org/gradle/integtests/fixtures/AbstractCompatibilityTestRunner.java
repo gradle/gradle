@@ -26,22 +26,22 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.sort;
 
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
  */
-public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
-
-    private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
+public abstract class AbstractCompatibilityTestRunner extends AbstractConfigurableMultiVersionSpecRunner {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
+    final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
-    protected final List<GradleDistribution> previous;
-    protected final boolean implicitVersion;
+    protected final List<GradleDistribution> previous = new ArrayList<GradleDistribution>();
+    protected boolean implicitVersion;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
         this(target, System.getProperty(VERSIONS_SYSPROP_NAME, "latest"));
@@ -50,37 +50,64 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
     private AbstractCompatibilityTestRunner(Class<?> target, String versionStr) {
         super(target);
         validateTestName(target);
+    }
 
-        previous = new ArrayList<GradleDistribution>();
-        final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
-        if (versionStr.equals("latest")) {
-            implicitVersion = true;
-            addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentRelease());
-        } else if (versionStr.equals("all")) {
-            implicitVersion = true;
-            List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);
-            for (GradleDistribution previousVersion : previousVersionsToTest) {
-                addVersionIfCompatibleWithJvmAndOs(previousVersion);
-            }
-        } else if (versionStr.matches("^\\d.*$")) {
-            implicitVersion = false;
-            String[] versions = versionStr.split(",");
-            List<GradleVersion> gradleVersions = CollectionUtils.sort(collect(Arrays.asList(versions), new Transformer<GradleVersion, String>() {
-                public GradleVersion transform(String versionString) {
-                    return GradleVersion.version(versionString);
-                }
-            }), Collections.reverseOrder());
+    abstract protected void createConfiguredExecutions();
 
-            for (GradleVersion gradleVersion : gradleVersions) {
-                GradleDistribution distribution = releasedVersions.getDistribution(gradleVersion);
-                if (distribution == null) {
-                    throw new RuntimeException("Gradle version '" + gradleVersion.getVersion() + "' is not a valid testable released version");
+    @Override
+    protected void createExecutionsForContext(CoverageContext context) {
+        switch(context) {
+            case DEFAULT:
+            case LATEST:
+                implicitVersion = true;
+                addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentRelease());
+                break;
+            case PARTIAL:
+                implicitVersion = true;
+                addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentRelease());
+                addVersionIfCompatibleWithJvmAndOs(getFirstSupportedDistribution(releasedVersions));
+                break;
+            case FULL:
+                implicitVersion = true;
+                List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);
+                for (GradleDistribution previousVersion : previousVersionsToTest) {
+                    addVersionIfCompatibleWithJvmAndOs(previousVersion);
                 }
-                addVersionIfCompatibleWithJvmAndOs(distribution);
-            }
-        } else {
-            throw new RuntimeException("Invalid value for " + VERSIONS_SYSPROP_NAME + " system property: " + versionStr + "(valid values: 'all', 'latest' or comma separated list of versions)");
+                break;
+            default:
+                throw new RuntimeException("Unhandled coverage context: " + context);
         }
+
+        createConfiguredExecutions();
+    }
+
+    @Override
+    protected void createSelectedExecutions(List<String> selectionCriteria) {
+        List<GradleVersion> gradleVersions = CollectionUtils.sort(collect(selectionCriteria, new Transformer<GradleVersion, String>() {
+            public GradleVersion transform(String versionString) {
+                return GradleVersion.version(versionString);
+            }
+        }), Collections.reverseOrder());
+
+        for (GradleVersion gradleVersion : gradleVersions) {
+            GradleDistribution distribution = releasedVersions.getDistribution(gradleVersion);
+            if (distribution == null) {
+                throw new RuntimeException("Gradle version '" + gradleVersion.getVersion() + "' is not a valid testable released version");
+            }
+            addVersionIfCompatibleWithJvmAndOs(distribution);
+        }
+
+        createConfiguredExecutions();
+    }
+
+    private GradleDistribution getFirstSupportedDistribution(ReleasedVersionDistributions releasedVersions) {
+        List<GradleDistribution> allSupportedVersions = choosePreviousVersionsToTest(releasedVersions);
+        List<GradleDistribution> sortedDistributions = sort(allSupportedVersions, new Comparator<GradleDistribution>() {
+            public int compare(GradleDistribution dist1, GradleDistribution dist2) {
+                return dist1.getVersion().compareTo(dist2.getVersion());
+            }
+        });
+        return sortedDistributions.get(0);
     }
 
     private void addVersionIfCompatibleWithJvmAndOs(GradleDistribution previousVersion) {

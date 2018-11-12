@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import static org.gradle.integtests.fixtures.AbstractConfigurableMultiVersionSpecRunner.CoverageContext.*
+
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
@@ -32,20 +34,22 @@ class MultiVersionSpecRunner extends AbstractConfigurableMultiVersionSpecRunner 
     @Override
     void createExecutionsForContext(CoverageContext context) {
         def possibleVersions = getAllVersions()
-        def versionsUnderTest
+        Set<String> versionsUnderTest = []
 
         switch(context) {
-            case CoverageContext.DEFAULT:
-                versionsUnderTest = [possibleVersions.last()]
+            case DEFAULT:
+            case LATEST:
+                versionsUnderTest.add(possibleVersions.last())
                 break
-            case CoverageContext.PARTIAL:
-                versionsUnderTest = [possibleVersions.first(), possibleVersions.last()]
+            case PARTIAL:
+                versionsUnderTest.add(possibleVersions.first())
+                versionsUnderTest.add(possibleVersions.last())
                 break
-            case CoverageContext.FULL:
-                versionsUnderTest = possibleVersions
+            case FULL:
+                versionsUnderTest.addAll(possibleVersions)
                 break
             default:
-                throw new RuntimeException("Unhandled coverage context: " + context);
+                throw new RuntimeException("Unhandled coverage context: " + context)
         }
 
         versionsUnderTest.each { add(new VersionExecution(it)) }
