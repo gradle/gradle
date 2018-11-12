@@ -21,15 +21,17 @@ import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Unroll
 
 class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def ops = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def 'task container callbacks are attributed to the correct registrant'() {
+    @Unroll
+    def 'task container callbacks are attributed to the correct registrant with filter #containerFilter'() {
         given:
         file("scriptPlugin.gradle") << """
-        tasks.all {
+        tasks.${containerFilter} {
             doLast {
                 println "action block from scriptPlugin.gradle"
             }
@@ -38,13 +40,13 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         buildFile << """
             class CallBackPlugin implements Plugin<Project> {
                 void apply(Project p){
-                    p.tasks.all {
+                    p.tasks.$containerFilter {
                         doLast {
                             println "task do last block1"
                         }
                     }
                     
-                    p.tasks.all {
+                    p.tasks.$containerFilter {
                         doLast {
                             println "task do last block2"
                         }
@@ -76,5 +78,8 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
         def scriptPluginApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('scriptPlugin.gradle') }).details.applicationId
         tasksCreated.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == scriptPluginApplicationId }.size == 1
+
+        where:
+        containerFilter << ['all', 'withType(Task)', 'matching{true}.all']
     }
 }

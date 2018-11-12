@@ -62,7 +62,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, getDecorator());
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard, getDecorator());
     }
 
     @Override
