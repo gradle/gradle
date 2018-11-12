@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -23,14 +24,16 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.Try;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -42,6 +45,7 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
     private final PersistentCache cache;
+    private final ProducerGuard<TransformationIdentity> producing = ProducerGuard.adaptive();
 
     public GradleUserHomeWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -62,10 +66,13 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     }
 
     @Override
-    public File getWorkspace(File toBeTransformed, HashCode cacheKey) {
-        File workspace = new File(filesOutputDirectory, toBeTransformed.getName() + "/" + cacheKey);
-        fileAccessTracker.markAccessed(workspace);
-        return workspace;
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+        return producing.guardByKey(identity, () -> {
+            String identityString = identity.getIdentity();
+            File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);
+            fileAccessTracker.markAccessed(workspace);
+            return useWorkspace.apply(identityString, workspace);
+        });
     }
 
     @Override

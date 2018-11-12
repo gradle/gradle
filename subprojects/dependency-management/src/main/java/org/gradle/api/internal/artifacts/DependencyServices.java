@@ -18,21 +18,13 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
-import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
-import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.impl.steps.UpToDateResult;
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DependencyServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -74,22 +66,6 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
 
         TransformationNodeExecutor createTransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             return new TransformationNodeExecutor(buildOperationExecutor, transformListener);
-        }
-
-        TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
-                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ListenerManager listenerManager, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
-            DefaultTransformerInvoker transformerInvoker = new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
-            listenerManager.addListener(new RootBuildLifecycleListener() {
-                @Override
-                public void afterStart() {
-                }
-
-                @Override
-                public void beforeComplete() {
-                    transformerInvoker.clearInMemoryCache();
-                }
-            });
-            return transformerInvoker;
         }
     }
 }
