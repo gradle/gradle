@@ -17,6 +17,8 @@
 package org.gradle.plugin.use.resolve.internal.local;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
+import org.gradle.plugin.use.PluginId;
 
 public interface PluginPublication extends ProjectPublication {
+    PluginId getPluginId();
 }

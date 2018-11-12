@@ -28,7 +28,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
@@ -417,29 +416,9 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             return Describables.withTypeAndName("plugin", pluginDeclaration.getName());
         }
 
-        @Nullable
         @Override
-        public <T> T getCoordinates(Class<T> type) {
-            if (type.equals(PluginId.class)) {
-                return type.cast(DefaultPluginId.of(pluginDeclaration.getId()));
-            }
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public SoftwareComponentInternal getComponent() {
-            return null;
-        }
-
-        @Override
-        public boolean isAlias() {
-            return false;
-        }
-
-        @Override
-        public boolean isLegacy() {
-            return false;
+        public PluginId getPluginId() {
+            return DefaultPluginId.of(pluginDeclaration.getId());
         }
     }
 }
