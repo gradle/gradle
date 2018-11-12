@@ -159,11 +159,11 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
 internal
 inline fun withSynchronousIO(action: IO.() -> Unit) {
-    action(SynchronousIOScope)
+    action(SynchronousIO)
 }
 
 
 internal
-object SynchronousIOScope : IO {
+object SynchronousIO : IO {
     override fun io(action: () -> Unit) = action()
 }

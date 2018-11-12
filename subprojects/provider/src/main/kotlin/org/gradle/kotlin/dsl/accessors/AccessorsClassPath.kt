@@ -27,8 +27,8 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 
-import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -74,21 +74,6 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
             }
         }
     }
-
-
-internal
-inline fun <T> withAsynchronousIO(
-    project: Project,
-    action: IO.() -> T
-): T = project.serviceOf<AsyncIOScopeFactory>().newScope().useToRun(action)
-
-
-internal
-fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
-    srcDir.resolve(packagePath).mkdirs()
-    binDir.resolve(packagePath).mkdirs()
-    binDir.resolve("META-INF").mkdir()
-}
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {

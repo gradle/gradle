@@ -56,6 +56,14 @@ fun IO.emitAccessorsFor(
 }
 
 
+internal
+fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
+    srcDir.resolve(packagePath).mkdirs()
+    binDir.resolve(packagePath).mkdirs()
+    binDir.resolve("META-INF").mkdir()
+}
+
+
 private
 fun IO.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
 

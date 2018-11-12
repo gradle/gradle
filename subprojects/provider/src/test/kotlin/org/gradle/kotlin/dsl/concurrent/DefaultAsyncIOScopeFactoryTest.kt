@@ -27,11 +27,12 @@ import org.junit.Test
 import java.io.IOException
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 
-class AsyncIOScopeFactoryTest {
+class DefaultAsyncIOScopeFactoryTest {
 
     @Test
     fun `#io failure is reported upon IOScope#close`() {
@@ -56,13 +57,13 @@ class AsyncIOScopeFactoryTest {
 
         withAsyncIOScopeFactory {
 
+            val failureLatch = FailureLatch()
             val failure = IOException()
 
             val scope = newScope().apply {
-                io { throw failure }
+                io { failureLatch.failWith(failure) }
             }
-
-            Thread.sleep(1)
+            failureLatch.await()
 
             assertThat(
                 runCatching { scope.io { } }.exceptionOrNull(),
@@ -76,26 +77,46 @@ class AsyncIOScopeFactoryTest {
 
         withAsyncIOScopeFactory {
 
+            // given: a failure in one scope
+            val failureLatch = FailureLatch()
             newScope().apply {
-                io { throw IllegalStateException() }
+                io { failureLatch.failWith(IllegalStateException()) }
             }
+            failureLatch.await()
 
-            Thread.sleep(1)
-
-            val scope2Action = CompletableFuture<Unit>()
+            // then: actions can still be scheduled in separate scope
+            val isolatedScopeAction = CompletableFuture<Unit>()
             newScope().apply {
-                io { scope2Action.complete(Unit) }
+                io { isolatedScopeAction.complete(Unit) }
             }
-
             assertThat(
-                scope2Action.get(50, TimeUnit.MILLISECONDS),
+                isolatedScopeAction.get(50, TimeUnit.MILLISECONDS),
                 equalTo(Unit)
             )
         }
     }
 
     private
-    fun withAsyncIOScopeFactory(action: AsyncIOScopeFactory.() -> Unit) {
-        AsyncIOScopeFactory { Executors.newSingleThreadExecutor() }.useToRun(action)
+    class FailureLatch {
+
+        private
+        val latch: CountDownLatch = CountDownLatch(1)
+
+        fun failWith(failure: Throwable) {
+            latch.countDown()
+            throw failure
+        }
+
+        fun await() {
+            // There's small chance this thread can be awakened before
+            // the exception in the IO thread is caught, so let's yield
+            latch.await(1, TimeUnit.SECONDS)
+            Thread.yield()
+        }
+    }
+
+    private
+    fun withAsyncIOScopeFactory(action: DefaultAsyncIOScopeFactory.() -> Unit) {
+        DefaultAsyncIOScopeFactory { Executors.newSingleThreadExecutor() }.useToRun(action)
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf

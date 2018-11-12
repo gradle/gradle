@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
 
-import java.io.File
-
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -31,59 +29,19 @@ object BuildServices {
 
     @Suppress("unused")
     fun createAsyncIOScopeFactory(executorFactory: ExecutorFactory): AsyncIOScopeFactory =
-        AsyncIOScopeFactory { executorFactory.create("Kotlin DSL Writer", 1) }
+        DefaultAsyncIOScopeFactory { executorFactory.create("Kotlin DSL Writer", 1) }
 }
 
 
-/**
- * A scheduler of IO actions.
- */
-interface IO {
-
-    /**
-     * Schedules the given [io action][action] for execution.
-     *
-     * The effect of an IO [action] is only guaranteed to be observable
-     * by a subsequent [io] action or after the [closing][IOScope.close] of
-     * the current [IOScope].
-     */
-    fun io(action: () -> Unit)
-}
-
-
-/**
- * Schedules the writing of the given [file].
- */
-fun IO.writeFile(file: File, bytes: ByteArray) {
-    io { file.writeBytes(bytes) }
-}
-
-
-/**
- * A scope for the scheduling of IO actions.
- *
- * [close] guarantees all scheduled IO actions are executed before returning.
- *
- * Each [IOScope] operates independently and failures in one [IOScope]
- * do not affect existing or future [IOScope]s.
- *
- * Each [IOScope] can only be used from a single thread at a time.
- */
-interface IOScope : IO, AutoCloseable
-
-
-/**
- * Creates [IOScope] instances that offload IO actions to a dedicated [ExecutorService][executorService].
- */
 internal
-class AsyncIOScopeFactory(
+class DefaultAsyncIOScopeFactory(
     executorServiceProvider: () -> ExecutorService
-) : AutoCloseable {
+) : AutoCloseable, AsyncIOScopeFactory {
 
     private
     val executorService = lazy(executorServiceProvider)
 
-    fun newScope(): IOScope = object : IOScope {
+    override fun newScope(): IOScope = object : IOScope {
 
         private
         val failure = AtomicReference<Throwable?>(null)
