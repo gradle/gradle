@@ -22,6 +22,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
+import org.gradle.kotlin.dsl.concurrent.IO
+
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
@@ -56,11 +58,13 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         val binDir = newFolder("bin")
 
         // when:
-        buildPluginAccessorsFor(
-            pluginDescriptorsClassPath = classPathOf(pluginsJar),
-            srcDir = srcDir,
-            binDir = binDir
-        )
+        withSynchronousIO {
+            buildPluginAccessorsFor(
+                pluginDescriptorsClassPath = classPathOf(pluginsJar),
+                srcDir = srcDir,
+                binDir = binDir
+            )
+        }
 
         // then:
         assertThat(
@@ -150,4 +154,16 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                 "META-INF/gradle-plugins/$id.properties" to "implementation-class=$implClass".toByteArray()
             })
         }
+}
+
+
+internal
+inline fun withSynchronousIO(action: IO.() -> Unit) {
+    action(SynchronousIOScope)
+}
+
+
+internal
+object SynchronousIOScope : IO {
+    override fun io(action: () -> Unit) = action()
 }

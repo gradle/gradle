@@ -26,8 +26,13 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
+
+import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
+import org.gradle.kotlin.dsl.concurrent.IO
+
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
@@ -45,7 +50,6 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
 import java.io.Closeable
 import java.io.File
-import java.io.Writer
 
 
 fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
@@ -60,14 +64,31 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         // TODO:accessors make cache key computation more efficient
         cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
-            buildAccessorsFor(
-                projectSchema,
-                classPath,
-                srcDir = srcDir,
-                binDir = binDir
-            )
+            withAsynchronousIO(project) {
+                buildAccessorsFor(
+                    projectSchema,
+                    classPath,
+                    srcDir = srcDir,
+                    binDir = binDir
+                )
+            }
         }
     }
+
+
+internal
+inline fun <T> withAsynchronousIO(
+    project: Project,
+    action: IO.() -> T
+): T = project.serviceOf<AsyncIOScopeFactory>().newScope().useToRun(action)
+
+
+internal
+fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
+    srcDir.resolve(packagePath).mkdirs()
+    binDir.resolve(packagePath).mkdirs()
+    binDir.resolve("META-INF").mkdir()
+}
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -131,7 +152,7 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
 internal
-fun buildAccessorsFor(
+fun IO.buildAccessorsFor(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
@@ -487,15 +508,8 @@ fun enabledJitAccessors(project: Project) =
 
 
 internal
-fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>, imports: List<String> = emptyList()): Unit =
-    outputFile.bufferedWriter().use { writer ->
-        writeAccessorsTo(writer, accessors, imports)
-    }
-
-
-internal
-fun writeAccessorsTo(writer: Writer, accessors: Sequence<String>, imports: List<String>) {
-    writer.apply {
+fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List<String> = emptyList()) = io {
+    outputFile.bufferedWriter().useToRun {
         appendln(fileHeaderWithImports)
         if (imports.isNotEmpty()) {
             imports.forEach {

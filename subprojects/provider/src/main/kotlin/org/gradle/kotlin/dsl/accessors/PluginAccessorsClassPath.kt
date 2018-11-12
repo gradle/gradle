@@ -28,8 +28,8 @@ import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
-
-import org.gradle.kotlin.dsl.concurrent.WriterThread
+import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.writeFile
 
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 
@@ -56,7 +56,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
-
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -81,11 +80,13 @@ fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.roo
         val cacheKeySpec = accessorsCacheKeyPrefix + buildSrcClassLoaderScope.exportClassLoader
         cachedAccessorsClassPathFor(rootProject, cacheKeySpec) { srcDir, binDir ->
             kotlinScriptClassPathProviderOf(rootProject).run {
-                buildPluginAccessorsFor(
-                    pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
-                    srcDir = srcDir,
-                    binDir = binDir
-                )
+                withAsynchronousIO(rootProject) {
+                    buildPluginAccessorsFor(
+                        pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
+                        srcDir = srcDir,
+                        binDir = binDir
+                    )
+                }
             }
         }
     }
@@ -93,62 +94,61 @@ fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.roo
 
 
 internal
-fun buildPluginAccessorsFor(
+fun IO.buildPluginAccessorsFor(
     pluginDescriptorsClassPath: ClassPath,
     srcDir: File,
     binDir: File
 ) {
+    makeAccessorOutputDirs(srcDir, binDir)
+
     val pluginSpecs = pluginSpecsFrom(pluginDescriptorsClassPath)
     val pluginTrees = PluginTree.of(pluginSpecs)
     val accessorList = pluginAccessorsFor(pluginTrees).toList()
     val baseFileName = "$packagePath/PluginAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
-    writerThreadFor(srcDir, binDir).useToRun {
+    writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
 
-        io { writePluginAccessorsSourceCodeTo(sourceFile, accessorList) }
+    val fileFacadeClassName = InternalName(baseFileName + "Kt")
+    val moduleName = "kotlin-dsl-plugin-spec-accessors"
+    val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
+    writeFile(
+        moduleFileFor(binDir, moduleName),
+        moduleMetadata
+    )
 
-        val fileFacadeClassName = InternalName(baseFileName + "Kt")
-        val moduleName = "kotlin-dsl-plugin-spec-accessors"
-        val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
-        writeFile(
-            moduleFileFor(binDir, moduleName),
-            moduleMetadata
-        )
+    val properties = ArrayList<Pair<PluginAccessor, JvmMethodSignature>>(accessorList.size)
+    val header = writeFileFacadeClassHeader {
+        accessorList.forEach { accessor ->
 
-        val properties = ArrayList<Pair<PluginAccessor, JvmMethodSignature>>(accessorList.size)
-        val header = writeFileFacadeClassHeader {
-            accessorList.forEach { accessor ->
-
-                if (accessor is PluginAccessor.ForGroup) {
-                    val (internalClassName, classBytes) = emitClassForGroup(accessor)
-                    writeClassFileTo(binDir, internalClassName, classBytes)
-                }
-
-                val extensionSpec = accessor.extension
-                val propertyName = extensionSpec.name
-                val receiverType = extensionSpec.receiverType
-                val returnType = extensionSpec.returnType
-                val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
-                writePropertyOf(
-                    receiverType = receiverType.builder,
-                    returnType = returnType.builder,
-                    propertyName = propertyName,
-                    getterSignature = getterSignature,
-                    getterFlags = nonInlineGetterFlags
-                )
-                properties.add(accessor to getterSignature)
+            if (accessor is PluginAccessor.ForGroup) {
+                val (internalClassName, classBytes) = emitClassForGroup(accessor)
+                writeClassFileTo(binDir, internalClassName, classBytes)
             }
-        }
 
-        val classBytes = publicKotlinClass(fileFacadeClassName, header) {
-            properties.forEach { (accessor, signature) ->
-                emitAccessorMethodFor(accessor, signature)
-            }
+            val extensionSpec = accessor.extension
+            val propertyName = extensionSpec.name
+            val receiverType = extensionSpec.receiverType
+            val returnType = extensionSpec.returnType
+            val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
+            writePropertyOf(
+                receiverType = receiverType.builder,
+                returnType = returnType.builder,
+                propertyName = propertyName,
+                getterSignature = getterSignature,
+                getterFlags = nonInlineGetterFlags
+            )
+            properties.add(accessor to getterSignature)
         }
-
-        writeClassFileTo(binDir, fileFacadeClassName, classBytes)
     }
+
+    val classBytes = publicKotlinClass(fileFacadeClassName, header) {
+        properties.forEach { (accessor, signature) ->
+            emitAccessorMethodFor(accessor, signature)
+        }
+    }
+
+    writeClassFileTo(binDir, fileFacadeClassName, classBytes)
 }
 
 
@@ -178,7 +178,7 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 
 
 private
-fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<PluginAccessor>) {
+fun IO.writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<PluginAccessor>) = io {
     sourceFile.bufferedWriter().useToRun {
         appendln(fileHeader)
 
@@ -379,7 +379,7 @@ fun pluginGroupTypeName(path: List<String>) =
 
 
 private
-fun WriterThread.writeClassFileTo(binDir: File, internalClassName: InternalName, classBytes: ByteArray) {
+fun IO.writeClassFileTo(binDir: File, internalClassName: InternalName, classBytes: ByteArray) {
     val classFile = binDir.resolve("$internalClassName.class")
     writeFile(classFile, classBytes)
 }
