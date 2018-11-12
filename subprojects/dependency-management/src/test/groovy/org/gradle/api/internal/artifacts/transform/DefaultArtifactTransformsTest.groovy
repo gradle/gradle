@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Buildable
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -50,7 +50,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
-    def configuration = Mock(ConfigurationInternal)
+    def resolvableDependencies = Mock(ResolvableDependencies)
     def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory())
 
     def "selects producer variant with requested attributes"() {
@@ -71,7 +71,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, configuration).select(set)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies).select(set)
         result == variant1Artifacts
     }
 
@@ -94,7 +94,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, configuration).select(set)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies).select(set)
         visit(result)
 
         then:
@@ -150,7 +150,7 @@ class DefaultArtifactTransformsTest extends Specification {
             result.matched(to, transformation, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
-        def result = transforms.variantSelector(targetAttributes, true, configuration).select(set)
+        def result = transforms.variantSelector(targetAttributes, true, resolvableDependencies).select(set)
 
         when:
         result.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), listener).visit(visitor)
@@ -205,7 +205,7 @@ class DefaultArtifactTransformsTest extends Specification {
                 result.matched(to, Stub(Transformation), 1)
         }
 
-        def selector = transforms.variantSelector(typeAttributes("dll"), true, configuration)
+        def selector = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies)
 
         when:
         def result = selector.select(set)
@@ -238,7 +238,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true, configuration).select(set)
+        def result = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies).select(set)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -264,7 +264,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         when:
-        def result = transforms.variantSelector(typeAttributes("dll"), false, configuration).select(set)
+        def result = transforms.variantSelector(typeAttributes("dll"), false, resolvableDependencies).select(set)
         visit(result)
 
         then:

@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
 
 public interface TransformationNodeFactory {
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ConfigurationInternal configuration);
+    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ResolvableDependencies resolvableDependencies);
 }

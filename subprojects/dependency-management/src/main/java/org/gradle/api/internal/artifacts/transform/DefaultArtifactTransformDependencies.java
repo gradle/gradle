@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 import java.io.File;
 import java.util.Set;
@@ -35,24 +34,23 @@ import java.util.Set;
  */
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
     private final ComponentArtifactIdentifier artifactId;
-    private final ConfigurationInternal configuration;
+    private final ResolvableDependencies resolvableDependencies;
 
-    public DefaultArtifactTransformDependencies(ComponentArtifactIdentifier artifactId, ConfigurationInternal configuration) {
+    public DefaultArtifactTransformDependencies(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
         this.artifactId = artifactId;
-        this.configuration = configuration;
+        this.resolvableDependencies = resolvableDependencies;
     }
 
     @Override
     public Iterable<File> getDependencies() {
-        ResolvableDependencies incoming = configuration.getIncoming();
-        ResolutionResult resolutionResult = incoming.getResolutionResult();
+        ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
         Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
         for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
             if (component.getId().equals(artifactId.getComponentIdentifier())) {
                 getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
             }
         }
-        return incoming.artifactView(conf -> {
+        return resolvableDependencies.artifactView(conf -> {
             conf.componentFilter(element -> {
                 return dependenciesIdentifiers.contains(element);
             });

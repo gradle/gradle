@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -32,22 +32,29 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
-    private final ConfigurationInternal configuration;
+    private final ResolvableDependencies resolvableDependencies;
 
-    TransformingAsyncArtifactListener(Transformation transformation, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults, ConfigurationInternal configuration) {
+    TransformingAsyncArtifactListener(
+        Transformation transformation,
+        ResolvedArtifactSet.AsyncArtifactListener delegate,
+        BuildOperationQueue<RunnableBuildOperation> actions,
+        Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults,
+        Map<File, TransformationOperation> fileResults,
+        ResolvableDependencies resolvableDependencies
+    ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
-        this.configuration = configuration;
+        this.resolvableDependencies = resolvableDependencies;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        DefaultArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifactId, configuration);
+        DefaultArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifactId, resolvableDependencies);
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file, dependencies);
         initialSubjectAvailable(artifactId, initialSubject, artifactResults);
     }

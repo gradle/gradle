@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -40,7 +40,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
-    private final ConfigurationInternal configuration;
+    private final ResolvableDependencies resolvableDependencies;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -48,13 +48,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ImmutableAttributesFactory attributesFactory,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
-        ConfigurationInternal configuration) {
+        ResolvableDependencies resolvableDependencies
+    ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
-        this.configuration = configuration;
+        this.resolvableDependencies = resolvableDependencies;
     }
 
     @Override
@@ -98,7 +99,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformation, configuration);
+            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformation, resolvableDependencies);
         }
 
         if (!candidates.isEmpty()) {
