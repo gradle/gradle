@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -28,13 +29,15 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final SettingsProcessor settingsProcessor;
     private final BuildSourceBuilder buildSourceBuilder;
     private final BuildStateRegistry buildRegistry;
+    private final ProjectStateRegistry projectRegistry;
     private final PublicBuildPath publicBuildPath;
 
-    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
         this.buildRegistry = buildRegistry;
+        this.projectRegistry = projectRegistry;
         this.publicBuildPath = publicBuildPath;
     }
 
@@ -65,6 +68,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                 settingsFinder,
                 settingsProcessor,
                 buildSourceBuilder
-            ));
+            ),
+            projectRegistry);
     }
 }

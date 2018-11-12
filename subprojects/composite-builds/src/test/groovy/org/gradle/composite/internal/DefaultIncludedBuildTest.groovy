@@ -42,7 +42,7 @@ class DefaultIncludedBuildTest extends Specification {
         _ * owningBuild.nestedBuildFactory >> buildFactory
         _ * buildFactory.nestedInstance(buildDefinition, _) >> gradleLauncher
         _ * gradleLauncher.gradle >> gradle
-        _ * gradleLauncher.loadedSettings >> Stub(SettingsInternal)
+        _ * gradle.settings >> Stub(SettingsInternal)
 
         build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
     }

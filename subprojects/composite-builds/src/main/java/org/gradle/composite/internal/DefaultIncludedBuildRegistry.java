@@ -136,32 +136,17 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void registerRootBuild(SettingsInternal settings) {
-        validateIncludedBuilds(settings);
-
-        projectRegistry.registerProjects(rootBuild);
-
-        Collection<IncludedBuildState> includedBuilds = getIncludedBuilds();
-        registerProjects(includedBuilds);
-    }
-
-    @Override
     public void beforeConfigureRootBuild() {
         registerSubstitutions(includedBuilds.values());
     }
 
-    private void registerProjects(Collection<IncludedBuildState> includedBuilds) {
-        for (IncludedBuildState includedBuild : includedBuilds) {
-            projectRegistry.registerProjects(includedBuild);
-        }
-    }
-
-    private void validateIncludedBuilds(SettingsInternal settings) {
+    @Override
+    public void finalizeIncludedBuilds() {
+        SettingsInternal settings = getRootBuild().getLoadedSettings();
         SetMultimap<String, IncludedBuildState> names = LinkedHashMultimap.create();
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.remove(0);
-            // This implicitly loads the settings, possibly discovering more included builds
-            // Should make this an explicit step instead
+            build.loadSettings();
             String buildName = build.getName();
             names.put(buildName, build);
             if (settings.getRootProject().getName().equals(buildName)) {
@@ -198,7 +183,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             includedBuild = registerBuild(buildDefinition, true);
-            projectRegistry.registerProjects(includedBuild);
         }
         return includedBuild;
     }
@@ -210,12 +194,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         Path identityPath = pathFor(owner, buildIdentifier.getName());
-        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, new BuildStateListener() {
-            @Override
-            public void projectsKnown(BuildState build1) {
-                projectRegistry.registerProjects(build1);
-            }
-        });
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         addBuild(build);
         return build;
     }

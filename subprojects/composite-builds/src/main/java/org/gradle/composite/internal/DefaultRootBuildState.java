@@ -38,7 +38,7 @@ import org.gradle.util.Path;
 
 class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private GradleLauncher gradleLauncher;
+    private final GradleLauncher gradleLauncher;
 
     DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeScopeServices parentServices) {
         this.listenerManager = listenerManager;

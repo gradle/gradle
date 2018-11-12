@@ -18,18 +18,23 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.build.BuildState;
 
 class SettingsAttachingSettingsLoader implements SettingsLoader {
     private final DefaultSettingsLoader delegate;
+    private final ProjectStateRegistry projectRegistry;
 
-    SettingsAttachingSettingsLoader(DefaultSettingsLoader delegate) {
+    SettingsAttachingSettingsLoader(DefaultSettingsLoader delegate, ProjectStateRegistry projectRegistry) {
         this.delegate = delegate;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
         gradle.setSettings(settings);
+        projectRegistry.registerProjects(gradle.getServices().get(BuildState.class));
         return settings;
     }
 }

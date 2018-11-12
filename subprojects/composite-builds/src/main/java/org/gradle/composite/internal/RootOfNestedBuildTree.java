@@ -23,8 +23,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
@@ -108,11 +106,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                         @Override
                         public void settingsEvaluated(Settings settings) {
                             buildName = settings.getRootProject().getName();
-                        }
-
-                        @Override
-                        public void projectsLoaded(Gradle g) {
-                            gradle.getServices().get(ProjectStateRegistry.class).registerProjects(RootOfNestedBuildTree.this);
                         }
                     });
                     T result = buildAction.transform(buildController);
