@@ -23,6 +23,9 @@ import org.gradle.api.tasks.TaskDependency;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * This should merge into {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry}.
+ */
 public interface IdeArtifactRegistry {
     /**
      * Registers an IDE project model to be included in the IDE workspace.

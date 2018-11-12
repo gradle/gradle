@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -27,7 +27,7 @@ import org.gradle.util.TestUtil
 class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
 
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
-        getPublications(Path.ROOT) >> [Stub(ProjectPublication) {
+        getPublications(ProjectComponentPublication, Path.ROOT) >> [Stub(ProjectComponentPublication) {
             getCoordinates(ModuleVersionIdentifier) >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> "group"
                 getName() >> "name"

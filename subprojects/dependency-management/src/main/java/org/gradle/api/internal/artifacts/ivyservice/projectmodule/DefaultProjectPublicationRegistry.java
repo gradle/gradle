@@ -16,50 +16,78 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry {
-    private final SetMultimap<Path, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
-    private final List<Reference> allPublications = new ArrayList<Reference>();
+    private final SetMultimap<Path, Reference<?>> publicationsByProject = LinkedHashMultimap.create();
 
     @Override
-    public Set<ProjectPublication> getPublications(Path projectIdentityPath) {
+    public <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath) {
         synchronized (publicationsByProject) {
-            return ImmutableSet.copyOf(publicationsByProject.get(projectIdentityPath));
+            Collection<Reference<?>> projectPublications = publicationsByProject.get(projectIdentityPath);
+            if (projectPublications.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<T> result = new ArrayList<T>(projectPublications.size());
+            for (Reference<?> reference : projectPublications) {
+                if (type.isInstance(reference.get())) {
+                    result.add(type.cast(reference.get()));
+                }
+            }
+            return result;
         }
     }
 
     @Override
-    public Collection<Reference> getPublications() {
-        return ImmutableList.copyOf(allPublications);
+    public <T extends ProjectPublication> Collection<Reference<T>> getPublications(Class<T> type) {
+        synchronized (publicationsByProject) {
+            Collection<Reference<?>> allPublications = publicationsByProject.values();
+            if (allPublications.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<Reference<T>> result = new ArrayList<Reference<T>>(allPublications.size());
+            for (Reference<?> reference : allPublications) {
+                if (type.isInstance(reference.get())) {
+                    result.add(Cast.uncheckedCast(reference));
+                }
+            }
+            return result;
+        }
     }
 
     @Override
     public void registerPublication(ProjectInternal project, ProjectPublication publication) {
         synchronized (publicationsByProject) {
-            publicationsByProject.put(project.getIdentityPath(), publication);
-            allPublications.add(new Reference() {
-                @Override
-                public ProjectPublication get() {
-                    return publication;
-                }
+            publicationsByProject.put(project.getIdentityPath(), new ReferenceImpl(publication, project));
+        }
+    }
 
-                @Override
-                public Project getOwningProject() {
-                    return project;
-                }
-            });
+    private static class ReferenceImpl implements Reference {
+        private final ProjectPublication publication;
+        private final ProjectInternal project;
+
+        ReferenceImpl(ProjectPublication publication, ProjectInternal project) {
+            this.publication = publication;
+            this.project = project;
+        }
+
+        @Override
+        public ProjectPublication get() {
+            return publication;
+        }
+
+        @Override
+        public ProjectInternal getProducingProject() {
+            return project;
         }
     }
 }

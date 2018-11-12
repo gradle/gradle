@@ -20,6 +20,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
 import org.gradle.initialization.GradleLauncher
@@ -33,15 +34,21 @@ class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
     def buildFactory = Mock(NestedBuildFactory)
     def buildDefinition = Stub(BuildDefinition)
+    def gradleLauncher = Mock(GradleLauncher)
+    def gradle = Mock(GradleInternal)
+    DefaultIncludedBuild build
+
+    def setup() {
+        _ * owningBuild.nestedBuildFactory >> buildFactory
+        _ * buildFactory.nestedInstance(buildDefinition, _) >> gradleLauncher
+        _ * gradleLauncher.gradle >> gradle
+        _ * gradleLauncher.loadedSettings >> Stub(SettingsInternal)
+
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
+    }
 
     def "creates a foreign id for projects"() {
-        def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
         def projectId = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path("id"), Path.path("project"), "name")
-        def gradleLauncher = Stub(GradleLauncher)
-
-        given:
-        owningBuild.nestedBuildFactory >> buildFactory
-        buildFactory.nestedInstance(buildDefinition, build) >> gradleLauncher
 
         expect:
         def id = build.idToReferenceProjectFromAnotherBuild(projectId)
@@ -53,20 +60,13 @@ class DefaultIncludedBuildTest extends Specification {
 
     def "can run action against build state"() {
         def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
-        def gradleLauncher = Mock(GradleLauncher)
-        def gradle = Mock(GradleInternal)
         def action = Mock(Transformer)
-
-        given:
-        owningBuild.nestedBuildFactory >> buildFactory
-        gradleLauncher.gradle >> gradle
 
         when:
         def result = build.withState(action)
 
         then:
         result == "result"
-        1 * buildFactory.nestedInstance(buildDefinition, build) >> gradleLauncher
         1 * action.transform(gradle) >> "result"
         0 * action._
     }

@@ -30,6 +30,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.plugin.devel.PluginDeclaration
 import org.gradle.plugin.use.PluginId
 import org.gradle.plugin.use.internal.DefaultPluginId
+import org.gradle.plugin.use.resolve.internal.local.PluginPublication
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.junit.Rule
 
@@ -205,7 +206,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        def publications = project.services.get(ProjectPublicationRegistry).getPublications(project.identityPath)
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(PluginPublication, project.identityPath)
         publications.size() == 2
         publications[0].getCoordinates(PluginId) == DefaultPluginId.of("a.plugin")
         publications[1].getCoordinates(PluginId) == DefaultPluginId.of("b.plugin")
