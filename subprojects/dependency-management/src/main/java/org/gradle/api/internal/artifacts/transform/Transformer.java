@@ -32,7 +32,7 @@ import java.util.List;
 public interface Transformer extends Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
 
-    List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies artifactTransformDependencies);
+    List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**
      * The hash of the secondary inputs of the transformer.

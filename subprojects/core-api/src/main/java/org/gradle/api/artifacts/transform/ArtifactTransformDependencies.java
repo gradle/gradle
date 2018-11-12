@@ -19,6 +19,7 @@ package org.gradle.api.artifacts.transform;
 import org.gradle.api.Incubating;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * An injectable service that when injected into a {@link ArtifactTransform} can be used to access
@@ -28,5 +29,19 @@ import java.io.File;
  */
 @Incubating
 public interface ArtifactTransformDependencies {
+    /**
+     * Returns the dependency artifacts of the artifact being transformed.
+     * The order of the files match that of the dependencies in the source artifact view.
+     */
     Iterable<File> getDependencies();
+
+    /**
+     * Empty dependencies.
+     */
+    ArtifactTransformDependencies EMPTY = new ArtifactTransformDependencies() {
+        @Override
+        public Iterable<File> getDependencies() {
+            return Collections.emptySet();
+        }
+    };
 }
