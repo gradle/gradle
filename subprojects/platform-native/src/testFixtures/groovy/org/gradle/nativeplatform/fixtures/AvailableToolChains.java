@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -239,9 +240,16 @@ public class AvailableToolChains {
 
         if (toolChains.isEmpty()) {
             toolChains.add(new UnavailableToolChain(ToolFamily.SWIFTC));
+            return toolChains;
+        } else {
+            toolChains.sort(Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
+                @Override
+                public int compare(ToolChainCandidate toolchain1, ToolChainCandidate toolchain2) {
+                    return toolchain1.getVersion().compareTo(toolchain2.getVersion());
+                }
+            }));
+            return toolChains;
         }
-
-        return toolChains;
     }
 
     public enum ToolFamily {
