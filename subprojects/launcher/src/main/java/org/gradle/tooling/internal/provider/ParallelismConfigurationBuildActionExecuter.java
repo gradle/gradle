@@ -25,9 +25,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildExecuter;
 
-public class ParallelismConfigurationBuildActionExecuter implements BuildExecuter {
+public class ParallelismConfigurationBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ParallelismConfigurationManager parallelismConfigurationManager;
 

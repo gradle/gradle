@@ -26,17 +26,17 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.Path;
 
@@ -52,7 +52,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ListenerManager listenerManager;
-    private final ServiceRegistry rootServices;
+    private final BuildTreeScopeServices rootServices;
 
     // TODO: Locking around this state
     private RootBuildState rootBuild;
@@ -60,7 +60,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
     private final List<IncludedBuildState> pendingIncludedBuilds = Lists.newArrayList();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeScopeServices rootServices) {
         this.includedBuildFactory = includedBuildFactory;
         this.projectRegistry = projectRegistry;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
@@ -78,13 +78,22 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext) {
+    public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
         if (rootBuild != null) {
             throw new IllegalStateException("Root build already defined.");
         }
-        rootBuild = new DefaultRootBuildState(buildDefinition, requestContext, gradleLauncherFactory, listenerManager, rootServices);
+        rootBuild = new DefaultRootBuildState(buildDefinition, gradleLauncherFactory, listenerManager, rootServices);
         addBuild(rootBuild);
         return rootBuild;
+    }
+
+    @Override
+    public void attachRootBuild(RootBuildState rootBuild) {
+        if (this.rootBuild != null) {
+            throw new IllegalStateException("Root build already defined.");
+        }
+        this.rootBuild = rootBuild;
+        addBuild(rootBuild);
     }
 
     private void addBuild(BuildState build) {
@@ -124,17 +133,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             throw new IllegalArgumentException("Could not find " + buildIdentifier);
         }
         return buildState;
-    }
-
-    @Override
-    public void register(BuildState build) {
-        addBuild(build);
-        if (build instanceof RootBuildState) {
-            if (rootBuild != null) {
-                throw new IllegalStateException("Root build already defined.");
-            }
-            rootBuild = (RootBuildState) build;
-        }
     }
 
     @Override
@@ -223,7 +221,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner) {
+    public NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }

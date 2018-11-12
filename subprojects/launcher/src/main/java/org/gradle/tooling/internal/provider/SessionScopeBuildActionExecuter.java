@@ -32,11 +32,14 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
 
-public class ServicesSetupBuildActionExecuter implements BuildExecuter {
+/**
+ * A {@link BuildExecuter} responsible for establishing the session to execute a {@link BuildAction} within.
+ */
+public class SessionScopeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public ServicesSetupBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+    public SessionScopeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
         this.delegate = delegate;
         this.userHomeServiceRegistry = userHomeServiceRegistry;
     }
@@ -54,7 +57,9 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
                 startParameter,
                 requestContext,
                 actionParameters.getInjectedPluginClasspath(),
-                requestContext.getCancellationToken()
+                requestContext.getCancellationToken(),
+                requestContext.getClient(),
+                requestContext.getEventConsumer()
             );
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);

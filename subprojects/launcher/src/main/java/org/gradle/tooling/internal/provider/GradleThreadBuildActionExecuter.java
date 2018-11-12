@@ -19,14 +19,14 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildExecuter;
 
-public class GradleThreadBuildActionExecuter implements BuildExecuter {
-    private final BuildExecuter delegate;
+public class GradleThreadBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+    private final BuildActionExecuter<BuildActionParameters> delegate;
 
-    public GradleThreadBuildActionExecuter(BuildExecuter delegate) {
+    public GradleThreadBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
         this.delegate = delegate;
     }
 

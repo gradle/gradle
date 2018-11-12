@@ -16,8 +16,5 @@
 
 package org.gradle.internal.build;
 
-/**
- * A build that is a child of some other build, and whose lifetime is bounded by the lifetime of that containing build.
- */
-public interface NestedBuildState extends BuildState {
+public interface NestedRootBuild extends NestedBuildState, RootBuildState {
 }
