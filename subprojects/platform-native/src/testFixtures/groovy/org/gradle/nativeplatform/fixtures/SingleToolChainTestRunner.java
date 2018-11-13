@@ -105,7 +105,8 @@ public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionS
         if (toolChainRequirement != null) {
             return toolChain.meets(toolChainRequirement.value());
         }
-        return true;
+        // Swift tests will always have a toolchain requirement for swiftc
+        return !toolChain.meets(ToolChainRequirement.SWIFTC);
     }
 
     private static class ToolChainExecution extends Execution {
