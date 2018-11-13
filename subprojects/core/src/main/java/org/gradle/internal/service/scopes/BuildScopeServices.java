@@ -166,8 +166,6 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.profile.ProfileEventAdapter;
-import org.gradle.profile.ProfileListener;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -397,10 +395,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectAccessListener createProjectAccessListener() {
         return new DefaultProjectAccessListener();
-    }
-
-    protected ProfileEventAdapter createProfileEventAdapter() {
-        return new ProfileEventAdapter(get(BuildStartedTime.class), get(Clock.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
