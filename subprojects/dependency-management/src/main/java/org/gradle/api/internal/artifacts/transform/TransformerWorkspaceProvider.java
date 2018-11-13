@@ -20,12 +20,15 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Try;
 
 import java.io.File;
-import java.util.function.BiFunction;
 
 public interface TransformerWorkspaceProvider {
     /**
      * Provides a workspace for executing the transformation.
      */
-    // TODO Do not use BiFunction here, but specify a custom interface instead with a named method and parameters
-    Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace);
+    Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction);
+
+    @FunctionalInterface
+    interface TransformationWorkspaceAction {
+        Try<ImmutableList<File>> useWorkspace(String transformationIdentity, File workspace);
+    }
 }

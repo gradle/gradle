@@ -33,7 +33,6 @@ import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -66,12 +65,12 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return producing.guardByKey(identity, () -> {
             String identityString = identity.getIdentity();
             File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);
             fileAccessTracker.markAccessed(workspace);
-            return useWorkspace.apply(identityString, workspace);
+            return workspaceAction.useWorkspace(identityString, workspace);
         });
     }
 

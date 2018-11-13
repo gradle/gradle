@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 
 public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
@@ -67,7 +66,7 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         ImmutableList<File> resultFromCache = inMemoryResultCache.get(identity);
         if (resultFromCache != null) {
             return Try.successful(resultFromCache);
@@ -77,7 +76,7 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
             if (fromCache != null) {
                 return Try.successful(fromCache);
             }
-            Try<ImmutableList<File>> transformationResult = useWorkspace.apply(identityString, workspace);
+            Try<ImmutableList<File>> transformationResult = workspaceAction.useWorkspace(identityString, workspace);
             transformationResult.ifSuccessful(files -> inMemoryResultCache.put(identity, files));
             return transformationResult;
         });

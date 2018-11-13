@@ -24,7 +24,6 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Try;
 
 import java.io.File;
-import java.util.function.BiFunction;
 
 public class ProjectTransformerWorkspaceProvider implements TransformerWorkspaceProvider {
 
@@ -36,11 +35,11 @@ public class ProjectTransformerWorkspaceProvider implements TransformerWorkspace
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return producing.guardByKey(identity, () -> {
             String identityString = identity.getIdentity();
             String path = identity.getInitialSubjectFileName() + "/" + identityString;
-            return useWorkspace.apply(identityString, new File(baseDirectory.get().getAsFile(), path));
+            return workspaceAction.useWorkspace(identityString, new File(baseDirectory.get().getAsFile(), path));
         });
     }
 }
