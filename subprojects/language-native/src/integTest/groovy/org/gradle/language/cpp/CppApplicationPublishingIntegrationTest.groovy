@@ -24,8 +24,13 @@ import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 
-import static org.gradle.api.platform.MachineArchitecture.*
-import static org.gradle.api.platform.OperatingSystemFamily.*
+import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
+import static org.gradle.api.platform.MachineArchitecture.X86
+import static org.gradle.api.platform.MachineArchitecture.X86_64
+import static org.gradle.api.platform.OperatingSystemFamily.LINUX
+import static org.gradle.api.platform.OperatingSystemFamily.MACOS
+import static org.gradle.api.platform.OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE
+import static org.gradle.api.platform.OperatingSystemFamily.WINDOWS
 
 class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
     def consumer = file("consumer").createDir()
@@ -164,6 +169,15 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 dependencies {
                     implementation project(':greeter')
                 }
+                application.binaries.configureEach {
+                    // TODO: See https://github.com/gradle/gradle-native/issues/142
+                    linkTask.get().linkerArgs.addAll(providers.provider {
+                        if (targetPlatform.operatingSystemFamily.linux) {
+                            return ["-Wl,-rpath,'\\\$ORIGIN'"]
+                        }
+                        return []
+                    })
+                }
             }
             project(':greeter') { 
                 apply plugin: 'cpp-library'
@@ -252,6 +266,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                                 implementation project(':logger')
                             }
                         }
+                        // TODO: See https://github.com/gradle/gradle-native/issues/142
+                        linkTask.get().linkerArgs.addAll(providers.provider {
+                            if (targetPlatform.operatingSystemFamily.linux) {
+                                return ["-Wl,-rpath,'\\\$ORIGIN'"]
+                            }
+                            return []
+                        })
                     }
                 }
             }
@@ -334,7 +355,18 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') { 
                 apply plugin: 'cpp-application'
-                application.baseName = 'testApp'
+                application {
+                    baseName = 'testApp'
+                    binaries.configureEach {
+                        // TODO: See https://github.com/gradle/gradle-native/issues/142
+                        linkTask.get().linkerArgs.addAll(providers.provider {
+                            if (targetPlatform.operatingSystemFamily.linux) {
+                                return ["-Wl,-rpath,'\\\$ORIGIN'"]
+                            }
+                            return []
+                        })
+                    }
+                }
                 dependencies {
                     implementation project(':greeter')
                 }
