@@ -70,7 +70,7 @@ buildTypes {
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testPartialVersions" to true)
+        projectProperties("testAllVersions" to true)
     }
 
     // Tests not using the daemon mode
