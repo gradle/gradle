@@ -102,6 +102,6 @@ class ThingSpec {
         new ClassFile(groovyClassFile("Thing.class")).javaVersion == javaVersion
         new ClassFile(groovyClassFile("GroovyThing.class")).javaVersion == javaVersion
         new ClassFile(classFile("groovy", "test", "ThingSpec.class")).javaVersion == javaVersion
-        operations[':compileGroovy'].result.executionTimeByAnnotationProcessor == null
+        operations[':compileGroovy'].result.annotationProcessorDetails == null
     }
 }

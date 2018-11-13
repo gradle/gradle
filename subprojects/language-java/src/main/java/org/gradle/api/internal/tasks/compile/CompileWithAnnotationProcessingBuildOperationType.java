@@ -20,7 +20,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
-import java.util.Map;
+import java.util.List;
 
 public class CompileWithAnnotationProcessingBuildOperationType implements BuildOperationType<CompileWithAnnotationProcessingBuildOperationType.Details, CompileWithAnnotationProcessingBuildOperationType.Result> {
 
@@ -32,12 +32,30 @@ public class CompileWithAnnotationProcessingBuildOperationType implements BuildO
     public interface Result {
 
         /**
-         * Returns the total execution time in milliseconds by each annotation processor, if available.
+         * Returns details about the used annotation processors, if available.
          *
-         * @return execution time by annotation processor; {@code null} if unknown.
+         * @return details about used annotation processors; {@code null} if unknown.
          */
         @Nullable
-        Map<String, Long> getExecutionTimeByAnnotationProcessor();
+        List<AnnotationProcessorDetails> getAnnotationProcessorDetails();
+
+        /**
+         * Details about an annotation processor used during compilation.
+         */
+        @UsedByScanPlugin
+        interface AnnotationProcessorDetails {
+
+            /**
+             * Returns the fully-qualified class name of this annotation processor.
+             */
+            String getClassName();
+
+            /**
+             * Returns the total execution time of this annotation processor.
+             */
+            long getExecutionTimeInMillis();
+
+        }
 
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.CompileWithAnnotationProcessingBuildOperationsFixture
@@ -221,7 +222,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "compileJava"
         !file('build/classes/java/main/TestAppHelper.class').exists()
-        operations[':compileJava'].result.executionTimeByAnnotationProcessor == [:]
+        operations[':compileJava'].result.annotationProcessorDetails == []
     }
 
     def "no code generation when annotation processing is disabled"() {
@@ -239,7 +240,11 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "compileJava"
         !file('build/classes/java/main/TestAppHelper.class').exists()
-        operations[':compileJava'].result.executionTimeByAnnotationProcessor == [HelperProcessor: 0]
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'HelperProcessor'
+            first().executionTimeInMillis == 0
+        }
     }
 
     def "explicit -processor option overrides automatic detection"() {
@@ -308,20 +313,23 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         with(operations[':annotation:compileJava']) {
             it.displayName == 'Invoke compiler for :annotation:compileJava'
-            it.result.executionTimeByAnnotationProcessor == (fork ? null : [:])
+            it.result.annotationProcessorDetails == (fork ? null : [])
         }
         with(operations[':processor:compileJava']) {
             it.displayName == 'Invoke compiler for :processor:compileJava'
-            it.result.executionTimeByAnnotationProcessor == (fork ? null : [:])
+            it.result.annotationProcessorDetails == (fork ? null : [])
         }
         with(operations[':compileJava']) {
             it.displayName == 'Invoke compiler for :compileJava'
-            def execTimes = it.result.executionTimeByAnnotationProcessor
+            def details = it.result.annotationProcessorDetails as List<AnnotationProcessorDetails>
             if (fork) {
-                execTimes == null
+                details == null
             } else {
-                execTimes.keySet() == ['HelperProcessor'] as Set
-                execTimes['HelperProcessor'] >= 0
+                with(details) {
+                    size() == 1
+                    first().className == 'HelperProcessor'
+                    first().executionTimeInMillis >= 0
+                }
             }
         }
 

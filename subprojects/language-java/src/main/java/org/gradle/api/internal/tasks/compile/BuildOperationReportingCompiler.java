@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -26,7 +27,9 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 public class BuildOperationReportingCompiler<T extends CompileSpec> implements Compiler<T> {
 
@@ -59,7 +62,11 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
             private Result toBuildOperationResult(WorkResult result) {
                 if (result instanceof CompilationWithAnnotationProcessingResult) {
                     AnnotationProcessingResult annotationProcessingResult = ((CompilationWithAnnotationProcessingResult) result).getAnnotationProcessingResult();
-                    return new Result(annotationProcessingResult.getExecutionTimeByProcessor());
+                    List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
+                    for (Entry<String, Long> entry : annotationProcessingResult.getExecutionTimeByProcessor().entrySet()) {
+                        details.add(new DefaultAnnotationProcessorDetails(entry.getKey(), entry.getValue()));
+                    }
+                    return new Result(details);
                 }
                 return new Result(null);
             }
@@ -70,15 +77,40 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
     }
 
     private static class Result implements CompileWithAnnotationProcessingBuildOperationType.Result {
-        private final Map<String, Long> executionTimeByAnnotationProcessor;
+        private final List<AnnotationProcessorDetails> annotationProcessorDetails;
 
-        Result(Map<String, Long> executionTimeByAnnotationProcessor) {
-            this.executionTimeByAnnotationProcessor = executionTimeByAnnotationProcessor;
+        Result(List<AnnotationProcessorDetails> annotationProcessorDetails) {
+            this.annotationProcessorDetails = annotationProcessorDetails;
         }
 
         @Override
-        public Map<String, Long> getExecutionTimeByAnnotationProcessor() {
-            return executionTimeByAnnotationProcessor;
+        public List<AnnotationProcessorDetails> getAnnotationProcessorDetails() {
+            return annotationProcessorDetails;
+        }
+    }
+
+    private static class DefaultAnnotationProcessorDetails implements AnnotationProcessorDetails {
+        private final String className;
+        private final long executionTimeInMillis;
+
+        DefaultAnnotationProcessorDetails(String className, long executionTimeInMillis) {
+            this.className = className;
+            this.executionTimeInMillis = executionTimeInMillis;
+        }
+
+        @Override
+        public String getClassName() {
+            return className;
+        }
+
+        @Override
+        public long getExecutionTimeInMillis() {
+            return executionTimeInMillis;
+        }
+
+        @Override
+        public String toString() {
+            return className + ": " + executionTimeInMillis + " ms";
         }
     }
 }

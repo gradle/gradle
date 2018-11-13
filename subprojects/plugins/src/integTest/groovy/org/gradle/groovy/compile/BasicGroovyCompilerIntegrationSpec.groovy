@@ -17,6 +17,7 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -33,8 +34,6 @@ import spock.lang.Issue
 
 @TargetCoverage({GroovyCoverage.ALL})
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
-
-    public static final String SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME = "com.test.SimpleAnnotationProcessor"
 
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -83,10 +82,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
-        with(operations[':compileGroovy']) {
-            def execTimes = it.result.executionTimeByAnnotationProcessor
-            execTimes.keySet() == [SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] as Set
-            execTimes[SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] >= 0
+        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == "com.test.SimpleAnnotationProcessor"
+            first().executionTimeInMillis >= 0
         }
     }
 
@@ -205,10 +204,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Java$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
         groovyClassFile('Java$$Generated.class').exists()
-        with(operations[':compileGroovy']) {
-            def execTimes = it.result.executionTimeByAnnotationProcessor
-            execTimes.keySet() == [SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] as Set
-            execTimes[SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] >= 0
+        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
+            size() == 1
+            first().executionTimeInMillis >= 0
         }
     }
 
@@ -228,10 +226,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Java$$Generated.java').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
         groovyClassFile('Java$$Generated.class').exists()
-        with(operations[':compileGroovy']) {
-            def execTimes = it.result.executionTimeByAnnotationProcessor
-            execTimes.keySet() == [SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] as Set
-            execTimes[SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME] >= 0
+        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
+            size() == 1
+            first().executionTimeInMillis >= 0
         }
     }
 
@@ -289,7 +286,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Java$$Generated.java').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
         !groovyClassFile('Java$$Generated.class').exists()
-        operations[':compileGroovy'].result.executionTimeByAnnotationProcessor == [(SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME): 0]
+        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
+            size() == 1
+            first().executionTimeInMillis == 0
+        }
     }
 
     def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
@@ -600,7 +600,7 @@ ${compilerConfiguration()}
         file("processor").create {
             file("build.gradle") << "apply plugin: 'java'"
             "src/main" {
-                file("resources/META-INF/services/javax.annotation.processing.Processor") << SIMPLE_ANNOTATION_PROCESSOR_CLASS_NAME
+                file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
                 "java/com/test/" {
                     file("SimpleAnnotation.java") << """
                         package com.test;
