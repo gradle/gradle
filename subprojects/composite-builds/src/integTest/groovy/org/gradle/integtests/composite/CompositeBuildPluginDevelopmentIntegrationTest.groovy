@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * Tests for plugin development scenarios within a composite build.
@@ -37,9 +38,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginBuild = pluginProjectBuild("pluginBuild")
     }
 
+    @Unroll
     def "can co-develop plugin and consumer with plugin as included build"() {
         given:
-        applyPlugin(buildA, pluginsBlock)
+        applyPlugin(buildA, pluginsBlock, withVersion)
         addLifecycleTasks(buildA)
 
         includeBuild pluginBuild
@@ -57,7 +59,11 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginBuild:jar", ":pluginBuild:assemble", ":assemble"
 
         where:
-        pluginsBlock << [true, false]
+        pluginsBlock | withVersion
+        true         | true
+        true         | false
+        false        | true
+        false        | false
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
@@ -239,7 +245,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
-   }
+    }
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
@@ -454,8 +460,20 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         """
     }
 
-    def applyPlugin(BuildTestFile build, boolean pluginsBlock = false) {
-        if (!pluginsBlock) {
+    def applyPlugin(BuildTestFile build, boolean pluginsBlock = false, boolean withVersion = true) {
+        if (pluginsBlock && withVersion) {
+            build.buildFile.text = """
+                plugins {
+                    id 'org.test.plugin.pluginBuild' version '1.0'
+                }
+            """ + build.buildFile.text
+        } else if (pluginsBlock) {
+            build.buildFile.text = """
+                plugins {
+                    id 'org.test.plugin.pluginBuild'
+                }
+            """ + build.buildFile.text
+        } else if (withVersion) {
             build.buildFile << """
                 buildscript {
                     dependencies {
@@ -465,11 +483,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 apply plugin: 'org.test.plugin.pluginBuild'
             """
         } else {
-            build.buildFile.text = """
-                plugins {
-                    id 'org.test.plugin.pluginBuild'
+            build.buildFile << """
+                buildscript {
+                    dependencies {
+                        classpath 'org.test:pluginBuild:'
+                    }
                 }
-            """ + build.buildFile.text
+                apply plugin: 'org.test.plugin.pluginBuild'
+            """
         }
     }
 
