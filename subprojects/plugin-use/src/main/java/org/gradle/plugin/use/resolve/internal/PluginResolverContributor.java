@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.internal.build.BuildState;
+import java.util.Collection;
 
-interface BuildStateListener {
-    /**
-     * Called when the projects for the given build are known.
-     */
-    void projectsKnown(BuildState build);
+public interface PluginResolverContributor {
+    void collectResolversInto(Collection<PluginResolver> resolvers);
 }

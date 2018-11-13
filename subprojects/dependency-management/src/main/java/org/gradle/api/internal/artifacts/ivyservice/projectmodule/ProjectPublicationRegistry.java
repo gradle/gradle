@@ -16,18 +16,35 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import java.util.Set;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path;
+
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 
 /**
- * Collects information on the publications of each project.
- * The information is gathered from multiple sources ({@code publishing.publications}
- * container, {@code uploadArchives} task, etc.).
+ * A build scoped service that collects information on the local "publications" of each project within a build. A "publication" here means some buildable thing that the project produces that can be consumed outside of the project.
+ *
+ * The information is gathered from multiple sources ({@code publishing.publications} container, {@code uploadArchives} task, etc.).
  */
+@ThreadSafe
 public interface ProjectPublicationRegistry {
-    void registerPublication(String projectPath, ProjectPublication publication);
+    void registerPublication(ProjectInternal project, ProjectPublication publication);
 
     /**
      * Returns the known publications for the given project.
      */
-    Set<ProjectPublication> getPublications(String projectPath);
+    <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath);
+
+    /**
+     * Returns all known publications.
+     */
+    <T extends ProjectPublication> Collection<Reference<T>> getPublications(Class<T> type);
+
+    interface Reference<T> {
+        T get();
+
+        // Should use ProjectState instead
+        ProjectInternal getProducingProject();
+    }
 }

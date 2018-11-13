@@ -31,19 +31,19 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildExecuter;
 
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecuter implements BuildExecuter {
-    private final BuildExecuter delegate;
+public class SessionFailureReportingActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+    private final BuildActionExecuter<BuildActionParameters> delegate;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final Clock clock;
 
-    public SessionFailureReportingActionExecuter(BuildExecuter delegate, StyledTextOutputFactory styledTextOutputFactory, Clock clock) {
+    public SessionFailureReportingActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, StyledTextOutputFactory styledTextOutputFactory, Clock clock) {
         this.delegate = delegate;
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.clock = clock;
@@ -63,7 +63,7 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
+            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(SessionScopeBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

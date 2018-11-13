@@ -76,7 +76,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new StartParamsValidatingActionExecuter(
                         new ParallelismConfigurationBuildActionExecuter(
                             new GradleThreadBuildActionExecuter(
-                                new ServicesSetupBuildActionExecuter(
+                                new SessionScopeBuildActionExecuter(
                                     new SubscribableBuildActionExecuter(
                                         new ContinuousBuildActionExecuter(
                                             new BuildTreeScopeBuildActionExecuter(

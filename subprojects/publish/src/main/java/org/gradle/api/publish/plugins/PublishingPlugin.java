@@ -77,7 +77,8 @@ public class PublishingPlugin implements Plugin<Project> {
             @Override
             public void execute(Publication publication) {
                 PublicationInternal internalPublication = (PublicationInternal) publication;
-                projectPublicationRegistry.registerPublication(project.getPath(), internalPublication);
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
             }
         });
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);

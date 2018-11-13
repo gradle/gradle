@@ -21,7 +21,7 @@ import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
-public class DefaultProjectPublication implements ProjectPublication {
+public class DefaultProjectPublication implements ProjectComponentPublication {
     private final DisplayName displayName;
     private final Object id;
     private final boolean legacy;
