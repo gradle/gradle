@@ -40,6 +40,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun testedKotlinVersions() = listOf(
+            "1.3.10",
             embeddedKotlinVersion,
             "1.2.20"
         )
