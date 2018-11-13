@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultTaskContainer
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskCollection
@@ -13,30 +14,28 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.hash.HashUtil
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.ReportGenerationPerformanceTest
-import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
+import org.gradle.testing.ReportGenerationPerformanceTest
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import org.gradle.testing.performance.generator.tasks.TemplateProjectGeneratorTask
-import org.gradle.kotlin.dsl.*
-
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
 
 
-private
 object PropertyNames {
     const val dbUrl = "org.gradle.performance.db.url"
     const val dbUsername = "org.gradle.performance.db.username"
@@ -53,10 +52,9 @@ object PropertyNames {
 }
 
 
-private
 object Config {
 
-    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
+    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last").toString()
 
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
 
@@ -78,8 +76,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "java")
 
-        registerForkPointDistributionTask()
-
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -94,34 +90,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
-    }
-
-    private
-    fun Project.registerForkPointDistributionTask() {
-        val determineForkPoint = tasks.register("determineForkPoint", DetermineForkPoint::class)
-        val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-            forkPointDistributionVersion.set(determineForkPoint.flatMap { it.forkPointDistributionVersion })
-            dependsOn(determineForkPoint)
-        }
-
-        tasks.register("configurePerformanceTestBaseline") {
-            dependsOn(buildForkPointDistribution)
-            doLast {
-                val commitBaseline = determineForkPoint.get().forkPointDistributionVersion.get()
-                project.tasks.withType(DistributedPerformanceTest::class) {
-                    if (baselines.isNullOrEmpty() || baselines == "defaults") {
-                        baselines = commitBaseline
-                    }
-                }
-            }
-        }
-    }
-
-    private
-    fun Project.whenNotOnMasterOrReleaseBranch(action: (branchName: String) -> Unit) {
-        stringPropertyOrNull(PropertyNames.branchName)
-            ?.takeIf { it.isNotEmpty() && it != "master" && it != "release" }
-            ?.let(action)
     }
 
     private
@@ -294,7 +262,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "experiments"
         }
         create("distributedFullPerformanceTest") {
-            baselines = Config.baseLineList.toString()
+            setBaselines(Config.baseLineList)
             checks = "none"
             channel = "historical"
         }
@@ -330,14 +298,26 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
+    fun Project.createBuildCommitDistributionTask(performanceTestName: String, baseline: Property<String>): TaskProvider<BuildCommitDistribution> {
+        val determineCommitBaseline = tasks.register("${performanceTestName}DetermineCommitBaseline", DetermineCommitBaseline::class, baseline)
+        return tasks.register("${performanceTestName}BuildCommitDistribution", BuildCommitDistribution::class, baseline).apply {
+            configure {
+                dependsOn(determineCommitBaseline)
+            }
+        }
+    }
+
+    private
     fun Project.createDistributedPerformanceTestTask(
         name: String,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<DistributedPerformanceTest> {
-
+        val baseline = objects.property<String>()
+        val buildCommitDistribution = createBuildCommitDistributionTask(name, baseline)
         val result = tasks.register(name, DistributedPerformanceTest::class) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
+            baselinesProperty = baseline
+            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, buildCommitDistribution)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
@@ -364,8 +344,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<out PerformanceTest> {
+        val baseline = objects.property<String>()
+        val buildCommitDistribution = createBuildCommitDistributionTask(name, baseline)
         val performanceTest = tasks.register(name, determineLocalPerformanceTestClass()) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
+            baselinesProperty = baseline
+            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, buildCommitDistribution)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
@@ -419,9 +402,9 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.configureForAnyPerformanceTestTask(
         task: PerformanceTest,
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        prepareSamplesTask: TaskProvider<Task>,
+        buildCommitDistribution: TaskProvider<BuildCommitDistribution>
     ) {
-
         task.apply {
             group = "verification"
             addDatabaseParameters(propertiesForPerformanceDb())
@@ -433,21 +416,17 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.baselines = baselines as String
+                task.setBaselines(baselines as String)
             }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
 
-            dependsOn(prepareSamplesTask)
+            dependsOn(prepareSamplesTask, buildCommitDistribution)
 
             registerTemplateInputsToPerformanceTest()
 
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
-            }
-
-            whenNotOnMasterOrReleaseBranch {
-                this@apply.dependsOn("configurePerformanceTestBaseline")
             }
         }
 

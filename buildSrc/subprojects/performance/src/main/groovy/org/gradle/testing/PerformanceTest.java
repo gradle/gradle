@@ -16,6 +16,7 @@
 
 package org.gradle.testing;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -42,8 +43,8 @@ import org.gradle.process.CommandLineArgumentProvider;
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
+    private Property<String> baselinesProperty;
     private String scenarios;
-    private String baselines;
     private String warmups;
     private String runs;
     private String checks;
@@ -62,8 +63,8 @@ public class PerformanceTest extends DistributionTest {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 List<String> baseLineList = new ArrayList<>();
-                if (baselines != null) {
-                    for (String baseline : baselines.split(",")) {
+                if (baselinesProperty.isPresent()) {
+                    for (String baseline : baselinesProperty.get().split(",")) {
                         baseLineList.add(baseline.trim());
                     }
                 }
@@ -97,12 +98,16 @@ public class PerformanceTest extends DistributionTest {
 
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     public void setBaselines(@Nullable String baselines) {
-        this.baselines = baselines;
+        this.baselinesProperty.set(baselines);
     }
 
-    @Nullable @Optional @Input
-    public String getBaselines() {
-        return baselines;
+    public void setBaselinesProperty(Property<String> baselines) {
+        this.baselinesProperty = baselines;
+    }
+
+    @Optional @Input
+    public Property<String> getBaselinesProperty() {
+        return baselinesProperty;
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -199,7 +204,7 @@ public class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios);
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines);
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselinesProperty.getOrNull());
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);

@@ -17,18 +17,33 @@
 package org.gradle.plugins.performance
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Internal
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.execAndGetStdout
-import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.*
+import javax.inject.Inject
 
 
-open class DetermineForkPoint : DefaultTask() {
-    @Internal
-    val forkPointDistributionVersion = project.objects.property<String>()
-
+open class DetermineCommitBaseline @Inject constructor(private val commitBaselineVersion: Property<String>) : DefaultTask() {
     @TaskAction
-    fun determineForkPoint() {
+    fun determineForkPointCommitBaseline() {
+        if (currentBranchIsMasterOrRelease() && commitBaselineVersion.isDefaultValue()) {
+            commitBaselineVersion.set(forkPointCommitBaseline())
+        }
+    }
+
+    private
+    fun currentBranchIsMasterOrRelease() =
+        when (project.stringPropertyOrNull(PropertyNames.branchName)) {
+            "master" -> true
+            "release" -> true
+            else -> false
+        }
+
+    private
+    fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", "defaults", Config.baseLineList)
+
+    private
+    fun forkPointCommitBaseline(): String {
         project.execAndGetStdout("git", "fetch", "origin", "master", "release")
         val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
         val releaseForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
@@ -39,7 +54,6 @@ open class DetermineForkPoint : DefaultTask() {
                 masterForkPointCommit
         val baseVersionOnForkPoint = project.execAndGetStdout("git", "show", "$forkPointCommit:version.txt")
         val shortCommitId = project.execAndGetStdout("git", "rev-parse", "--short", forkPointCommit)
-
-        forkPointDistributionVersion.set("$baseVersionOnForkPoint-commit-$shortCommitId")
+        return "$baseVersionOnForkPoint-commit-$shortCommitId"
     }
 }
