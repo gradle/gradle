@@ -69,8 +69,6 @@ public class KotlinCompatibilityTest {
         .put("org.gradle.api.tasks.AbstractCopyTask", "dirMode")
         .put("org.gradle.api.tasks.AbstractCopyTask", "fileMode")
         .put("org.gradle.api.tasks.AbstractExecTask", "args")
-        .put("org.gradle.api.tasks.AbstractExecTask", "executable")
-        .put("org.gradle.api.tasks.JavaExec", "executable")
         .put("org.gradle.api.tasks.SourceSetOutput", "resourcesDir")
         .put("org.gradle.api.tasks.bundling.War", "classpath")
         .put("org.gradle.api.tasks.bundling.Zip", "metadataCharset")

@@ -15,6 +15,7 @@
  */
 package org.gradle.process;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -27,30 +28,31 @@ public interface ProcessForkOptions {
      *
      * @return The executable.
      */
+    @Nullable
     String getExecutable();
 
     /**
      * Sets the name of the executable to use.
      *
-     * @param executable The executable. Must not be null.
+     * @param executable The executable.
      * @since 4.0
      */
-    void setExecutable(String executable);
+    void setExecutable(@Nullable String executable);
 
     /**
      * Sets the name of the executable to use.
      *
-     * @param executable The executable. Must not be null.
+     * @param executable The executable.
      */
-    void setExecutable(Object executable);
+    void setExecutable(@Nullable Object executable);
 
     /**
      * Sets the name of the executable to use.
      *
-     * @param executable The executable. Must not be null.
+     * @param executable The executable.
      * @return this
      */
-    ProcessForkOptions executable(Object executable);
+    ProcessForkOptions executable(@Nullable Object executable);
 
     /**
      * Returns the working directory for the process. Defaults to the project directory.

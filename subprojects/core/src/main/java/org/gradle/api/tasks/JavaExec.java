@@ -387,21 +387,21 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         javaExecHandleBuilder.setExecutable(executable);
     }
 
     /**
      * {@inheritDoc}
      */
-    public void setExecutable(Object executable) {
+    public void setExecutable(@Nullable Object executable) {
         javaExecHandleBuilder.setExecutable(executable);
     }
 
     /**
      * {@inheritDoc}
      */
-    public JavaExec executable(Object executable) {
+    public JavaExec executable(@Nullable Object executable) {
         javaExecHandleBuilder.executable(executable);
         return this;
     }
