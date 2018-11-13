@@ -32,9 +32,9 @@ public interface CollectionEventRegister<T> {
 
     void fireObjectRemoved(T element);
 
-    void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction);
+    Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction);
 
-    void registerLazyAddAction(Action<? super T> addAction);
+    Action<? super T> registerLazyAddAction(Action<? super T> addAction);
 
     void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction);
 }

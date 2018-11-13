@@ -222,8 +222,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private Action<? super T> addEagerAction(Action<? super T> action) {
         store.realizePending(type);
-        eventRegister.registerEagerAddAction(type, action);
-        return action;
+        return eventRegister.registerEagerAddAction(type, action);
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
@@ -505,13 +504,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
-        public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
+        public Action<? super S> registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
+            return delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
         }
 
         @Override
-        public void registerLazyAddAction(Action<? super S> addAction) {
-            delegate.registerLazyAddAction(Actions.filter(addAction, filter));
+        public Action<? super S> registerLazyAddAction(Action<? super S> addAction) {
+            return delegate.registerLazyAddAction(Actions.filter(addAction, filter));
         }
 
         @Override
