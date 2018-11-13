@@ -41,7 +41,9 @@ object ProjectGroups {
             "resourcesHttp", "resourcesSftp", "resourcesS3", "resourcesGcs", "compositeBuilds", "buildCacheHttp").map { rootProject.project(it) }.toSet()
 
     val Project.implementationPluginProjects
-        get() = setOf(rootProject.project("toolingApiBuilders"))
+        get() = setOf(
+            rootProject.project("buildProfile"),
+            rootProject.project("toolingApiBuilders"))
 
     val Project.publishedProjects
         get() = setOf(

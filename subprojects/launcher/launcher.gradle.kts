@@ -13,7 +13,6 @@ dependencies {
     compile(project(":core"))
     compile(project(":cli"))
     compile(project(":buildOption"))
-    compile(project(":buildProfile"))
     compile(project(":toolingApi"))
     compile(project(":native"))
     compile(project(":logging"))
