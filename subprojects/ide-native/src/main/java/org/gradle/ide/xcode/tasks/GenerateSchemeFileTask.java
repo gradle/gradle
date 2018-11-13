@@ -25,6 +25,7 @@ import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
@@ -117,6 +118,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     @Override
+    @Nullable
     public File getInputFile() {
         return null;
     }

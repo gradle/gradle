@@ -113,6 +113,7 @@ public class GeneratorTask<T> extends ConventionTask {
      * @return The input file.
      */
     @Internal("Covered by inputFileIfExists")
+    @Nullable
     public File getInputFile() {
         return inputFile != null ? inputFile : getOutputFile();
     }

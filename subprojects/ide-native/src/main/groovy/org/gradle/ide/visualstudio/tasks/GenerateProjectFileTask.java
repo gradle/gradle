@@ -86,6 +86,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     }
 
     @Override
+    @Nullable
     @Internal
     public File getInputFile() {
         return null;

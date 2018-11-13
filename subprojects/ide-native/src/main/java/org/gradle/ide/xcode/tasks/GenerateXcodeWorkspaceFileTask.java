@@ -24,6 +24,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -62,6 +63,7 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
     }
 
     @Override
+    @Nullable
     public File getInputFile() {
         return null;
     }

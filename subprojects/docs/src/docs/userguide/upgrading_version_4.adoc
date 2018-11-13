@@ -81,7 +81,7 @@ While it applies the Java Plugin, it behaves slightly different (e.g. it adds th
  * The `forkEvery` property of the `Test` task type no longer accepts `null`, use `0` to specify no maximum instead.
  * The `gradleUserHomeDir`, `currentDir` and `taskNames` properties of `StartParameter` no longer accepts `null`, use the corresponding `resetGradleUserHomeDir()`, `resetCurrentDir()` and `resetTaskNames()` methods to reset to defaults instead.
  * The `tasks` property of `GradleBuild` no longer accepts `null`, use an empty list to use the defaults instead.
- * The `executable` property of `AbstractExecTask` as well as the `dirMode` and `fileMode` properties of `AbstractCopyTask` and the `additionalClassDirs` and `additionalSourceDirs` properties on `JacocoReportBase` and `destinationDirectory` on `MinimalJavadocOptions` are now properly annotated with `@Nullable`, this might cause compilation errors in Gradle Kotlin DSL scripts and plugins.
+ * The `executable` property of `AbstractExecTask` as well as the `dirMode` and `fileMode` properties of `AbstractCopyTask` and the `additionalClassDirs` and `additionalSourceDirs` properties on `JacocoReportBase` and `destinationDirectory` on `MinimalJavadocOptions` and `inputFile` on `GeneratorTask` are now properly annotated with `@Nullable`, this might cause compilation errors in Gradle Kotlin DSL scripts and plugins.
  * The <<#rel5.0:configuration_avoidance, Configuration Avoidance API>> has been updated to prevent the creation and configuration of tasks that are never used.
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:

@@ -26,6 +26,7 @@ import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -50,6 +51,7 @@ public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFilter
     }
 
     @Override
+    @Nullable
     public File getInputFile() {
         return null;
     }

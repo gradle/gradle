@@ -28,6 +28,7 @@ import org.gradle.ide.visualstudio.tasks.internal.VisualStudioSolutionFile;
 import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -57,6 +58,7 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
 
     @Override
     @Internal
+    @Nullable
     public File getInputFile() {
         return null;
     }
