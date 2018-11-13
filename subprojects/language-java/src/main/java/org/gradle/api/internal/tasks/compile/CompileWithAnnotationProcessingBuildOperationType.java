@@ -17,9 +17,11 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
+@UsedByScanPlugin
 public class CompileWithAnnotationProcessingBuildOperationType implements BuildOperationType<CompileWithAnnotationProcessingBuildOperationType.Details, CompileWithAnnotationProcessingBuildOperationType.Result> {
 
     public interface Details {
