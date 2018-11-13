@@ -786,41 +786,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
 
-        output.count("Transforming") == 3
-        isTransformed("dir1.classes", "dir1.classes.dir")
-        isTransformed("lib1.jar", "lib1.jar.txt")
-        def outputDir1 = projectOutputDir("dir1.classes", "dir1.classes.dir")
-        def outputDir2 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+        output.count("Transforming") == 6
+        projectOutputDirs("lib1.jar", "1/lib1.jar").size() == 3
+        projectOutputDirs("lib1.jar", "2/lib1.jar").size() == 3
+        projectOutputDirs("lib2.jar", "1/lib2.jar").size() == 3
+        projectOutputDirs("lib2.jar", "2/lib2.jar").size() == 3
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
-
-        output.count("Transformed") == 0
-
-        when:
-        file("lib/lib1.jar").text = "abc"
-        file("lib/dir1.classes").file("child2").createFile()
-
-        succeeds ":util:resolve", ":app:resolve"
-
-        then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
-
-        output.count("Transformed") == 2
-        isTransformed("dir1.classes", "dir1.classes.dir")
-        isTransformed("lib1.jar", "lib1.jar.txt")
-        projectOutputDir("dir1.classes", "dir1.classes.dir") == outputDir1
-        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir2
-
-        when:
-        succeeds ":util:resolve", ":app:resolve"
-
-        then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
-
+        output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
         output.count("Transformed") == 0
     }
 

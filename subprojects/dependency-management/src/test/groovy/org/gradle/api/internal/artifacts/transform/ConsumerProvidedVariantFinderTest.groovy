@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.hash.HashCode
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -345,7 +346,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {
             transform(_ as TransformationSubject) >> { TransformationSubject subject ->
-                return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
+                return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }), HashCode.fromInt(1234))
             }
         }
         reg

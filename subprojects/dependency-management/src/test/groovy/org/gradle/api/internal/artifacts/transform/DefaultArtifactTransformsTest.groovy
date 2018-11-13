@@ -36,6 +36,7 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -171,9 +172,9 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.hasCachedResult(_ as TransformationSubject) >> false
         _ * transformation.getDisplayName() >> "transform"
 
-        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile, Mock(ArtifactTransformDependencies)).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile, Mock(ArtifactTransformDependencies)).transformationSuccessful(ImmutableList.of(outFile1, outFile2), HashCode.fromInt(1234))
 
-        1 * transformation.transform({ it.files == [sourceFile] }) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
+        1 * transformation.transform({ it.files == [sourceFile] }) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4), HashCode.fromInt(1234))
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})

@@ -49,15 +49,17 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
+        int index = 0;
         for (File file : subjectToTransform.getFiles()) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform);
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, index);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());
             }
             builder.addAll(result.get());
+            index++;
         }
-        return subjectToTransform.transformationSuccessful(builder.build());
+        return subjectToTransform.transformationSuccessful(builder.build(), transformer.getSecondaryInputHash());
     }
 
     @Override
@@ -65,10 +67,12 @@ public class TransformationStep implements Transformation {
         if (subject.getFailure() != null) {
             return true;
         }
+        int index = 0;
         for (File file : subject.getFiles()) {
-            if (!transformerInvoker.hasCachedResult(file, transformer, subject)) {
+            if (!transformerInvoker.hasCachedResult(file, transformer, subject, index)) {
                 return false;
             }
+            index++;
         }
         return true;
     }

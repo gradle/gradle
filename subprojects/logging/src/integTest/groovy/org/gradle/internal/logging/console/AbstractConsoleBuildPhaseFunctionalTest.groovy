@@ -289,6 +289,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         assertHasBuildPhase("0% EXECUTING")
         task2.releaseAll()
 
+
         and:
         rootBuildFinished.waitForAllPendingCalls()
         assertHasBuildPhase("100% EXECUTING")
@@ -384,7 +385,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         """
         def jar = server.expectAndBlock('jar')
         def doubleTransform = server.expectAndBlock('double-transform')
-        def sizeTransform = server.expectAndBlock('size-transform')
+        def sizeTransform1 = server.expectAndBlock('size-transform')
+        def sizeTransform2 = server.expectAndBlock('size-transform')
         def resolveTask = server.expectAndBlock('resolve-task')
         def buildFinished = server.expectAndBlock('build-finished')
 
@@ -402,9 +404,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         doubleTransform.releaseAll()
 
         and:
-        sizeTransform.waitForAllPendingCalls()
+        sizeTransform1.waitForAllPendingCalls()
         assertHasBuildPhase("50% EXECUTING")
-        sizeTransform.releaseAll()
+        sizeTransform1.releaseAll()
+        sizeTransform2.waitForAllPendingCalls()
+        assertHasBuildPhase("50% EXECUTING")
+        sizeTransform2.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()

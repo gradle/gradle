@@ -52,7 +52,7 @@ class TransformerInvokerTest extends Specification {
         def executionResult = Mock(UpToDateResult)
 
         when:
-        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject)
+        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject, 0)
         def transformationFailure = result.failure.get()
         then:
         transformationFailure instanceof TransformationException
@@ -65,8 +65,9 @@ class TransformerInvokerTest extends Specification {
         1 * transformer.implementationClass >> ArtifactTransform
         _ * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
         2 * sourceSubject.getProducer() >> Optional.empty()
+        1 * sourceSubject.getInitialFileName() >> "initial.jar"
         1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
-            action.apply(identity.getIdentity(), new File("workspace"))
+            action.useWorkspace(identity.getIdentity(), new File("workspace"))
         }
         1 * sourceSubject.dependencies >> null
         _ * artifactTransformListener._
