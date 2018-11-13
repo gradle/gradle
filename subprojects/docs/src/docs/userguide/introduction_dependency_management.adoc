@@ -73,3 +73,8 @@ Gradle takes your dependency declarations and repository definitions and attempt
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 
 The dependency resolution process is highly customizable to meet enterprise requirements. For more information, see the chapter on <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,customizing dependency resolution>>.
+
+[[sub:http-retries]]
+### HTTP Retries
+
+Gradle will make several attempts to connect to a given repository. If it fails, Gradle will retry, increasing the amount of time waiting between each retry. After a max number of failed attempts, the repository will be blacklisted for the whole build.
