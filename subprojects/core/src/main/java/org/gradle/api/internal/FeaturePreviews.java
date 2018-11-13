@@ -28,7 +28,8 @@ public class FeaturePreviews {
     public enum Feature {
         IMPROVED_POM_SUPPORT(false),
         GRADLE_METADATA(true),
-        STABLE_PUBLISHING(false);
+        STABLE_PUBLISHING(false),
+        INCREMENTAL_ARTIFACT_TRANSFORMATIONS(true);
 
         public static Feature withName(String name) {
             try {

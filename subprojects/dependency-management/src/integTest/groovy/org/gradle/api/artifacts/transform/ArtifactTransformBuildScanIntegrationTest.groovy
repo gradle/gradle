@@ -17,8 +17,13 @@
 package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
 import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import org.junit.runner.RunWith
 
+import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(IncrementalArtifactTransformationsRunner)
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
     def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -27,6 +32,7 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
             include 'lib'
             include 'util'
         """
+        configureIncrementalArtifactTransformations(settingsFile)
         fixture.logConfig = true
         fixture.publishDummyBuildScanPluginNow()
     }

@@ -17,10 +17,16 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
+import org.junit.runner.RunWith
 
+import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(IncrementalArtifactTransformationsRunner)
 class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
     def "cleans up cached output after build process crashes during transform"() {
         given:
+        configureIncrementalArtifactTransformations(settingsFile)
         buildFile << """
 
 enum Color { Red, Green, Blue }

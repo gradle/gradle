@@ -16,7 +16,14 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
+import org.junit.runner.RunWith
+
+import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(IncrementalArtifactTransformationsRunner)
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+
     def "can apply a transform to the outputs of included builds"() {
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
@@ -28,12 +35,14 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 apply plugin: 'java'
             """
         }
+        configureIncrementalArtifactTransformations(buildA.settingsFile)
         includedBuilds << buildB
         includedBuilds << buildC
 
         buildA.buildFile << """
             class XForm extends ArtifactTransform {
                 List<File> transform(File file) {
+                    println("Transforming \$file in \$outputDirectory")
                     return [file]
                 }
             }
@@ -48,9 +57,22 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                     artifactTransform(XForm)
                 }
             }
+            
+            task resolve {
+                def artifacts = configurations.compileClasspath.incoming.artifactView { 
+                    attributes.attribute(Attribute.of("artifactType", String), "xform")
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each { println it }
+                }
+            }
         """
         expect:
-        execute(buildA, "assemble")
+        execute(buildA, "resolve")
+        outputContains("buildB-1.0.jar (project :buildB)")
+        outputContains("buildC-1.0.jar (project :buildC)")
+        output.count("Transforming") == 2
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
     }

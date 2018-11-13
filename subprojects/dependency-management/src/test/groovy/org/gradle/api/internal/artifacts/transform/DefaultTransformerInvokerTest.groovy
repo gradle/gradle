@@ -60,7 +60,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     }
 
     private DefaultTransformerInvoker createInvoker() {
-        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder)
+        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder, featurePreviews)
     }
 
     def "reuses result for given inputs and transform"() {

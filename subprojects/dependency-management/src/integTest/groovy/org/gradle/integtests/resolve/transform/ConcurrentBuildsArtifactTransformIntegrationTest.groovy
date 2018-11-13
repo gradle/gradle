@@ -17,14 +17,20 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import org.junit.runner.RunWith
 
+import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(IncrementalArtifactTransformationsRunner)
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
+        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
 enum Color { Red, Green, Blue }

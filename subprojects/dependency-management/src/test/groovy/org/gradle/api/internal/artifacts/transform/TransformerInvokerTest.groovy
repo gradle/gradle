@@ -45,7 +45,7 @@ class TransformerInvokerTest extends Specification {
     def historyRepository = Mock(GradleUserHomeTransformerExecutionHistoryRepository)
     def outputFileCollectionFingerprinter = Mock(OutputFileCollectionFingerprinter)
     def projectFinder = Mock(ProjectFinder)
-    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder)
+    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder, false)
 
     def "wraps failures into TransformInvocationException"() {
         def failure = new RuntimeException()
@@ -64,7 +64,6 @@ class TransformerInvokerTest extends Specification {
         _ * executionResult.failure >> failure
         1 * transformer.implementationClass >> ArtifactTransform
         _ * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
-        2 * sourceSubject.getProducer() >> Optional.empty()
         1 * sourceSubject.getInitialFileName() >> "initial.jar"
         1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
             action.useWorkspace(identity.getIdentity(), new File("workspace"))

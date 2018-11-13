@@ -18,9 +18,14 @@ package org.gradle.integtests.resolve.transform
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import org.junit.runner.RunWith
 
+import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(IncrementalArtifactTransformationsRunner)
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -31,6 +36,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         settingsFile << """
             rootProject.name = 'root'
         """
+        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
             def artifactType = Attribute.of('artifactType', String)

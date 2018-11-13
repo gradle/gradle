@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -79,6 +79,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
+    private final boolean useTransformationWorkspaces;
 
     public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
@@ -86,7 +87,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      GradleUserHomeTransformerExecutionHistoryRepository gradleUserHomeHistoryRepository,
                                      OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                     ProjectFinder projectFinder) {
+                                     ProjectFinder projectFinder,
+                                     boolean useTransformationWorkspaces) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
@@ -94,17 +96,20 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.projectFinder = projectFinder;
+        this.useTransformationWorkspaces = useTransformationWorkspaces;
     }
 
     @Override
     public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject, int index) {
-        return determineHistoryRepository(subject).hasCachedResult(getTransformationIdentity(primaryInput, transformer, subject, index));
+        Optional<ProjectInternal> producerProject = determineProducerProject(subject);
+        return determineHistoryRepository(producerProject).hasCachedResult(getTransformationIdentity(producerProject, primaryInput, transformer, subject, index));
     }
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, int index) {
-        TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(subject);
-        TransformationIdentity identity = getTransformationIdentity(primaryInput, transformer, subject, index);
+        Optional<ProjectInternal> producerProject = determineProducerProject(subject);
+        TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(producerProject);
+        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject, index);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -119,8 +124,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getTransformationIdentity(File primaryInput, Transformer transformer, TransformationSubject subject, int index) {
-        return subject.getProducer().map(project -> getMutableTransformationIdentity(primaryInput, transformer, project, subject, index))
+    private TransformationIdentity getTransformationIdentity(Optional<ProjectInternal> producerProject, File primaryInput, Transformer transformer, TransformationSubject subject, int index) {
+        return producerProject.map(project -> getMutableTransformationIdentity(primaryInput, transformer, project, subject, index))
             .orElseGet(() -> getImmutableTransformationIdentity(primaryInput, transformer, subject.getInitialFileName()));
     }
 
@@ -134,9 +139,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, ProjectComponentIdentifier initalSubjectProducer, TransformationSubject subject, int index) {
+    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, Project initalSubjectProducer, TransformationSubject subject, int index) {
         return new MutableTransformationIdentity(
-            initalSubjectProducer.getProjectPath(),
+            initalSubjectProducer.getPath(),
             subject.getInitialFileName(),
             subject.getPreviousTransformerIdentities(),
             primaryInput.getName(),
@@ -145,14 +150,16 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformerExecutionHistoryRepository determineHistoryRepository(TransformationSubject subject) {
-        Optional<ProjectInternal> producerProject = determineProducerProject(subject);
+    private TransformerExecutionHistoryRepository determineHistoryRepository(Optional<ProjectInternal> producerProject) {
         return producerProject
             .map(project -> (TransformerExecutionHistoryRepository) project.getServices().get(ProjectTransformerExecutionHistoryRepository.class))
             .orElse(gradleUserHomeHistoryRepository);
     }
 
     private Optional<ProjectInternal> determineProducerProject(TransformationSubject subject) {
+        if (!useTransformationWorkspaces) {
+            return Optional.empty();
+        }
         return subject.getProducer()
             .filter(identifier -> identifier.getBuild().isCurrentBuild())
             .map(identifier -> projectFinder.findProject(identifier.getProjectPath()));
