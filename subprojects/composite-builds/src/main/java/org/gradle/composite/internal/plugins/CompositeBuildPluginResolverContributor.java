@@ -19,6 +19,7 @@ package org.gradle.composite.internal.plugins;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -32,11 +33,16 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CompositeBuildPluginResolverContributor implements PluginResolverContributor {
     private final BuildStateRegistry buildRegistry;
     private final BuildState consumingBuild;
+    private static final Resolution UNKNOWN = new Resolution(null);
+    private final Map<PluginId, Resolution> results = new HashMap<PluginId, Resolution>();
 
     public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
         this.buildRegistry = buildRegistry;
@@ -51,38 +57,68 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
     private class CompositeBuildPluginResolver implements PluginResolver {
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+            Resolution resolution = results.get(pluginRequest.getId());
+            if (resolution != null) {
+                if (resolution.pluginResolution != null) {
+                    result.found("??", resolution.pluginResolution);
+                }
+                return;
+            }
+
             for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
                 if (build == consumingBuild || build.isImplicitBuild()) {
                     // Do not substitute plugins from same build or builds that were not explicitly included
                     continue;
                 }
-                PluginResolution resolution = build.withState(new Transformer<PluginResolution, GradleInternal>() {
+                PluginResolution pluginResolution = build.withState(new Transformer<PluginResolution, GradleInternal>() {
                     @Override
                     public PluginResolution transform(GradleInternal gradleInternal) {
                         ProjectPublicationRegistry publicationRegistry = gradleInternal.getServices().get(ProjectPublicationRegistry.class);
                         for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
                             PluginId pluginId = reference.get().getPluginId();
-                            if (pluginId != null && pluginId.equals(pluginRequest.getId())) {
-                                return new PluginResolution() {
-                                    @Override
-                                    public PluginId getPluginId() {
-                                        return pluginId;
-                                    }
-
-                                    @Override
-                                    public void execute(PluginResolveContext context) {
-                                        context.addLegacy(pluginId, reference.getProducingProject().getDependencies().create(reference.getProducingProject()));
-                                    }
-                                };
+                            if (pluginId.equals(pluginRequest.getId())) {
+                                return new LocalPluginResolution(pluginId, reference.getProducingProject());
                             }
                         }
                         return null;
                     }
                 });
-                if (resolution != null) {
-                    result.found("??", resolution);
+                if (pluginResolution != null) {
+                    results.put(pluginRequest.getId(), new Resolution(pluginResolution));
+                    result.found("??", pluginResolution);
+                } else {
+                    results.put(pluginRequest.getId(), UNKNOWN);
                 }
             }
+        }
+    }
+
+    private static class LocalPluginResolution implements PluginResolution {
+        private final PluginId pluginId;
+        private final ProjectInternal producingProject;
+
+        LocalPluginResolution(PluginId pluginId, ProjectInternal producingProject) {
+            this.pluginId = pluginId;
+            this.producingProject = producingProject;
+        }
+
+        @Override
+        public PluginId getPluginId() {
+            return pluginId;
+        }
+
+        @Override
+        public void execute(PluginResolveContext context) {
+            context.addLegacy(pluginId, producingProject.getDependencies().create(producingProject));
+        }
+    }
+
+    private static class Resolution {
+        @Nullable
+        final PluginResolution pluginResolution;
+
+        Resolution(@Nullable PluginResolution pluginResolution) {
+            this.pluginResolution = pluginResolution;
         }
     }
 }
