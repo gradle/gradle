@@ -112,6 +112,12 @@ The kind folks at [Algolia](https://www.algolia.com/) kindly host an index used 
 You can now specify a timeout duration for a task, after which it will be interrupted.
 Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
 
+## HTTP retries during dependency resolution
+
+When Gradle attempts to connect to a remote repository via HTTP, if it fails, Gradle will retry before blacklisting the repository. 
+
+No extra configuration is needed. See the section on [HTTP retries](userguide/introduction_dependency_management#sub:http-retries) for more information.
+
 ## Performance features
 
 ### Gradle can be started as a low-priority process
