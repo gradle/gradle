@@ -31,6 +31,7 @@ import javax.inject.Inject
 
 
 // 5.1-commit-1a2b3c4d5e
+private
 val commitVersionRegex = """(\d+(\.\d+)+)-commit-[a-f0-9]+""".toRegex()
 
 
