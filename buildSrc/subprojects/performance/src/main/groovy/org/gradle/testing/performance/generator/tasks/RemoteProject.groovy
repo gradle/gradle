@@ -50,7 +50,7 @@ class RemoteProject extends DefaultTask {
      * Either the remote git repository URL, the path to a local bare git repository or the path to a local git clone.
      */
     @Input
-    Property<String> remoteUri = project.objects.property(String)
+    final Property<String> remoteUri = project.objects.property(String)
 
     /**
      * Git branch to use.
@@ -59,7 +59,7 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    Property<String> branch = project.objects.property(String)
+    final Property<String> branch = project.objects.property(String)
 
     /**
      * Git reference to use.
@@ -68,7 +68,7 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    Property<String> ref = project.objects.property(String)
+    final Property<String> ref = project.objects.property(String)
 
     /**
      * Relative path of a subdirectory within the git repository to use as the project template base directory.
@@ -77,13 +77,13 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    Property<String> subdirectory = project.objects.property(String)
+    final Property<String> subdirectory = project.objects.property(String)
 
     /**
      * Directory where the project template should be copied.
      */
     @OutputDirectory
-    File outputDirectory = project.file("$project.buildDir/$name")
+    final File outputDirectory = project.file("$project.buildDir/$name")
 
     @TaskAction
     void checkoutAndCopy() {
