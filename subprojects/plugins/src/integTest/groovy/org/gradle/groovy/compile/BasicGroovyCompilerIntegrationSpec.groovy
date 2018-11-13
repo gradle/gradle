@@ -136,7 +136,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Groovy$$Generated.java').exists()
         !groovyClassFile('Groovy.class').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
-        compileWithAnnotationProcessingOperation(':compileGroovy').failure.contains("Compilation failed")
     }
 
     def "compileBadCodeWithAnnotationProcessorDisabled"() {
@@ -164,7 +163,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Groovy$$Generated.java').exists()
         !groovyClassFile('Groovy.class').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
-        compileWithAnnotationProcessingOperation(':compileGroovy').failure.contains("Compilation failed")
     }
 
     def "jointCompileBadCodeWithoutAnnotationProcessor"() {
@@ -186,7 +184,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         file('build/classes/stub/Groovy.java').exists()
         !groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
-        compileWithAnnotationProcessingOperation(':compileGroovy').failure.contains("Compilation failed")
     }
 
     def "jointCompileWithAnnotationProcessor"() {
@@ -269,7 +266,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Java$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
         groovyClassFile('Java$$Generated.class').exists()
-        compileWithAnnotationProcessingOperation(':compileGroovy').failure.contains("Compilation failed")
     }
 
     def "jointCompileWithAnnotationProcessorDisabled"() {
@@ -330,7 +326,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Java$$Generated.java').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
         !groovyClassFile('Java$$Generated.class').exists()
-        compileWithAnnotationProcessingOperation(':compileGroovy').failure.contains("Compilation failed")
     }
 
     def "groovyToolClassesAreNotVisible"() {
