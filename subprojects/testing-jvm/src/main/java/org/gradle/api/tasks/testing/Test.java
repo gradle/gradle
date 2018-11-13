@@ -968,15 +968,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Sets the maximum number of test classes to execute in a forked test process. Use null or 0 to use no maximum.
+     * Sets the maximum number of test classes to execute in a forked test process. Use 0 to use no maximum.
      *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+     * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
      */
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery != null && forkEvery < 0) {
+    public void setForkEvery(long forkEvery) {
+        if (forkEvery < 0) {
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }
-        this.forkEvery = forkEvery == null ? 0 : forkEvery;
+        this.forkEvery = forkEvery;
     }
 
     /**
