@@ -109,9 +109,9 @@ class DefaultAsyncIOScopeFactoryTest {
 
         fun await() {
             // There's small chance this thread can be awakened before
-            // the exception in the IO thread is caught, so let's yield
+            // the exception in the IO thread is caught, so let's sleep a little
             latch.await(1, TimeUnit.SECONDS)
-            Thread.yield()
+            Thread.sleep(1)
         }
     }
 
