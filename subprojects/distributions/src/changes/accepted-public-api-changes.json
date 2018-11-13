@@ -614,14 +614,28 @@
             "changes": [
                 "Method has been removed"
             ]
-        }
-        ,{
+        },
+        {
             "type": "org.gradle.api.artifacts.maven.MavenDeployer",
             "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.setUniqueVersion(boolean)",
             "acceptation": "Maven 2 support has been removed, so this would just be a no-op",
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(java.lang.Long)",
+            "acceptation": "Fix nullability of Test.forkEvery",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(long)",
+            "acceptation": "Fix nullability of Test.forkEvery",
+            "changes": []
         }
     ]
 }
