@@ -56,9 +56,6 @@ public class KotlinCompatibilityTest {
     }
 
     private static final Multimap<String, String> IGNORED_PUBLIC_API_PROPERTIES = ImmutableSetMultimap.<String, String>builder()
-        .put("org.gradle.StartParameter", "currentDir")
-        .put("org.gradle.StartParameter", "gradleUserHomeDir")
-        .put("org.gradle.StartParameter", "taskNames")
         .put("org.gradle.api.plugins.quality.Checkstyle", "configDir")
         .put("org.gradle.api.plugins.quality.FindBugs", "excludeBugsFilter")
         .put("org.gradle.api.plugins.quality.FindBugs", "excludeFilter")

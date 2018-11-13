@@ -291,7 +291,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public void setBuildFile(@Nullable File buildFile) {
         if (buildFile == null) {
             this.buildFile = null;
-            setCurrentDir(null);
+            resetCurrentDir();
         } else {
             this.buildFile = FileUtils.canonicalize(buildFile);
             setProjectDir(this.buildFile.getParentFile());
@@ -337,17 +337,24 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the project. The tasks are executed in the order provided, subject to dependency
+     * <p>Sets the tasks to execute in this build. Set to an empty list, to execute the default tasks for the project. The tasks are executed in the order provided, subject to dependency
      * between the tasks.</p>
      *
      * @param taskNames the names of the tasks to execute in this build.
+     *
+     * @see #resetTaskNames() to reset to the defaults tasks for the project
      */
-    public void setTaskNames(@Nullable Iterable<String> taskNames) {
-        if (taskNames == null) {
-            this.taskRequests = emptyList();
-        } else {
-            this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
-        }
+    public void setTaskNames(Iterable<String> taskNames) {
+        this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
+    }
+
+    /**
+     * Sets the tasks to execute in this build to the default tasks for the project.
+     *
+     * @since 5.0
+     */
+    public void resetTaskNames() {
+        taskRequests = emptyList();
     }
 
     /**
@@ -399,14 +406,21 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
-     * @param currentDir The directory. Set to null to use the default.
+     * @param currentDir The directory. Must not be null
+     *
+     * @see #resetCurrentDir() to reset to the default current directory
      */
-    public void setCurrentDir(@Nullable File currentDir) {
-        if (currentDir != null) {
-            this.currentDir = FileUtils.canonicalize(currentDir);
-        } else {
-            this.currentDir = new BuildLayoutParameters().getCurrentDir();
-        }
+    public void setCurrentDir(File currentDir) {
+        this.currentDir = FileUtils.canonicalize(currentDir);
+    }
+
+    /**
+     * Sets the directory to use to select the default project, and to search for the settings file to the default current directory.
+     *
+     * @since 5.0
+     */
+    public void resetCurrentDir() {
+        currentDir = new BuildLayoutParameters().getCurrentDir();
     }
 
     public boolean isSearchUpwards() {
@@ -443,12 +457,23 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Sets the directory to use as the user home directory. Set to null to use the default directory.
+     * Sets the directory to use as the user home directory.
      *
-     * @param gradleUserHomeDir The home directory. May be null.
+     * @param gradleUserHomeDir The home directory, must not be null
+     *
+     * @see #resetGradleUserHomeDir() to reset to the default user home directory
      */
-    public void setGradleUserHomeDir(@Nullable File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : FileUtils.canonicalize(gradleUserHomeDir);
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = FileUtils.canonicalize(gradleUserHomeDir);
+    }
+
+    /**
+     * Sets the directory to use as the user home directory to its default.
+     *
+     * @since 5.0
+     */
+    public void resetGradleUserHomeDir() {
+        gradleUserHomeDir = new BuildLayoutParameters().getGradleUserHomeDir();
     }
 
     /**
@@ -554,7 +579,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setProjectDir(@Nullable File projectDir) {
         if (projectDir == null) {
-            setCurrentDir(null);
+            resetCurrentDir();
             this.projectDir = null;
         } else {
             File canonicalFile = FileUtils.canonicalize(projectDir);

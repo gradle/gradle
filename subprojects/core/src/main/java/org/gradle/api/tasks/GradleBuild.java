@@ -138,7 +138,7 @@ public class GradleBuild extends ConventionTask {
     /**
      * Sets the tasks that should be executed for this build.
      *
-     * @param tasks The task names. May be empty or null to use the default tasks for the build.
+     * @param tasks The task names. May be empty to use the default tasks for the build.
      * @since 4.0
      */
     public void setTasks(List<String> tasks) {
@@ -148,7 +148,7 @@ public class GradleBuild extends ConventionTask {
     /**
      * Sets the tasks that should be executed for this build.
      *
-     * @param tasks The task names. May be empty or null to use the default tasks for the build.
+     * @param tasks The task names. May be empty to use the default tasks for the build.
      */
     public void setTasks(Collection<String> tasks) {
         getStartParameter().setTaskNames(tasks);

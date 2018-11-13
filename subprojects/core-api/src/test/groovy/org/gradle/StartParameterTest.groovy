@@ -239,11 +239,11 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "can configure null user home dir"() {
+    void "can configure default user home dir"() {
         StartParameter parameter = new StartParameter()
 
         when:
-        parameter.gradleUserHomeDir = null
+        parameter.resetGradleUserHomeDir()
 
         then:
         parameter.gradleUserHomeDir == StartParameter.DEFAULT_GRADLE_USER_HOME
@@ -259,7 +259,7 @@ class StartParameterTest extends Specification {
         parameter.gradleUserHomeDir = tmpDir.file("ignore-me")
 
         when:
-        parameter.gradleUserHomeDir = null
+        parameter.resetGradleUserHomeDir()
 
         then:
         parameter.gradleUserHomeDir == gradleUserHome
@@ -380,7 +380,7 @@ class StartParameterTest extends Specification {
         parameter.taskRequests == [ new DefaultTaskExecutionRequest(['a', 'b']) ]
 
         when:
-        parameter.taskNames = null
+        parameter.resetTaskNames()
 
         then:
         parameter.taskNames == []
