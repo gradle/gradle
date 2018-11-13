@@ -13,7 +13,7 @@ ant.importBuild("build.xml") { oldTargetName ->
 // tag::source-sets[]
 sourceSets {
     main {
-        java.setSrcDirs(mutableListOf(ant.properties["src.dir"]))
+        java.setSrcDirs(listOf(ant.properties["src.dir"]))
         java.outputDir = file(ant.properties["classes.dir"] ?: "$buildDir/classes")
     }
 }
@@ -25,7 +25,7 @@ tasks {
         dependsOn("prepare")  // <1>
     }
     named("package") {
-        setDependsOn(listOf("compileJava"))  // <2>
+        setDependsOn(listOf(compileJava))  // <2>
     }
     assemble {
         setDependsOn(listOf("package"))  // <3>

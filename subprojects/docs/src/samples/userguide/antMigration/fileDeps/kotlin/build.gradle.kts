@@ -18,22 +18,26 @@ dependencies {
 // end::file-deps[]
 
 // tag::retrieve-deps[]
-tasks.create<Copy>("retrieveRuntimeDependencies") {
-    into("$buildDir/libs")
-    from(configurations.runtimeClasspath)
+tasks {
+    create<Copy>("retrieveRuntimeDependencies") {
+        into("$buildDir/libs")
+        from(configurations.runtimeClasspath)
+    }
 }
 // end::retrieve-deps[]
 
 // tag::properties[]
 val tmpDistDir by extra { file("$buildDir/dist") }
 
-tasks.create<Jar>("javadocJar") {
-    from(tasks.getByName("javadoc"))  // <1>
-    classifier = "javadoc"
-}
+tasks {
+    create<Jar>("javadocJar") {
+        from(tasks.javadoc)  // <1>
+        classifier = "javadoc"
+    }
 
-tasks.create<Copy>("unpackJavadocs") {
-    from(zipTree(tasks.getByName<Jar>("javadocJar").archivePath))  // <2>
-    into(tmpDistDir)  // <3>
+    create<Copy>("unpackJavadocs") {
+        from(zipTree(tasks.getByName<Jar>("javadocJar").archivePath))  // <2>
+        into(tmpDistDir)  // <3>
+    }
 }
 // end::properties[]
