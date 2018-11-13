@@ -19,7 +19,9 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 
-import org.gradle.kotlin.dsl.concurrent.WriterThread
+import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.writeFile
+
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
@@ -27,17 +29,18 @@ import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
-import org.gradle.kotlin.dsl.support.useToRun
 
 import java.io.File
 
 
 internal
-fun emitAccessorsFor(
+fun IO.emitAccessorsFor(
     projectSchema: ProjectSchema<TypeAccessibility>,
     srcDir: File,
     binDir: File
-): List<InternalName> = writerThreadFor(srcDir, binDir).useToRun {
+): List<InternalName> {
+
+    makeAccessorOutputDirs(srcDir, binDir)
 
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
@@ -49,12 +52,20 @@ fun emitAccessorsFor(
         moduleMetadataBytesFor(emittedClassNames)
     )
 
-    emittedClassNames
+    return emittedClassNames
+}
+
+
+internal
+fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
+    srcDir.resolve(packagePath).mkdirs()
+    binDir.resolve(packagePath).mkdirs()
+    binDir.resolve("META-INF").mkdir()
 }
 
 
 private
-fun WriterThread.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
+fun IO.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
 
     val (className, fragments) = fragmentsFor(accessor)
     val sourceCode = mutableListOf<String>()
@@ -68,7 +79,7 @@ fun WriterThread.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): I
     }
 
     val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-    io { writeAccessorsTo(sourceFile, sourceCode.asSequence(), importsRequiredBy(accessor)) }
+    writeAccessorsTo(sourceFile, sourceCode, importsRequiredBy(accessor))
 
     val classHeader = metadataWriter.closeHeader()
     val classBytes = classWriter.endKotlinClass(classHeader)
@@ -94,20 +105,6 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
 private
 fun importsRequiredBy(vararg candidateTypes: TypeAccessibility): List<String> =
     importsRequiredBy(candidateTypes.asList())
-
-
-internal
-fun writerThreadFor(srcDir: File, binDir: File): WriterThread = WriterThread().apply {
-    io { makeAccessorOutputDirs(srcDir, binDir) }
-}
-
-
-private
-fun makeAccessorOutputDirs(srcDir: File, binDir: File) {
-    srcDir.resolve(packagePath).mkdirs()
-    binDir.resolve(packagePath).mkdirs()
-    binDir.resolve("META-INF").mkdir()
-}
 
 
 internal

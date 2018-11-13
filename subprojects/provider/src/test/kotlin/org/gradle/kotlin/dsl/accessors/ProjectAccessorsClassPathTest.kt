@@ -440,6 +440,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         )
     }
 
+    private
+    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
+        withSynchronousIO {
+            buildAccessorsFor(schema, classPath, srcDir, binDir)
+        }
+    }
+
     inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
         ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
 }
