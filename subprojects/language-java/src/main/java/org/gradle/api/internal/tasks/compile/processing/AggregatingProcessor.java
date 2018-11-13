@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
@@ -32,9 +33,9 @@ public final class AggregatingProcessor extends DelegatingProcessor {
 
     private final IncrementalProcessingStrategy strategy;
 
-    public AggregatingProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public AggregatingProcessor(Processor delegate, AnnotationProcessorResult processorResult, AnnotationProcessingResult result) {
         super(delegate);
-        this.strategy = new AggregatingProcessingStrategy(result);
+        this.strategy = new AggregatingProcessingStrategy(result, processorResult);
     }
 
     @Override

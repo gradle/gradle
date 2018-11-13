@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
@@ -233,6 +234,20 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         and:
         outputContains("Full recompilation is required because '@Service' has source retention. Aggregating annotation processors require class or runtime retention.")
+    }
+
+    def "reports aggregating processor as incremental in build operation"() {
+        java "class Irrelevant {}"
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'ServiceProcessor'
+            first().incremental
+        }
     }
 
     private boolean serviceRegistryReferences(String... services) {

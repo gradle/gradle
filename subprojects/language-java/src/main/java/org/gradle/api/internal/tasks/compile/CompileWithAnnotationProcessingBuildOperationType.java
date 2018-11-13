@@ -51,6 +51,13 @@ public class CompileWithAnnotationProcessingBuildOperationType implements BuildO
             String getClassName();
 
             /**
+             * Returns whether this annotation processor is incremental.
+             *
+             * @see org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+             */
+            boolean isIncremental();
+
+            /**
              * Returns the total execution time of this annotation processor.
              */
             long getExecutionTimeInMillis();

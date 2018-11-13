@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -32,9 +33,10 @@ class IsolatingProcessingStrategy extends IncrementalProcessingStrategy {
 
     private final AnnotationProcessingResult result;
 
-    IsolatingProcessingStrategy(AnnotationProcessingResult result) {
+    IsolatingProcessingStrategy(AnnotationProcessingResult result, AnnotationProcessorResult processorResult) {
         super(result);
         this.result = result;
+        processorResult.setIncremental(true);
     }
 
     @Override

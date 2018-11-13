@@ -46,7 +46,7 @@ class AggregatingProcessorTest extends Specification {
 
     AnnotationProcessingResult result = new AnnotationProcessingResult()
     Processor delegate = Stub(Processor)
-    AggregatingProcessor processor = new AggregatingProcessor(delegate, result)
+    AggregatingProcessor processor = new AggregatingProcessor(delegate, processorResult, result)
 
     def "when delegate reacts to any class, all root elements are aggregated"() {
         given:

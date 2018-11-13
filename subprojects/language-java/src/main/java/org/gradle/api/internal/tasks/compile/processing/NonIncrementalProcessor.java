@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -34,9 +35,9 @@ public class NonIncrementalProcessor extends DelegatingProcessor {
 
     private final NonIncrementalProcessingStrategy strategy;
 
-    public NonIncrementalProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public NonIncrementalProcessor(Processor delegate, AnnotationProcessorResult processorResult, AnnotationProcessingResult result) {
         super(delegate);
-        this.strategy = new NonIncrementalProcessingStrategy(delegate.getClass().getName(), result);
+        this.strategy = new NonIncrementalProcessingStrategy(delegate.getClass().getName(), processorResult, result);
     }
 
     @Override

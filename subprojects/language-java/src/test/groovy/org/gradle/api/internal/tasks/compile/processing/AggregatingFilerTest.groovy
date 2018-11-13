@@ -22,7 +22,7 @@ class AggregatingFilerTest extends IncrementalFilerTest {
 
     @Override
     IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
-        new AggregatingProcessingStrategy(result)
+        new AggregatingProcessingStrategy(result, processorResult)
     }
 
     def "can have zero originating elements"() {

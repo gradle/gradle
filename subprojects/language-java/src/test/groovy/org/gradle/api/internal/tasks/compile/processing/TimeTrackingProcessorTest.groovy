@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import org.gradle.internal.Factory
 import org.gradle.internal.time.ControlledTimeSource
 import org.gradle.internal.time.DefaultTimer
 import org.gradle.internal.time.Timer
 import spock.lang.Specification
 
-import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.Completions
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -37,52 +36,10 @@ import javax.lang.model.element.TypeElement
 class TimeTrackingProcessorTest extends Specification {
 
     def delegate = Mock(Processor)
-    def result = new AnnotationProcessingResult()
+    def result = new AnnotationProcessorResult()
     def timeSource = new ControlledTimeSource()
     Factory<Timer> timeProvider = { new DefaultTimer(timeSource) }
     def tracker = new TimeTrackingProcessor(delegate, result, timeProvider)
-
-    def "initializes time"() {
-        expect:
-        result.getExecutionTimeByProcessor().size() == 1
-        measuredTime == 0
-    }
-
-    def "uses name of delegate when called with DelegatingProcessor"() {
-        given:
-        def delegatingProcessor = new DelegatingProcessor(delegate) {}
-
-        when:
-        tracker = new TimeTrackingProcessor(delegatingProcessor, result)
-
-        then:
-        result.getExecutionTimeByProcessor().keySet() == [delegate.getClass().getName()] as Set
-    }
-
-    def "can track multiple annotation processors"() {
-        given:
-        def anotherDelegate = new AbstractProcessor() {
-            @Override
-            boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-                simulateWorkWithDuration(23)
-                false
-            }
-        }
-        def anotherTracker = new TimeTrackingProcessor(anotherDelegate, result, timeProvider)
-
-        when:
-        anotherTracker.process(null, null)
-        tracker.process(null, null)
-
-        then:
-        1 * delegate.process(_, _) >> {
-            simulateWorkWithDuration(42)
-            true
-        }
-        result.getExecutionTimeByProcessor().size() == 2
-        getMeasuredTime(anotherDelegate) == 23
-        getMeasuredTime(delegate) == 42
-    }
 
     def "tracks time for getSupportedAnnotationTypes()"() {
         when:
@@ -94,7 +51,7 @@ class TimeTrackingProcessorTest extends Specification {
             ['AnnotationType']
         }
         types == ['AnnotationType'] as Set
-        measuredTime == 13
+        result.executionTimeInMillis == 13
     }
 
     def "tracks time for getSupportedOptions()"() {
@@ -107,7 +64,7 @@ class TimeTrackingProcessorTest extends Specification {
             ['Option']
         }
         options == ['Option'] as Set
-        measuredTime == 17
+        result.executionTimeInMillis == 17
     }
 
     def "tracks time for getSupportedSourceVersion()"() {
@@ -120,7 +77,7 @@ class TimeTrackingProcessorTest extends Specification {
             SourceVersion.RELEASE_8
         }
         sourceVersion == SourceVersion.RELEASE_8
-        measuredTime == 3
+        result.executionTimeInMillis == 3
     }
 
     def "tracks time for init()"() {
@@ -133,7 +90,7 @@ class TimeTrackingProcessorTest extends Specification {
         1 * delegate.init(processingEnv) >> {
             simulateWorkWithDuration(5)
         }
-        measuredTime == 5
+        result.executionTimeInMillis == 5
     }
 
     def "tracks time for process()"() {
@@ -149,7 +106,7 @@ class TimeTrackingProcessorTest extends Specification {
             true
         }
         claimed
-        measuredTime == 42
+        result.executionTimeInMillis == 42
 
         when:
         tracker.process(typeElems, roundEnv)
@@ -159,7 +116,7 @@ class TimeTrackingProcessorTest extends Specification {
             simulateWorkWithDuration(23)
             true
         }
-        measuredTime == 42 + 23
+        result.executionTimeInMillis == 42 + 23
     }
 
     def "tracks time for getCompletions()"() {
@@ -178,14 +135,10 @@ class TimeTrackingProcessorTest extends Specification {
             [completion] as Set
         }
         completions == [completion] as Set
-        measuredTime == 11
+        result.executionTimeInMillis == 11
     }
 
     def simulateWorkWithDuration(long millis) {
         timeSource.nanoTime += millis
-    }
-
-    long getMeasuredTime(Processor processor = delegate) {
-        result.getExecutionTimeByProcessor()[processor.getClass().getName()]
     }
 }

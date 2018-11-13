@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -31,16 +31,14 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import java.util.Map;
 import java.util.Set;
 
 public class TimeTrackingProcessor extends DelegatingProcessor {
 
-    private final String processorClassName;
-    private final Map<String, Long> executionTimeByProcessor;
+    private final AnnotationProcessorResult result;
     private final Factory<Timer> timeProvider;
 
-    public TimeTrackingProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public TimeTrackingProcessor(Processor delegate, AnnotationProcessorResult result) {
         this(delegate, result, new Factory<Timer>() {
             @Override
             public Timer create() {
@@ -50,21 +48,10 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
     }
 
     @VisibleForTesting
-    protected TimeTrackingProcessor(Processor delegate, AnnotationProcessingResult result, Factory<Timer> timeProvider) {
+    protected TimeTrackingProcessor(Processor delegate, AnnotationProcessorResult result, Factory<Timer> timeProvider) {
         super(delegate);
-        this.processorClassName = determineClassName(delegate);
-        this.executionTimeByProcessor = result.getExecutionTimeByProcessor();
-        if (!executionTimeByProcessor.containsKey(processorClassName)) {
-            executionTimeByProcessor.put(processorClassName, 0L);
-        }
+        this.result = result;
         this.timeProvider = timeProvider;
-    }
-
-    private String determineClassName(Processor processor) {
-        if (processor instanceof DelegatingProcessor) {
-            return determineClassName(((DelegatingProcessor) processor).getDelegate());
-        }
-        return processor.getClass().getName();
     }
 
     @Override
@@ -133,9 +120,9 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
         try {
             return factory.create();
         } finally {
-            long oldValue = executionTimeByProcessor.get(processorClassName);
+            long oldValue = result.getExecutionTimeInMillis();
             long newValue = oldValue + timer.getElapsedMillis();
-            executionTimeByProcessor.put(processorClassName, newValue);
+            result.setExecutionTimeInMillis(newValue);
         }
     }
 }

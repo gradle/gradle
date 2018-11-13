@@ -22,7 +22,7 @@ class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
     IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
-        new IsolatingProcessingStrategy(result)
+        new IsolatingProcessingStrategy(result, processorResult)
     }
 
     def "does a full rebuild when no originating elements are given"() {

@@ -17,10 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,11 +30,11 @@ import java.util.Set;
  */
 public class AnnotationProcessingResult implements Serializable {
 
-    private HashMap<String, Set<String>> generatedTypesByOrigin = new LinkedHashMap<String, Set<String>>();
-    private Set<String> aggregatedTypes = new HashSet<String>();
-    private Set<String> generatedTypesDependingOnAllOthers = new HashSet<String>();
+    private final Map<String, Set<String>> generatedTypesByOrigin = new LinkedHashMap<String, Set<String>>();
+    private final Set<String> aggregatedTypes = new HashSet<String>();
+    private final Set<String> generatedTypesDependingOnAllOthers = new HashSet<String>();
+    private final List<AnnotationProcessorResult> annotationProcessorResults = new ArrayList<AnnotationProcessorResult>();
     private String fullRebuildCause;
-    private Map<String, Long> executionTimeByProcessor = new HashMap<String, Long>();
 
     public void addGeneratedType(String name, Set<String> originatingElements) {
         for (String originatingElement : originatingElements) {
@@ -77,7 +78,7 @@ public class AnnotationProcessingResult implements Serializable {
         return fullRebuildCause;
     }
 
-    public Map<String, Long> getExecutionTimeByProcessor() {
-        return executionTimeByProcessor;
+    public List<AnnotationProcessorResult> getAnnotationProcessorResults() {
+        return annotationProcessorResults;
     }
 }

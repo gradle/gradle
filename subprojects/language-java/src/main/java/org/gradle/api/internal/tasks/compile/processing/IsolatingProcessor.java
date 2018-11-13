@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
@@ -32,9 +33,9 @@ public class IsolatingProcessor extends DelegatingProcessor {
 
     private final IsolatingProcessingStrategy strategy;
 
-    public IsolatingProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public IsolatingProcessor(Processor delegate, AnnotationProcessorResult processorResult, AnnotationProcessingResult result) {
         super(delegate);
-        this.strategy = new IsolatingProcessingStrategy(result);
+        this.strategy = new IsolatingProcessingStrategy(result, processorResult);
     }
 
     @Override

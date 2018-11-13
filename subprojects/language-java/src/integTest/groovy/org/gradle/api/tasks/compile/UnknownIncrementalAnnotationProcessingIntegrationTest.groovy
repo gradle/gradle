@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 
 class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
@@ -49,6 +50,11 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
 
         then:
         output.contains("Full recompilation is required because ThingProcessor is not incremental.")
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'ThingProcessor'
+            !first().incremental
+        }
     }
 
     def "compilation is incremental if the non-incremental processor is not used"() {

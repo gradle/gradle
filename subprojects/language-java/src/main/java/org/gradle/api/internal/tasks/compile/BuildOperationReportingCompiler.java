@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -29,7 +30,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class BuildOperationReportingCompiler<T extends CompileSpec> implements Compiler<T> {
 
@@ -63,12 +63,16 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
                 if (result instanceof CompilationWithAnnotationProcessingResult) {
                     AnnotationProcessingResult annotationProcessingResult = ((CompilationWithAnnotationProcessingResult) result).getAnnotationProcessingResult();
                     List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
-                    for (Entry<String, Long> entry : annotationProcessingResult.getExecutionTimeByProcessor().entrySet()) {
-                        details.add(new DefaultAnnotationProcessorDetails(entry.getKey(), entry.getValue()));
+                    for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
+                        details.add(toAnnotationProcessorDetails(processorResult));
                     }
                     return new Result(details);
                 }
                 return new Result(null);
+            }
+
+            private DefaultAnnotationProcessorDetails toAnnotationProcessorDetails(AnnotationProcessorResult result) {
+                return new DefaultAnnotationProcessorDetails(result.getClassName(), result.isIncremental(), result.getExecutionTimeInMillis());
             }
         });
     }
@@ -77,6 +81,7 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
     }
 
     private static class Result implements CompileWithAnnotationProcessingBuildOperationType.Result {
+
         private final List<AnnotationProcessorDetails> annotationProcessorDetails;
 
         Result(List<AnnotationProcessorDetails> annotationProcessorDetails) {
@@ -87,14 +92,18 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
         public List<AnnotationProcessorDetails> getAnnotationProcessorDetails() {
             return annotationProcessorDetails;
         }
+
     }
 
     private static class DefaultAnnotationProcessorDetails implements AnnotationProcessorDetails {
+
         private final String className;
+        private final boolean incremental;
         private final long executionTimeInMillis;
 
-        DefaultAnnotationProcessorDetails(String className, long executionTimeInMillis) {
+        DefaultAnnotationProcessorDetails(String className, boolean incremental, long executionTimeInMillis) {
             this.className = className;
+            this.incremental = incremental;
             this.executionTimeInMillis = executionTimeInMillis;
         }
 
@@ -104,13 +113,15 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
         }
 
         @Override
+        public boolean isIncremental() {
+            return incremental;
+        }
+
+        @Override
         public long getExecutionTimeInMillis() {
             return executionTimeInMillis;
         }
 
-        @Override
-        public String toString() {
-            return className + ": " + executionTimeInMillis + " ms";
-        }
     }
+
 }
