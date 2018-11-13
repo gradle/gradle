@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures
 
-import static org.gradle.integtests.fixtures.AbstractConfigurableMultiVersionSpecRunner.CoverageContext.*
+import static org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner.CoverageContext.*
 
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
-class MultiVersionSpecRunner extends AbstractConfigurableMultiVersionSpecRunner {
+class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner {
     def versions
     def coverage
 

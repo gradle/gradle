@@ -17,17 +17,19 @@
 package org.gradle.integtests.fixtures;
 
 import com.google.common.collect.Lists;
+import org.junit.experimental.categories.Category;
 
 import java.util.List;
 
-public abstract class AbstractConfigurableMultiVersionSpecRunner extends AbstractMultiTestRunner {
+@Category(ContextualMultiVersionTest.class)
+public abstract class AbstractContextualMultiVersionSpecRunner extends AbstractMultiTestRunner {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
     protected abstract void createExecutionsForContext(CoverageContext context);
 
     protected abstract void createSelectedExecutions(List<String> selectionCriteria);
 
-    public AbstractConfigurableMultiVersionSpecRunner(Class<?> target) {
+    public AbstractContextualMultiVersionSpecRunner(Class<?> target) {
         super(target);
     }
 

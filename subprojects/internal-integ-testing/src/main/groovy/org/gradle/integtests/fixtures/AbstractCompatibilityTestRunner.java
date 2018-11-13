@@ -36,7 +36,7 @@ import static org.gradle.util.CollectionUtils.sort;
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
  */
-public abstract class AbstractCompatibilityTestRunner extends AbstractConfigurableMultiVersionSpecRunner {
+public abstract class AbstractCompatibilityTestRunner extends AbstractContextualMultiVersionSpecRunner {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
     final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
@@ -107,10 +107,19 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractConfigurab
                 return dist1.getVersion().compareTo(dist2.getVersion());
             }
         });
-        return sortedDistributions.get(0);
+
+        if (sortedDistributions.isEmpty()) {
+            return null;
+        } else {
+            return sortedDistributions.get(0);
+        }
     }
 
     private void addVersionIfCompatibleWithJvmAndOs(GradleDistribution previousVersion) {
+        if (previousVersion == null) {
+            return;
+        }
+
         if (!previousVersion.worksWith(Jvm.current())) {
             add(new IgnoredVersion(previousVersion, "does not work with current JVM"));
         } else if (!previousVersion.worksWith(OperatingSystem.current())) {

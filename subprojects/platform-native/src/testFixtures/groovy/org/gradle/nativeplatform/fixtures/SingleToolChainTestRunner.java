@@ -19,14 +19,14 @@ package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.specs.Spec;
-import org.gradle.integtests.fixtures.AbstractConfigurableMultiVersionSpecRunner;
+import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class SingleToolChainTestRunner extends AbstractConfigurableMultiVersionSpecRunner {
+public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner {
 
     public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
         super(target);
