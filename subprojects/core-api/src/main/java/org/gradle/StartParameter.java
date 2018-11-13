@@ -353,6 +353,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 5.0
      */
+    @Incubating
     public void resetTaskNames() {
         taskRequests = emptyList();
     }
@@ -419,6 +420,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 5.0
      */
+    @Incubating
     public void resetCurrentDir() {
         currentDir = new BuildLayoutParameters().getCurrentDir();
     }
@@ -472,6 +474,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 5.0
      */
+    @Incubating
     public void resetGradleUserHomeDir() {
         gradleUserHomeDir = new BuildLayoutParameters().getGradleUserHomeDir();
     }
