@@ -190,8 +190,8 @@ include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle
 
 .Depending on a task with path in all included builds
 ====
-include::sample[dir="compositeBuilds/hierarchical-multirepo/multirepo-app/groovy",files="build.gradle[tags=publishDeps]"]
-include::sample[dir="compositeBuilds/hierarchical-multirepo/multirepo-app/kotlin",files="build.gradle.kts[tags=publishDeps]"]
+include::sample[dir="compositeBuilds/hierarchical-multirepo/groovy",files="build.gradle[tags=publishDeps]"]
+include::sample[dir="compositeBuilds/hierarchical-multirepo/kotlin",files="build.gradle.kts[tags=publishDeps]"]
 ====
 
 [[current_limitations_and_future_work]]
@@ -202,12 +202,10 @@ We think composite builds are pretty useful already. However, there are some thi
 Limitations of the current implementation include:
 
 * No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
-* Native builds are not supported. (Binary dependencies are not yet supported for native builds).
-* Substituting plugins only works with the `buildscript` block but not with the `plugins` block.
+* Software model based native builds are not supported. (Binary dependencies are not yet supported for native builds).
 
 Improvements we have planned for upcoming releases include:
 
 * Better detection of dependency substitution, for build that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.
 * The ability to target a task or tasks in an included build directly from the command line. We are currently exploring syntax options for allowing this functionality, which will remove many cases where a delegating task is required in the composite.
-* Make the `plugins {}` block consider included builds when locating plugins and their dependencies.
 * Making the implicit `buildSrc` project an included build.

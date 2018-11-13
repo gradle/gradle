@@ -11,6 +11,10 @@ We would like to thank the following community contributors to this release of G
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Olivier Voortman](https://github.com/blop)
 
+## Use plugins from included build using the `plugins { }` block 
+
+The `plugins { }` block in build scripts can now be used to refer to plugins defined in included builds.
+
 ## Stricter validation with `validateTaskProperties`
 
 Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
