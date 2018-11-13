@@ -319,9 +319,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    private void runTransformer(File primaryInput) {
-        1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
-            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
+    private void runTransformer(File input) {
+        1 * transformerInvoker.invoke(transformer, input, subject)  >> { Transformer transformer, File primaryInput, TransformationSubject subject ->
+            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
         }
     }
 

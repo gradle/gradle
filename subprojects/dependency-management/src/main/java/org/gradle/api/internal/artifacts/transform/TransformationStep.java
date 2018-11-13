@@ -50,8 +50,7 @@ public class TransformationStep implements Transformation {
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
-            TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(invocation);
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());

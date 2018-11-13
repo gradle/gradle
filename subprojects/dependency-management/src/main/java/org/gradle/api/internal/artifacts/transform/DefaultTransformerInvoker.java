@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
+import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -95,17 +96,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(TransformerInvocation invocation) {
-        return Try.ofFailable(() ->
-            doInvoke(invocation.getPrimaryInput(), invocation.getTransformer(), invocation.getSubjectBeingTransformed()).get()
-        ).mapFailure(e -> wrapInTransformInvocationException(invocation, e));
-    }
-
-    private Exception wrapInTransformInvocationException(TransformerInvocation invocation, Throwable originalFailure) {
-        return new TransformInvocationException(invocation.getPrimaryInput().getAbsoluteFile(), invocation.getTransformer().getImplementationClass(), originalFailure);
-    }
-
-    private Try<ImmutableList<File>> doInvoke(File primaryInput, Transformer transformer, TransformationSubject subject) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject) {
         TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
@@ -114,7 +105,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
-        });
+        }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
+    }
+
+    private Exception wrapInTransformInvocationException(Class<? extends ArtifactTransform> transformerType, File primaryInput, Throwable originalFailure) {
+        return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
     private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer) {

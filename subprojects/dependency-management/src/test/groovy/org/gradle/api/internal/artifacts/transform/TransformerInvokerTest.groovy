@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.TransformInvocationException
+import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -47,20 +47,21 @@ class TransformerInvokerTest extends Specification {
 
     def "wraps failures into TransformInvocationException"() {
         def failure = new RuntimeException()
-        def invocation = createInvocation(sourceFile)
+        def executionResult = Mock(UpToDateResult)
 
         when:
-        def result = transformerInvoker.invoke(invocation)
+        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject)
         def transformationFailure = result.failure.get()
         then:
-        transformationFailure instanceof TransformInvocationException
+        transformationFailure instanceof TransformationException
         transformationFailure.message == "Failed to transform file 'source' using transform ArtifactTransform"
         transformationFailure.cause.is(failure)
 
         and:
-        1 * workExecutor.execute(_) >> { throw failure }
+        1 * workExecutor.execute(_) >> executionResult
+        _ * executionResult.failure >> failure
         1 * transformer.implementationClass >> ArtifactTransform
-        1 * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
+        _ * transformer.getSecondaryInputHash() >> HashCode.fromInt(1234)
         1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
             action.apply(identity.getIdentity(), new File("workspace"))
         }
@@ -68,9 +69,4 @@ class TransformerInvokerTest extends Specification {
         _ * artifactTransformListener._
         0 * _
     }
-
-    private TransformerInvocation createInvocation(File fileOne) {
-        new TransformerInvocation(transformer, fileOne, sourceSubject)
-    }
-
 }

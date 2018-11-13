@@ -30,12 +30,12 @@ import java.io.File;
  */
 @Contextual
 @Incubating
-public class TransformInvocationException extends GradleException {
+public class TransformationException extends GradleException {
 
     private final File input;
     private final Class<? extends ArtifactTransform> transformerImplementation;
 
-    public TransformInvocationException(File input, Class<? extends ArtifactTransform> transformerImplementation, Throwable cause) {
+    public TransformationException(File input, Class<? extends ArtifactTransform> transformerImplementation, Throwable cause) {
         super(format(input, transformerImplementation), cause);
         this.input = input;
         this.transformerImplementation = transformerImplementation;

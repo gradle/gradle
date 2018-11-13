@@ -26,5 +26,6 @@ public interface TransformerWorkspaceProvider {
     /**
      * Provides a workspace for executing the transformation.
      */
+    // TODO Do not use BiFunction here, but specify a custom interface instead with a named method and parameters
     Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace);
 }
