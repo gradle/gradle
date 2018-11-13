@@ -23,6 +23,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.io.File;
@@ -48,8 +49,16 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     }
 
     @Override
-    public void persist(String identity, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> primaryInputFingerprints, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
-        executionHistoryStore.store(identity, originMetadata, implementationSnapshot, ImmutableList.of(), ImmutableSortedMap.of(), primaryInputFingerprints, outputFingerprints, successful);
+    public void persist(
+        String identity,
+        OriginMetadata originMetadata,
+        ImplementationSnapshot implementationSnapshot,
+        ImmutableSortedMap<String, ValueSnapshot> inputSnapshots,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints,
+        boolean successful
+    ) {
+        executionHistoryStore.store(identity, originMetadata, implementationSnapshot, ImmutableList.of(), inputSnapshots, inputFileFingerprints, outputFingerprints, successful);
     }
 
     @Override

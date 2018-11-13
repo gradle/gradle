@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep
@@ -59,7 +60,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     }
 
     private DefaultTransformerInvoker createInvoker() {
-        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter)
+        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher))
     }
 
     def "reuses result for given inputs and transform"() {
