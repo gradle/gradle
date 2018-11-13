@@ -44,7 +44,6 @@ import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildLoader
-import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
@@ -72,7 +71,6 @@ import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.profile.ProfileEventAdapter
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.instanceOf
@@ -239,15 +237,6 @@ class BuildScopeServicesTest extends Specification {
         expect:
         assertThat(registry.get(BuildLoader), instanceOf(NotifyingBuildLoader))
         assertThat(registry.get(BuildLoader), sameInstance(registry.get(BuildLoader)))
-    }
-
-    def providesAProfileEventAdapter() {
-        setup:
-        expectParentServiceLocated(BuildRequestMetaData)
-
-        expect:
-        assertThat(registry.get(ProfileEventAdapter), instanceOf(ProfileEventAdapter))
-        assertThat(registry.get(ProfileEventAdapter), sameInstance(registry.get(ProfileEventAdapter)))
     }
 
     def "provides a project registry"() {
