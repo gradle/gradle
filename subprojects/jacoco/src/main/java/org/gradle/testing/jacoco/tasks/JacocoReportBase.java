@@ -35,7 +35,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 import org.gradle.util.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -153,13 +152,9 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @deprecated Use {@code getAdditionalClassDirs().setFrom(...)}
      */
     @Deprecated
-    public void setAdditionalClassDirs(@Nullable FileCollection additionalClassDirs) {
+    public void setAdditionalClassDirs(FileCollection additionalClassDirs) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("JacocoReportBase.setAdditionalClassDirs(FileCollection)", "Use getAdditionalClassDirs().from(...)");
-        if (additionalClassDirs!=null) {
-            this.additionalClassDirs.setFrom(additionalClassDirs);
-        } else {
-            this.additionalClassDirs.setFrom();
-        }
+        this.additionalClassDirs.setFrom(additionalClassDirs);
     }
 
     /**
@@ -178,13 +173,9 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @deprecated Use {@code getAdditionalSourceDirs().setFrom(...)}
      */
     @Deprecated
-    public void setAdditionalSourceDirs(@Nullable FileCollection additionalSourceDirs) {
+    public void setAdditionalSourceDirs(FileCollection additionalSourceDirs) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("JacocoReportBase.setAdditionalSourceDirs(FileCollection)", "Use getAdditionalSourceDirs().from(...)");
-        if (additionalSourceDirs!=null) {
-            this.additionalSourceDirs.setFrom(additionalSourceDirs);
-        } else {
-            this.additionalSourceDirs.setFrom();
-        }
+        this.additionalSourceDirs.setFrom(additionalSourceDirs);
     }
 
     /**

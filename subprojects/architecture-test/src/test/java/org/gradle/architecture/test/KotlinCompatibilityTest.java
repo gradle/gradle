@@ -89,8 +89,6 @@ public class KotlinCompatibilityTest {
         .put("org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher", "arguments")
         .put("org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher", "id")
         .put("org.gradle.testing.jacoco.plugins.JacocoTaskExtension", "destinationFile")
-        .put("org.gradle.testing.jacoco.tasks.JacocoReportBase", "additionalClassDirs")
-        .put("org.gradle.testing.jacoco.tasks.JacocoReportBase", "additionalSourceDirs")
         .put("org.gradle.workers.WorkerConfiguration", "displayName")
         .build();
 
