@@ -78,6 +78,8 @@ The following breaking changes are not from deprecations, but the result of chan
 +
 While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a https://docs.gradle.org/current/dsl/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
+ * The `forkEvery` property of the `Test` task type now doesn't accept being set to `null`, use `0` to specify no maximum instead.
+ * The `executable` property of `AbstractExecTask` as well as the `dirMode` and `fileMode` properties of `AbstractCopyTask` and the `additionalClassDirs` and `additionalSourceDirs` properties on `JacocoReportBase` and `destinationDirectory` on `MinimalJavadocOptions` are now properly annotated with `@Nullable`, this might cause compilation errors in Gradle Kotlin DSL scripts and plugins.
  * The <<#rel5.0:configuration_avoidance, Configuration Avoidance API>> has been updated to prevent the creation and configuration of tasks that are never used.
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:
