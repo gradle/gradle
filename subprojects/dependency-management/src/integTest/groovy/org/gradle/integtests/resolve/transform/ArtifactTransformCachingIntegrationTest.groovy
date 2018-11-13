@@ -716,6 +716,114 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    def "transform is executed in different workspace for different file produced in chain"() {
+        given:
+        buildFile << declareAttributes() << withJarTasks() << """
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+
+            import java.nio.file.Files
+
+            class Duplicator extends ArtifactTransform {
+        
+                @Override
+                List<File> transform(File input) {
+                    def output1 = new File(outputDirectory, "1/" + input.name)
+                    def output2 = new File(outputDirectory, "2/" + input.name)
+                    println("Transforming \${input.name} to \${input.name}")
+                    output1.parentFile.mkdirs()
+                    output2.parentFile.mkdirs()
+                    Files.copy(input.toPath(), output1.toPath())
+                    Files.copy(input.toPath(), output2.toPath())
+                    println "Transformed \$input.name to 1/\$output1.name into \$outputDirectory"
+                    println "Transformed \$input.name to 2/\$output2.name into \$outputDirectory"
+                    return [output1, output2]
+                }
+            }
+
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator)
+                    }
+                }
+                task resolve {
+                    def blue = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blue') }
+                    }.artifacts
+
+                    inputs.files blue.artifactFiles
+
+                    doLast {
+                        println "files: " + blue.artifactFiles.collect { it.name }
+                        println "ids: " + blue.collect { it.id.displayName }
+                        println "components: " + blue.collect { it.id.componentIdentifier }
+                    }
+                }                
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
+
+        output.count("Transforming") == 3
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        def outputDir1 = projectOutputDir("dir1.classes", "dir1.classes.dir")
+        def outputDir2 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+
+        output.count("Transformed") == 0
+
+        when:
+        file("lib/lib1.jar").text = "abc"
+        file("lib/dir1.classes").file("child2").createFile()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+
+        output.count("Transformed") == 2
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        projectOutputDir("dir1.classes", "dir1.classes.dir") == outputDir1
+        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir2
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+
+        output.count("Transformed") == 0
+    }
+
     @Unroll
     def "transform is rerun when output is #action between builds"() {
         given:
