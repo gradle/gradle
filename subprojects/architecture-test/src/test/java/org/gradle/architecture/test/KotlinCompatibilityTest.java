@@ -75,7 +75,6 @@ public class KotlinCompatibilityTest {
         .put("org.gradle.api.tasks.javadoc.Javadoc", "maxMemory")
         .put("org.gradle.api.tasks.testing.testng.TestNGOptions", "parallel")
         .put("org.gradle.caching.http.HttpBuildCache", "url")
-        .put("org.gradle.external.javadoc.MinimalJavadocOptions", "destinationDirectory")
         .put("org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask", "inputFile")
         .put("org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask", "inputFile")
         .put("org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask", "inputFile")

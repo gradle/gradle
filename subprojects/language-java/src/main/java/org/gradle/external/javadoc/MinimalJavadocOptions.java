@@ -150,7 +150,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions optionFiles(File... argumentFiles);
 
-    @Internal
+    @Nullable @Internal
     File getDestinationDirectory();
 
     void setDestinationDirectory(@Nullable File directory);
