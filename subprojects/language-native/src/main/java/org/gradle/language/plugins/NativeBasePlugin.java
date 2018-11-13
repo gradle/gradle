@@ -308,6 +308,15 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
                             }
                         })));
+                        link.getInstallName().set(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() throws Exception {
+                                if (!targetPlatform.getOperatingSystem().isLinux()) {
+                                    return null;
+                                }
+                                return link.getLinkedFile().getAsFile().get().getName();
+                            }
+                        }));
                         link.getTargetPlatform().set(targetPlatform);
                         link.getToolChain().set(toolChain);
                         link.getDebuggable().set(library.isDebuggable());
