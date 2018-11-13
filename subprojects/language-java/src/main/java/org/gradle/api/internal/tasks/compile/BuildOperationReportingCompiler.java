@@ -26,7 +26,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class BuildOperationReportingCompiler<T extends CompileSpec> implements Compiler<T> {
@@ -47,7 +46,7 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Invoke compiler for " + task.getIdentityPath())
-                    .details(new Details(task));
+                    .details(new Details());
             }
 
             @Override
@@ -62,22 +61,12 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
                     AnnotationProcessingResult annotationProcessingResult = ((CompilationWithAnnotationProcessingResult) result).getAnnotationProcessingResult();
                     return new Result(annotationProcessingResult.getExecutionTimeByProcessor());
                 }
-                return new Result(Collections.<String, Long>emptyMap());
+                return new Result(null);
             }
         });
     }
 
     private static class Details implements CompileWithAnnotationProcessingBuildOperationType.Details {
-        private final TaskInternal task;
-
-        Details(TaskInternal task) {
-            this.task = task;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return task.getTaskIdentity().projectPath.toString();
-        }
     }
 
     private static class Result implements CompileWithAnnotationProcessingBuildOperationType.Result {

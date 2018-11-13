@@ -19,17 +19,26 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
-@UsedByScanPlugin
 public class CompileWithAnnotationProcessingBuildOperationType implements BuildOperationType<CompileWithAnnotationProcessingBuildOperationType.Details, CompileWithAnnotationProcessingBuildOperationType.Result> {
 
+    @UsedByScanPlugin
     public interface Details {
-        String getTaskPath();
     }
 
+    @UsedByScanPlugin
     public interface Result {
+
+        /**
+         * Returns the total execution time in milliseconds by each annotation processor, if available.
+         *
+         * @return execution time by annotation processor; {@code null} if unknown.
+         */
+        @Nullable
         Map<String, Long> getExecutionTimeByAnnotationProcessor();
+
     }
 
 }
