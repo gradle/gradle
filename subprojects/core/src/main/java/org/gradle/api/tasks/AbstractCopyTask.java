@@ -553,6 +553,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Internal
+    @Nullable
     @Override
     public Integer getDirMode() {
         return getMainSpec().getDirMode();
@@ -562,6 +563,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Internal
+    @Nullable
     @Override
     public Integer getFileMode() {
         return getMainSpec().getFileMode();

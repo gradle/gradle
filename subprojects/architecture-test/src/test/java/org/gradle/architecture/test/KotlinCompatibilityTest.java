@@ -66,8 +66,6 @@ public class KotlinCompatibilityTest {
         .put("org.gradle.api.plugins.quality.FindBugsExtension", "excludeBugsFilter")
         .put("org.gradle.api.plugins.quality.FindBugsExtension", "excludeFilter")
         .put("org.gradle.api.plugins.quality.FindBugsExtension", "includeFilter")
-        .put("org.gradle.api.tasks.AbstractCopyTask", "dirMode")
-        .put("org.gradle.api.tasks.AbstractCopyTask", "fileMode")
         .put("org.gradle.api.tasks.AbstractExecTask", "args")
         .put("org.gradle.api.tasks.SourceSetOutput", "resourcesDir")
         .put("org.gradle.api.tasks.bundling.War", "classpath")
