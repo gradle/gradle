@@ -57,17 +57,17 @@ class DefaultAsyncIOScopeFactoryTest {
 
         withAsyncIOScopeFactory {
 
-            val failureLatch = FailureLatch()
-            val failure = IOException()
+            val expectedFailure = IOException()
 
+            val failureLatch = FailureLatch()
             val scope = newScope().apply {
-                io { failureLatch.failWith(failure) }
+                io { failureLatch.failWith(expectedFailure) }
             }
             failureLatch.await()
 
             assertThat(
                 runCatching { scope.io { } }.exceptionOrNull(),
-                sameInstance<Throwable>(failure)
+                sameInstance<Throwable>(expectedFailure)
             )
         }
     }
