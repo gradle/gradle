@@ -101,11 +101,16 @@ public class PerformanceTest extends DistributionTest {
         this.baselinesProperty.set(baselines);
     }
 
+    @Nullable @Optional @Input
+    public String getBaselines() {
+        return baselinesProperty.getOrNull();
+    }
+
     public void setBaselinesProperty(Property<String> baselines) {
         this.baselinesProperty = baselines;
     }
 
-    @Optional @Input
+    @Internal
     public Property<String> getBaselinesProperty() {
         return baselinesProperty;
     }
@@ -204,7 +209,7 @@ public class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios);
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselinesProperty.getOrNull());
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", getBaselines());
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);

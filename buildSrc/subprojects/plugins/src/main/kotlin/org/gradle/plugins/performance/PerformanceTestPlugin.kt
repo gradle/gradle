@@ -262,7 +262,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "experiments"
         }
         create("distributedFullPerformanceTest") {
-            setBaselines(Config.baseLineList)
+            baselines = Config.baseLineList
             checks = "none"
             channel = "historical"
         }
@@ -416,7 +416,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.setBaselines(baselines as String)
+                task.baselines = baselines as String
             }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
