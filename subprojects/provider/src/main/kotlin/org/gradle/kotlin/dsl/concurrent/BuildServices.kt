@@ -58,7 +58,7 @@ class DefaultAsyncIOScopeFactory(
         }
 
         override fun close() {
-            pending?.get(30, TimeUnit.SECONDS)
+            pending?.get(1, TimeUnit.MINUTES)
             checkForFailure()
         }
 
