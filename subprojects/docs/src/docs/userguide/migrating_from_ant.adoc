@@ -16,7 +16,7 @@
 = Migrating Builds From Apache Ant
 
 ////
-Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/gradle/integtests/samples/antMigration
+Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/gradle/integtests/samples/antmigration
 
 To run:
 
