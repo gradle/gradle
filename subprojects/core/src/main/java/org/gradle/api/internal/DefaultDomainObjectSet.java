@@ -37,6 +37,10 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         super(type, new IterationOrderRetainingSetElementSource<T>(), null);
     }
 
+    public DefaultDomainObjectSet(Class<? extends T> type, DomainObjectCollectionCallbackDecorator decorator) {
+        super(type, new IterationOrderRetainingSetElementSource<T>(), decorator);
+    }
+
     /**
      * Adds an action which is executed before this collection is mutated with the addition or removal of elements.
      * Any exception thrown by the action will veto the mutation.
@@ -57,21 +61,21 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         beforeContainerChange.execute(null);
     }
 
-    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store) {
-        super(type, store, null);
+    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackDecorator decorator) {
+        super(type, store, decorator);
     }
 
-    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter) {
-        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
+    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter, DomainObjectCollectionCallbackDecorator decorator) {
+        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter), decorator);
     }
 
-    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
-        super(type, store, eventRegister, null);
+    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackDecorator decorator) {
+        super(type, store, eventRegister, decorator);
     }
 
     @Override
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectSet<S>(this, filter);
+        return new DefaultDomainObjectSet<S>(this, filter, getDecorator());
     }
 
     @Override

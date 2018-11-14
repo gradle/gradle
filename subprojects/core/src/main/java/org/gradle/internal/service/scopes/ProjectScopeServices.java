@@ -174,13 +174,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, DomainObjectCollectionCallbackDecorator decorator) {
         PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, InstantiatorFactory instantiatorFactory) {

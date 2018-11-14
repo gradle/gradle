@@ -32,18 +32,14 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         file("callbackScript.gradle") << """
         tasks.${containerFilter} {
-            doLast {
-                println "action block from callbackScriptPlugin.gradle"
-            }
+            println "action block from callbackScriptPlugin.gradle"
         }
         """
         buildFile << """
             class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p){
                     p.tasks.$containerFilter {
-                        doLast {
-                            println "task do last block1"
-                        }
+                        println "task do last block1"
                     }
                 }
             }
@@ -82,18 +78,14 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         file("callbackScript.gradle") << """
         tasks.${containerFilter} {
-            doLast {
-                println "action block from callbackScriptPlugin.gradle"
-            }
+            println "script callback"
         }
         """
         buildFile << """
             class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p){
                     p.tasks.$containerFilter {
-                        doLast {
-                            println "task do last block1"
-                        }
+                        println "plugin callback"
                     }
                 }
             }
@@ -124,6 +116,52 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
         where:
         containerFilter << ['all', 'withType(Task)', 'matching{true}.all']
+    }
+
+    @Unroll
+    def 'plugin container callbacks emit registrant with filter #containerFilter (callback registered before creation)'() {
+        given:
+        file("callbackScript.gradle") << """
+        
+        plugins.${containerFilter} {
+            println "action block from callbackScriptPlugin.gradle"
+        }
+        """
+        buildFile << """
+            class CallbackPlugin implements Plugin<Project> {
+                void apply(Project p){
+                    p.plugins.$containerFilter {
+                        println "plugin callback"
+                    }
+                }
+            }
+
+            class AddingPlugin implements Plugin<Project> {
+                void apply(Project p){
+                }
+            }
+
+
+            apply plugin: CallbackPlugin
+            apply from: 'callbackScript.gradle'
+            apply plugin: AddingPlugin
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def addingPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' })
+        assert addingPluginApplicationId.children.size() == 2
+
+        def callbackPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' }).details.applicationId
+        addingPluginApplicationId.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == callbackPluginApplicationId }.size == 1
+
+        def scriptPluginApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('callbackScript.gradle') }).details.applicationId
+        addingPluginApplicationId.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == scriptPluginApplicationId }.size == 1
+
+        where:
+        containerFilter << ['all', 'withType(Plugin)', 'matching{true}.all']
     }
     
 }
