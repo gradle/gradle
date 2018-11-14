@@ -37,7 +37,7 @@ class DefaultPluginManagerTest extends Specification {
     }
     def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoaderScope)
     def target = Mock(PluginTarget)
-    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext())
+    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext(), null)
 
     Class<?> rulesClass
     Class<? extends Plugin> hybridClass

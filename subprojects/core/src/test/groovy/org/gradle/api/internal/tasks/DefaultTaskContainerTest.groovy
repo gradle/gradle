@@ -76,7 +76,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         accessListener,
         new TaskStatistics(),
         buildOperationExecutor,
-        new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
+        new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
+        null
     ).create()
 
     @Override
