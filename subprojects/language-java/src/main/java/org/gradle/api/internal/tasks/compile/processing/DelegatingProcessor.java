@@ -37,10 +37,6 @@ abstract class DelegatingProcessor implements Processor {
         this.delegate = delegate;
     }
 
-    protected Processor getDelegate() {
-        return delegate;
-    }
-
     @Override
     public Set<String> getSupportedOptions() {
         return delegate.getSupportedOptions();

@@ -27,7 +27,6 @@ import org.junit.Assume
 
 @TargetVersions(["1.6", "1.7", "1.8"])
 class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
-
     JavaVersion getJavaVersion() {
         JavaVersion.toVersion(MultiVersionIntegrationSpec.version)
     }
