@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;

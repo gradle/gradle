@@ -26,7 +26,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.AGGREGATING;
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING;
 
 /**
  * The strategy used for aggregating annotation processors.

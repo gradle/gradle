@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -68,7 +69,7 @@ public class CompileJavaBuildOperationType implements BuildOperationType<Compile
             /**
              * Type of annotation processor.
              *
-             * @see org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+             * @see IncrementalAnnotationProcessorType
              */
             @UsedByScanPlugin
             enum Type {

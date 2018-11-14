@@ -24,7 +24,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.UNKNOWN;
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.UNKNOWN;
 
 /**
  * The strategy used for non-incremental annotation processors.

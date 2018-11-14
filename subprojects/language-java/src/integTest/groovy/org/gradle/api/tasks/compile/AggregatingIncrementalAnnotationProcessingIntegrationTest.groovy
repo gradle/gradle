@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture

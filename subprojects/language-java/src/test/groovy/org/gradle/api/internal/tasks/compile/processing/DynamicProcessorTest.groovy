@@ -24,9 +24,9 @@ import spock.lang.Unroll
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
 
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.AGGREGATING
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.ISOLATING
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.UNKNOWN
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.ISOLATING
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.UNKNOWN
 
 class DynamicProcessorTest extends Specification {
 

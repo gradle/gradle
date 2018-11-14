@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.processing;
+package org.gradle.api.internal.tasks.compile.incremental.processing;
 
 import java.util.Locale;
 

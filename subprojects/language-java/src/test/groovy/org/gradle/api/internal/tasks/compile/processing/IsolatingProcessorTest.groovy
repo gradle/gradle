@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import spock.lang.Specification
 
 import javax.annotation.processing.Processor

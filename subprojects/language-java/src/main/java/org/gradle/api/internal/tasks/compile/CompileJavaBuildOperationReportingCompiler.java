@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;

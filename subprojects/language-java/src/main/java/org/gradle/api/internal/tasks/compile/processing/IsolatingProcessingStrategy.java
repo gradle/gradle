@@ -24,7 +24,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.ISOLATING;
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.ISOLATING;
 
 /**
  * The strategy for isolating annotation processors.
