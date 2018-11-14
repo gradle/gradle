@@ -227,8 +227,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
-                                                    FileSystemSnapshotter fileSystemSnapshotter, TransformerExecutionHistoryRepository historyRepository, ArtifactTransformListener artifactTransformListener, OutputFileCollectionFingerprinter outputFileCollectionFingerprinter) {
-            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter);
+                                                    FileSystemSnapshotter fileSystemSnapshotter,
+                                                    TransformerExecutionHistoryRepository historyRepository,
+                                                    ArtifactTransformListener artifactTransformListener,
+                                                    OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
+                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher);
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

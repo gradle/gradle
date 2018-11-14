@@ -20,12 +20,21 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Optional;
 
 public interface TransformerExecutionHistoryRepository extends TransformerWorkspaceProvider {
     Optional<AfterPreviousExecutionState> getPreviousExecution(String identity);
-    void persist(String identity, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> primaryInputFingerprints, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful);
+    void persist(
+        String identity,
+        OriginMetadata originMetadata,
+        ImplementationSnapshot implementationSnapshot,
+        ImmutableSortedMap<String, ValueSnapshot> inputSnapshots,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints,
+        boolean successful
+    );
     boolean hasCachedResult(TransformationIdentity identity);
 }

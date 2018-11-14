@@ -17,16 +17,19 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 @NonNullApi
 public class DefaultTransformationDependency implements TransformationDependency {
     private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
+    private final ResolvableDependencies resolvableDependencies;
 
-    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts) {
+    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts, ResolvableDependencies resolvableDependencies) {
         this.transformation = transformation;
         this.artifacts = artifacts;
+        this.resolvableDependencies = resolvableDependencies;
     }
 
     public Transformation getTransformation() {
@@ -35,6 +38,10 @@ public class DefaultTransformationDependency implements TransformationDependency
 
     public ResolvedArtifactSet getArtifacts() {
         return artifacts;
+    }
+
+    public ResolvableDependencies getResolvableDependencies() {
+        return resolvableDependencies;
     }
 
     @Override

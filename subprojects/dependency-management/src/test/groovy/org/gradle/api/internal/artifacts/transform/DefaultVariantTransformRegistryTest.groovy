@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -51,6 +53,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
+    def configuration = Mock(ConfigurationInternal)
 
     def "creates registration without configuration"() {
         given:
@@ -316,9 +319,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    private void runTransformer(File primaryInput) {
-        1 * transformerInvoker.invoke({ it.primaryInput == primaryInput })  >> { TransformerInvocation invocation ->
-            return Try.ofFailable { ImmutableList.copyOf(invocation.transformer.transform(invocation.primaryInput, outputDirectory)) }
+    private void runTransformer(File input) {
+        1 * transformerInvoker.invoke(_ as Transformer, input, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, TransformationSubject subject ->
+            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
         }
     }
 

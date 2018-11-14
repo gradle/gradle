@@ -27,7 +27,7 @@ public interface TransformerInvoker {
     /**
      * Returns the result of applying the given transformer to the given file.
      */
-    Try<ImmutableList<File>> invoke(TransformerInvocation invocation);
+    Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject);
 
     boolean hasCachedResult(File primaryInput, Transformer transformer);
 }

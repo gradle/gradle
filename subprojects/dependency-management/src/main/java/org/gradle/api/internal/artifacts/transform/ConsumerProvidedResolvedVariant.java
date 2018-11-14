@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -34,23 +35,25 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
+    private final ResolvableDependencies resolvableDependencies;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation) {
+    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ResolvableDependencies resolvableDependencies) {
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
+        this.resolvableDependencies = resolvableDependencies;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, resolvableDependencies));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new DefaultTransformationDependency(transformation, delegate));
+        context.add(new DefaultTransformationDependency(transformation, delegate, resolvableDependencies));
     }
 }

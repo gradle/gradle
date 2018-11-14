@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
@@ -51,8 +53,8 @@ public abstract class TransformationNode extends Node {
         return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
-        return new InitialTransformationNode(initial, artifact);
+    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ResolvableDependencies resolvableDependencies) {
+        return new InitialTransformationNode(initial, artifact, resolvableDependencies);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -100,13 +102,15 @@ public abstract class TransformationNode extends Node {
 
     private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
+        private final ResolvableDependencies resolvableDependencies;
 
         public InitialTransformationNode(
             TransformationStep transformationStep,
-            BuildableSingleResolvedArtifactSet artifactSet
-        ) {
+            BuildableSingleResolvedArtifactSet artifactSet,
+            ResolvableDependencies resolvableDependencies) {
             super(transformationStep);
             this.artifactSet = artifactSet;
+            this.resolvableDependencies = resolvableDependencies;
         }
 
         @Override
@@ -162,7 +166,8 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
+                ArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifact.getId(), resolvableDependencies);
+                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), dependencies);
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
             }

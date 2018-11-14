@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
+import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -98,8 +98,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     }
 
     private void visitFailureWithContext(Throwable failure) {
-        if (failure instanceof TransformInvocationException) {
-            TransformInvocationException invocationException = (TransformInvocationException) failure;
+        if (failure instanceof TransformationException) {
+            TransformationException invocationException = (TransformationException) failure;
             visitor.visitFailure(new ArtifactTransformException(invocationException.getInput(), target, invocationException.getTransformerImplementation(), failure.getCause()));
         } else {
             visitor.visitFailure(failure);
