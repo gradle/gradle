@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -278,8 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 objectFactory);
         }
 
-        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator);
+        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, DomainObjectCollectionCallbackDecorator decorator) {
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, decorator);
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
@@ -474,7 +475,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public RepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = services.get(Instantiator.class);
             BaseRepositoryFactory baseRepositoryFactory = services.get(BaseRepositoryFactory.class);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator);
+            DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator = services.get(DomainObjectCollectionCallbackDecorator.class);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, domainObjectCollectionCallbackDecorator);
         }
 
         public ArtifactPublisher createArtifactPublisher() {

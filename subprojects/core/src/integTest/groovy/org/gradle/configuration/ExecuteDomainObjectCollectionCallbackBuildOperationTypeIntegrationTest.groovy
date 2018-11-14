@@ -61,13 +61,17 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        containerFilter      | containerType | creationLogic             | operationQuery
-        'all'                | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'withType(Task)'     | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'matching{true}.all' | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'all'                | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
-        'withType(Plugin)'   | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
-        'matching{true}.all' | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        containerFilter                | containerType  | creationLogic                   | operationQuery
+        'all'                          | 'tasks'        | "p.tasks.create('hello')"       | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'withType(Task)'               | 'tasks'        | "p.tasks.create('hello')"       | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'matching{true}.all'           | 'tasks'        | "p.tasks.create('hello')"       | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'all'                          | 'plugins'      | ''                              | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'withType(Plugin)'             | 'plugins'      | ''                              | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'matching{true}.all'           | 'plugins'      | ''                              | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'all'                          | 'repositories' | "p.repositories.mavenCentral()" | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'withType(ArtifactRepository)' | 'repositories' | "p.repositories.mavenCentral()" | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'matching{true}.all'           | 'repositories' | "p.repositories.mavenCentral()" | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+
     }
 
     @Unroll
@@ -99,20 +103,23 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        containerFilter      | containerType | creationLogic             | operationQuery
-        'all'                | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'withType(Task)'     | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'matching{true}.all' | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
-        'all'                | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
-        'withType(Plugin)'   | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
-        'matching{true}.all' | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        containerFilter                | containerType  | creationLogic
+        'all'                          | 'tasks'        | "p.tasks.create('hello')"
+        'withType(Task)'               | 'tasks'        | "p.tasks.create('hello')"
+        'matching{true}.all'           | 'tasks'        | "p.tasks.create('hello')"
+        'all'                          | 'plugins'      | ''
+        'withType(Plugin)'             | 'plugins'      | ''
+        'matching{true}.all'           | 'plugins'      | ''
+        'all'                          | 'repositories' | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)' | 'repositories' | "p.repositories.mavenCentral()"
+        'matching{true}.all'           | 'repositories' | "p.repositories.mavenCentral()"
     }
 
     void callbackScript(String containerType, String containerFilter) {
         file("callbackScript.gradle") << """
         
         ${containerType}.${containerFilter} {
-            println "action block from callbackScriptPlugin.gradle"
+            println "action block from callbackScriptPlugin.gradle for \$it"
         }
         """
     }
@@ -121,7 +128,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p){
                     p.${containerType}.$containerFilter {
-                        println "plugin callback"
+                        println "plugin callback \$it"
                     }
                 }
             }"""

@@ -33,11 +33,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler = createRepositoryHandler()
     }
 
-    public ArtifactRepositoryContainer createRepositoryHandler(
+    ArtifactRepositoryContainer createRepositoryHandler(
             BaseRepositoryFactory repositoryFactory = repositoryFactory,
             Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     ) {
-        new DefaultRepositoryHandler(repositoryFactory, instantiator)
+        new DefaultRepositoryHandler(repositoryFactory, instantiator, null)
     }
 
     def testFlatDirWithClosure() {

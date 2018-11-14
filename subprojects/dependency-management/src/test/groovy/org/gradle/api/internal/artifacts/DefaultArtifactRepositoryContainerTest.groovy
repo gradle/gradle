@@ -32,7 +32,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
     }
 
     ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = DirectInstantiator.INSTANCE) {
-        new DefaultArtifactRepositoryContainer(instantiator)
+        new DefaultArtifactRepositoryContainer(instantiator, null)
     }
 
     def testAddFirst() {
