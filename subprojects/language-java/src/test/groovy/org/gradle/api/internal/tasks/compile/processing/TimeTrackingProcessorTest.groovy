@@ -17,10 +17,6 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
-import org.gradle.internal.Factory
-import org.gradle.internal.time.ControlledTimeSource
-import org.gradle.internal.time.DefaultTimer
-import org.gradle.internal.time.Timer
 import spock.lang.Specification
 
 import javax.annotation.processing.Completions
@@ -32,14 +28,17 @@ import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.element.Element
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
+import java.util.concurrent.TimeUnit
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS
+import static java.util.concurrent.TimeUnit.NANOSECONDS
 
 class TimeTrackingProcessorTest extends Specification {
 
     def delegate = Mock(Processor)
     def result = new AnnotationProcessorResult()
-    def timeSource = new ControlledTimeSource()
-    Factory<Timer> timeProvider = { new DefaultTimer(timeSource) }
-    def tracker = new TimeTrackingProcessor(delegate, result, timeProvider)
+    def currentNanos = 0L
+    def tracker = new TimeTrackingProcessor(delegate, result, { currentNanos })
 
     def "tracks time for getSupportedAnnotationTypes()"() {
         when:
@@ -138,7 +137,26 @@ class TimeTrackingProcessorTest extends Specification {
         result.executionTimeInMillis == 11
     }
 
-    def simulateWorkWithDuration(long millis) {
-        timeSource.nanoTime += millis
+    def "tracks time in nanoseconds"() {
+        given:
+        delegate.init(_) >> {
+            simulateWorkWithDuration(500_000, NANOSECONDS)
+        }
+
+        when:
+        tracker.init(null)
+
+        then:
+        result.executionTimeInMillis == 0
+
+        when:
+        tracker.init(null)
+
+        then:
+        result.executionTimeInMillis == 1
+    }
+
+    def simulateWorkWithDuration(long duration, TimeUnit unit = MILLISECONDS) {
+        currentNanos += NANOSECONDS.convert(duration, unit)
     }
 }

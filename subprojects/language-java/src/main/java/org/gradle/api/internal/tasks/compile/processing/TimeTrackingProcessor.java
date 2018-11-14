@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -32,26 +32,22 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class TimeTrackingProcessor extends DelegatingProcessor {
 
     private final AnnotationProcessorResult result;
-    private final Factory<Timer> timeProvider;
+    private final Stopwatch stopwatch;
 
     public TimeTrackingProcessor(Processor delegate, AnnotationProcessorResult result) {
-        this(delegate, result, new Factory<Timer>() {
-            @Override
-            public Timer create() {
-                return Time.startTimer();
-            }
-        });
+        this(delegate, result, Ticker.systemTicker());
     }
 
     @VisibleForTesting
-    protected TimeTrackingProcessor(Processor delegate, AnnotationProcessorResult result, Factory<Timer> timeProvider) {
+    protected TimeTrackingProcessor(Processor delegate, AnnotationProcessorResult result, Ticker ticker) {
         super(delegate);
         this.result = result;
-        this.timeProvider = timeProvider;
+        this.stopwatch = Stopwatch.createUnstarted(ticker);
     }
 
     @Override
@@ -116,13 +112,12 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
     }
 
     private <T> T track(Factory<T> factory) {
-        Timer timer = timeProvider.create();
+        stopwatch.start();
         try {
             return factory.create();
         } finally {
-            long oldValue = result.getExecutionTimeInMillis();
-            long newValue = oldValue + timer.getElapsedMillis();
-            result.setExecutionTimeInMillis(newValue);
+            stopwatch.stop();
+            result.setExecutionTimeInMillis(stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 }

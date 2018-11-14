@@ -26,6 +26,9 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.tasks.compile.JavaAnnotationProcessingIntegrationTest.CompileMode.COMMAND_LINE
+import static org.gradle.api.tasks.compile.JavaAnnotationProcessingIntegrationTest.CompileMode.IN_PROCESS
+
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def fixture = new HelperProcessorFixture()
@@ -290,7 +293,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "wraps processing in build operation (fork=#fork)"() {
+    def "wraps processing in build operation (#mode)"() {
         given:
         buildFile << """
             dependencies {
@@ -301,8 +304,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         [buildFile, annotationProjectDir.file("build.gradle"), processorProjectDir.file("build.gradle")].each { buildFile ->
             buildFile << """
                 compileJava {
-                    options.fork = $fork
-                    options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'
+                    options.fork = ${mode != IN_PROCESS}
+                    ${mode == COMMAND_LINE ? "options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'" : ''}
                 }
             """
         }
@@ -313,16 +316,16 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         with(operations[':annotation:compileJava']) {
             it.displayName == 'Compile Java for :annotation:compileJava'
-            it.result.annotationProcessorDetails == (fork ? null : [])
+            it.result.annotationProcessorDetails == (mode == COMMAND_LINE ? null : [])
         }
         with(operations[':processor:compileJava']) {
             it.displayName == 'Compile Java for :processor:compileJava'
-            it.result.annotationProcessorDetails == (fork ? null : [])
+            it.result.annotationProcessorDetails == (mode == COMMAND_LINE ? null : [])
         }
         with(operations[':compileJava']) {
             it.displayName == 'Compile Java for :compileJava'
             def details = it.result.annotationProcessorDetails as List<AnnotationProcessorDetails>
-            if (fork) {
+            if (mode == COMMAND_LINE) {
                 details == null
             } else {
                 with(details) {
@@ -335,7 +338,11 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        fork << [true, false]
+        mode << CompileMode.values()
+    }
+
+    enum CompileMode {
+        IN_PROCESS, DAEMON, COMMAND_LINE
     }
 
     private void removeUseOfGeneratedClass() {
