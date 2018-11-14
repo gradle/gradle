@@ -70,7 +70,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         return transformationNode;
     }
 
-    static List<TransformationStep> unpackTransformation(Transformation transformation) {
+    private static List<TransformationStep> unpackTransformation(Transformation transformation) {
         final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
         transformation.visitTransformationSteps(new Action<TransformationStep>() {
             @Override

@@ -76,11 +76,7 @@ public class DefaultTransformer implements Transformer {
 
     private ArtifactTransform newTransformer(ArtifactTransformDependencies artifactTransformDependencies) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        registry.addProvider(new Object() {
-            ArtifactTransformDependencies createArtifactDependencies() {
-                return artifactTransformDependencies;
-            }
-        });
+        registry.add(ArtifactTransformDependencies.class, artifactTransformDependencies);
         return instantiatorFactory.inject(registry).newInstance(implementationClass, parameters.isolate());
     }
 

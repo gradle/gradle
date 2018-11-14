@@ -331,7 +331,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    private TransformationSubject initialSubject(String path) {
+    private static TransformationSubject initialSubject(String path) {
         TransformationSubject.initial(new File(path))
     }
 
