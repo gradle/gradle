@@ -554,9 +554,7 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can register and configure element by creating with type`() {
 
         val fooObject = DomainObject()
-        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
-        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
             onCreateWithAction("foo", DomainObject::class, fooObject)
             onCreateWithAction("bar", DomainObject::class, barObject)
