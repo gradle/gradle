@@ -349,8 +349,8 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name
  *
  * `tasks { val jar by getting }`
  */
-inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting: U
-    get() = this
+inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting
+    get() = NamedDomainObjectCollectionDelegateProvider.of(this)
 
 
 /**
@@ -369,15 +369,22 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
 class NamedDomainObjectCollectionDelegateProvider<T>
 private constructor(
     internal val collection: NamedDomainObjectCollection<T>,
-    internal val configuration: T.() -> Unit
+    internal val configuration: (T.() -> Unit)?
 ) {
     companion object {
-        fun <T> of(collection: NamedDomainObjectCollection<T>, configuration: T.() -> Unit) =
+        fun <T> of(
+            collection: NamedDomainObjectCollection<T>,
+            configuration: (T.() -> Unit)? = null
+        ) =
             NamedDomainObjectCollectionDelegateProvider(collection, configuration)
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>) =
-        collection.named(property.name).apply { configure(configuration) }
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>) = ExistingDomainObjectDelegate.of(
+        when (configuration) {
+            null -> collection.getByName(property.name)
+            else -> collection.getByName(property.name, configuration)
+        }
+    )
 }
 
 
