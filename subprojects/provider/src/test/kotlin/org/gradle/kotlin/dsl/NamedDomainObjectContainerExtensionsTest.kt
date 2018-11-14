@@ -261,14 +261,14 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can create element within configuration block via delegated property`() {
 
         val tasks = mock<TaskContainer> {
-            on { register("hello") } doReturn mock<TaskProvider<Task>>()
+            on { create("hello") } doReturn mock<Task>()
         }
 
         tasks {
             @Suppress("unused_variable")
             val hello by creating
         }
-        verify(tasks).register("hello")
+        verify(tasks).create("hello")
     }
 
     @Test

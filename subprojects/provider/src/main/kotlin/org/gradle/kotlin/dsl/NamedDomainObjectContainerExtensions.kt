@@ -325,11 +325,12 @@ private constructor(
             NamedDomainObjectContainerCreatingDelegateProvider(container, configuration)
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
         when (configuration) {
-            null -> container.register(property.name)
-            else -> container.register(property.name, configuration)
+            null -> container.create(property.name)
+            else -> container.create(property.name, configuration)
         }
+    )
 }
 
 
@@ -369,11 +370,12 @@ private constructor(
             PolymorphicDomainObjectContainerCreatingDelegateProvider(container, type, configuration)
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
         when (configuration) {
-            null -> container.register(property.name, type)
-            else -> container.register(property.name, type, configuration)
+            null -> container.create(property.name, type)
+            else -> container.create(property.name, type, configuration)
         }
+    )
 }
 
 

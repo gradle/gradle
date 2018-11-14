@@ -485,12 +485,10 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can register element by creating`() {
 
         val fooObject = DomainObject()
-        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
-        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { register("foo") } doReturn fooObjectProvider
-            on { register("bar") } doReturn barObjectProvider
+            on { create("foo") } doReturn fooObject
+            on { create("bar") } doReturn barObject
         }
 
         container {
@@ -510,12 +508,10 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can register and configure element by creating`() {
 
         val fooObject = DomainObject()
-        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
-        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            onRegisterWithAction("foo", fooObjectProvider)
-            onRegisterWithAction("bar", barObjectProvider)
+            onCreateWithAction("foo", fooObject)
+            onCreateWithAction("bar", barObject)
         }
 
         container {
@@ -535,12 +531,10 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can register element by creating with type`() {
 
         val fooObject = DomainObject()
-        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
-        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            on { register("foo", DomainObject::class.java) } doReturn fooObjectProvider
-            on { register("bar", DomainObject::class.java) } doReturn barObjectProvider
+            on { create("foo", DomainObject::class.java) } doReturn fooObject
+            on { create("bar", DomainObject::class.java) } doReturn barObject
         }
 
         container {
@@ -564,8 +558,8 @@ class NamedDomainObjectCollectionExtensionsTest {
         val barObject = DomainObject()
         val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            onRegisterWithAction("foo", DomainObject::class, fooObjectProvider)
-            onRegisterWithAction("bar", DomainObject::class, barObjectProvider)
+            onCreateWithAction("foo", DomainObject::class, fooObject)
+            onCreateWithAction("bar", DomainObject::class, barObject)
         }
 
         container {
@@ -584,10 +578,28 @@ class NamedDomainObjectCollectionExtensionsTest {
 
 
 internal
+fun <T> KStubbing<NamedDomainObjectContainer<T>>.onCreateWithAction(name: String, domainObject: T) {
+    on { create(eq(name), any<Action<T>>()) } doAnswer {
+        it.getArgument<Action<T>>(1).execute(domainObject)
+        domainObject
+    }
+}
+
+
+internal
 fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
     on { register(eq(name), any<Action<T>>()) } doAnswer {
         it.getArgument<Action<T>>(1).execute(provider.get())
         provider
+    }
+}
+
+
+internal
+fun <T : Any, U : T> KStubbing<PolymorphicDomainObjectContainer<T>>.onCreateWithAction(name: String, type: KClass<U>, domainObject: U) {
+    on { create(eq(name), eq(type.java), any<Action<U>>()) } doAnswer {
+        it.getArgument<Action<U>>(2).execute(domainObject)
+        domainObject
     }
 }
 
