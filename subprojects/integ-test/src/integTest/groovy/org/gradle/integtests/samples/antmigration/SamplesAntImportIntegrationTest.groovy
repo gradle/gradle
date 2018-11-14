@@ -32,7 +32,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/antmigration/importBuild")
+    @UsesSample("userguide/antMigration/importBuild")
     def "can import an Ant build and reconfigure its tasks (#dsl)"() {
         given: "A sample project with an Ant build"
         def dslDir = sample.dir.file(dsl)
@@ -53,7 +53,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/antmigration/fileDeps")
+    @UsesSample("userguide/antMigration/fileDeps")
     def "can copy file and flatDir dependencies (#dsl)"() {
         given: "A sample Java project with file and flatDir dependencies"
         def dslDir = sample.dir.file(dsl)
@@ -72,7 +72,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/antmigration/fileDeps")
+    @UsesSample("userguide/antMigration/fileDeps")
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"
         def dslDir = sample.dir.file(dsl)
@@ -89,7 +89,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/antmigration/multiProject")
+    @UsesSample("userguide/antMigration/multiProject")
     def "can link projects in a multi-project build via task dependencies (#dsl)"() {
         given: "A sample multi-project build"
         def dslDir = sample.dir.file(dsl)
