@@ -24,7 +24,7 @@ import org.gradle.api.specs.Spec
 import static org.gradle.util.WrapUtil.toList
 
 class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
-    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>())
+    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>(), null)
     StringBuffer a = new StringBuffer("a")
     StringBuffer b = new StringBuffer("b")
     StringBuffer c = new StringBuffer("c")

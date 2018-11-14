@@ -33,33 +33,26 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public boolean isSubscribed(@Nullable Class<?> type) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.isSubscribed");
         return delegate.isSubscribed(type);
     }
 
     @Override
     public ImmutableActionSet<T> getAddActions() {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.getAddActions");
         return delegate.getAddActions();
     }
 
     @Override
     public void fireObjectAdded(T element) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.fireObjectAdded");
-
         delegate.fireObjectAdded(element);
     }
 
     @Override
     public void fireObjectRemoved(T element) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.fireObjectRemoved");
-
         delegate.fireObjectRemoved(element);
     }
 
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.registerEagerAddAction");
         if (decorator == null) {
             return delegate.registerEagerAddAction(type, addAction);
         }
@@ -68,7 +61,6 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.registerLazyAddAction");
         if (decorator == null) {
             return delegate.registerLazyAddAction(addAction);
         }
@@ -77,9 +69,7 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
-        System.out.println("BuildOperationActionDecoratingCollectionEventRegistrar.registerRemoveAction");
         delegate.registerRemoveAction(type, removeAction);
     }
-
 
 }
