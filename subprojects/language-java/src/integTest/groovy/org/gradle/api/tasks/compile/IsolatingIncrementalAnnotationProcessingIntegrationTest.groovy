@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.AnnotationProcessorFixture
@@ -279,7 +279,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         succeeds "compileJava"
 
         then:
-        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'HelperProcessor'
             first().type == "ISOLATING"

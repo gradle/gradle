@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
@@ -243,7 +243,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
 
         then:
-        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'ServiceProcessor'
             first().type == "AGGREGATING"

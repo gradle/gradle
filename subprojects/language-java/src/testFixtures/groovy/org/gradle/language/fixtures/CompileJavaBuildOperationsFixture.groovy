@@ -16,22 +16,22 @@
 
 package org.gradle.language.fixtures
 
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
-class CompileWithAnnotationProcessingBuildOperationsFixture {
+class CompileJavaBuildOperationsFixture {
     private BuildOperationsFixture operations
 
-    CompileWithAnnotationProcessingBuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
+    CompileJavaBuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         operations = new BuildOperationsFixture(executer, projectDir)
     }
 
     BuildOperationRecord getAt(String taskPath) {
-        operations.only(CompileWithAnnotationProcessingBuildOperationType) {
+        operations.only(CompileJavaBuildOperationType) {
             operations.parentsOf(it).contains(operations.only(ExecuteTaskBuildOperationType) { it.details.taskPath == taskPath })
         }
     }

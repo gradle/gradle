@@ -17,10 +17,10 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.language.fixtures.CompileWithAnnotationProcessingBuildOperationsFixture
+import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.util.TextUtil
 import spock.lang.Issue
@@ -29,7 +29,7 @@ import spock.lang.Unroll
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def fixture = new HelperProcessorFixture()
-    def operations = new CompileWithAnnotationProcessingBuildOperationsFixture(executer, testDirectoryProvider)
+    def operations = new CompileJavaBuildOperationsFixture(executer, testDirectoryProvider)
 
     def annotationProjectDir = file("annotation")
     def processorProjectDir = file("processor")
@@ -312,15 +312,15 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         with(operations[':annotation:compileJava']) {
-            it.displayName == 'Invoke compiler for :annotation:compileJava'
+            it.displayName == 'Compile Java for :annotation:compileJava'
             it.result.annotationProcessorDetails == (fork ? null : [])
         }
         with(operations[':processor:compileJava']) {
-            it.displayName == 'Invoke compiler for :processor:compileJava'
+            it.displayName == 'Compile Java for :processor:compileJava'
             it.result.annotationProcessorDetails == (fork ? null : [])
         }
         with(operations[':compileJava']) {
-            it.displayName == 'Invoke compiler for :compileJava'
+            it.displayName == 'Compile Java for :compileJava'
             def details = it.result.annotationProcessorDetails as List<AnnotationProcessorDetails>
             if (fork) {
                 details == null

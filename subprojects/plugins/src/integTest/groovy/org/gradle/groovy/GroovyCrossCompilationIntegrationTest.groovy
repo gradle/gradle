@@ -21,15 +21,12 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.jvm.JavaInfo
-import org.gradle.language.fixtures.CompileWithAnnotationProcessingBuildOperationsFixture
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.TextUtil
 import org.junit.Assume
 
 @TargetVersions(["1.6", "1.7", "1.8"])
 class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
-
-    def operations = new CompileWithAnnotationProcessingBuildOperationsFixture(executer, testDirectoryProvider)
 
     JavaVersion getJavaVersion() {
         JavaVersion.toVersion(MultiVersionIntegrationSpec.version)
@@ -102,6 +99,5 @@ class ThingSpec {
         new ClassFile(groovyClassFile("Thing.class")).javaVersion == javaVersion
         new ClassFile(groovyClassFile("GroovyThing.class")).javaVersion == javaVersion
         new ClassFile(classFile("groovy", "test", "ThingSpec.class")).javaVersion == javaVersion
-        operations[':compileGroovy'].result.annotationProcessorDetails == null
     }
 }

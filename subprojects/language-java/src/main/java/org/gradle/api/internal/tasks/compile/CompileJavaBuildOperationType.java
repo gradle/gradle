@@ -22,7 +22,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class CompileWithAnnotationProcessingBuildOperationType implements BuildOperationType<CompileWithAnnotationProcessingBuildOperationType.Details, CompileWithAnnotationProcessingBuildOperationType.Result> {
+public class CompileJavaBuildOperationType implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -33,6 +33,8 @@ public class CompileWithAnnotationProcessingBuildOperationType implements BuildO
 
         /**
          * Returns details about the used annotation processors, if available.
+         *
+         * <p>Details are only available if an instrumented compiler was used.
          *
          * @return details about used annotation processors; {@code null} if unknown.
          */

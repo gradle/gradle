@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.BuildOperationReportingCompiler;
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -151,7 +151,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
-        WorkResult result = new BuildOperationReportingCompiler<JavaCompileSpec>(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
+        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
         setDidWork(result.getDidWork());
     }
 

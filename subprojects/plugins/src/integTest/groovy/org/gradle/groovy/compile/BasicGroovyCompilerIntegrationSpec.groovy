@@ -17,13 +17,11 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.language.fixtures.CompileWithAnnotationProcessingBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
@@ -34,11 +32,8 @@ import spock.lang.Issue
 
 @TargetCoverage({GroovyCoverage.ALL})
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
-
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
-
-    def operations = new CompileWithAnnotationProcessingBuildOperationsFixture(executer, testDirectoryProvider)
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
@@ -82,11 +77,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
-        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
-            size() == 1
-            first().className == "com.test.SimpleAnnotationProcessor"
-            first().executionTimeInMillis >= 0
-        }
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
@@ -111,7 +101,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
-        operations[':compileGroovy'].failure.contains("Compilation failed")
     }
 
     def "compileBadCodeWithoutAnnotationProcessor"() {
@@ -204,10 +193,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Java$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
         groovyClassFile('Java$$Generated.class').exists()
-        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
-            size() == 1
-            first().executionTimeInMillis >= 0
-        }
     }
 
     def "jointCompileWithJavaAnnotationProcessorOnly"() {
@@ -226,10 +211,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Java$$Generated.java').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
         groovyClassFile('Java$$Generated.class').exists()
-        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
-            size() == 1
-            first().executionTimeInMillis >= 0
-        }
     }
 
     def "jointCompileBadCodeWithAnnotationProcessor"() {
@@ -286,10 +267,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Java$$Generated.java').exists()
         !groovyClassFile('Groovy$$Generated.class').exists()
         !groovyClassFile('Java$$Generated.class').exists()
-        with(operations[':compileGroovy'].result.annotationProcessorDetails as List<AnnotationProcessorDetails>) {
-            size() == 1
-            first().executionTimeInMillis == 0
-        }
     }
 
     def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
@@ -725,5 +702,4 @@ ${compilerConfiguration()}
                 compileGroovy.groovyOptions.javaAnnotationProcessing = true
             """
     }
-
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails;
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
@@ -26,30 +26,29 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BuildOperationReportingCompiler<T extends CompileSpec> implements Compiler<T> {
+public class CompileJavaBuildOperationReportingCompiler implements Compiler<JavaCompileSpec> {
 
-    private final Compiler<T> delegate;
     private final TaskInternal task;
+    private final Compiler<JavaCompileSpec> delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationReportingCompiler(TaskInternal task, Compiler<T> delegate, BuildOperationExecutor buildOperationExecutor) {
-        this.delegate = delegate;
+    public CompileJavaBuildOperationReportingCompiler(TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationExecutor buildOperationExecutor) {
         this.task = task;
+        this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public WorkResult execute(final T spec) {
+    public WorkResult execute(final JavaCompileSpec spec) {
         return buildOperationExecutor.call(new CallableBuildOperation<WorkResult>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Invoke compiler for " + task.getIdentityPath())
+                return BuildOperationDescriptor.displayName("Compile Java for " + task.getIdentityPath())
                     .details(new Details());
             }
 
@@ -61,8 +60,8 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
             }
 
             private Result toBuildOperationResult(WorkResult result) {
-                if (result instanceof CompilationWithAnnotationProcessingResult) {
-                    AnnotationProcessingResult annotationProcessingResult = ((CompilationWithAnnotationProcessingResult) result).getAnnotationProcessingResult();
+                if (result instanceof JdkJavaCompilerResult) {
+                    AnnotationProcessingResult annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
                     List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
                     for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
                         details.add(toAnnotationProcessorDetails(processorResult));
@@ -88,10 +87,10 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
         });
     }
 
-    private static class Details implements CompileWithAnnotationProcessingBuildOperationType.Details {
+    private static class Details implements CompileJavaBuildOperationType.Details {
     }
 
-    private static class Result implements CompileWithAnnotationProcessingBuildOperationType.Result {
+    private static class Result implements CompileJavaBuildOperationType.Result {
 
         private final List<AnnotationProcessorDetails> annotationProcessorDetails;
 
