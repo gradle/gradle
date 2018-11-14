@@ -236,7 +236,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      * Creates a filtered version of this collection.
      */
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
+        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer, getDecorator());
     }
 
     public String getDisplayName() {
