@@ -480,7 +480,7 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    static Object toSerializableModel(Object object) {
+    public static Object toSerializableModel(Object object) {
         if (object instanceof CustomOperationTraceSerialization) {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {

@@ -42,7 +42,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         when:
         executer.requireOwnGradleUserHomeDir()
         def init = executer.gradleUserHomeDir.file("init.d/init.gradle") << """
-            println "init script"
         """
         buildScript """
            ${notifications.registerListener()}
