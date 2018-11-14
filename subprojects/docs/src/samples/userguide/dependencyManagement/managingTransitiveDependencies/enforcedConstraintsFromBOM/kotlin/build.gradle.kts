@@ -25,7 +25,7 @@ repositories {
 // tag::dependency-on-bom[]
 dependencies {
     // import a BOM. The versions used in this file will override any other version found in the graph
-    implementation(dependencies.enforcedPlatform("org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE"))
+    implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE"))
 
     // define dependencies without versions
     implementation("com.google.code.gson:gson")
