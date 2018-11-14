@@ -25,7 +25,7 @@ allprojects {
 }
 
 val publishedPluginsVersion by extra { "1.0.3" }
-val futurePluginsVersion = "1.0.4"
+val futurePluginsVersion = "1.0.5" // 1.0.4 was published by accident and it's the same as 1.0.3
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
