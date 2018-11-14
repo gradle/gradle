@@ -28,82 +28,65 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     def ops = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
-    def 'task container callbacks emit registrant with filter #containerFilter (callback registered before creation)'() {
+    def '#containerType container callbacks emit registrant with filter #containerFilter (callback registered before creation)'() {
         given:
-        file("callbackScript.gradle") << """
-        tasks.${containerFilter} {
-            println "action block from callbackScriptPlugin.gradle"
-        }
-        """
+        callbackScript(containerType, containerFilter)
         buildFile << """
-            class CallbackPlugin implements Plugin<Project> {
-                void apply(Project p){
-                    p.tasks.$containerFilter {
-                        println "task do last block1"
-                    }
-                }
-            }
-
-            class AddingPlugin implements Plugin<Project> {
-                void apply(Project p){
-                    p.tasks.create("hello")
-                }
-            }
-
+            ${callbackClass(containerType, containerFilter)}
+            ${addingPluginClass(creationLogic)}
 
             apply plugin: CallbackPlugin
             apply from: 'callbackScript.gradle'
             apply plugin: AddingPlugin
         """
 
+
         when:
-        run('hello')
+        run('tasks')
+
 
         then:
-        def tasksCreated = ops.only(RealizeTaskBuildOperationType, { it.details.buildPath == ':' && it.details.taskPath == ':hello' })
-        assert tasksCreated.children.size() == 2
+        def addingPluginApplicationId = operationQuery(ops)
+        assert addingPluginApplicationId.children.size() == 2
 
         def callbackPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' }).details.applicationId
-        tasksCreated.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == callbackPluginApplicationId }.size == 1
+        addingPluginApplicationId.children.findAll {
+            it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == callbackPluginApplicationId
+        }.size == 1
 
         def scriptPluginApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('callbackScript.gradle') }).details.applicationId
-        tasksCreated.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == scriptPluginApplicationId }.size == 1
+        addingPluginApplicationId.children.findAll {
+            it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == scriptPluginApplicationId
+        }.size == 1
+
 
         where:
-        containerFilter << ['all', 'withType(Task)', 'matching{true}.all']
+        containerFilter      | containerType | creationLogic             | operationQuery
+        'all'                | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'withType(Task)'     | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'matching{true}.all' | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'all'                | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'withType(Plugin)'   | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'matching{true}.all' | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
     }
 
     @Unroll
-    def 'task container callbacks emit registrant with filter #containerFilter (callback registered after creation)'() {
+    def '#containerType container callbacks emit registrant with filter #containerFilter (callback registered after creation)'() {
         given:
-        file("callbackScript.gradle") << """
-        tasks.${containerFilter} {
-            println "script callback"
-        }
-        """
+        callbackScript(containerType, containerFilter)
         buildFile << """
-            class CallbackPlugin implements Plugin<Project> {
-                void apply(Project p){
-                    p.tasks.$containerFilter {
-                        println "plugin callback"
-                    }
-                }
-            }
+            ${callbackClass(containerType, containerFilter)}
+            ${addingPluginClass(creationLogic)}
 
-            class AddingPlugin implements Plugin<Project> {
-                void apply(Project p){
-                    p.tasks.create("hello")
-                }
-            }
-
-
+            apply plugin: AddingPlugin
             apply plugin: CallbackPlugin
             apply from: 'callbackScript.gradle'
-            apply plugin: AddingPlugin
         """
 
+
         when:
-        run('hello')
+        run('tasks')
+
 
         then:
         def callbackPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' })
@@ -114,54 +97,42 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         def callbackScriptChildrend = callbackScriptApplication.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) }
         assert callbackScriptChildrend.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
+
         where:
-        containerFilter << ['all', 'withType(Task)', 'matching{true}.all']
+        containerFilter      | containerType | creationLogic             | operationQuery
+        'all'                | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'withType(Task)'     | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'matching{true}.all' | 'tasks'       | "p.tasks.create('hello')" | { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':hello' }) }
+        'all'                | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'withType(Plugin)'   | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+        'matching{true}.all' | 'plugins'     | ''                        | { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
     }
 
-    @Unroll
-    def 'plugin container callbacks emit registrant with filter #containerFilter (callback registered before creation)'() {
-        given:
+    void callbackScript(String containerType, String containerFilter) {
         file("callbackScript.gradle") << """
         
-        plugins.${containerFilter} {
+        ${containerType}.${containerFilter} {
             println "action block from callbackScriptPlugin.gradle"
         }
         """
-        buildFile << """
-            class CallbackPlugin implements Plugin<Project> {
+    }
+
+    static String callbackClass(String containerType, String containerFilter) {
+        """class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p){
-                    p.plugins.$containerFilter {
+                    p.${containerType}.$containerFilter {
                         println "plugin callback"
                     }
                 }
-            }
-
-            class AddingPlugin implements Plugin<Project> {
-                void apply(Project p){
-                }
-            }
-
-
-            apply plugin: CallbackPlugin
-            apply from: 'callbackScript.gradle'
-            apply plugin: AddingPlugin
-        """
-
-        when:
-        run('tasks')
-
-        then:
-        def addingPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' })
-        assert addingPluginApplicationId.children.size() == 2
-
-        def callbackPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' }).details.applicationId
-        addingPluginApplicationId.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == callbackPluginApplicationId }.size == 1
-
-        def scriptPluginApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('callbackScript.gradle') }).details.applicationId
-        addingPluginApplicationId.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) && it.details.applicationId == scriptPluginApplicationId }.size == 1
-
-        where:
-        containerFilter << ['all', 'withType(Plugin)', 'matching{true}.all']
+            }"""
     }
-    
+
+    static String addingPluginClass(String creationLogic) {
+        """class AddingPlugin implements Plugin<Project> {
+                void apply(Project p){
+                    $creationLogic
+                }
+            }"""
+    }
+
 }
