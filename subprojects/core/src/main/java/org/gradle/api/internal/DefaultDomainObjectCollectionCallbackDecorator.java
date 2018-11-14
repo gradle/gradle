@@ -56,7 +56,7 @@ public class DefaultDomainObjectCollectionCallbackDecorator implements DomainObj
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Execute container callback from " + applicationId)
+                .displayName("Executing container callback from " + applicationId.longValue())
                 .details(new ExecuteDomainObjectCollectionCallbackBuildOperationType.DetailsImpl(applicationId));
         }
     }
