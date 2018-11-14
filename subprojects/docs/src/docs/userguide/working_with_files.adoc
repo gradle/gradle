@@ -20,9 +20,9 @@ Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/g
 
 To run:
 
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesCopyIntegrationTest"
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesFilesMiscIntegrationTest"
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesArchivesIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesCopyIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesFilesMiscIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesArchivesIntegrationTest"
 ////
 
 Almost every Gradle build interacts with files in some way: think source files, file dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to perform the file operations you need.

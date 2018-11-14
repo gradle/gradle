@@ -20,7 +20,7 @@ This chapter provides the information you need to migrate your older Gradle 4.x 
 We recommend the following steps for all users:
 
  . If you are not already on version 4.10.2, read the sections <<#changes_5.0,below>> for help upgrading your project to 4.10.2.
- . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+ . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan. If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
