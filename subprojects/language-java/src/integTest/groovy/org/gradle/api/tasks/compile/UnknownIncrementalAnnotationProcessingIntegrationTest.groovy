@@ -53,7 +53,7 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'ThingProcessor'
-            !first().incremental
+            first().type == "UNKNOWN"
         }
     }
 

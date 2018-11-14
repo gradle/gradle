@@ -24,6 +24,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.ISOLATING;
+
 /**
  * The strategy for isolating annotation processors.
  *
@@ -36,7 +38,7 @@ class IsolatingProcessingStrategy extends IncrementalProcessingStrategy {
     IsolatingProcessingStrategy(AnnotationProcessingResult result, AnnotationProcessorResult processorResult) {
         super(result);
         this.result = result;
-        processorResult.setIncremental(true);
+        processorResult.setType(ISOLATING);
     }
 
     @Override

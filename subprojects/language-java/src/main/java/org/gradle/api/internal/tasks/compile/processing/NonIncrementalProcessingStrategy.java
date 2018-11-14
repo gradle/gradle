@@ -24,6 +24,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.UNKNOWN;
+
 /**
  * The strategy used for non-incremental annotation processors.
  * @see NonIncrementalProcessor
@@ -36,7 +38,7 @@ public class NonIncrementalProcessingStrategy extends IncrementalProcessingStrat
         super(result);
         this.name = name;
         this.result = result;
-        processorResult.setIncremental(false);
+        processorResult.setType(UNKNOWN);
     }
 
     @Override

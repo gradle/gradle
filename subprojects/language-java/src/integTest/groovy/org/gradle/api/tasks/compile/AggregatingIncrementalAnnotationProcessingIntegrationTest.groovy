@@ -246,7 +246,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'ServiceProcessor'
-            first().incremental
+            first().type == "AGGREGATING"
         }
     }
 

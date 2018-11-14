@@ -86,7 +86,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
             size() == 1
             first().className == "com.test.SimpleAnnotationProcessor"
             first().executionTimeInMillis >= 0
-            !first().incremental
         }
     }
 

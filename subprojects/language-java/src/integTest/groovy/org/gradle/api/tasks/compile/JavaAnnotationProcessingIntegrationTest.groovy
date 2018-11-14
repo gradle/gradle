@@ -329,7 +329,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                     size() == 1
                     first().className == 'HelperProcessor'
                     first().executionTimeInMillis >= 0
-                    first().incremental
+                    first().type == "ISOLATING"
                 }
             }
         }

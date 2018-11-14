@@ -282,7 +282,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'HelperProcessor'
-            first().incremental
+            first().type == "ISOLATING"
         }
     }
 

@@ -26,6 +26,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType.AGGREGATING;
+
 /**
  * The strategy used for aggregating annotation processors.
  * @see AggregatingProcessor
@@ -37,7 +39,7 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     AggregatingProcessingStrategy(AnnotationProcessingResult result, AnnotationProcessorResult processorResult) {
         super(result);
         this.result = result;
-        processorResult.setIncremental(true);
+        processorResult.setType(AGGREGATING);
     }
 
     @Override

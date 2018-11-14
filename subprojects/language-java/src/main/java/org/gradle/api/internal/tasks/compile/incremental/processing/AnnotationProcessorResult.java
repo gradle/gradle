@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
+import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
+
 import java.io.Serializable;
 
 public class AnnotationProcessorResult implements Serializable {
 
     private final String className;
-    private boolean incremental;
+    private IncrementalAnnotationProcessorType type;
     private long executionTimeInMillis;
 
     public AnnotationProcessorResult(String className) {
@@ -32,12 +34,12 @@ public class AnnotationProcessorResult implements Serializable {
         return className;
     }
 
-    public boolean isIncremental() {
-        return incremental;
+    public IncrementalAnnotationProcessorType getType() {
+        return type;
     }
 
-    public void setIncremental(boolean incremental) {
-        this.incremental = incremental;
+    public void setType(IncrementalAnnotationProcessorType type) {
+        this.type = type;
     }
 
     public long getExecutionTimeInMillis() {

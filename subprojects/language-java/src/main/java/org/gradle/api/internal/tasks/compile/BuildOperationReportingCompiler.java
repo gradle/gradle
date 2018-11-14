@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileWithAnnotationProcessingBuildOperationType.Result.AnnotationProcessorDetails;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -72,7 +73,17 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
             }
 
             private DefaultAnnotationProcessorDetails toAnnotationProcessorDetails(AnnotationProcessorResult result) {
-                return new DefaultAnnotationProcessorDetails(result.getClassName(), result.isIncremental(), result.getExecutionTimeInMillis());
+                return new DefaultAnnotationProcessorDetails(result.getClassName(), toType(result.getType()), result.getExecutionTimeInMillis());
+            }
+
+            private AnnotationProcessorDetails.Type toType(IncrementalAnnotationProcessorType type) {
+                if (type == IncrementalAnnotationProcessorType.AGGREGATING) {
+                    return AnnotationProcessorDetails.Type.AGGREGATING;
+                }
+                if (type == IncrementalAnnotationProcessorType.ISOLATING) {
+                    return AnnotationProcessorDetails.Type.ISOLATING;
+                }
+                return AnnotationProcessorDetails.Type.UNKNOWN;
             }
         });
     }
@@ -98,12 +109,12 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
     private static class DefaultAnnotationProcessorDetails implements AnnotationProcessorDetails {
 
         private final String className;
-        private final boolean incremental;
+        private final Type type;
         private final long executionTimeInMillis;
 
-        DefaultAnnotationProcessorDetails(String className, boolean incremental, long executionTimeInMillis) {
+        DefaultAnnotationProcessorDetails(String className, Type type, long executionTimeInMillis) {
             this.className = className;
-            this.incremental = incremental;
+            this.type = type;
             this.executionTimeInMillis = executionTimeInMillis;
         }
 
@@ -113,8 +124,8 @@ public class BuildOperationReportingCompiler<T extends CompileSpec> implements C
         }
 
         @Override
-        public boolean isIncremental() {
-            return incremental;
+        public Type getType() {
+            return type;
         }
 
         @Override
