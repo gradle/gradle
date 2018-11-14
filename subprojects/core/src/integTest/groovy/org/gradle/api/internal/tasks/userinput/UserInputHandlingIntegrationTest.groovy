@@ -62,6 +62,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
                 }
             }
         """
+
+        settingsFile << ''
     }
 
     @Unroll
