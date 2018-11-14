@@ -31,12 +31,12 @@ val tmpDistDir by extra { file("$buildDir/dist") }
 
 tasks {
     create<Jar>("javadocJar") {
-        from(tasks.javadoc)  // <1>
+        from(javadoc)  // <1>
         classifier = "javadoc"
     }
 
     create<Copy>("unpackJavadocs") {
-        from(zipTree(tasks.getByName<Jar>("javadocJar").archivePath))  // <2>
+        from(zipTree(getByName<Jar>("javadocJar").archivePath))  // <2>
         into(tmpDistDir)  // <3>
     }
 }
