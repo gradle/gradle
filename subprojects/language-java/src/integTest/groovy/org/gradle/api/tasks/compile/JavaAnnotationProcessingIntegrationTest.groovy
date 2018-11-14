@@ -26,6 +26,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 import static org.gradle.api.tasks.compile.JavaAnnotationProcessingIntegrationTest.CompileMode.COMMAND_LINE
 import static org.gradle.api.tasks.compile.JavaAnnotationProcessingIntegrationTest.CompileMode.IN_PROCESS
 
@@ -332,7 +333,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                     size() == 1
                     first().className == 'HelperProcessor'
                     first().executionTimeInMillis >= 0
-                    first().type == "ISOLATING"
+                    first().type == ISOLATING.name()
                 }
             }
         }

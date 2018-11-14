@@ -26,6 +26,8 @@ import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.TextUtil
 
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
+
 class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private HelperProcessorFixture helperProcessor
 
@@ -272,7 +274,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 
-    def "reports isolating processor as incremental in build operation"() {
+    def "reports isolating processor in build operation"() {
         java "class Irrelevant {}"
 
         when:
@@ -282,7 +284,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'HelperProcessor'
-            first().type == "ISOLATING"
+            first().type == ISOLATING.name()
         }
     }
 

@@ -19,6 +19,8 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.UNKNOWN
+
 class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
     @Override
@@ -53,7 +55,7 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
             size() == 1
             first().className == 'ThingProcessor'
-            first().type == "UNKNOWN"
+            first().type == UNKNOWN.name()
         }
     }
 
