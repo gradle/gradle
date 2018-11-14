@@ -15,7 +15,6 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.support.uncheckedCast
 
@@ -274,18 +273,15 @@ class NamedDomainObjectContainerExtensionsTest {
     @Test
     fun `can get element of specific type within configuration block via delegated property`() {
 
-        val taskProvider = mock<TaskProvider<JavaExec>> {
-            on { get() } doReturn mock<JavaExec>()
-        }
+        val task = mock<JavaExec>()
         val tasks = mock<TaskContainer> {
-            on { named("hello", JavaExec::class.java) } doReturn taskProvider
+            on { getByName("hello") } doReturn task
         }
 
         @Suppress("unused_variable")
         tasks {
             val hello by getting(JavaExec::class)
-            val ref = hello // forces the element to be accessed
         }
-        verify(tasks).named("hello", JavaExec::class.java)
+        verify(tasks).getByName("hello")
     }
 }

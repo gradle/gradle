@@ -382,23 +382,18 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access named element by getting`() {
 
         val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { named("domainObject") } doReturn elementProvider
+            on { getByName("domainObject") } doReturn element
         }
 
         container {
             // invoke syntax
             val domainObject by getting
-            inOrder(container, elementProvider) {
-                verify(container).named("domainObject")
+            inOrder(container) {
+                verify(container).getByName("domainObject")
                 verifyNoMoreInteractions()
             }
             assertThat(domainObject, sameInstance(element))
-            inOrder(container, elementProvider) {
-                verify(elementProvider).get()
-                verifyNoMoreInteractions()
-            }
         }
 
         container.apply {
@@ -412,9 +407,11 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can configure named element by getting`() {
 
         val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { named("domainObject") } doReturn elementProvider
+            on { getByName(eq("domainObject"), any<Action<DomainObject>>()) } doAnswer {
+                it.getArgument<Action<DomainObject>>(1).execute(element)
+                element
+            }
         }
 
         container {
@@ -436,9 +433,8 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access named element by getting with type`() {
 
         val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<Any>> {
-            on { named("domainObject", DomainObject::class.java) } doReturn elementProvider
+            on { getByName("domainObject") } doReturn element
         }
 
         container {
@@ -458,12 +454,8 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can configure named element by getting with type`() {
 
         val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<Any>> {
-            on { named(eq("domainObject"), eq(DomainObject::class.java), any<Action<DomainObject>>()) } doAnswer {
-                elementProvider.configure(it.getArgument(2))
-                elementProvider
-            }
+            on { getByName("domainObject") } doReturn element
         }
 
         container {

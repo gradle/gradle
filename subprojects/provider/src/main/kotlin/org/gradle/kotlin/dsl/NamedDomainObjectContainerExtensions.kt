@@ -408,9 +408,10 @@ private constructor(
             PolymorphicDomainObjectContainerGettingDelegateProvider(container, type, configuration)
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
         when (configuration) {
-            null -> container.named(property.name, type)
-            else -> container.named(property.name, type, configuration)
+            null -> container.getByName(property.name, type)
+            else -> container.getByName(property.name, type, configuration)
         }
+    )
 }
