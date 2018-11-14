@@ -17,11 +17,9 @@
 package org.gradle.integtests.fixtures;
 
 import com.google.common.collect.Lists;
-import org.junit.experimental.categories.Category;
 
 import java.util.List;
 
-@Category(ContextualMultiVersionTest.class)
 public abstract class AbstractContextualMultiVersionSpecRunner extends AbstractMultiTestRunner {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
