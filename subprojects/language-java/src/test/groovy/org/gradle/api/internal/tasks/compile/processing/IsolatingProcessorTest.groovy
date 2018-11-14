@@ -18,37 +18,19 @@ package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
+import spock.lang.Specification
 
-class AggregatingFilerTest extends IncrementalFilerTest {
+import javax.annotation.processing.Processor
 
-    @Override
-    IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
-        new AggregatingProcessingStrategy(result, new AnnotationProcessorResult())
-    }
+class IsolatingProcessorTest extends Specification {
 
-    def "can have zero originating elements"() {
+    def "sets processor type"() {
+        given:
+        AnnotationProcessorResult processorResult = new AnnotationProcessorResult()
         when:
-        filer.createSourceFile("Foo")
-
+        new IsolatingProcessor(Stub(Processor), processorResult, new AnnotationProcessingResult())
         then:
-        !result.fullRebuildCause
+        processorResult.type == IncrementalAnnotationProcessorType.ISOLATING
     }
 
-    def "can have many originating elements"() {
-        when:
-        filer.createSourceFile("Foo", type("Bar"), type("Baz"))
-
-        then:
-        !result.fullRebuildCause
-    }
-
-    def "adds generated types to the processing result"() {
-        when:
-        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
-        filer.createSourceFile("Bar", type("B"))
-
-        then:
-        result.generatedTypesWithIsolatedOrigin.isEmpty()
-        result.generatedAggregatingTypes == ["Foo", "Bar"] as Set
-    }
 }
