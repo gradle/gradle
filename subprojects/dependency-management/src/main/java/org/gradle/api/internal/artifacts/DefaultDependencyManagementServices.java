@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -74,6 +75,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegist
 import org.gradle.api.internal.artifacts.transform.GradleUserHomeTransformerExecutionHistoryRepository;
 import org.gradle.api.internal.artifacts.transform.ProjectTransformerExecutionHistoryRepository;
 import org.gradle.api.internal.artifacts.transform.ProjectTransformerWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.TransformationComponentProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -222,6 +224,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 )
             );
         }
+
+        TransformationComponentProjectFinder createProjectFinder() {
+            return new TransformationComponentProjectFinder() {
+                @Nullable
+                @Override
+                public ProjectInternal find(ProjectComponentIdentifier projectComponentIdentifier) {
+                    return null;
+                }
+            };
+        }
     }
 
     private static class DependencyResolutionScopeServices {
@@ -244,7 +256,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     ArtifactTransformListener artifactTransformListener,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                                    ProjectFinder projectFinder,
+                                                    TransformationComponentProjectFinder projectFinder,
                                                     FeaturePreviews featurePreviews) {
             return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS));
         }

@@ -320,7 +320,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File input) {
-        1 * transformerInvoker.invoke(_ as Transformer, input, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, TransformationSubject subject ->
+        1 * transformerInvoker.invoke(_ as Transformer, input, _ as TransformationSubject, _)  >> { Transformer transformer, File primaryInput, TransformationSubject subject, index ->
             return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
         }
     }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.TransformationException
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -44,7 +43,7 @@ class TransformerInvokerTest extends Specification {
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def historyRepository = Mock(GradleUserHomeTransformerExecutionHistoryRepository)
     def outputFileCollectionFingerprinter = Mock(OutputFileCollectionFingerprinter)
-    def projectFinder = Mock(ProjectFinder)
+    def projectFinder = Mock(TransformationComponentProjectFinder)
     def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher), projectFinder, false)
 
     def "wraps failures into TransformInvocationException"() {

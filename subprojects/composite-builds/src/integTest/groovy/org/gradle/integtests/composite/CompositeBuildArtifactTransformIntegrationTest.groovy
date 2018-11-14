@@ -70,10 +70,16 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         """
         expect:
         execute(buildA, "resolve")
+        assertTaskExecuted(":buildB", ":jar")
+        assertTaskExecuted(":buildC", ":jar")
+
         outputContains("buildB-1.0.jar (project :buildB)")
         outputContains("buildC-1.0.jar (project :buildC)")
         output.count("Transforming") == 2
-        assertTaskExecuted(":buildB", ":jar")
-        assertTaskExecuted(":buildC", ":jar")
+
+        if (IncrementalArtifactTransformationsRunner.incrementalArtifactTransformations) {
+            outputContains(buildB.file("build/transforms-cache/buildB-1.0.jar").absolutePath)
+            outputContains(buildC.file("build/transforms-cache/buildC-1.0.jar").absolutePath)
+        }
     }
 }
