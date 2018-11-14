@@ -53,7 +53,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
 
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer());
+        return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), getDecorator());
     }
 
     @Override
