@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import spock.lang.Specification
@@ -27,9 +26,9 @@ class IsolatingProcessorTest extends Specification {
 
     def "sets processor type"() {
         given:
-        AnnotationProcessorResult processorResult = new AnnotationProcessorResult()
+        AnnotationProcessorResult processorResult = new AnnotationProcessorResult(null, "")
         when:
-        new IsolatingProcessor(Stub(Processor), processorResult, new AnnotationProcessingResult())
+        new IsolatingProcessor(Stub(Processor), processorResult)
         then:
         processorResult.type == IncrementalAnnotationProcessorType.ISOLATING
     }

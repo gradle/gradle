@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -28,9 +28,9 @@ import java.util.Set;
  * The strategy that updates the processing result according to the type and runtime behavior of a processor.
  */
 abstract class IncrementalProcessingStrategy {
-    private final AnnotationProcessingResult result;
+    protected final AnnotationProcessorResult result;
 
-    IncrementalProcessingStrategy(AnnotationProcessingResult result) {
+    IncrementalProcessingStrategy(AnnotationProcessorResult result) {
         this.result = result;
     }
 

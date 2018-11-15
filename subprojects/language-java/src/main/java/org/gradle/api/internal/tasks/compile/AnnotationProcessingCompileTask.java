@@ -98,7 +98,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         processorClassloader = createProcessorClassLoader();
         List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
         for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {
-            AnnotationProcessorResult processorResult = new AnnotationProcessorResult(declaredProcessor.getClassName());
+            AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, declaredProcessor.getClassName());
             result.getAnnotationProcessorResults().add(processorResult);
 
             Class<?> processorClass = loadProcessor(declaredProcessor);
@@ -149,13 +149,13 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type, AnnotationProcessorResult processorResult) {
         switch (type) {
             case ISOLATING:
-                return new IsolatingProcessor(processor, processorResult, result);
+                return new IsolatingProcessor(processor, processorResult);
             case AGGREGATING:
-                return new AggregatingProcessor(processor, processorResult, result);
+                return new AggregatingProcessor(processor, processorResult);
             case DYNAMIC:
-                return new DynamicProcessor(processor, processorResult, result);
+                return new DynamicProcessor(processor, processorResult);
             default:
-                return new NonIncrementalProcessor(processor, processorResult, result);
+                return new NonIncrementalProcessor(processor, processorResult);
         }
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 
@@ -31,22 +30,19 @@ import java.util.Set;
  * @see DynamicProcessor
  */
 public class DynamicProcessingStrategy extends IncrementalProcessingStrategy {
-    private final AnnotationProcessingResult result;
-    private final AnnotationProcessorResult processorResult;
+
     private IncrementalProcessingStrategy delegate;
 
-    DynamicProcessingStrategy(String processorName, AnnotationProcessingResult result, AnnotationProcessorResult processorResult) {
+    DynamicProcessingStrategy(String processorName, AnnotationProcessorResult result) {
         super(result);
-        this.processorResult = processorResult;
-        this.delegate = new NonIncrementalProcessingStrategy(processorName, processorResult, result);
-        this.result = result;
+        this.delegate = new NonIncrementalProcessingStrategy(processorName, result);
     }
 
     public void updateFromOptions(Set<String> supportedOptions) {
         if (supportedOptions.contains(IncrementalAnnotationProcessorType.ISOLATING.getProcessorOption())) {
-            delegate = new IsolatingProcessingStrategy(result, processorResult);
+            delegate = new IsolatingProcessingStrategy(result);
         } else if (supportedOptions.contains(IncrementalAnnotationProcessorType.AGGREGATING.getProcessorOption())) {
-            delegate = new AggregatingProcessingStrategy(result, processorResult);
+            delegate = new AggregatingProcessingStrategy(result);
         }
     }
 

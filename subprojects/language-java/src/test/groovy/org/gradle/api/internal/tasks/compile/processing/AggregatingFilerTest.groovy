@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 
 class AggregatingFilerTest extends IncrementalFilerTest {
 
     @Override
-    IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
-        new AggregatingProcessingStrategy(result, new AnnotationProcessorResult())
+    IncrementalProcessingStrategy getStrategy(AnnotationProcessorResult result) {
+        new AggregatingProcessingStrategy(result)
     }
 
     def "can have zero originating elements"() {

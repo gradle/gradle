@@ -17,14 +17,17 @@
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
 import java.io.Serializable;
+import java.util.Set;
 
 public class AnnotationProcessorResult implements Serializable {
 
+    private final AnnotationProcessingResult processingResult;
     private final String className;
     private IncrementalAnnotationProcessorType type;
     private long executionTimeInMillis;
 
-    public AnnotationProcessorResult(String className) {
+    public AnnotationProcessorResult(AnnotationProcessingResult processingResult, String className) {
+        this.processingResult = processingResult;
         this.className = className;
     }
 
@@ -48,4 +51,19 @@ public class AnnotationProcessorResult implements Serializable {
         this.executionTimeInMillis = executionTimeInMillis;
     }
 
+    public void addGeneratedType(String name, Set<String> originatingElements) {
+        processingResult.addGeneratedType(name, originatingElements);
+    }
+
+    public Set<String> getAggregatedTypes() {
+        return processingResult.getAggregatedTypes();
+    }
+
+    public Set<String> getGeneratedAggregatingTypes() {
+        return processingResult.getGeneratedAggregatingTypes();
+    }
+
+    public void setFullRebuildCause(String fullRebuildCause) {
+        processingResult.setFullRebuildCause(fullRebuildCause);
+    }
 }

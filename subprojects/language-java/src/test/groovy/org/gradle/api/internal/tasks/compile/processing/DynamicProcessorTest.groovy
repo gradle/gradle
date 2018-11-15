@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,12 +30,12 @@ import static org.gradle.api.internal.tasks.compile.incremental.processing.Incre
 class DynamicProcessorTest extends Specification {
 
     Processor delegate = Stub(Processor)
-    AnnotationProcessorResult processorResult = new AnnotationProcessorResult()
-    DynamicProcessor processor = new DynamicProcessor(delegate, processorResult, new AnnotationProcessingResult())
+    AnnotationProcessorResult result = new AnnotationProcessorResult(null, "")
+    DynamicProcessor processor = new DynamicProcessor(delegate, result)
 
     def "sets initial processor type"() {
         expect:
-        processorResult.type == UNKNOWN
+        result.type == UNKNOWN
     }
 
     @Unroll
@@ -46,7 +45,7 @@ class DynamicProcessorTest extends Specification {
         when:
         processor.init(Stub(ProcessingEnvironment))
         then:
-        processorResult.type == type
+        result.type == type
         where:
         type << [AGGREGATING, ISOLATING]
     }

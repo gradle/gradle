@@ -36,7 +36,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS
 class TimeTrackingProcessorTest extends Specification {
 
     def delegate = Mock(Processor)
-    def result = new AnnotationProcessorResult()
+    def result = new AnnotationProcessorResult(null, "")
     def currentNanos = 0L
     def tracker = new TimeTrackingProcessor(delegate, result, { currentNanos })
 

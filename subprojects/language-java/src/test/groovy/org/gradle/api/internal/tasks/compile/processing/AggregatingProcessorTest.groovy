@@ -47,9 +47,9 @@ class AggregatingProcessorTest extends Specification {
     }
 
     AnnotationProcessingResult result = new AnnotationProcessingResult()
-    AnnotationProcessorResult processorResult = new AnnotationProcessorResult()
+    AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, "")
     Processor delegate = Stub(Processor)
-    AggregatingProcessor processor = new AggregatingProcessor(delegate, processorResult, result)
+    AggregatingProcessor processor = new AggregatingProcessor(delegate, processorResult)
 
     def "sets processor type"() {
         expect:
