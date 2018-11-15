@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.util.concurrent.ExecutionError;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -26,15 +30,14 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.io.File;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
     private final ExecutionHistoryStore executionHistoryStore;
     private final TransformerWorkspaceProvider workspaceProvider;
-    private final Map<TransformationIdentity, ImmutableList<File>> inMemoryResultCache = new ConcurrentHashMap<>();
+    private final Cache<TransformationIdentity, ImmutableList<File>> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
     public DefaultTransformerExecutionHistoryRepository(TransformerWorkspaceProvider workspaceProvider, ExecutionHistoryStore executionHistoryStore) {
         this.workspaceProvider = workspaceProvider;
@@ -61,27 +64,21 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
 
     @Override
     public boolean hasCachedResult(TransformationIdentity identity) {
-        return inMemoryResultCache.containsKey(identity);
+        return inMemoryResultCache.getIfPresent(identity) != null;
     }
 
     @Override
     public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        ImmutableList<File> resultFromCache = inMemoryResultCache.get(identity);
-        if (resultFromCache != null) {
-            return resultFromCache;
+        try {
+            return inMemoryResultCache.get(identity, () -> {
+                    return workspaceProvider.withWorkspace(identity, workspaceAction);
+                });
+        } catch (ExecutionException | UncheckedException | ExecutionError e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
-        return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
-            ImmutableList<File> fromCache = inMemoryResultCache.get(identity);
-            if (fromCache != null) {
-                return fromCache;
-            }
-            ImmutableList<File> transformationResult = workspaceAction.useWorkspace(identityString, workspace);
-            inMemoryResultCache.put(identity, transformationResult);
-            return transformationResult;
-        });
     }
 
     public void clearInMemoryCache() {
-        inMemoryResultCache.clear();
+        inMemoryResultCache.invalidateAll();
     }
 }

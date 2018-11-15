@@ -24,7 +24,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
@@ -43,7 +42,6 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
     private final PersistentCache cache;
-    private final ProducerGuard<TransformationIdentity> producing = ProducerGuard.adaptive();
 
     public GradleUserHomeWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -65,12 +63,10 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
 
     @Override
     public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        return producing.guardByKey(identity, () -> {
-            String identityString = identity.getIdentity();
-            File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);
-            fileAccessTracker.markAccessed(workspace);
-            return workspaceAction.useWorkspace(identityString, workspace);
-        });
+        String identityString = identity.getIdentity();
+        File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);
+        fileAccessTracker.markAccessed(workspace);
+        return workspaceAction.useWorkspace(identityString, workspace);
     }
 
     @Override
