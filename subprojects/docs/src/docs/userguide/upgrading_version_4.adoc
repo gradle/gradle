@@ -177,6 +177,7 @@ Miscellaneous::
  * The internal `org.gradle.util` package is no longer imported by default.
 +
 Ideally you shouldn't use classes from this package, but, as a quick fix, you can add explicit imports to your build scripts for those classes.
+ * The `gradlePluginPortal()` repository no more infers artifact metadata from artifact files and now <<#rel5.0:gradle_plugin_portal_metadata,only uses Maven POMs>>.
  * The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. The same applies to builds run through TestKit.
  * Gradle 5.0 requires a minimum Tooling API client version of 3.0. Older client libraries can no longer run builds with Gradle 5.0.
  * The IdeaModule Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of `IdeaModule.getSourceDirs()` and `IdeaModule.getTestSourceDirs()`.
@@ -493,6 +494,17 @@ In order to use S3 backed artifact repositories, you previously had to add `--ad
 Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
 
 Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
+[[rel5.0:gradle_plugin_portal_metadata]]
+=== [5.0] `gradlePluginPortal()` repository now fetches artifact metadata from Maven POMs only
+
+The `gradlePluginPortal()` repository is now stricter when resolving artifact metadata, it doesn't infer the metadata from the sole presence of artifact files such as JARs. Only Maven POMs are now considered.
+
+This repository is used by default when resolving plugins from the `plugins {}` block.
+
+With this new behavior, if a plugin or a transitive dependency of a plugin found in the `gradlePluginPortal()` repository has no Maven POM it will fail to resolve.
+
+Artifacts published to a Maven repository without a POM should be fixed. If you encounter such artifacts, please ask the plugin or library author to publish a new version with proper metadata.
 
 [[rel5.0:java_library_distribution_plugin]]
 === Java Library Distribution Plugin utilizes Java Library Plugin
