@@ -17,10 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -28,8 +27,9 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.internal.protocol.OperationResultDecoratorFactory;
+import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
@@ -50,14 +50,16 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final BuildOperationListener delegate;
+    private final OperationResultDecoratorFactory decoratorFactory;
 
     // BuildOperationListener dispatch is not serialized
     private final Set<Object> skipEvents = Sets.newConcurrentHashSet();
 
-    ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
+    ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate, OperationResultDecoratorFactory decoratorFactory) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
         this.delegate = delegate;
+        this.decoratorFactory = decoratorFactory;
     }
 
     @Override
@@ -70,8 +72,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
 
         if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, (TaskInternal) task)));
+                TaskInternal task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
             } else {
                 // Discard this operation and all children
                 skipEvents.add(buildOperation.getId());
@@ -92,9 +94,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         }
 
         if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
-            Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-            TaskInternal taskInternal = (TaskInternal) task;
-            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, taskInternal), toTaskResult(taskInternal, finishEvent)));
+            TaskInternal task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+            InternalTaskResult result = decoratorFactory.decorate(toTaskResult(task, finishEvent), buildOperation.getId());
+            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), result));
         } else {
             delegate.finished(buildOperation, finishEvent);
         }
@@ -114,7 +116,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         return clientSubscriptions.isSendBuildProgressEvents() ? buildOperation.getParentId() : null;
     }
 
-    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent result) {
+    private static InternalTaskResult toTaskResult(TaskInternal task, OperationFinishEvent result) {
         TaskStateInternal state = task.getState();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();

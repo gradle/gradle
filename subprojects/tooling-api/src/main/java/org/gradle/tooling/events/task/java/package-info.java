@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
-
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.5
+ * Task execution result interfaces specific to Java projects.
  */
-public interface InternalTaskResult extends InternalOperationResult {
-    /**
-     * @since 5.1
-     */
-    String getOutcomeDescription();
-}
+package org.gradle.tooling.events.task.java;

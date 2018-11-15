@@ -49,7 +49,7 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Compile Java for " + task.getIdentityPath())
-                    .details(new Details());
+                    .details(new Details(buildOperationExecutor.getCurrentOperation().getParentId()));
             }
 
             @Override
@@ -88,6 +88,18 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
     }
 
     private static class Details implements CompileJavaBuildOperationType.Details {
+
+        private final Object taskBuildOperationId;
+
+        Details(Object taskBuildOperationId) {
+            this.taskBuildOperationId = taskBuildOperationId;
+        }
+
+        @Override
+        public Object getTaskBuildOperationId() {
+            return taskBuildOperationId;
+        }
+
     }
 
     private static class Result implements CompileJavaBuildOperationType.Result {

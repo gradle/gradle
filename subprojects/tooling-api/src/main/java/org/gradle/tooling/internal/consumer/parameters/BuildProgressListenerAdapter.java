@@ -17,16 +17,71 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.*;
-import org.gradle.tooling.events.internal.*;
-import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.events.task.internal.*;
-import org.gradle.tooling.events.test.*;
-import org.gradle.tooling.events.test.internal.*;
+import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.ProgressListener;
+import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.internal.DefaultFinishEvent;
+import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
+import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
+import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+import org.gradle.tooling.events.internal.DefaultStartEvent;
+import org.gradle.tooling.events.task.TaskFinishEvent;
+import org.gradle.tooling.events.task.TaskOperationDescriptor;
+import org.gradle.tooling.events.task.TaskOperationResult;
+import org.gradle.tooling.events.task.TaskProgressEvent;
+import org.gradle.tooling.events.task.TaskStartEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskFailureResult;
+import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
+import org.gradle.tooling.events.task.internal.DefaultTaskSkippedResult;
+import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
+import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
+import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
+import org.gradle.tooling.events.task.java.JavaCompileTaskSuccessResult.AnnotationProcessorResult;
+import org.gradle.tooling.events.test.JvmTestKind;
+import org.gradle.tooling.events.test.TestFinishEvent;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationResult;
+import org.gradle.tooling.events.test.TestProgressEvent;
+import org.gradle.tooling.events.test.TestStartEvent;
+import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
+import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.events.*;
+import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -270,6 +325,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
 
         if (result instanceof InternalTaskSuccessResult) {
+            if (result instanceof InternalJavaCompileTaskSuccessResult) {
+                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskSuccessResult) result).getAnnotationProcessorResults());
+                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache, annotationProcessorResults);
+            }
             return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache);
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
@@ -306,5 +365,30 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             origFailure.getMessage(),
             origFailure.getDescription(),
             toFailures(origFailure.getCauses()));
+    }
+
+    private static List<AnnotationProcessorResult> toAnnotationProcessorResults(List<InternalAnnotationProcessorResult> protocolResults) {
+        if (protocolResults == null) {
+            return null;
+        }
+        List<AnnotationProcessorResult> results = new ArrayList<AnnotationProcessorResult>();
+        for (InternalAnnotationProcessorResult result : protocolResults) {
+            results.add(toAnnotationProcessorResult(result));
+        }
+        return results;
+    }
+
+    private static AnnotationProcessorResult toAnnotationProcessorResult(InternalAnnotationProcessorResult result) {
+        return new DefaultAnnotationProcessorResult(result.getClassName(), toAnnotationProcessorResultType(result.getType()), result.getDuration());
+    }
+
+    private static AnnotationProcessorResult.Type toAnnotationProcessorResultType(String type) {
+        if (type.equals(InternalAnnotationProcessorResult.TYPE_AGGREGATING)) {
+            return AnnotationProcessorResult.Type.AGGREGATING;
+        }
+        if (type.equals(InternalAnnotationProcessorResult.TYPE_ISOLATING)) {
+            return AnnotationProcessorResult.Type.ISOLATING;
+        }
+        return AnnotationProcessorResult.Type.UNKNOWN;
     }
 }

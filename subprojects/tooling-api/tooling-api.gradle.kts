@@ -70,6 +70,7 @@ testFixtures {
     from(":logging")
     from(":dependencyManagement")
     from(":ide")
+    from(":languageJava")
 }
 
 apply(from = "buildship.gradle")

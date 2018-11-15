@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -30,6 +31,12 @@ public class CompileJavaBuildOperationType implements BuildOperationType<Compile
 
     @UsedByScanPlugin
     public interface Details {
+
+        /**
+         * Returns the identifier of {@link ExecuteTaskBuildOperationType} build operation of the task that caused this compilation.
+         */
+        Object getTaskBuildOperationId();
+
     }
 
     @UsedByScanPlugin
