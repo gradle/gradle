@@ -456,7 +456,11 @@ The Property instances that are returned by these methods are no longer automati
 
 For example, you could previously use the following syntax and have both outputFile instances registered as declared outputs:
 
-[source, groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
 ----
 class MyTask extends DefaultTask {
     // note: no annotation here
@@ -468,9 +472,31 @@ task myOtherTask {
     doLast { ... }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+class MyTask : DefaultTask() {
+    // note: no annotation here
+    val outputFile: RegularFileProperty = newOutputFile()
+}
+
+task("myOtherTask") {
+    val outputFile = newOutputFile()
+    doLast { ... }
+}
+----
+=====
+====
 
 Now you have to explicitly register `outputFile`, like this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 class MyTask extends DefaultTask {
@@ -484,6 +510,25 @@ task myOtherTask {
     doLast { ... }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+class MyTask : DefaultTask() {
+    @OutputFile // property needs an annotation
+    val outputFile: RegularFileProperty = project.objects.fileProperty()
+}
+
+task("myOtherTask") {
+    val outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+----
+=====
+====
 
 [[rel5.0:jaxb_and_java9]]
 === [5.0] Gradle now bundles JAXB for Java 9 and above
@@ -509,22 +554,54 @@ The <<#task_configuration_avoidance, configuration avoidance API>> introduced in
 
 With the existing API, this example adds two tasks (`foo` and `bar`):
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 tasks.create("foo") {
     tasks.create("bar")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.create("foo") {
+    tasks.create("bar")
+}
+----
+=====
+====
 
 When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary,
 so the `register()` for task `bar` only executes when `foo` is configured.
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+----
+=====
+====
 
 To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create()` or `register()`) when using the new API.
 
@@ -586,13 +663,34 @@ As part of the stabilization effort in Gradle 4.8, we are deprecating this behav
 
 The new, stable behavior can be switched on by adding the following to your settings file:
 
-    enableFeaturePreview('STABLE_PUBLISHING')
+====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('STABLE_PUBLISHING')
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+enableFeaturePreview("STABLE_PUBLISHING")
+----
+=====
+====
 
 We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates. In most cases everything should work as before and you are done. However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
 
 For example, under the new behavior, the following logic assumes that `jar.baseName` doesn't change after `artifactId` is set:
 
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 subprojects {
     publishing {
@@ -605,11 +703,33 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                artifactId = tasks.jar.get().baseName
+            }
+        }
+    }
+}
+----
+=====
+====
 
 If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
 
-
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 subprojects {
     publishing {
@@ -624,25 +744,80 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                afterEvaluate {
+                    artifactId = tasks.jar.get().baseName
+                }
+            }
+        }
+    }
+}
+----
+=====
+====
 
 [[rel4.8:configure_internal_tasks]]
 === [4.8] Configure existing `wrapper` and `init` tasks
 
 You should no longer define your own `wrapper` and `init` tasks. Configure the existing tasks instead, for example by converting this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 task wrapper(type: Wrapper) {
     ...
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+task<Wrapper>("wrapper") {
+    ...
+}
+----
+=====
+====
 
 to this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 wrapper {
     ...
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.wrapper {
+    ...
+}
+----
+=====
+====
 
 [[rel4.8:pom_wildcard_exclusions]]
 === [4.8] Gradle now honors implicit wildcards in Maven POM exclusions
@@ -711,6 +886,11 @@ The following have also seen similar changes:
 
 link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioExtension.html[VisualStudioExtension] no longer has a `solutions` property. Instead, you configure a single solution via link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioRootExtension.html[VisualStudioRootExtension] in the root project, like so:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 model {
     visualStudio {
@@ -720,6 +900,8 @@ model {
     }
 }
 ----
+=====
+====
 
 In addition, there are no longer individual tasks to generate the solution files for each component, but rather a single `visualStudio` task that generates a solution file that encompasses all components in the build.
 
