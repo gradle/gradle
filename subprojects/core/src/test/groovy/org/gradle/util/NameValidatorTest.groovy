@@ -47,7 +47,7 @@ class NameValidatorTest extends Specification {
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, AttributeTestUtil.attributesFactory())],
-        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, Stub(DocumentationRegistry))],
+        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, Stub(DocumentationRegistry), null)],
         ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())]
     ]

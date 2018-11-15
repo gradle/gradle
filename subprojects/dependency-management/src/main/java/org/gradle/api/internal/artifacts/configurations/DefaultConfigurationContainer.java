@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -90,8 +91,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          final ComponentSelectorConverter componentSelectorConverter,
                                          final DependencyLockingProvider dependencyLockingProvider,
                                          ProjectStateRegistry projectStateRegistry,
-                                         DocumentationRegistry documentationRegistry) {
-        super(Configuration.class, instantiator, new Configuration.Namer());
+                                         DocumentationRegistry documentationRegistry,
+                                         DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
+        super(Configuration.class, instantiator, new Configuration.Namer(), domainObjectCollectionCallbackDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
         this.context = context;
@@ -119,7 +121,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry);
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry, getDecorator());
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -150,7 +152,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             context, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), projectStateRegistry, documentationRegistry);
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), projectStateRegistry, documentationRegistry, getDecorator());
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

@@ -279,8 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 objectFactory);
         }
 
-        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, DomainObjectCollectionCallbackDecorator decorator) {
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, decorator);
+        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, domainObjectCollectionCallbackDecorator);
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
@@ -291,7 +291,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
-                                                                    DocumentationRegistry documentationRegistry) {
+                                                                    DocumentationRegistry documentationRegistry,
+                                                                    DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -312,7 +313,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 componentSelectorConverter,
                 dependencyLockingProvider,
                 projectStateRegistry,
-                documentationRegistry
+                documentationRegistry,
+                domainObjectCollectionCallbackDecorator
             );
         }
 

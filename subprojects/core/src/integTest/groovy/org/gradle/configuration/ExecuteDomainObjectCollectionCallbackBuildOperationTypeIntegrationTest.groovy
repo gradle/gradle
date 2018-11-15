@@ -75,12 +75,12 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     }
 
     @Unroll
-    def '#containerType container callbacks emit registrant with filter #containerFilter (callback registered after creation)'() {
+    def '#containerName container callbacks emit registrant with filter #containerFilter (callback registered after creation)'() {
         given:
-        callbackScript(containerType, containerFilter)
+        callbackScript(containerAccess, containerFilter)
         buildFile << """
-            ${callbackClass(containerType, containerFilter)}
-            ${addingPluginClass(creationLogic)}
+            ${callbackClass(containerAccess, containerFilter)}
+            ${addingPluginClass(containerItemCreation)}
 
             apply plugin: AddingPlugin
             apply plugin: CallbackPlugin
@@ -95,24 +95,31 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         then:
         def callbackPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' })
         def callbackBuildOps = callbackPluginApplication.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) }
+        !callbackBuildOps.isEmpty()
         assert callbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
 
         def callbackScriptApplication = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('callbackScript.gradle') })
-        def callbackScriptChildrend = callbackScriptApplication.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) }
-        assert callbackScriptChildrend.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
+        def callbackScriptChildren = callbackScriptApplication.children.findAll { it.hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details) }
+        !callbackScriptChildren.isEmpty()
+        assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
 
         where:
-        containerFilter                | containerType  | creationLogic
-        'all'                          | 'tasks'        | "p.tasks.create('hello')"
-        'withType(Task)'               | 'tasks'        | "p.tasks.create('hello')"
-        'matching{true}.all'           | 'tasks'        | "p.tasks.create('hello')"
-        'all'                          | 'plugins'      | ''
-        'withType(Plugin)'             | 'plugins'      | ''
-        'matching{true}.all'           | 'plugins'      | ''
-        'all'                          | 'repositories' | "p.repositories.mavenCentral()"
-        'withType(ArtifactRepository)' | 'repositories' | "p.repositories.mavenCentral()"
-        'matching{true}.all'           | 'repositories' | "p.repositories.mavenCentral()"
+        containerFilter                      | containerName    | containerAccess                   | containerItemCreation
+        'all'                                | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
+        'withType(Task)'                     | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
+        'matching{true}.all'                 | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
+        'all'                                | 'plugins'        | 'plugins'                         | ''
+        'withType(Plugin)'                   | 'plugins'        | 'plugins'                         | ''
+        'matching{true}.all'                 | 'plugins'        | 'plugins'                         | ''
+        'all'                                | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)'       | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
+        'matching{true}.all'                 | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
+        'all'                                | 'configurations' | 'configurations'                  | "p.configurations.create('foo')"
+        'matching{true}.all'                 | 'configurations' | 'configurations'                  | "p.configurations.create('foo')"
+        'all'                                | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
+        'withType(ExternalModuleDependency)' | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
+        'matching{true}.all'                 | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
     }
 
     void callbackScript(String containerType, String containerFilter) {

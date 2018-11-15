@@ -66,6 +66,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -207,6 +208,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ProjectStateRegistry projectStateRegistry;
 
     private final DisplayName displayName;
+    private DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
@@ -225,9 +227,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
                                 ProjectStateRegistry projectStateRegistry,
-                                DocumentationRegistry documentationRegistry
+                                DocumentationRegistry documentationRegistry,
+                                DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator
 
     ) {
+        this.domainObjectCollectionCallbackDecorator = domainObjectCollectionCallbackDecorator;
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -254,7 +258,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
-        this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
+        this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class, domainObjectCollectionCallbackDecorator);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
         this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class);
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -847,7 +851,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
                 configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-                rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry);
+                rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry,  domainObjectCollectionCallbackDecorator);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
