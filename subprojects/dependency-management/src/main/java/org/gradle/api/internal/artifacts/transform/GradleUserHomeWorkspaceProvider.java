@@ -26,7 +26,6 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.Try;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
@@ -65,7 +64,7 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return producing.guardByKey(identity, () -> {
             String identityString = identity.getIdentity();
             File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);

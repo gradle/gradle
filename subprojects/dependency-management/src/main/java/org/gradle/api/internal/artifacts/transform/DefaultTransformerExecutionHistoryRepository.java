@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -66,18 +65,18 @@ public abstract class DefaultTransformerExecutionHistoryRepository implements Tr
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         ImmutableList<File> resultFromCache = inMemoryResultCache.get(identity);
         if (resultFromCache != null) {
-            return Try.successful(resultFromCache);
+            return resultFromCache;
         }
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             ImmutableList<File> fromCache = inMemoryResultCache.get(identity);
             if (fromCache != null) {
-                return Try.successful(fromCache);
+                return fromCache;
             }
-            Try<ImmutableList<File>> transformationResult = workspaceAction.useWorkspace(identityString, workspace);
-            transformationResult.ifSuccessful(files -> inMemoryResultCache.put(identity, files));
+            ImmutableList<File> transformationResult = workspaceAction.useWorkspace(identityString, workspace);
+            inMemoryResultCache.put(identity, transformationResult);
             return transformationResult;
         });
     }

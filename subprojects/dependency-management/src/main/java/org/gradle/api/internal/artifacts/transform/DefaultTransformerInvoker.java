@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
@@ -58,6 +59,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,15 +108,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, int index) {
-        Optional<ProjectInternal> producerProject = determineProducerProject(subject);
-        TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(producerProject);
-        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject, index);
-        return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
-            return fireTransformListeners(transformer, subject, () -> {
-                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getDependencies());
-                UpToDateResult outcome = workExecutor.execute(execution);
-                return execution.getResult(outcome);
+        return Try.ofFailable(() -> {
+            Optional<ProjectInternal> producerProject = determineProducerProject(subject);
+            TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(producerProject);
+            TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject, index);
+            return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
+                return fireTransformListeners(transformer, subject, () -> {
+                    CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
+                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getDependencies());
+                    UpToDateResult outcome = workExecutor.execute(execution);
+                    return execution.getResult(outcome);
+                });
             });
         }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
     }
@@ -162,7 +166,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return subject.getProducer().map(projectFinder::find);
     }
 
-    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
+    private ImmutableList<File> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<ImmutableList<File>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
             return execution.get();
@@ -237,12 +241,16 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
+        public ImmutableList<File> getResult(UpToDateResult outcome) {
             if (outcome.getFailure() != null) {
-                return Try.failure(outcome.getFailure());
+                throw UncheckedException.throwAsUncheckedException(outcome.getFailure());
             }
-            return Try.ofFailable(() -> {
-                Path transformerResultsPath = resultsFile.toPath();
+            return loadResultsFile();
+        }
+
+        private ImmutableList<File> loadResultsFile() {
+            Path transformerResultsPath = resultsFile.toPath();
+            try {
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
                 List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
                 for (String path : paths) {
@@ -255,7 +263,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     }
                 }
                 return builder.build();
-            });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         @Override

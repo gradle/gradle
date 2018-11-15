@@ -21,7 +21,6 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.Try;
 
 import java.io.File;
 
@@ -35,7 +34,7 @@ public class ProjectTransformerWorkspaceProvider implements TransformerWorkspace
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return producing.guardByKey(identity, () -> {
             String identityString = identity.getIdentity();
             String path = identity.getInitialSubjectFileName() + "/" + identityString;
