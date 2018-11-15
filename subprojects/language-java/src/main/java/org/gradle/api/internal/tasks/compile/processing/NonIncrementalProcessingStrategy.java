@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.UNKNOWN;
 
 /**
  * The strategy used for non-incremental annotation processors.
@@ -29,12 +31,11 @@ import java.util.Set;
  */
 public class NonIncrementalProcessingStrategy extends IncrementalProcessingStrategy {
     private final String name;
-    private final AnnotationProcessingResult result;
 
-    NonIncrementalProcessingStrategy(String name, AnnotationProcessingResult result) {
+    NonIncrementalProcessingStrategy(String name, AnnotationProcessorResult result) {
         super(result);
         this.name = name;
-        this.result = result;
+        result.setType(UNKNOWN);
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -25,17 +25,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING;
+
 /**
  * The strategy used for aggregating annotation processors.
  * @see AggregatingProcessor
  */
 class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
 
-    private final AnnotationProcessingResult result;
-
-    AggregatingProcessingStrategy(AnnotationProcessingResult result) {
+    AggregatingProcessingStrategy(AnnotationProcessorResult result) {
         super(result);
-        this.result = result;
+        result.setType(AGGREGATING);
     }
 
     @Override

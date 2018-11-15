@@ -17,12 +17,14 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
+import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -96,9 +98,13 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         processorClassloader = createProcessorClassLoader();
         List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
         for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {
+            AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, declaredProcessor.getClassName());
+            result.getAnnotationProcessorResults().add(processorResult);
+
             Class<?> processorClass = loadProcessor(declaredProcessor);
             Processor processor = instantiateProcessor(processorClass);
-            processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType());
+            processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType(), processorResult);
+            processor = decorateForTimeTracking(processor, processorResult);
             processors.add(processor);
         }
         delegate.setProcessors(processors);
@@ -140,17 +146,21 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         }
     }
 
-    private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type) {
+    private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type, AnnotationProcessorResult processorResult) {
         switch (type) {
             case ISOLATING:
-                return new IsolatingProcessor(processor, result);
+                return new IsolatingProcessor(processor, processorResult);
             case AGGREGATING:
-                return new AggregatingProcessor(processor, result);
+                return new AggregatingProcessor(processor, processorResult);
             case DYNAMIC:
-                return new DynamicProcessor(processor, result);
+                return new DynamicProcessor(processor, processorResult);
             default:
-                return new NonIncrementalProcessor(processor, result);
+                return new NonIncrementalProcessor(processor, processorResult);
         }
+    }
+
+    private Processor decorateForTimeTracking(Processor processor, AnnotationProcessorResult processorResult) {
+        return new TimeTrackingProcessor(processor, processorResult);
     }
 
     private void cleanupProcessors() {

@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 
 class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
-    IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
+    IncrementalProcessingStrategy getStrategy(AnnotationProcessorResult result) {
         new IsolatingProcessingStrategy(result)
     }
 
