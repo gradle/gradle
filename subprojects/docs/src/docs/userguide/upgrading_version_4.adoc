@@ -181,7 +181,7 @@ Ideally you shouldn't use classes from this package, but, as a quick fix, you ca
  * Gradle 5.0 requires a minimum Tooling API client version of 3.0. Older client libraries can no longer run builds with Gradle 5.0.
  * The IdeaModule Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of `IdeaModule.getSourceDirs()` and `IdeaModule.getTestSourceDirs()`.
  * In previous Gradle versions, the `source` field in `SourceTask` was accessible from subclasses. This is not the case anymore as the `source` field is now declared as `private`.
- * In the Worker API, <<#rel5.0_worker_api, the working directory of a worker can no longer be set>>.
+ * In the Worker API, <<#rel5.0:worker_api, the working directory of a worker can no longer be set>>.
  * A change in behavior related to <<#rel5.0:dependency_constraints,dependency and version constraints>> may impact a small number of users.
  * There have been several changes to <<#rel5.0:changes_to_default_task,property factory methods on DefaultTask>> that may impact the creation of custom tasks.
 
