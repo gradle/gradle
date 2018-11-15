@@ -53,13 +53,16 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.progress.size() == 3
+        realize.children.size() == 2
+        realize.children[0].progress.size() == 1
+        realize.children[0].progress[0].detailsClassName == LogEvent.name
+        realize.children[0].progress[0].details.message.startsWith("create 1")
+        realize.children[1].progress.size() == 1
+        realize.children[1].progress[0].detailsClassName == LogEvent.name
+        realize.children[1].progress[0].details.message.startsWith("create 2")
+        realize.progress.size() == 1
         realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("create 1")
-        realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("create 2")
-        realize.progress[2].detailsClassName == LogEvent.name
-        realize.progress[2].details.message.startsWith("create 3")
+        realize.progress[0].details.message.startsWith("create 3")
     }
 
     def "configure actions for lazy creation are nested in realization build op"() {
@@ -67,10 +70,10 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             tasks.configureEach {
                 logger.lifecycle 'create 1'
             }
-            def p = tasks.register('foo') {
+            def t = tasks.register('foo') {
                 logger.lifecycle 'create 2'
             }
-            p.configure {
+            t.configure {
                 logger.lifecycle 'create 3'
             }
         """
@@ -81,13 +84,15 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.progress.size() == 3
+        realize.children.size() == 1
+        realize.children[0].progress.size() == 1
+        realize.children[0].progress[0].detailsClassName == LogEvent.name
+        realize.children[0].progress[0].details.message.startsWith("create 1")
+        realize.progress.size() == 2
         realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("create 1")
+        realize.progress[0].details.message.startsWith("create 2")
         realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("create 2")
-        realize.progress[2].detailsClassName == LogEvent.name
-        realize.progress[2].details.message.startsWith("create 3")
+        realize.progress[1].details.message.startsWith("create 3")
     }
 
     def "emits registration build ops when tasks not realized"() {
