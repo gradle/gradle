@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.tooling;
+package org.gradle.tooling.internal.protocol.events;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

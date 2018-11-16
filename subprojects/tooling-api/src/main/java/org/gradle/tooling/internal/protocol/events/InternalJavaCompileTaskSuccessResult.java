@@ -23,6 +23,8 @@ import java.time.Duration;
 import java.util.List;
 
 /**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
  * @since 5.1
  */
 public interface InternalJavaCompileTaskSuccessResult extends InternalTaskSuccessResult {
