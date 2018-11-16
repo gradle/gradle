@@ -301,7 +301,6 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(LinkSharedLibrary link) {
                         link.source(library.getObjects());
                         link.lib(library.getLinkLibraries());
-                        // TODO - need to set soname
                         link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
