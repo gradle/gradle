@@ -126,7 +126,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     @Override
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
         // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType(), getDecorator()));
     }
 
     @Override

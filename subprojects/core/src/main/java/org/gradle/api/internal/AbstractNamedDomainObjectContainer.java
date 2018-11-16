@@ -48,8 +48,12 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         this(type, instantiator, namer, null);
     }
 
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackDecorator callbackDecorator) {
+        super(type, instantiator, Named.Namer.forType(type), callbackDecorator);
+    }
+
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        super(type, instantiator, Named.Namer.forType(type), null);
+        this(type, instantiator, (DomainObjectCollectionCallbackDecorator) null);
     }
 
     /**

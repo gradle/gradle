@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration
+package org.gradle.integtests.configuration
 
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import spock.lang.Unroll
@@ -106,28 +107,42 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        containerFilter                      | containerName              | containerAccess                               | containerItemCreation
-        'all'                                | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
-        'withType(Task)'                     | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
-        'matching{true}.all'                 | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
-        'all'                                | 'plugins'                  | 'plugins'                                     | ''
-        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                     | ''
-        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                     | ''
-        'all'                                | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'matching{true}.all'                 | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'all'                                | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
-        'matching{true}.all'                 | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
-        'all'                                | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
-        'withType(ExternalModuleDependency)' | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
-        'matching{true}.all'                 | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
-        'all'                                | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
-        'withType(ExternalModuleDependency)' | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
-        'matching{true}.all'                 | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
-        'all'                                | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
-        'matching{true}.all'                 | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
-        'all'                                | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
-        'matching{true}.all'                 | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
+        containerFilter                                | containerName              | containerAccess                               | containerItemCreation
+        'all'                                          | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'withType(Task)'                               | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'matching{true}.all'                           | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'all'                                          | 'plugins'                  | 'plugins'                                     | ''
+        'withType(Plugin)'                             | 'plugins'                  | 'plugins'                                     | ''
+        'matching{true}.all'                           | 'plugins'                  | 'plugins'                                     | ''
+        'all'                                          | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)'                 | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'matching{true}.all'                           | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'all'                                          | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
+        'matching{true}.all'                           | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
+        'all'                                          | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)'           | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'matching{true}.all'                           | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'all'                                          | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)'           | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'matching{true}.all'                           | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'all'                                          | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
+        'matching{true}.all'                           | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
+        'all'                                          | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
+        'matching{true}.all'                           | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
+        'all'                                          | 'artifactTypes'            | 'dependencies.artifactTypes'                  | createArtifactTypeSnippet()
+    }
+
+    def createArtifactTypeSnippet() {
+        """
+        p.dependencies {
+            artifactTypes {
+                jar {
+                    attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                    attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                }
+            }
+        }
+        """
     }
 
     private String createDependencyConstraintSnippet() {

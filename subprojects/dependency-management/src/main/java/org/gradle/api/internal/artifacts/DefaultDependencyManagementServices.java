@@ -326,8 +326,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return null;
         }
 
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory) {
-            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory);
+        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, DomainObjectCollectionCallbackDecorator decorator) {
+            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator);
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,

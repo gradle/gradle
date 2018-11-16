@@ -49,15 +49,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private DomainObjectCollectionCallbackDecorator decorator;
     private final ElementSource<T> store;
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackDecorator decorator) {
-        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(decorator, new BroadcastingCollectionEventRegister<T>(type)), decorator);
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackDecorator callbackDecorator) {
+        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(callbackDecorator, new BroadcastingCollectionEventRegister<T>(type)), callbackDecorator);
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackDecorator decorator) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackDecorator callbackDecorator) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.decorator = decorator;
+        this.decorator = callbackDecorator;
         this.store.onRealize(new Action<T>() {
             @Override
             public void execute(T value) {

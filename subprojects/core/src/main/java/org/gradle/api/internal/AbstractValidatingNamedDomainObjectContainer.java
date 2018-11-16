@@ -31,8 +31,8 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
 
     private final String nameDescription;
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
-        super(type, instantiator, namer, domainObjectCollectionCallbackDecorator);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
         nameDescription = type.getSimpleName() + " name";
     }
 
@@ -43,9 +43,13 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
         this(type, instantiator, namer, null);
     }
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        super(type, instantiator);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackDecorator callbackDecorator) {
+        super(type, instantiator, callbackDecorator);
         nameDescription = type.getSimpleName() + " name";
+    }
+
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+       this(type, instantiator, (DomainObjectCollectionCallbackDecorator) null);
     }
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
