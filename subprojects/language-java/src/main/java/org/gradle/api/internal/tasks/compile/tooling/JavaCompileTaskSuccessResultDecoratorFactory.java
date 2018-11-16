@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.tooling;
 
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -39,10 +40,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class JavaCompileTaskSuccessResultDecoratorFactory implements OperationResultDecoratorFactory, BuildOperationListener {
 
+    private static final Object TASK_MARKER = new Object();
     private final Map<Object, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<Object, CompileJavaBuildOperationType.Result>();
+    private final Map<Object, Object> parentsOfOperationsWithJavaCompileTaskAncestor = new ConcurrentHashMap<Object, Object>();
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details) {
+            parentsOfOperationsWithJavaCompileTaskAncestor.put(buildOperation.getId(), TASK_MARKER);
+        } else if (buildOperation.getParentId() != null && parentsOfOperationsWithJavaCompileTaskAncestor.containsKey(buildOperation.getParentId())) {
+            parentsOfOperationsWithJavaCompileTaskAncestor.put(buildOperation.getId(), buildOperation.getParentId());
+        }
     }
 
     @Override
@@ -51,10 +59,20 @@ public class JavaCompileTaskSuccessResultDecoratorFactory implements OperationRe
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (buildOperation.getDetails() instanceof CompileJavaBuildOperationType.Details) {
-            Object taskBuildOperationId = ((CompileJavaBuildOperationType.Details) buildOperation.getDetails()).getTaskBuildOperationId();
-            results.put(taskBuildOperationId, (CompileJavaBuildOperationType.Result) finishEvent.getResult());
+        if (finishEvent.getResult() instanceof CompileJavaBuildOperationType.Result) {
+            CompileJavaBuildOperationType.Result result = (CompileJavaBuildOperationType.Result) finishEvent.getResult();
+            Object taskBuildOperationId = findTaskOperationId(buildOperation.getParentId());
+            results.put(taskBuildOperationId, result);
         }
+        parentsOfOperationsWithJavaCompileTaskAncestor.remove(buildOperation.getId());
+    }
+
+    private Object findTaskOperationId(Object id) {
+        Object parent = parentsOfOperationsWithJavaCompileTaskAncestor.get(id);
+        if (parent == TASK_MARKER) {
+            return id;
+        }
+        return findTaskOperationId(parent);
     }
 
     @Override
