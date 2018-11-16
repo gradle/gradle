@@ -310,7 +310,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         link.getInstallName().set(providers.provider(new Callable<String>() {
                             @Override
                             public String call() throws Exception {
-                                if (!targetPlatform.getOperatingSystem().isLinux()) {
+                                if (!link.getTargetPlatform().get().getOperatingSystem().isLinux()) {
                                     return null;
                                 }
                                 return link.getLinkedFile().getAsFile().get().getName();
