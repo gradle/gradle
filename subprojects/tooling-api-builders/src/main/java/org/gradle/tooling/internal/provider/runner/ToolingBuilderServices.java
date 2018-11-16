@@ -22,7 +22,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.tooling.internal.protocol.OperationResultDecoratorFactory;
+import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.Arrays;
 
@@ -41,7 +41,7 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
             }
 
             ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
-                return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultDecoratorFactory(services.getAll(OperationResultDecoratorFactory.class)));
+                return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
             }
         });
     }

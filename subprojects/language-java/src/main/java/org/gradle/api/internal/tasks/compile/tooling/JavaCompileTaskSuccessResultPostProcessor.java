@@ -25,12 +25,12 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.tooling.internal.protocol.OperationResultDecoratorFactory;
-import org.gradle.tooling.internal.protocol.events.DefaultAnnotationProcessorResult;
-import org.gradle.tooling.internal.protocol.events.DefaultJavaCompileTaskSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
+import org.gradle.tooling.internal.provider.events.DefaultAnnotationProcessorResult;
+import org.gradle.tooling.internal.provider.events.DefaultJavaCompileTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JavaCompileTaskSuccessResultDecoratorFactory implements OperationResultDecoratorFactory, BuildOperationListener {
+public class JavaCompileTaskSuccessResultPostProcessor implements OperationResultPostProcessor, BuildOperationListener {
 
     private static final Object TASK_MARKER = new Object();
     private final Map<Object, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<Object, CompileJavaBuildOperationType.Result>();
@@ -76,12 +76,12 @@ public class JavaCompileTaskSuccessResultDecoratorFactory implements OperationRe
     }
 
     @Override
-    public InternalTaskResult decorate(InternalTaskResult result, Object taskBuildOperationId) {
+    public AbstractTaskResult process(AbstractTaskResult taskResult, Object taskBuildOperationId) {
         CompileJavaBuildOperationType.Result compileResult = results.remove(taskBuildOperationId);
-        if (result instanceof InternalTaskSuccessResult && compileResult != null) {
-            return new DefaultJavaCompileTaskSuccessResult((InternalTaskSuccessResult) result, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
+        if (taskResult instanceof DefaultTaskSuccessResult && compileResult != null) {
+            return new DefaultJavaCompileTaskSuccessResult((DefaultTaskSuccessResult) taskResult, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
         }
-        return result;
+        return taskResult;
     }
 
     private List<InternalAnnotationProcessorResult> toAnnotationProcessorResults(List<AnnotationProcessorDetails> allDetails) {

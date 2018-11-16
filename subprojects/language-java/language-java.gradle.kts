@@ -15,6 +15,7 @@ dependencies {
     compile(project(":platformJvm"))
     compile(project(":languageJvm"))
     compile(project(":toolingApi"))
+    compile(project(":launcher"))
     implementation(project(":snapshots"))
 
     // TODO - get rid of this cycle

@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultDecoratorFactory;
+import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -62,7 +62,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaGlobalScopeServices {
-        SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultDecoratorFactory factory) {
+        SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
             return new SubscribableBuildActionRunnerRegistration() {
                 @Override
                 public Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
@@ -74,8 +74,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
             };
         }
 
-        public JavaCompileTaskSuccessResultDecoratorFactory createJavaCompileTaskSuccessResultDecoratorFactory() {
-            return new JavaCompileTaskSuccessResultDecoratorFactory();
+        public JavaCompileTaskSuccessResultPostProcessor createJavaCompileTaskSuccessResultDecoratorFactory() {
+            return new JavaCompileTaskSuccessResultPostProcessor();
         }
     }
 

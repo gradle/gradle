@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
 

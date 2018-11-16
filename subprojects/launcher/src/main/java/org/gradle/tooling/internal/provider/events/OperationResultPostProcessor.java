@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
-
-import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+package org.gradle.tooling.internal.provider.events;
 
 /**
- * Factory for decorators of {@link InternalOperationResult} instances.
+ * Post-processor for {@link AbstractTaskResult} instances.
  *
- * <p>May be used to add information to results by decorating them, e.g. from internal language-specific plugins like Java.
+ * <p>May be used to add information to results by returning specialized subclasses,
+ * e.g. from internal language-specific plugins like Java.
  *
  * @since 5.1
  */
-public interface OperationResultDecoratorFactory {
+public interface OperationResultPostProcessor {
 
-    InternalTaskResult decorate(InternalTaskResult result, Object taskBuildOperationId);
+    AbstractTaskResult process(AbstractTaskResult taskResult, Object taskBuildOperationId);
 
 }
