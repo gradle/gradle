@@ -31,25 +31,25 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
 
     private final String nameDescription;
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackDecorator callbackDecorator) {
-        super(type, instantiator, namer, callbackDecorator);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, namer, callbackActionDecorator);
         nameDescription = type.getSimpleName() + " name";
     }
 
     /**
-     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackDecorator
+     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
      * */
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         this(type, instantiator, namer, null);
     }
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackDecorator callbackDecorator) {
-        super(type, instantiator, callbackDecorator);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, callbackActionDecorator);
         nameDescription = type.getSimpleName() + " name";
     }
 
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-       this(type, instantiator, (DomainObjectCollectionCallbackDecorator) null);
+       this(type, instantiator, (DomainObjectCollectionCallbackActionDecorator) null);
     }
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {

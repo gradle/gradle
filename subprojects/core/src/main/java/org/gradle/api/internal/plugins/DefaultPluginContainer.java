@@ -19,7 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -40,7 +40,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, DomainObjectCollectionCallbackDecorator decorator) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, DomainObjectCollectionCallbackActionDecorator decorator) {
         super(Plugin.class, decorator);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;

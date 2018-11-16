@@ -99,7 +99,7 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
             _ * it.getParallelismConfiguration() >> Mock(ParallelismConfiguration)
         }
         expectParentServiceLocated(InMemoryCacheDecoratorFactory) {
-            _ * it.decorator(_, _) >> Mock(CacheDecorator)
+            _ * it.getCallbackActionDecorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
             _ * it.open(_, _, _, _, _, _, _) >> Mock(PersistentCache) {

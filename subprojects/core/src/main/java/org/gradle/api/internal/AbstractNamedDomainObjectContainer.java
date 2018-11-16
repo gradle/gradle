@@ -37,23 +37,23 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T>, HasPublicType {
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
-        super(type, instantiator, namer, domainObjectCollectionCallbackDecorator);
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
+        super(type, instantiator, namer, domainObjectCollectioncallbackActionDecorator);
     }
 
     /**
-     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackDecorator
+     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
      * */
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         this(type, instantiator, namer, null);
     }
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackDecorator callbackDecorator) {
-        super(type, instantiator, Named.Namer.forType(type), callbackDecorator);
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
     }
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, (DomainObjectCollectionCallbackDecorator) null);
+        this(type, instantiator, (DomainObjectCollectionCallbackActionDecorator) null);
     }
 
     /**

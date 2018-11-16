@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -48,7 +48,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
-    private final DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator;
+    private final DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator;
     private Project project;
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
@@ -63,7 +63,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                                        TaskStatistics statistics,
                                        BuildOperationExecutor buildOperationExecutor,
                                        CrossProjectConfigurator crossProjectConfigurator,
-                                       DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
+                                       DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
@@ -72,11 +72,11 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.statistics = statistics;
         this.buildOperationExecutor = buildOperationExecutor;
         this.crossProjectConfigurator = crossProjectConfigurator;
-        this.domainObjectCollectionCallbackDecorator = domainObjectCollectionCallbackDecorator;
+        this.domainObjectCollectioncallbackActionDecorator = domainObjectCollectioncallbackActionDecorator;
     }
 
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor, crossProjectConfigurator, domainObjectCollectionCallbackDecorator);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor, crossProjectConfigurator, domainObjectCollectioncallbackActionDecorator);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }

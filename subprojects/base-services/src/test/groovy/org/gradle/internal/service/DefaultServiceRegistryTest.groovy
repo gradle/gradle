@@ -382,7 +382,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Cannot use decorator method ${decoratorProvider.class.simpleName}.${methodName}Long() when no parent registry is provided."
+        e.message == "Cannot use callbackActionDecorator method ${decoratorProvider.class.simpleName}.${methodName}Long() when no parent registry is provided."
 
         where:
         decoratorProvider                        | methodName
@@ -601,7 +601,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message.matches(/Cannot use decorator method RegistryWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
+        e.message.matches(/Cannot use callbackActionDecorator method RegistryWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
 
         where:
         decoratorCreator << [ { new RegistryWithDecoratorMethodsWithCreate() }, { new RegistryWithDecoratorMethodsWithDecorate() } ]

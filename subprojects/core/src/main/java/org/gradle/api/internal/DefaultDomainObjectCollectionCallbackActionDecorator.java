@@ -25,11 +25,11 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class DefaultDomainObjectCollectionCallbackDecorator implements DomainObjectCollectionCallbackDecorator {
+public class DefaultDomainObjectCollectionCallbackActionDecorator implements DomainObjectCollectionCallbackActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final DefaultUserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultDomainObjectCollectionCallbackDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultDomainObjectCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
         // TODO RG: discuss interface
         this.userCodeApplicationContext = (DefaultUserCodeApplicationContext) userCodeApplicationContext;

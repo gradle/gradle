@@ -29,7 +29,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
@@ -103,8 +103,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 TaskStatistics statistics,
                                 BuildOperationExecutor buildOperationExecutor,
                                 CrossProjectConfigurator crossProjectConfigurator,
-                                DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator) {
-        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), domainObjectCollectionCallbackDecorator);
+                                DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
+        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), domainObjectCollectioncallbackActionDecorator);
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;
@@ -404,9 +404,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public TaskProvider<T> call(BuildOperationContext context) {
-                DomainObjectCollectionCallbackDecorator callbackDecorator = DefaultTaskContainer.this.getDecorator();
+                DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = DefaultTaskContainer.this.getCallbackActionDecorator();
                 TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
-                    .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, callbackDecorator.decorate(configurationAction), constructorArgs)
+                    .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, callbackActionDecorator.decorate(configurationAction), constructorArgs)
                 );
                 addLaterInternal(provider);
                 context.setResult(REGISTER_RESULT);

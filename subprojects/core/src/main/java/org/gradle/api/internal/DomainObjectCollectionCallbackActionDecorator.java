@@ -18,6 +18,6 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
-public interface DomainObjectCollectionCallbackDecorator {
+public interface DomainObjectCollectionCallbackActionDecorator {
     <T> Action<? super T> decorate(Action<? super T> addAction);
 }

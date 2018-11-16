@@ -24,9 +24,9 @@ import javax.annotation.Nullable;
 
 class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements CollectionEventRegister<T> {
     private CollectionEventRegister<T> delegate;
-    private DomainObjectCollectionCallbackDecorator decorator;
+    private DomainObjectCollectionCallbackActionDecorator decorator;
 
-    public BuildOperationActionDecoratingCollectionEventRegistrar(DomainObjectCollectionCallbackDecorator decorator, CollectionEventRegister<T> delegate) {
+    public BuildOperationActionDecoratingCollectionEventRegistrar(DomainObjectCollectionCallbackActionDecorator decorator, CollectionEventRegister<T> delegate) {
         this.decorator = decorator;
         this.delegate = delegate;
     }

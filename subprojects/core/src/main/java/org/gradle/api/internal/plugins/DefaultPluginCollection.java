@@ -19,23 +19,23 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
-    DefaultPluginCollection(Class<T> type, DomainObjectCollectionCallbackDecorator decorator) {
+    DefaultPluginCollection(Class<T> type, DomainObjectCollectionCallbackActionDecorator decorator) {
         super(type, decorator);
     }
 
-    private DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter, DomainObjectCollectionCallbackDecorator decorator) {
+    private DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter, DomainObjectCollectionCallbackActionDecorator decorator) {
         super(collection, filter, decorator);
     }
 
     protected <S extends T> DefaultPluginCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultPluginCollection<S>(this, filter, getDecorator());
+        return new DefaultPluginCollection<S>(this, filter, getCallbackActionDecorator());
     }
 
     public <S extends T> PluginCollection<S> withType(Class<S> type) {

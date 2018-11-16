@@ -17,8 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DefaultDomainObjectCollectionCallbackDecorator;
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator;
+import org.gradle.api.internal.DefaultDomainObjectCollectionCallbackActionDecorator;
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -116,8 +116,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return buildOperationNotificationBridge.getValve();
     }
 
-    DomainObjectCollectionCallbackDecorator createDomainObjectCollectionCallbackDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-        return services.get(DomainObjectCollectionCallbackDecorator.class);
+    DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+        return services.get(DomainObjectCollectionCallbackActionDecorator.class);
     }
 
     @Override
@@ -174,8 +174,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
         }
 
-        DomainObjectCollectionCallbackDecorator createDomainObjectCollectionCallbackDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultDomainObjectCollectionCallbackDecorator(buildOperationExecutor, userCodeApplicationContext);
+        DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
     }
 }

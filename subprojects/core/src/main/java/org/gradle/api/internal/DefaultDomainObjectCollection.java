@@ -46,18 +46,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
-    private DomainObjectCollectionCallbackDecorator decorator;
+    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
     private final ElementSource<T> store;
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackDecorator callbackDecorator) {
-        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(callbackDecorator, new BroadcastingCollectionEventRegister<T>(type)), callbackDecorator);
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(callbackActionDecorator, new BroadcastingCollectionEventRegister<T>(type)), callbackActionDecorator);
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackDecorator callbackDecorator) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.decorator = callbackDecorator;
+        this.callbackActionDecorator = callbackActionDecorator;
         this.store.onRealize(new Action<T>() {
             @Override
             public void execute(T value) {
@@ -66,7 +66,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         });
     }
 
-    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, DomainObjectCollectionCallbackDecorator decorator) {
+    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, DomainObjectCollectionCallbackActionDecorator decorator) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), decorator);
     }
 
@@ -82,8 +82,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return store;
     }
 
-    public DomainObjectCollectionCallbackDecorator getDecorator() {
-        return decorator;
+    public DomainObjectCollectionCallbackActionDecorator getCallbackActionDecorator() {
+        return callbackActionDecorator;
     }
 
     protected CollectionEventRegister<T> getEventRegister() {
@@ -103,7 +103,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectCollection<S>(this, filter, decorator);
+        return new DefaultDomainObjectCollection<S>(this, filter, callbackActionDecorator);
     }
 
     protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {

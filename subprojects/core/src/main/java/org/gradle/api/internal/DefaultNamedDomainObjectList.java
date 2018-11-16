@@ -42,7 +42,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         this(type, instantiator, namer, null);
     }
 
-    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackDecorator decorator) {
+    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
     }
 

@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectCollectionCallbackDecorator
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -67,12 +67,12 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
     private DocumentationRegistry documentationRegistry = Mock()
-    private DomainObjectCollectionCallbackDecorator domainObjectCollectionCallbackDecorator = Mock()
+    private DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator = Mock()
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, documentationRegistry, domainObjectCollectionCallbackDecorator)
+        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, documentationRegistry, domainObjectCollectioncallbackActionDecorator)
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
