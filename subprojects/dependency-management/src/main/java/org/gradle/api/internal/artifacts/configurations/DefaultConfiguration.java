@@ -260,13 +260,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class, domainObjectCollectionCallbackDecorator);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
-        this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class);
+        this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class, domainObjectCollectionCallbackDecorator);
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
-        this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
+        this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class, domainObjectCollectionCallbackDecorator);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
@@ -676,7 +676,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (allDependencies != null) {
             return;
         }
-        inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
+        inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, domainObjectCollectionCallbackDecorator, ownDependencies);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencies.addCollection(configuration.getAllDependencies());
         }
@@ -700,7 +700,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (allDependencyConstraints != null) {
             return;
         }
-        inheritedDependencyConstraints = CompositeDomainObjectSet.create(DependencyConstraint.class, ownDependencyConstraints);
+        inheritedDependencyConstraints = CompositeDomainObjectSet.create(DependencyConstraint.class, domainObjectCollectionCallbackDecorator, ownDependencyConstraints);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
         }
@@ -730,14 +730,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         if (canBeMutated) {
             // If the configuration can still be mutated, we need to create a composite
-            inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+            inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, domainObjectCollectionCallbackDecorator, ownArtifacts);
         }
         for (Configuration configuration : this.extendsFrom) {
             PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
             if (inheritedArtifacts != null || !allArtifacts.isEmpty()) {
                 if (inheritedArtifacts == null) {
                     // This configuration cannot be mutated, but some parent configurations provide artifacts
-                    inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+                    inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, domainObjectCollectionCallbackDecorator, ownArtifacts);
                 }
                 inheritedArtifacts.addCollection(allArtifacts);
             }

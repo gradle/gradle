@@ -43,8 +43,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final DefaultDomainObjectSet<T> backingSet;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
+        return create(type, null, collections);
+    }
+
+    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackDecorator decorator, DomainObjectCollection<? extends T>... collections) {
         //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), null);
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), decorator);
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
@@ -138,10 +142,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     public void all(Action<? super T> action) {
         //calling overloaded method with extra behavior:
-        whenObjectAdded(action);
+        Action<? super T> effectiveAction = whenObjectAdded(action);
 
         for (T t : this) {
-            action.execute(t);
+            effectiveAction.execute(t);
         }
     }
 

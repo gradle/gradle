@@ -83,6 +83,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
             ${addingPluginClass(containerItemCreation)}
 
             apply plugin: AddingPlugin
+
             apply plugin: CallbackPlugin
             apply from: 'callbackScript.gradle'
         """
@@ -105,28 +106,56 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        containerFilter                      | containerName    | containerAccess                   | containerItemCreation
-        'all'                                | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
-        'withType(Task)'                     | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
-        'matching{true}.all'                 | 'tasks'          | 'tasks'                           | "p.tasks.create('hello')"
-        'all'                                | 'plugins'        | 'plugins'                         | ''
-        'withType(Plugin)'                   | 'plugins'        | 'plugins'                         | ''
-        'matching{true}.all'                 | 'plugins'        | 'plugins'                         | ''
-        'all'                                | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
-        'withType(ArtifactRepository)'       | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
-        'matching{true}.all'                 | 'repositories'   | 'repositories'                    | "p.repositories.mavenCentral()"
-        'all'                                | 'configurations' | 'configurations'                  | "p.configurations.create('foo')"
-        'matching{true}.all'                 | 'configurations' | 'configurations'                  | "p.configurations.create('foo')"
-        'all'                                | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
-        'withType(ExternalModuleDependency)' | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
-        'matching{true}.all'                 | 'dependencies'   | 'configurations.foo.dependencies' | "p.configurations.create('foo'); p.dependencies.add('foo', 'org.acme:project:1.0')"
+        containerFilter                      | containerName              | containerAccess                               | containerItemCreation
+        'all'                                | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
+        'withType(Task)'                     | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
+        'matching{true}.all'                 | 'tasks'                    | 'tasks'                                       | "p.tasks.create('hello')"
+        'all'                                | 'plugins'                  | 'plugins'                                     | ''
+        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                     | ''
+        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                     | ''
+        'all'                                | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'matching{true}.all'                 | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'all'                                | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
+        'matching{true}.all'                 | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
+        'all'                                | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)' | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'matching{true}.all'                 | 'dependencies'             | 'configurations.foo.dependencies'             | createFooDependencySnippet()
+        'all'                                | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)' | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'matching{true}.all'                 | 'allDependencies'          | 'configurations.foo.allDependencies'          | createFooDependencySnippet()
+        'all'                                | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
+        'matching{true}.all'                 | 'dependencyConstraints'    | 'configurations.foo.dependencyConstraints'    | createDependencyConstraintSnippet()
+        'all'                                | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
+        'matching{true}.all'                 | 'allDependencyConstraints' | 'configurations.foo.allDependencyConstraints' | createDependencyConstraintSnippet()
+    }
+
+    private String createDependencyConstraintSnippet() {
+        """
+            ${createFooDependencySnippet()}
+            p.dependencies {
+                constraints { foo('org.acme:foo:1.0') { because "testing" }}
+            }
+        """
+    }
+
+    private String createFooConfigurationSnippet() {
+        "p.configurations.create('foo')"
+    }
+
+    private String createFooDependencySnippet() {
+        """
+        ${createFooConfigurationSnippet()}
+        p.dependencies.add('foo', 'org.acme:foo:1.0')
+        """
+
     }
 
     void callbackScript(String containerType, String containerFilter) {
         file("callbackScript.gradle") << """
         
         ${containerType}.${containerFilter} {
-            println "action block from callbackScriptPlugin.gradle for \$it"
+            println "script callback from callbackScriptPlugin.gradle for \$it"
         }
         """
     }
