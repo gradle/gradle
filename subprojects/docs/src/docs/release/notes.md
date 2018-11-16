@@ -2,11 +2,9 @@ The Gradle team is excited to announce Gradle 5.0.
 
 This release features [a production-ready Kotlin DSL](#kotlin-dsl-1.0), [dependency version alignment](#dependency-version-alignment) (similar to and usable with Maven BOMs), [task timeouts](#task-timeouts), [Java 11 support](#java-11-runtime-support), and more.
 
-See the [Gradle 5.0 upgrade guide](userguide/upgrading_version_4.html) to learn about breaking changes and considerations for upgrading from Gradle 4.x.
+These release notes list what's new since Gradle 4.10. You can review the [highlights since Gradle 4.0 here](https://gradle.org/whats-new/gradle-5). 
 
-<!--
-See [what's new since Gradle 4.0](http://gradle.org/whats-new/5) and [Gradle 5.0 upgrade guide](userguide/upgrading_version_4.html)
--->
+Read the [Gradle 5.0 upgrade guide](userguide/upgrading_version_4.html) to learn about breaking changes and considerations for upgrading from Gradle 4.x.
 
 We would like to thank the following community contributors to this release of Gradle:
 [Jean-Baptiste Nizet](https://github.com/jnizet), 
@@ -33,7 +31,7 @@ and [thc202](https://github.com/thc202).
 
 ## Kotlin DSL 1.0
 
-First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0.2) with it's 1.0 release!
+First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0.3) with it's 1.0 release!
 Authoring your build logic using Kotlin provides significant additional editing assistance in IDEs, including: improved completion, error highlighting, and refactoring tools.
 Please read our [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html) and follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
 If you prefer the flexibility and dynamic features of Groovy, that's totally okay — the Groovy DSL will not be deprecated.
@@ -404,15 +402,15 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.0-rc-3 by updating your wrapper properties:
+Switch your build to use Gradle 5.0 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.0-rc-3`
+`./gradlew wrapper --gradle-version=5.0`
 
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## Reporting Problems
 
-If you find a problem with Gradle 5.0-rc-3, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with Gradle 5.0, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle 5.0, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
