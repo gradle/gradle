@@ -72,6 +72,11 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         return importLibrary;
     }
 
+    /**
+     * Returns the install name to use by this task. Defaults to no install name specified for the binary produced.
+     *
+     * @since 5.1
+     */
     @Optional
     @Input
     public Property<String> getInstallName() {
