@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
@@ -102,17 +101,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject, int index) {
+    public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject) {
         Optional<ProjectInternal> producerProject = determineProducerProject(subject);
-        return determineHistoryRepository(producerProject).hasCachedResult(getTransformationIdentity(producerProject, primaryInput, transformer, subject, index));
+        return determineHistoryRepository(producerProject).hasCachedResult(getTransformationIdentity(producerProject.isPresent(), primaryInput, transformer, subject));
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, int index) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject) {
         return Try.ofFailable(() -> {
             Optional<ProjectInternal> producerProject = determineProducerProject(subject);
             TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(producerProject);
-            TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject, index);
+            TransformationIdentity identity = getTransformationIdentity(producerProject.isPresent(), primaryInput, transformer, subject);
             return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
                 return fireTransformListeners(transformer, subject, () -> {
                     CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -128,9 +127,10 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getTransformationIdentity(Optional<ProjectInternal> producerProject, File primaryInput, Transformer transformer, TransformationSubject subject, int index) {
-        return producerProject.map(project -> getMutableTransformationIdentity(primaryInput, transformer, project, subject, index))
-            .orElseGet(() -> getImmutableTransformationIdentity(primaryInput, transformer, subject.getInitialFileName()));
+    private TransformationIdentity getTransformationIdentity(boolean mutable, File primaryInput, Transformer transformer, TransformationSubject subject) {
+        String initialFileName = subject.getInitialFileName();
+        return mutable ? getMutableTransformationIdentity(primaryInput, transformer, initialFileName) :
+            getImmutableTransformationIdentity(primaryInput, transformer, initialFileName);
     }
 
     private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer, String initialFileName) {
@@ -143,13 +143,10 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, Project initalSubjectProducer, TransformationSubject subject, int index) {
+    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, String initialFileName) {
         return new MutableTransformationIdentity(
-            initalSubjectProducer.getPath(),
-            subject.getInitialFileName(),
-            subject.getPreviousTransformerIdentities(),
-            primaryInput.getName(),
-            index,
+            initialFileName,
+            primaryInput.getAbsolutePath(),
             transformer.getSecondaryInputHash()
         );
     }
@@ -472,19 +469,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     public static class MutableTransformationIdentity implements TransformationIdentity {
-        private final String projectPath;
         private final String initialSubjectFileName;
-        private final ImmutableList<HashCode> previousTransformers;
-        private final String currentSubjectFileName;
-        private final int index;
+        private final String primaryInputAbsolutePath;
         private final HashCode secondaryInputsHash;
 
-        public MutableTransformationIdentity(String projectPath, String initialSubjectFileName, ImmutableList<HashCode> previousTransformers, String currentSubjectFileName, int index, HashCode secondaryInputsHash) {
-            this.projectPath = projectPath;
+        public MutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode secondaryInputsHash) {
             this.initialSubjectFileName = initialSubjectFileName;
-            this.previousTransformers = previousTransformers;
-            this.currentSubjectFileName = currentSubjectFileName;
-            this.index = index;
+            this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.secondaryInputsHash = secondaryInputsHash;
         }
 
@@ -496,13 +487,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public String getIdentity() {
             Hasher hasher = Hashing.newHasher();
-            hasher.putString(projectPath);
             hasher.putString(initialSubjectFileName);
-            for (HashCode previousTransformer : previousTransformers) {
-                hasher.putHash(previousTransformer);
-            }
-            hasher.putString(currentSubjectFileName);
-            hasher.putInt(index);
+            hasher.putString(primaryInputAbsolutePath);
             hasher.putHash(secondaryInputsHash);
             return hasher.hash().toString();
         }
@@ -518,31 +504,20 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
             MutableTransformationIdentity that = (MutableTransformationIdentity) o;
 
-            if (!projectPath.equals(that.projectPath)) {
+            if (!secondaryInputsHash.equals(that.secondaryInputsHash)) {
                 return false;
             }
             if (!initialSubjectFileName.equals(that.initialSubjectFileName)) {
                 return false;
             }
-            if (!previousTransformers.equals(that.previousTransformers)) {
-                return false;
-            }
-            if (!currentSubjectFileName.equals(that.currentSubjectFileName)) {
-                return false;
-            }
-            if (index != that.index) {
-                return false;
-            }
-            return secondaryInputsHash.equals(that.secondaryInputsHash);
+            return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
         }
 
         @Override
         public int hashCode() {
-            int result = projectPath.hashCode();
+            int result = initialSubjectFileName.hashCode();
             result = 31 * result + initialSubjectFileName.hashCode();
-            result = 31 * result + previousTransformers.hashCode();
-            result = 31 * result + currentSubjectFileName.hashCode();
-            result = 31 * result + index;
+            result = 31 * result + primaryInputAbsolutePath.hashCode();
             result = 31 * result + secondaryInputsHash.hashCode();
             return result;
         }

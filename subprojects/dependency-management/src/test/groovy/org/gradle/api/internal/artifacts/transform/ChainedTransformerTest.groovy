@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
-import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
@@ -61,7 +60,7 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "cached")), HashCode.fromInt(1234))
+            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "cached")))
         }
 
         @Override
@@ -83,7 +82,7 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")), HashCode.fromInt(1234))
+            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")))
         }
 
         @Override

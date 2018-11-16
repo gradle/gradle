@@ -19,10 +19,9 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -54,8 +53,6 @@ public abstract class TransformationSubject implements Describable {
 
     public abstract Optional<ProjectComponentIdentifier> getProducer();
 
-    public abstract ImmutableList<HashCode> getPreviousTransformerIdentities();
-
     /**
      * Gives access to the artifacts of the dependencies of the subject of the transformation
      */
@@ -72,14 +69,11 @@ public abstract class TransformationSubject implements Describable {
         return failure(getDisplayName(), failure);
     }
 
-    public TransformationSubject transformationSuccessful(ImmutableList<File> result, HashCode transformerHash) {
+    public TransformationSubject transformationSuccessful(ImmutableList<File> result) {
         return new SubsequentTransformationSubject(
             this,
-            result,
-            ImmutableList.<HashCode>builder()
-                .addAll(getPreviousTransformerIdentities())
-                .add(transformerHash)
-                .build());
+            result
+        );
     }
 
     private static class TransformationFailedSubject extends TransformationSubject {
@@ -108,11 +102,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public Optional<ProjectComponentIdentifier> getProducer() {
             return Optional.empty();
-        }
-
-        @Override
-        public ImmutableList<HashCode> getPreviousTransformerIdentities() {
-            return ImmutableList.of();
         }
 
         @Nullable
@@ -157,11 +146,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public String getInitialFileName() {
             return getFile().getName();
-        }
-
-        @Override
-        public ImmutableList<HashCode> getPreviousTransformerIdentities() {
-            return ImmutableList.of();
         }
 
         @Override
@@ -225,12 +209,10 @@ public abstract class TransformationSubject implements Describable {
     private static class SubsequentTransformationSubject extends TransformationSubject {
         private final TransformationSubject previous;
         private final ImmutableList<File> files;
-        private final ImmutableList<HashCode> previousTransformationIdentities;
 
-        public SubsequentTransformationSubject(TransformationSubject previous, ImmutableList<File> files, ImmutableList<HashCode> previousTransformationIdentities) {
+        public SubsequentTransformationSubject(TransformationSubject previous, ImmutableList<File> files) {
             this.previous = previous;
             this.files = files;
-            this.previousTransformationIdentities = previousTransformationIdentities;
         }
 
         @Override
@@ -245,11 +227,6 @@ public abstract class TransformationSubject implements Describable {
 
         public String getInitialFileName() {
             return previous.getInitialFileName();
-        }
-
-        @Override
-        public ImmutableList<HashCode> getPreviousTransformerIdentities() {
-            return previousTransformationIdentities;
         }
 
         @Override
