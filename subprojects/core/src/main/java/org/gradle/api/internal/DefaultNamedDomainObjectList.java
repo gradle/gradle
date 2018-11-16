@@ -33,13 +33,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
+import static org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator.NOOP;
+
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        super(objects, filter, instantiator, namer, null);
+        super(objects, filter, instantiator, namer, NOOP);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, null);
+        this(type, instantiator, namer, NOOP);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {

@@ -34,7 +34,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     private ImmutableActionSet<Void> beforeContainerChange = ImmutableActionSet.empty();
 
     public DefaultDomainObjectSet(Class<? extends T> type) {
-        super(type, new IterationOrderRetainingSetElementSource<T>(), null);
+        super(type, new IterationOrderRetainingSetElementSource<T>(), DomainObjectCollectionCallbackActionDecorator.NOOP);
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, DomainObjectCollectionCallbackActionDecorator decorator) {
@@ -65,12 +65,12 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         super(type, store, decorator);
     }
 
-    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter, DomainObjectCollectionCallbackActionDecorator decorator) {
-        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter), decorator);
+    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter), callbackActionDecorator);
     }
 
-    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackActionDecorator decorator) {
-        super(type, store, eventRegister, decorator);
+    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, store, eventRegister, callbackActionDecorator);
     }
 
     @Override

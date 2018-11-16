@@ -45,7 +45,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
      * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
      * */
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, null);
+        this(type, instantiator, namer, DomainObjectCollectionCallbackActionDecorator.NOOP);
     }
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
@@ -53,7 +53,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, (DomainObjectCollectionCallbackActionDecorator) null);
+        this(type, instantiator, DomainObjectCollectionCallbackActionDecorator.NOOP);
     }
 
     /**

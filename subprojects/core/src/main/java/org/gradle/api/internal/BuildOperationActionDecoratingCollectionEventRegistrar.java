@@ -53,9 +53,6 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        if (decorator == null) {
-            return delegate.registerEagerAddAction(type, addAction);
-        }
         return delegate.registerEagerAddAction(type, decorator.decorate(addAction));
     }
 

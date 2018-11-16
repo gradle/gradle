@@ -40,7 +40,7 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
      * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
      * */
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, null);
+        this(type, instantiator, namer, DomainObjectCollectionCallbackActionDecorator.NOOP);
     }
 
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
@@ -49,7 +49,7 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
     }
 
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-       this(type, instantiator, (DomainObjectCollectionCallbackActionDecorator) null);
+       this(type, instantiator, DomainObjectCollectionCallbackActionDecorator.NOOP);
     }
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {

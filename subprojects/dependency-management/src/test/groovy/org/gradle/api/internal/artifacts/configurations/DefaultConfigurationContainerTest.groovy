@@ -59,7 +59,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    private DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
+    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -73,7 +73,7 @@ class DefaultConfigurationContainerTest extends Specification {
             resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry, documentationRegistry, domainObjectCollectioncallbackActionDecorator)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry, documentationRegistry, callbackActionDecorator)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

@@ -18,8 +18,9 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
-public interface DomainObjectCollectionCallbackActionDecorator {
-    <T> Action<? super T> decorate(Action<? super T> action);
-
-    DomainObjectCollectionCallbackActionDecorator NOOP = new NoOpDomainObjectCollectionCallbackActionDecorator();
+public class NoOpDomainObjectCollectionCallbackActionDecorator implements DomainObjectCollectionCallbackActionDecorator {
+    @Override
+    public <T> Action<? super T> decorate(Action<? super T> action) {
+        return action;
+    }
 }

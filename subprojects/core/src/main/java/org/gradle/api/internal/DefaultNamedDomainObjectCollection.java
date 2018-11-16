@@ -79,8 +79,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Set<String> applyingRulesFor = new HashSet<String>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {
-        super(type, store, decorator);
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
@@ -93,16 +93,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {
-        super(type, store, eventRegister, decorator);
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, store, eventRegister, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = index;
     }
 
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer, decorator);
+    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer, callbackActionDecorator);
     }
 
     @Override

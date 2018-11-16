@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.configuration.internal.TestUserCodeApplicationContext
@@ -37,7 +38,7 @@ class DefaultPluginManagerTest extends Specification {
     }
     def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoaderScope)
     def target = Mock(PluginTarget)
-    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext(), null)
+    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext(), DomainObjectCollectionCallbackActionDecorator.NOOP)
 
     Class<?> rulesClass
     Class<? extends Plugin> hybridClass

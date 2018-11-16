@@ -40,8 +40,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, DomainObjectCollectionCallbackActionDecorator decorator) {
-        super(Plugin.class, decorator);
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(Plugin.class, callbackActionDecorator);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
     }

@@ -53,9 +53,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
-    def collectionCallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator) {
-        decorate(_) >> { args -> args[0] }
-    }
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -81,7 +78,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         new TaskStatistics(),
         buildOperationExecutor,
         new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
-        collectionCallbackActionDecorator
+        DomainObjectCollectionCallbackActionDecorator.NOOP
     ).create()
 
     @Override

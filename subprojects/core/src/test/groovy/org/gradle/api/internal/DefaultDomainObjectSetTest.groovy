@@ -43,7 +43,7 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
         def c2 = new DefaultDomainObjectSet<String>(String)
         given:
         def composite = CompositeDomainObjectSet.<String>create(String, c1, c2)
-        def set = new DefaultDomainObjectSet<String>(String, composite.getStore(), null)
+        def set = new DefaultDomainObjectSet<String>(String, composite.getStore(), DomainObjectCollectionCallbackActionDecorator.NOOP)
 
         when:
         c1.add("a")

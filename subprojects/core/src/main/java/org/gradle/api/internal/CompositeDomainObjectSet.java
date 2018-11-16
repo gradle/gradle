@@ -38,15 +38,17 @@ import java.util.Set;
  */
 public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
 
+    private static DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
     private final DefaultDomainObjectSet<T> backingSet;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
-        return create(type, null, collections);
+        return create(type, DomainObjectCollectionCallbackActionDecorator.NOOP, collections);
     }
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
+        CompositeDomainObjectSet.callbackActionDecorator = callbackActionDecorator;
         //noinspection unchecked
         DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
@@ -142,10 +144,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     public void all(Action<? super T> action) {
         //calling overloaded method with extra behavior:
-        Action<? super T> effectiveAction = whenObjectAdded(action);
-
+        whenObjectAdded(action);
         for (T t : this) {
-            effectiveAction.execute(t);
+            callbackActionDecorator.decorate(action).execute(t);
         }
     }
 

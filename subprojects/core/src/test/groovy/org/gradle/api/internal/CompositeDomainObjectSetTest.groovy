@@ -363,7 +363,10 @@ class CompositeDomainObjectSetTest extends Specification {
         def calledFor = []
 
         when:
-        composite.all { calledFor << it }
+        composite.all {
+            println 'calledFor ' + it
+            calledFor << it
+        }
 
         then:
         calledFor == ["a", "b"]
