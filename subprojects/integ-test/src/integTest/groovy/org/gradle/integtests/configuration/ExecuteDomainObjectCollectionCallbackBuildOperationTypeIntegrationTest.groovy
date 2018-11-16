@@ -20,8 +20,10 @@ import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperati
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
+import org.gradle.configuration.internal.ExecuteListenerBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import spock.lang.Unroll
 
 class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
@@ -114,18 +116,18 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
         where:
-        containerFilter                      | containerName              | containerAccess                                              | containerItemCreation
-        'all'                                | 'create tasks'             | 'tasks'                                                      | "p.tasks.create('foo')"
-        'withType(Task)'                     | 'create tasks'             | 'tasks'                                                      | "p.tasks.create('foo')"
-        'matching{true}.all'                 | 'create tasks'             | 'tasks'                                                      | "p.tasks.create('foo')"
-        'all'                                | 'plugins'                  | 'plugins'                                                    | ''
-        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                                    | ''
-        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                                    | ''
-        'all'                                | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"
-        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"
-        'matching{true}.all'                 | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"
-        'all'                                | 'configurations'           | 'configurations'                                             | createFooConfigurationSnippet()
-        'matching{true}.all'                 | 'configurations'           | 'configurations'                                             | createFooConfigurationSnippet()
+        containerFilter                      | containerName              | containerAccess                               | containerItemCreation
+        'all'                                | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'withType(Task)'                     | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'matching{true}.all'                 | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
+        'all'                                | 'plugins'                  | 'plugins'                                     | ''
+        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                     | ''
+        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                     | ''
+        'all'                                | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'matching{true}.all'                 | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'all'                                | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
+        'matching{true}.all'                 | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
         'all'                                | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
         'withType(ExternalModuleDependency)' | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
         'matching{true}.all'                 | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
@@ -136,7 +138,147 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         'matching{true}.all'                 | 'dependencyConstraints'    | "configurations.foo.dependencyConstraints"    | createDependencyConstraintSnippet()
         'all'                                | 'allDependencyConstraints' | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
         'matching{true}.all'                 | 'allDependencyConstraints' | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
-        'all'                                | 'artifactTypes'            | 'dependencies.artifactTypes'                                 | createArtifactTypeSnippet()
+        'all'                                | 'artifactTypes'            | 'dependencies.artifactTypes'                  | createArtifactTypeSnippet()
+    }
+
+    def "task registration callback action executions emit build operation with script applicationId"() {
+        given:
+        file('registration.gradle') << """
+            tasks.register('foo') { 
+                println 'task registration action' 
+            }
+        """
+        buildFile << """
+            apply from: 'registration.gradle'
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def resgisterCallbackBuildOp = ops.only(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def registrationScriptApplication = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('registration.gradle') })
+        assert registrationScriptApplication.details.applicationId == resgisterCallbackBuildOp.details.applicationId
+    }
+
+    def "task registration callback action executions emit build operation with plugin applicationId"() {
+        given:
+        file('registration.gradle') << """
+           
+        """
+        buildFile << """
+            class RegisterPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.tasks.register('foo') { 
+                        println 'task registration action' 
+                    }
+                }
+            }
+            apply plugin: RegisterPlugin
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def registerPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'RegisterPlugin' })
+        def resgisterCallbackBuildOp = ops.only(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        assert registerPluginApplication.details.applicationId == resgisterCallbackBuildOp.details.applicationId
+    }
+
+    def "nested container callbacks emit build operation with application id"() {
+        given:
+        file('registration.gradle') << """
+           
+        """
+        buildFile << """
+            class CallbackPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.plugins.withType(RegisterPlugin) {
+                        println 'plugin container callback'
+                        p.tasks.all {
+                            println 'task container callback'
+                        }
+                    }
+                }
+            }
+            
+            class RegisterPlugin implements Plugin<Project> {
+               void apply(Project p) {
+                    p.tasks.register('foo') { 
+                        println 'task registration callback' 
+                    }
+                }
+            }
+            apply plugin: CallbackPlugin
+            apply plugin: RegisterPlugin
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def registerPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'RegisterPlugin' })
+
+        def taskRegistrationCallbackBuildOps = findCallbackActionBuildOps('task registration callback')
+        taskRegistrationCallbackBuildOps.size == 1
+        taskRegistrationCallbackBuildOps.every { it.details.applicationId == registerPluginApplication.details.applicationId }
+
+        def callbackPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' })
+        def pluginContainerCallbackBuildOps = findCallbackActionBuildOps('plugin container callback')
+        pluginContainerCallbackBuildOps.size == 1
+        pluginContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
+
+        def tasksContainerCallbackBuildOps = findCallbackActionBuildOps('task container callback')
+        tasksContainerCallbackBuildOps.size > 0 // not necessary to track exact count here; adding removing build-in tasks should not break this
+        tasksContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
+    }
+
+    def "container callbacks registered from lifecycle listener emit build operation with application id"() {
+        given:
+        file('registration.gradle') << """
+           
+        """
+        buildFile << """
+            class CallbackPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.afterEvaluate {
+                        println 'afterEvaluate callback'
+                        p.repositories.all {
+                            println 'repositories container callback'
+                        }
+                    }
+                }
+            }
+            
+            class RegisterPlugin implements Plugin<Project> {
+               void apply(Project p) {
+                    p.repositories.mavenCentral()
+               }
+            }
+            apply plugin: CallbackPlugin
+            apply plugin: RegisterPlugin
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def callbackPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' })
+
+        def afterEvaluateCallbackBuildOps = ops.only(ExecuteListenerBuildOperationType, { it.details.registrationPoint == 'Project.afterEvaluate' })
+        afterEvaluateCallbackBuildOps.details.applicationId == callbackPluginApplication.details.applicationId
+        afterEvaluateCallbackBuildOps.children.size() == 1
+        afterEvaluateCallbackBuildOps.children[0].hasDetailsOfType(ExecuteDomainObjectCollectionCallbackBuildOperationType.Details.class)
+        afterEvaluateCallbackBuildOps.children[0].details.applicationId == callbackPluginApplication.details.applicationId
+
+        def repositoriesContainerCallbackBuildOps = findCallbackActionBuildOps('repositories container callback')
+        repositoriesContainerCallbackBuildOps.size > 0 // not necessary to track exact count here; adding removing build-in tasks should not break this
+        repositoriesContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
+    }
+
+    private List<BuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
+        return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text == "$markerOutput\n" })
     }
 
     def createArtifactTypeSnippet() {

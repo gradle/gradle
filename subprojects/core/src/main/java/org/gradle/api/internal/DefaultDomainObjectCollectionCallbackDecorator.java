@@ -37,6 +37,9 @@ public class DefaultDomainObjectCollectionCallbackDecorator implements DomainObj
 
     @Override
     public <T> Action<? super T> decorate(Action<? super T> action) {
+        if (InternalAction.class.isAssignableFrom(action.getClass())) {
+            return action;
+        }
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null) {
             return action;
@@ -60,6 +63,7 @@ public class DefaultDomainObjectCollectionCallbackDecorator implements DomainObj
                 .details(new ExecuteDomainObjectCollectionCallbackBuildOperationType.DetailsImpl(applicationId));
         }
     }
+
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
 

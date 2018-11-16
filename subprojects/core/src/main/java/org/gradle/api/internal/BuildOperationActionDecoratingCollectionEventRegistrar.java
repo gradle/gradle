@@ -53,7 +53,7 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        if (decorator == null || InternalAction.class.isAssignableFrom(addAction.getClass())) {
+        if (decorator == null) {
             return delegate.registerEagerAddAction(type, addAction);
         }
         return delegate.registerEagerAddAction(type, decorator.decorate(addAction));
@@ -61,7 +61,7 @@ class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements Colle
 
     @Override
     public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
-        if (decorator == null || InternalAction.class.isAssignableFrom(addAction.getClass())) {
+        if (decorator == null) {
             return delegate.registerLazyAddAction(addAction);
         }
         return delegate.registerLazyAddAction(decorator.decorate(addAction));
