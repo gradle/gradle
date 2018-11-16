@@ -479,7 +479,7 @@ task myOtherTask {
 .build.gradle.kts
 [source,kotlin]
 ----
-class MyTask : DefaultTask() {
+open class MyTask : DefaultTask() {
     // note: no annotation here
     val outputFile: RegularFileProperty = newOutputFile()
 }
@@ -517,7 +517,7 @@ task myOtherTask {
 .build.gradle.kts
 [source,kotlin]
 ----
-class MyTask : DefaultTask() {
+open class MyTask : DefaultTask() {
     @OutputFile // property needs an annotation
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 }
