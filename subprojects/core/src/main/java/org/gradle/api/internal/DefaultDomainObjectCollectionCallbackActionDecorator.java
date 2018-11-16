@@ -37,6 +37,9 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
 
     @Override
     public <T> Action<? super T> decorate(Action<? super T> action) {
+        if (action == null) {
+            return null;
+        }
         if (InternalAction.class.isAssignableFrom(action.getClass())) {
             return action;
         }
@@ -59,7 +62,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Executing container callback from " + applicationId.longValue())
+                .displayName("Execute container callback action")
                 .details(new ExecuteDomainObjectCollectionCallbackBuildOperationType.DetailsImpl(applicationId));
         }
     }

@@ -26,6 +26,7 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
@@ -52,6 +53,9 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
+    def collectionCallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator) {
+        decorate(_) >> { args -> args[0] }
+    }
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -77,7 +81,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         new TaskStatistics(),
         buildOperationExecutor,
         new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
-        null
+        collectionCallbackActionDecorator
     ).create()
 
     @Override
@@ -1501,6 +1505,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     final SomeOtherTask d = factory.create("d", SomeOtherTask)
 
     static class SomeTask extends DefaultTask {}
+
     static class SomeOtherTask extends DefaultTask {}
 
     final Class<SomeTask> type = SomeTask

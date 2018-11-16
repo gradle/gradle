@@ -405,8 +405,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             @Override
             public TaskProvider<T> call(BuildOperationContext context) {
                 DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = DefaultTaskContainer.this.getCallbackActionDecorator();
+                Action<? super T> effectiveAction = callbackActionDecorator.decorate(configurationAction);
                 TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
-                    .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, callbackActionDecorator.decorate(configurationAction), constructorArgs)
+                    .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, effectiveAction, constructorArgs)
                 );
                 addLaterInternal(provider);
                 context.setResult(REGISTER_RESULT);
