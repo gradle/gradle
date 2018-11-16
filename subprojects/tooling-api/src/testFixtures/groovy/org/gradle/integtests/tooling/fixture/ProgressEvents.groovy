@@ -85,6 +85,7 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.startsWith('Cross-configure project ')
                             || descriptor.displayName.startsWith('Resolve files of')
                             || descriptor.displayName.startsWith('Executing ')
+                            || descriptor.displayName.startsWith('Execute container callback action')
                             || descriptor.displayName.startsWith('Resolving ')
                         ) {
                             // Ignore this for now
