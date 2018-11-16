@@ -278,7 +278,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     }
 
     private List<BuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
-        return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text == "$markerOutput\n" })
+        return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text.startsWith(markerOutput)})
     }
 
     def createArtifactTypeSnippet() {
