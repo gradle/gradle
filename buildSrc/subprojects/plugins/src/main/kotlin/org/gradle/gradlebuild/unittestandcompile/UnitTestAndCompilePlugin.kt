@@ -139,11 +139,14 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
-        plugins.withType<IdeaPlugin> {
-            configure<IdeaModel> {
-                module {
-                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
-                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
+        val isExecutingIdeaTask = gradle.startParameter.taskNames.contains("idea")
+        if (isExecutingIdeaTask) {
+            plugins.withType<IdeaPlugin> {
+                configure<IdeaModel> {
+                    module {
+                        resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
+                        testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
+                    }
                 }
             }
         }
