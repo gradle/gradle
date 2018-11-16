@@ -150,6 +150,14 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
+            val copySamples = tasks.register("copySamples", Sync::class) {
+                group = "Verification"
+                from(gradleSamples)
+                into(file("$buildDir/integ test/samples"))
+            }
+            intTestImage.configure {
+                dependsOn(copySamples)
+            }
             afterEvaluate {
                 if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
@@ -174,8 +182,8 @@ open class IntTestImagePlugin : Plugin<Project> {
                         }
                     }
 
-                    into("samples") {
-                        from(gradleSamples)
+                    preserve {
+                        include("samples/**")
                     }
 
                     doLast {
