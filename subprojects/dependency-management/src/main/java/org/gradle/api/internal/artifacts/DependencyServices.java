@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformationComponentProjectFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFactory;
-import org.gradle.api.internal.artifacts.transform.TransformationComponentProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
@@ -70,10 +66,6 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
 
         TransformationNodeExecutor createTransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             return new TransformationNodeExecutor(buildOperationExecutor, transformListener);
-        }
-
-        TransformationComponentProjectFinder createTransformationComponentProjectFinder(BuildStateRegistry buildStateRegistry, ProjectFinder projectFinder) {
-            return new DefaultTransformationComponentProjectFinder(buildStateRegistry, projectFinder);
         }
     }
 }

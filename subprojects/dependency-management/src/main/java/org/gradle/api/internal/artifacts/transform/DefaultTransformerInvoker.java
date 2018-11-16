@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.caching.BuildCacheKey;
@@ -79,7 +80,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final TransformerExecutionHistoryRepository gradleUserHomeHistoryRepository;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final TransformationComponentProjectFinder projectFinder;
+    private final ProjectFinder projectFinder;
     private final boolean useTransformationWorkspaces;
 
     public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
@@ -88,7 +89,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      GradleUserHomeTransformerExecutionHistoryRepository gradleUserHomeHistoryRepository,
                                      OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                     TransformationComponentProjectFinder projectFinder,
+                                     ProjectFinder projectFinder,
                                      boolean useTransformationWorkspaces) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -163,7 +164,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         if (!useTransformationWorkspaces) {
             return Optional.empty();
         }
-        return subject.getProducer().map(projectFinder::find);
+        return subject.getProducer().map(componentId -> projectFinder.findProject(componentId.getBuild(), componentId.getProjectPath()));
     }
 
     private ImmutableList<File> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<ImmutableList<File>> execution) {
