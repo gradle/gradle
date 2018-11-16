@@ -33,7 +33,7 @@ import org.junit.runner.RunWith
 /**
  * Runs a test separately for each installed tool chain.
  */
-@RunWith(SingleToolChainTestRunner.class)
+@RunWith(NativeToolChainTestRunner.class)
 @Category(ContextualMultiVersionTest.class)
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain

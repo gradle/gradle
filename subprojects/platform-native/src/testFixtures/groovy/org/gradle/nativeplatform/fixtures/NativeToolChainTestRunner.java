@@ -27,20 +27,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
+public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
 
-    public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
+    public NativeToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
         super(target);
-    }
-
-    @Override
-    protected Collection<AvailableToolChains.ToolChainCandidate> getQuickVersions() {
-        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-        if (!toolChains.isEmpty()) {
-            return toolChains.subList(0,1);
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     @Override
@@ -70,7 +60,7 @@ public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpe
 
     @Override
     protected boolean isAvailable(AvailableToolChains.ToolChainCandidate version) {
-        return canUseToolChain(version);
+        return version.isAvailable() && canUseToolChain(version);
     }
 
     @Override
