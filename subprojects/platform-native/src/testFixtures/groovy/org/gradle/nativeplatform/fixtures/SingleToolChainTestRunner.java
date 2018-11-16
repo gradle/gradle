@@ -23,60 +23,29 @@ import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner {
+public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
 
     public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
         super(target);
     }
 
     @Override
-    protected void createExecutionsForContext(CoverageContext context) {
-        List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
-        
-        switch(context) {
-            case DEFAULT:
-            case LATEST:
-                if (!toolChains.isEmpty()) {
-                    add(new ToolChainExecution(toolChains.get(0)));
-                }
-                break;
-            case PARTIAL:
-                for (AvailableToolChains.ToolChainCandidate toolChain : getLatestAvailableToolchainFromEachFamily(toolChains)) {
-                    add(new ToolChainExecution(toolChain));
-                }
-                break;
-            case FULL:
-                for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                    add(new ToolChainExecution(toolChain));
-                }
-                break;
-            default:
-                throw new RuntimeException("Unhandled coverage context: " + context);
+    protected Collection<AvailableToolChains.ToolChainCandidate> getQuickVersions() {
+        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
+        if (!toolChains.isEmpty()) {
+            return toolChains.subList(0,1);
+        } else {
+            return Collections.emptyList();
         }
     }
 
     @Override
-    protected void createSelectedExecutions(List<String> selectionCriteria) {
-        if (selectionCriteria.size() == 1 && selectionCriteria.get(0).equals("latest")) {
-            List<AvailableToolChains.ToolChainCandidate> toolChains = getAvailableToolChains(AvailableToolChains.getToolChains());
-            add(new ToolChainExecution(toolChains.get(0)));
-        }
-        throw new UnsupportedOperationException();
-    }
-
-    private List<AvailableToolChains.ToolChainCandidate> getAvailableToolChains(List<AvailableToolChains.ToolChainCandidate> toolChains) {
-        return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
-            @Override
-            public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
-                return toolChain.isAvailable() && canUseToolChain(toolChain);
-            }
-        });
-    }
-
-    private Collection<AvailableToolChains.ToolChainCandidate> getLatestAvailableToolchainFromEachFamily(List<AvailableToolChains.ToolChainCandidate> toolChains) {
+    protected Collection<AvailableToolChains.ToolChainCandidate> getPartialVersions() {
+        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
         Map<AvailableToolChains.ToolFamily, AvailableToolChains.ToolChainCandidate> availableByFamily = Maps.newEnumMap(AvailableToolChains.ToolFamily.class);
         for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
             AvailableToolChains.ToolChainCandidate current = availableByFamily.get(toolChain.getFamily());
@@ -86,6 +55,27 @@ public class SingleToolChainTestRunner extends AbstractContextualMultiVersionSpe
         }
 
         return availableByFamily.values();
+    }
+
+    @Override
+    protected Collection<AvailableToolChains.ToolChainCandidate> getAllVersions() {
+        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
+        return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
+            @Override
+            public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
+                return toolChain.isAvailable() && canUseToolChain(toolChain);
+            }
+        });
+    }
+
+    @Override
+    protected boolean isAvailable(AvailableToolChains.ToolChainCandidate version) {
+        return canUseToolChain(version);
+    }
+
+    @Override
+    protected Collection<Execution> createExecutionsFor(AvailableToolChains.ToolChainCandidate versionedTool) {
+        return Collections.singleton(new ToolChainExecution(versionedTool));
     }
 
     // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc).

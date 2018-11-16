@@ -15,13 +15,10 @@
  */
 
 package org.gradle.integtests.fixtures
-
-import static org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner.CoverageContext.*
-
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
-class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner {
+class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<VersionNumberOnlyTool> {
     def versions
     def coverage
 
@@ -32,51 +29,28 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner {
     }
 
     @Override
-    void createExecutionsForContext(CoverageContext context) {
-        def possibleVersions = getAllVersions()
-        Set<String> versionsUnderTest = []
-
-        switch(context) {
-            case DEFAULT:
-            case LATEST:
-                versionsUnderTest.add(possibleVersions.last())
-                break
-            case PARTIAL:
-                versionsUnderTest.add(possibleVersions.first())
-                versionsUnderTest.add(possibleVersions.last())
-                break
-            case FULL:
-                versionsUnderTest.addAll(possibleVersions)
-                break
-            default:
-                throw new RuntimeException("Unhandled coverage context: " + context)
-        }
-
-        versionsUnderTest.each { add(new VersionExecution(it)) }
-    }
-
-    @Override
-    void createSelectedExecutions(List<String> selectionCriteria) {
-        def possibleVersions = getAllVersions()
-        def versionsUnderTest = [] as Set
-
-        if ("latest" in selectionCriteria) {
-            versionsUnderTest.add(possibleVersions.last())
-        }
-
-        versionsUnderTest.addAll(possibleVersions.findAll { it.toString() in selectionCriteria })
-
-        versionsUnderTest.each { add(new VersionExecution(it)) }
-    }
-
-    List<String> getAllVersions() {
+    protected Collection<VersionNumberOnlyTool> getAllVersions() {
         if (versions != null) {
-            return versions.value()
+            return versionsFrom(versions.value() as List)
         } else if (coverage != null) {
-            return coverage.value().newInstance(target, target).call() as List
+            return versionsFrom(coverage.value().newInstance(target, target).call() as List)
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
+    }
+
+    @Override
+    protected boolean isAvailable(VersionNumberOnlyTool version) {
+        return true
+    }
+
+    @Override
+    protected Collection<Execution> createExecutionsFor(VersionNumberOnlyTool versionedTool) {
+        return [new VersionExecution(versionedTool.version.toString())]
+    }
+
+    static List<VersionNumberOnlyTool> versionsFrom(List<String> versions) {
+        versions.collect { new VersionNumberOnlyTool(it) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {

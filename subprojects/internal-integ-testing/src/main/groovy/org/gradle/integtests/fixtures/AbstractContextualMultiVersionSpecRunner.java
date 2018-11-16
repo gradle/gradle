@@ -16,16 +16,36 @@
 
 package org.gradle.integtests.fixtures;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.util.VersionNumber;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-public abstract class AbstractContextualMultiVersionSpecRunner extends AbstractMultiTestRunner {
+import static com.google.common.collect.Iterators.getLast;
+
+public abstract class AbstractContextualMultiVersionSpecRunner<T extends AbstractContextualMultiVersionSpecRunner.VersionedTool> extends AbstractMultiTestRunner {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
-    protected abstract void createExecutionsForContext(CoverageContext context);
+    protected abstract Collection<T> getAllVersions();
 
-    protected abstract void createSelectedExecutions(List<String> selectionCriteria);
+    protected Collection<T> getQuickVersions() {
+        return Collections.singleton(getAllVersions().iterator().next());
+    }
+
+    protected Collection<T> getPartialVersions() {
+        Iterator<T> iterator = getAllVersions().iterator();
+        return Sets.newHashSet(Iterators.get(iterator, 0), Iterators.getLast(iterator));
+    }
+
+    protected abstract boolean isAvailable(T version);
+    
+    protected abstract Collection<Execution> createExecutionsFor(T versionedTool);
 
     public AbstractContextualMultiVersionSpecRunner(Class<?> target) {
         super(target);
@@ -40,6 +60,53 @@ public abstract class AbstractContextualMultiVersionSpecRunner extends AbstractM
             createSelectedExecutions(selectionCriteria);
         } else {
             createExecutionsForContext(coverageContext);
+        }
+    }
+
+    private void createExecutionsForContext(CoverageContext coverageContext) {
+        Set<T> versionsUnderTest = Sets.newHashSet();
+        switch(coverageContext) {
+            case DEFAULT:
+            case LATEST:
+                versionsUnderTest.addAll(getQuickVersions());
+                break;
+            case PARTIAL:
+                versionsUnderTest.addAll(getPartialVersions());
+                break;
+            case FULL:
+                versionsUnderTest.addAll(getAllVersions());
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        for (T version : versionsUnderTest) {
+            for (Execution execution : createExecutionsFor(version)) {
+                add(execution);
+            }
+        }
+    }
+
+    private void createSelectedExecutions(List<String> selectionCriteria) {
+        Collection<T> possibleVersions = getAllVersions();
+        Set<T> versionsUnderTest = Sets.newHashSet();
+
+        for (String criteria : selectionCriteria) {
+            if ("latest".equals(criteria)) {
+                versionsUnderTest.add(getLast(possibleVersions.iterator()));
+            } else {
+                for (T version : possibleVersions) {
+                    if (isAvailable(version) && version.matches(criteria)) {
+                        versionsUnderTest.add(version);
+                    }
+                }
+            }
+        }
+        
+        for (T version : versionsUnderTest) {
+            for (Execution execution : createExecutionsFor(version)) {
+                add(execution);
+            }
         }
     }
 
@@ -60,5 +127,10 @@ public abstract class AbstractContextualMultiVersionSpecRunner extends AbstractM
             }
             return UNKNOWN;
         }
+    }
+
+    public interface VersionedTool {
+        VersionNumber getVersion();
+        boolean matches(String criteria);
     }
 }

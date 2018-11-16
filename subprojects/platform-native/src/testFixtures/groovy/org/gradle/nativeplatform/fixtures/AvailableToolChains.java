@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
@@ -267,7 +268,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static abstract class ToolChainCandidate {
+    public static abstract class ToolChainCandidate implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
         @Override
         public String toString() {
             return getDisplayName();
@@ -418,6 +419,12 @@ public class AvailableToolChains {
         }
 
         public abstract String getUnitTestPlatform();
+
+        @Override
+        public boolean matches(String criteria) {
+            // Implement this if you need to specify individual toolchains via "org.gradle.integtest.versions"
+            return false;
+        }
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
@@ -790,6 +797,11 @@ public class AvailableToolChains {
         @Override
         public void resetEnvironment() {
             throw new UnsupportedOperationException("Toolchain is not available");
+        }
+
+        @Override
+        public boolean matches(String criteria) {
+            return false;
         }
     }
 }
