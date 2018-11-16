@@ -323,7 +323,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     linkTask.getToolChain().set(binary.getToolChain());
                     linkTask.getTargetPlatform().set(binary.getTargetPlatform());
                     linkTask.getLinkedFile().set(binary.getSharedLibraryFile());
-                    linkTask.setInstallName(binary.getSharedLibraryFile().getName());
+                    linkTask.getInstallName().set(binary.getSharedLibraryFile().getName());
                     linkTask.getLinkerArgs().set(binary.getLinker().getArgs());
                     linkTask.getImportLibrary().set(binary.getSharedLibraryLinkFile());
 

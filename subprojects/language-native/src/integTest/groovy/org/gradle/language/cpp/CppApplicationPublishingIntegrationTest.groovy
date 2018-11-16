@@ -24,8 +24,13 @@ import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 
-import static org.gradle.api.platform.MachineArchitecture.*
-import static org.gradle.api.platform.OperatingSystemFamily.*
+import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
+import static org.gradle.api.platform.MachineArchitecture.X86
+import static org.gradle.api.platform.MachineArchitecture.X86_64
+import static org.gradle.api.platform.OperatingSystemFamily.LINUX
+import static org.gradle.api.platform.OperatingSystemFamily.MACOS
+import static org.gradle.api.platform.OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE
+import static org.gradle.api.platform.OperatingSystemFamily.WINDOWS
 
 class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
     def consumer = file("consumer").createDir()
@@ -50,7 +55,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 from configurations.install
                 into 'install'
             }
-"""
+        """
     }
 
     def "can publish the binaries of an application to a Maven repository"() {
@@ -69,7 +74,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
             }
-"""
+        """
         app.writeToProject(testDirectory)
 
         when:
@@ -135,7 +140,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             dependencies {
                 install 'some.group:test:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
@@ -164,6 +169,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 dependencies {
                     implementation project(':greeter')
                 }
+                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
             }
             project(':greeter') { 
                 apply plugin: 'cpp-library'
@@ -254,6 +260,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                         }
                     }
                 }
+                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
             }
             project(':greeter') { 
                 apply plugin: 'cpp-library'
@@ -335,6 +342,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             project(':app') { 
                 apply plugin: 'cpp-application'
                 application.baseName = 'testApp'
+                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -386,7 +394,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             dependencies {
                 install 'some.group:testApp:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
@@ -526,5 +534,16 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     @Override
     boolean publishesArtifactForLinkage(String linkage) {
         return linkage == 'Runtime'
+    }
+
+    // TODO: See https://github.com/gradle/gradle-native/issues/938
+    String allowExecutableToSearchCurrentDirectoryForDependencies() {
+        return '''
+            application.binaries.configureEach {
+                if (targetPlatform.operatingSystemFamily.linux) {
+                    linkTask.get().linkerArgs.add("-Wl,-rpath,'\\$ORIGIN'")
+                }
+            }
+        '''
     }
 }

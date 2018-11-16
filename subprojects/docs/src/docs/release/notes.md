@@ -59,6 +59,12 @@ Use `setFrom` instead.
 <!-- add any notable changes here in a summary -->
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+
+### Changes to native linking tasks
+
+To expand our idiomatic [Provider API](https://docs.gradle.org/4.7/userguide/lazy_configuration.html) practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
+- `getInstallName()` was changed to return a `Property`.
+- `setInstallName(String)` was removed. Use `Property.set()` instead.
     
 ## Potential breaking changes
 
@@ -95,6 +101,7 @@ We would like to thank the following community members for making contributions 
  - [Sebastian Schuberth](https://github.com/sschuberth) - Improve init-command comments for Kotlin projects (gradle/gradle#7592)
  - [Dan Sănduleac](https://github.com/dansanduleac) - Don't share dependency resolution listeners list when copying configuration (gradle/gradle#6996)
  - [Olivier Voortman](https://github.com/blop) - Do not use a timestamp of 0 for tar file entries (gradle/gradle#7577).
+ - [John Bennewitz](https://github.com/b-john) - Allow C++ binary to relocate on Linux (gradle/gradle#6176)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

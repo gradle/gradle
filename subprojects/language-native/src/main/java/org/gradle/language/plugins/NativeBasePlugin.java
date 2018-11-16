@@ -301,13 +301,21 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(LinkSharedLibrary link) {
                         link.source(library.getObjects());
                         link.lib(library.getLinkLibraries());
-                        // TODO - need to set soname
                         link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
                                 return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
                             }
                         })));
+                        link.getInstallName().set(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() throws Exception {
+                                if (!link.getTargetPlatform().get().getOperatingSystem().isLinux()) {
+                                    return null;
+                                }
+                                return link.getLinkedFile().getAsFile().get().getName();
+                            }
+                        }));
                         link.getTargetPlatform().set(targetPlatform);
                         link.getToolChain().set(toolChain);
                         link.getDebuggable().set(library.isDebuggable());
