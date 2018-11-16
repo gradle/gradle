@@ -50,6 +50,7 @@ import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
+import org.jetbrains.gradle.ext.TaskTriggersConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -226,6 +227,7 @@ open class IdePlugin : Plugin<Project> {
                         delegateBuildRunToGradle = false
                         testRunner = ActionDelegationConfig.TestRunner.PLATFORM
                     }
+                    configureSyncTasks(subprojects)
                 }
             }
         }
@@ -363,6 +365,28 @@ open class IdePlugin : Plugin<Project> {
                                 vmParameters = getDefaultJunitVmParameters(docsProject)
                                 envs = mapOf("LANG" to lang)
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun ProjectSettings.configureSyncTasks(subprojects: Set<Project>) {
+        subprojects.forEach { subproject ->
+            with(subproject) {
+                afterEvaluate {
+                    taskTriggers {
+                        val classpathManifest = tasks.findByName("classpathManifest")
+                        if (classpathManifest != null) {
+                            afterSync(classpathManifest)
+                        }
+                        when (name) {
+                            "baseServices" -> afterSync(tasks.getByName("buildReceiptResource"))
+                            "core" -> afterSync(tasks.getByName("pluginsManifest"), tasks.getByName("implementationPluginsManifest"))
+                            "docs" -> afterSync(tasks.getByName("defaultImports"))
+                            "internalIntegTesting" -> afterSync(tasks.getByName("prepareVersionsInfo"))
                         }
                     }
                 }
@@ -582,6 +606,9 @@ val Project.rootExcludeDirs
 
 
 fun IdeaProject.settings(configuration: ProjectSettings.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.taskTriggers(configuration: TaskTriggersConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
 fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
