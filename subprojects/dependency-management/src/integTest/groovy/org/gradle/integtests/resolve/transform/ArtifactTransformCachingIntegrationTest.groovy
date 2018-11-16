@@ -1396,7 +1396,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
         if (incrementalArtifactTransformations) {
-            def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", "transforms-cache", Pattern.quote(from), "\\w+"]
+            def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", "transforms", Pattern.quote(from), "\\w+"]
             return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
         } else {
             return gradleUserHomeOutputDirs(from, to, stream)
@@ -1412,8 +1412,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     Set<TestFile> outputDirs(String from, String to, String outputDirPattern, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
-        def fileSeparator = Pattern.quote(File.separator)
-        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (${outputDirPattern}${fileSeparator}outputDirectory)")
+        def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (${outputDirPattern})")
         for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
@@ -1436,6 +1435,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
-        writeLastFileAccessTimeToJournal(outputDir.parentFile, millis)
+        writeLastFileAccessTimeToJournal(outputDir, millis)
+        writeLastFileAccessTimeToJournal(new File(outputDir.absolutePath + ".bin"), millis)
     }
 }

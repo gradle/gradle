@@ -28,7 +28,7 @@ public class ProjectTransformerWorkspaceProvider implements TransformerWorkspace
     private final Provider<Directory> baseDirectory;
 
     public ProjectTransformerWorkspaceProvider(ProjectLayout layout) {
-        baseDirectory = layout.getBuildDirectory().dir("transforms-cache");
+        baseDirectory = layout.getBuildDirectory().dir("transforms");
     }
 
     @Override

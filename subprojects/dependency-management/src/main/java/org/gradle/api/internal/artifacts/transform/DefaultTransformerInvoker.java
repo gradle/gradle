@@ -73,6 +73,8 @@ import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
 
+    public static final String RESULTS_FILE_SUFFIX = ".bin";
+    
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final WorkExecutor<UpToDateResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
@@ -196,8 +198,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             this.transformer = transformer;
             this.identityString = "transform/" + identityString;
             this.historyRepository = historyRepository;
-            this.outputDir = new File(workspace, "outputDirectory");
-            this.resultsFile = new File(workspace,  "results.bin");
+            this.outputDir = workspace;
+            this.resultsFile = new File(workspace.getParentFile(),  workspace.getName() + RESULTS_FILE_SUFFIX);
             this.dependencies = dependencies;
             this.inputSnapshots = ImmutableSortedMap.of(
                 // Emulate secondary inputs as a single property for now

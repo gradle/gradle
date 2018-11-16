@@ -78,8 +78,8 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         output.count("Transforming") == 2
 
         if (IncrementalArtifactTransformationsRunner.incrementalArtifactTransformations) {
-            outputContains(buildB.file("build/transforms-cache/buildB-1.0.jar").absolutePath)
-            outputContains(buildC.file("build/transforms-cache/buildC-1.0.jar").absolutePath)
+            outputContains(buildB.file("build/transforms/buildB-1.0.jar").absolutePath)
+            outputContains(buildC.file("build/transforms/buildC-1.0.jar").absolutePath)
         }
     }
 }
