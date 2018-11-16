@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.CaseFormat;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -35,7 +36,8 @@ public class IntegrationTestBuildContext {
     }
 
     public TestFile getSamplesDir() {
-        return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir()));
+        String hintForMissingSamples = String.format("Run 'gradle %s:copySamples'.", getCurrentSubprojectName());
+        return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir())).assertIsDir(hintForMissingSamples);
     }
 
     public TestFile getDistributionsDir() {
@@ -69,6 +71,10 @@ public class IntegrationTestBuildContext {
 
     public GradleVersion getVersion() {
         return GradleVersion.current();
+    }
+
+    public String getCurrentSubprojectName() {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, getGradleHomeDir().getParentFile().getParentFile().getName());
     }
 
     /**
