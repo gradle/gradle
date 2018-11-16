@@ -144,7 +144,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void all(Action<? super T> action) {
         assertMutable("all(Action)");
-        action = addEagerAction(action);
+        Action<? super T> eagerAction= addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
             return;
@@ -163,7 +163,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
         if (copied != null) {
             for (T t : copied) {
-                action.execute(t);
+                eagerAction.execute(t);
             }
         }
     }

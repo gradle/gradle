@@ -46,9 +46,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         return create(type, null, collections);
     }
 
-    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackDecorator decorator, DomainObjectCollection<? extends T>... collections) {
+    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackDecorator callbackDecorator, DomainObjectCollection<? extends T>... collections) {
         //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), decorator);
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackDecorator);
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
@@ -98,7 +98,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited(collection);
-            collection.all(new Action<T>() {
+            collection.all(new InternalAction<T>() {
                 @Override
                 public void execute(T t) {
                     backingSet.getEventRegister().fireObjectAdded(t);
