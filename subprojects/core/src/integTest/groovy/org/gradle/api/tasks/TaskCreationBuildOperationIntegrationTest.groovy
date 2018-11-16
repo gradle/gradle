@@ -84,15 +84,16 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.children.size() == 1
+        realize.children.size() == 2
         realize.children[0].progress.size() == 1
         realize.children[0].progress[0].detailsClassName == LogEvent.name
         realize.children[0].progress[0].details.message.startsWith("create 1")
-        realize.progress.size() == 2
+        realize.children[1].progress.size() == 1
+        realize.children[1].progress[0].detailsClassName == LogEvent.name
+        realize.children[1].progress[0].details.message.startsWith("create 2")
+        realize.progress.size() == 1
         realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("create 2")
-        realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("create 3")
+        realize.progress[0].details.message.startsWith("create 3")
     }
 
     def "emits registration build ops when tasks not realized"() {
