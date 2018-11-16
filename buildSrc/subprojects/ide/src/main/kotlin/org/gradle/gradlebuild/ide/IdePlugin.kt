@@ -282,17 +282,28 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+        val isExecutingIdeaTask = rootProject.gradle.startParameter.taskNames.contains("idea")
         runConfigurations {
-            val gradleRunners = mapOf(
-                "Regenerate IDEA metadata" to "idea",
-                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-            )
+            val gradleRunners = if (isExecutingIdeaTask) {
+                mapOf(
+                    "Regenerate IDEA metadata" to "idea",
+                    "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
+                )
+            } else {
+                mapOf(
+                    "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
+                )
+            }
             gradleRunners.forEach { (name, tasks) ->
                 create<Application>(name) {
                     mainClass = "org.gradle.testing.internal.util.GradlewRunner"
                     programParameters = tasks
                     workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = "internalTesting"
+                    moduleName = if (isExecutingIdeaTask) {
+                        "internalTesting"
+                    } else {
+                        "org.gradle.internalTesting.main"
+                    }
                     envs = mapOf("TERM" to "xterm")
                     beforeRun {
                         create<Make>("make") {
@@ -305,7 +316,11 @@ open class IdePlugin : Plugin<Project> {
                 mainClass = "org.gradle.debug.GradleRunConfiguration"
                 programParameters = "help"
                 workingDirectory = rootProject.projectDir.absolutePath
-                moduleName = "integTest"
+                moduleName = if (isExecutingIdeaTask) {
+                    "integTest"
+                } else {
+                    "org.gradle.integTest.integTest"
+                }
                 jvmArgs = "-Dorg.gradle.daemon=false"
                 beforeRun {
                     create<Make>("make") {
