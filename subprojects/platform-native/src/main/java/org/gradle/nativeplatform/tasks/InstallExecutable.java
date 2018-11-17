@@ -15,12 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -78,13 +75,8 @@ public class InstallExecutable extends DefaultTask {
         this.libs = getProject().files();
         this.installDirectory = objectFactory.directoryProperty();
         this.installedExecutable = objectFactory.fileProperty();
-        this.installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
-            @Override
-            public RegularFile transform(Directory directory) {
-                return directory.file(executable.getAsFile().get().getName());
-            }
-        }));
         this.executable = objectFactory.fileProperty();
+        this.installedExecutable.set(getLibDirectory().map(directory -> directory.file(executable.getAsFile().get().getName())));
         // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists below)
         dependsOn(executable);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
@@ -189,13 +181,7 @@ public class InstallExecutable extends DefaultTask {
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(executable.map(new Transformer<CharSequence, RegularFile>() {
-            @Override
-            public CharSequence transform(RegularFile regularFile) {
-                OperatingSystem operatingSystem = OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName());
-                return operatingSystem.getScriptName(regularFile.getAsFile().getName());
-            }
-        }));
+        return installDirectory.file(executable.map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
     }
 
     @Inject
@@ -211,14 +197,12 @@ public class InstallExecutable extends DefaultTask {
     @TaskAction
     public void install() {
         // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
-        workerLeaseService.withoutProjectLock(new Runnable() {
-            @Override
-            public void run() {
-                if (targetPlatform.get().getOperatingSystem().isWindows()) {
-                    installWindows();
-                } else {
-                    installUnix();
-                }
+        NativePlatform nativePlatform = targetPlatform.get();
+        workerLeaseService.withoutProjectLock(() -> {
+            if (nativePlatform.getOperatingSystem().isWindows()) {
+                installWindows();
+            } else {
+                installUnix();
             }
         });
     }
@@ -278,13 +262,10 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private void installToDir(final File binaryDir) {
-        getFileOperations().sync(new Action<CopySpec>() {
-            public void execute(CopySpec copySpec) {
-                copySpec.into(binaryDir);
-                copySpec.from(getExecutableFile());
-                copySpec.from(getLibs());
-            }
-
+        getFileOperations().sync(copySpec -> {
+            copySpec.into(binaryDir);
+            copySpec.from(getExecutableFile());
+            copySpec.from(getLibs());
         });
     }
 }

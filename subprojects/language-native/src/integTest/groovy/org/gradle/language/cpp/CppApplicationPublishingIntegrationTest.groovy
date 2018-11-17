@@ -22,10 +22,17 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assume
 
-import static org.gradle.api.platform.MachineArchitecture.*
-import static org.gradle.api.platform.OperatingSystemFamily.*
+import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
+import static org.gradle.api.platform.MachineArchitecture.X86
+import static org.gradle.api.platform.MachineArchitecture.X86_64
+import static org.gradle.api.platform.OperatingSystemFamily.LINUX
+import static org.gradle.api.platform.OperatingSystemFamily.MACOS
+import static org.gradle.api.platform.OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE
+import static org.gradle.api.platform.OperatingSystemFamily.WINDOWS
 
 class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
     def consumer = file("consumer").createDir()
@@ -34,6 +41,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         when:
         FeaturePreviewsFixture.enableGradleMetadata(consumer.file("settings.gradle"))
         consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+
             repositories {
                 maven { 
                     url '${mavenRepo.uri}' 
@@ -46,11 +55,20 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                     attributes.attribute(Attribute.of('org.gradle.native.optimized', Boolean), false)
                 }
             }
-            task install(type: Sync) {
-                from configurations.install
-                into 'install'
+            // HACK to install the executable from a repository 
+            def binary = application.developmentBinary
+            task install(type: InstallExecutable) {
+                targetPlatform.set(binary.map { it.targetPlatform })
+                toolChain.set(binary.map { it.toolChain }) 
+                installDirectory = layout.projectDirectory.dir("install")
+                lib(configurations.install)
+                executableFile = layout.file(provider {
+                    def appFile = configurations.install.files[0]
+                    appFile.executable = true
+                    appFile
+                })
             }
-"""
+        """
     }
 
     def "can publish the binaries of an application to a Maven repository"() {
@@ -69,7 +87,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
             }
-"""
+        """
         app.writeToProject(testDirectory)
 
         when:
@@ -135,13 +153,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             dependencies {
                 install 'some.group:test:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish an executable and library to a Maven repository"() {
@@ -211,7 +229,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         when:
         def consumer = file("consumer").createDir()
         consumer.file("settings.gradle") << ''
-        consumer.file("build.gradle") << """
+        consumer.file("build.gradle") << """ 
             dependencies {
                 install 'some.group:app:1.2'
             }
@@ -220,8 +238,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/app")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
@@ -313,8 +331,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/app")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "uses the basename to calculate the coordinates"() {
@@ -386,18 +404,18 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             dependencies {
                 install 'some.group:testApp:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
         then:
-        def executable = executable("consumer/install/testApp")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
-        def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86)]
+        def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86_64)]
 
         given:
         buildFile << """
@@ -408,7 +426,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86()]
+                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86_64()]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
@@ -438,10 +456,12 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
+    // macOS can only build 64-bit under 10.14+
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
         Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
@@ -488,8 +508,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     @Override
