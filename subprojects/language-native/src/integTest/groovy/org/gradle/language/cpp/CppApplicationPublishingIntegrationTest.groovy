@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.api.platform.MachineArchitecture.X86
