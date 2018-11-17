@@ -158,8 +158,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish an executable and library to a Maven repository"() {
@@ -238,8 +238,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/app")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
@@ -331,8 +331,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/app")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "uses the basename to calculate the coordinates"() {
@@ -409,8 +409,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/testApp")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
@@ -456,8 +456,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     // macOS can only build 64-bit under 10.14+
@@ -508,8 +508,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         run("install")
 
         then:
-        def executable = executable("consumer/install/test")
-        executable.exec().out == app.expectedOutput
+        def installation = installation("consumer/install")
+        installation.exec().out == app.expectedOutput
     }
 
     @Override
