@@ -62,7 +62,7 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn 
 
 ### Changes to native linking tasks
 
-To expand our idiomatic [Provider API](https://docs.gradle.org/4.7/userguide/lazy_configuration.html) practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
+To expand our idiomatic [Provider API](userguide/lazy_configuration.html) practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
 - `getInstallName()` was changed to return a `Property`.
 - `setInstallName(String)` was removed. Use `Property.set()` instead.
     
