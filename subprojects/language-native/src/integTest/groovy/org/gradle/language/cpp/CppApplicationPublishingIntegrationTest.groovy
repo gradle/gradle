@@ -22,7 +22,10 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assume
+import spock.lang.IgnoreIf
 
 import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.api.platform.MachineArchitecture.X86
@@ -169,7 +172,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 dependencies {
                     implementation project(':greeter')
                 }
-                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
             }
             project(':greeter') { 
                 apply plugin: 'cpp-library'
@@ -260,7 +262,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                         }
                     }
                 }
-                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
             }
             project(':greeter') { 
                 apply plugin: 'cpp-library'
@@ -342,7 +343,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             project(':app') { 
                 apply plugin: 'cpp-application'
                 application.baseName = 'testApp'
-                ${allowExecutableToSearchCurrentDirectoryForDependencies()}
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -405,7 +405,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
-        def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86)]
+        def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86_64)]
 
         given:
         buildFile << """
@@ -416,7 +416,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86()]
+                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86_64()]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
@@ -450,6 +450,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         executable.exec().out == app.expectedOutput
     }
 
+    // macOS can only build 64-bit under 10.14+
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
         Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
@@ -534,16 +536,5 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     @Override
     boolean publishesArtifactForLinkage(String linkage) {
         return linkage == 'Runtime'
-    }
-
-    // TODO: See https://github.com/gradle/gradle-native/issues/938
-    String allowExecutableToSearchCurrentDirectoryForDependencies() {
-        return '''
-            application.binaries.configureEach {
-                if (targetPlatform.operatingSystemFamily.linux) {
-                    linkTask.get().linkerArgs.add("-Wl,-rpath,'\\$ORIGIN'")
-                }
-            }
-        '''
     }
 }
