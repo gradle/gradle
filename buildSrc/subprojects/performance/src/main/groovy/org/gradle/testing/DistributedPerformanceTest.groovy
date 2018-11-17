@@ -118,7 +118,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
-        println("Running against baseline ${determineBaselinesForWorkers()}")
+        println("Running against baseline $baselines")
         try {
             doExecuteTests()
         } finally {
@@ -164,14 +164,6 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         super.executeTests()
     }
 
-    private String determineBaselinesForWorkers() {
-        if (!baselines || baselines == 'force-defaults') {
-            return "defaults"
-        } else {
-            return baselines
-        }
-    }
-
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario, String lastChangeId) {
         def requestBody = [
@@ -180,7 +172,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: determineBaselinesForWorkers()],
+                    [name: 'baselines', value: baselines],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],

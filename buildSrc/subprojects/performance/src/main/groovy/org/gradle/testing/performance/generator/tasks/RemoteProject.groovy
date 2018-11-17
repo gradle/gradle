@@ -20,6 +20,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -97,9 +98,9 @@ class RemoteProject extends DefaultTask {
         File checkoutDir = cleanTemporaryDir(task)
 
         if (branch) {
-            checkoutBranch(task, remoteUri, branch, checkoutDir)
+            checkoutBranch(task.project, remoteUri, branch, checkoutDir)
         } else {
-            checkoutRef(task, remoteUri, ref, checkoutDir)
+            checkoutRef(task.project, remoteUri, ref, checkoutDir)
         }
         return checkoutDir
     }
@@ -124,8 +125,8 @@ class RemoteProject extends DefaultTask {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private static void checkoutBranch(Task task, String remoteUri, String branch, File tmpDir) {
-        task.project.exec {
+    private static void checkoutBranch(Project project, String remoteUri, String branch, File tmpDir) {
+        project.exec {
             commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, tmpDir.absolutePath]
             if (OperatingSystem.current().windows) {
                 commandLine = ["cmd", "/c"] + commandLine
@@ -135,12 +136,12 @@ class RemoteProject extends DefaultTask {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private static void checkoutRef(Task task, String remoteUri, String ref, File tmpDir) {
-        task.project.exec {
+    private static void checkoutRef(Project project, String remoteUri, String ref, File tmpDir) {
+        project.exec {
             commandLine = ["git", "clone", remoteUri, tmpDir.absolutePath]
             errorOutput = System.out
         }
-        task.project.exec {
+        project.exec {
             commandLine = ["git", "checkout", ref]
             workingDir = tmpDir
             errorOutput = System.out

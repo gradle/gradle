@@ -18,16 +18,19 @@ package org.gradle.plugins.performance
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
-import javax.inject.Inject
 
 
-open class DetermineCommitBaseline @Inject constructor(private val commitBaselineVersion: Property<String>) : DefaultTask() {
+open class DetermineForkPointCommitBaseline : DefaultTask() {
+    @Internal
+    val forkPointCommitBaseline = project.objects.property<String>()
+
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        if (currentBranchIsMasterOrRelease() && commitBaselineVersion.isDefaultValue()) {
-            commitBaselineVersion.set(forkPointCommitBaseline())
+        if (!currentBranchIsMasterOrRelease() && forkPointCommitBaseline.isDefaultValue()) {
+            forkPointCommitBaseline.set(forkPointCommitBaseline())
         }
     }
 

@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.Task;
 
 import org.gradle.api.tasks.CacheableTask;
@@ -31,6 +30,7 @@ import org.gradle.api.tasks.CacheableTask;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -43,7 +43,10 @@ import org.gradle.process.CommandLineArgumentProvider;
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
-    private Property<String> baselinesProperty;
+    private static final String DEFAULT_BASELINE = "defaults";
+    private static final String FORCE_DEFAULT_BASELINE = "force-defaults";
+    private Property<String> configuredBaselines = getProject().getObjects().property(String.class).value(DEFAULT_BASELINE);
+    private Property<String> forkPointCommitBaseline = getProject().getObjects().property(String.class);
     private String scenarios;
     private String warmups;
     private String runs;
@@ -58,23 +61,14 @@ public class PerformanceTest extends DistributionTest {
 
     public PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
+        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", this::notContainsLastOrNightly);
+        getOutputs().upToDateWhen(this::notContainsLastOrNightly);
+    }
 
-        Spec<Task> spec = new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                List<String> baseLineList = new ArrayList<>();
-                if (baselinesProperty.isPresent()) {
-                    for (String baseline : baselinesProperty.get().split(",")) {
-                        baseLineList.add(baseline.trim());
-                    }
-                }
-
-                return !(baseLineList.contains("last") || baseLineList.contains("nightly"));
-            }
-        };
-
-        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", spec);
-        getOutputs().upToDateWhen(spec);
+    private boolean notContainsLastOrNightly(Task task) {
+        return Arrays.stream(getBaselines().split(","))
+            .map(String::trim)
+            .noneMatch(baselineVersion -> "last".equals(baselineVersion) || "nightly".equals(baselineVersion));
     }
 
     public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
@@ -96,23 +90,25 @@ public class PerformanceTest extends DistributionTest {
         return scenarios;
     }
 
+    @Internal
+    public Property<String> getForkPointCommitBaseline() {
+        return forkPointCommitBaseline;
+    }
+
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     public void setBaselines(@Nullable String baselines) {
-        this.baselinesProperty.set(baselines);
+        this.configuredBaselines.set(baselines);
     }
 
-    @Nullable @Optional @Input
+    @Optional @Input
     public String getBaselines() {
-        return baselinesProperty.getOrNull();
-    }
-
-    public void setBaselinesProperty(Property<String> baselines) {
-        this.baselinesProperty = baselines;
-    }
-
-    @Internal
-    public Property<String> getBaselinesProperty() {
-        return baselinesProperty;
+        if (FORCE_DEFAULT_BASELINE.equals(configuredBaselines.get())) {
+            return DEFAULT_BASELINE;
+        } else if (forkPointCommitBaseline.isPresent()) {
+            return forkPointCommitBaseline.get();
+        } else {
+            return configuredBaselines.get();
+        }
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")

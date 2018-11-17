@@ -18,16 +18,15 @@ package org.gradle.plugins.performance
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.kotlin.dsl.*
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import java.io.File
-import javax.inject.Inject
 
 
 // 5.1-commit-1a2b3c4d5e
@@ -35,7 +34,11 @@ private
 val commitVersionRegex = """(\d+(\.\d+)+)-commit-[a-f0-9]+""".toRegex()
 
 
-open class BuildCommitDistribution @Inject constructor(@Input @Optional val commitBaseline: Property<String>) : DefaultTask() {
+open class BuildCommitDistribution : DefaultTask() {
+    @Input
+    @Optional
+    val commitBaseline = project.objects.property<String>()
+
     @OutputDirectory
     val commitDistributionHome = project.objects.directoryProperty()
 
