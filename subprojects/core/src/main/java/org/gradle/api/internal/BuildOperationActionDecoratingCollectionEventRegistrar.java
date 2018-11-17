@@ -22,7 +22,7 @@ import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
 
-class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements CollectionEventRegister<T> {
+public class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements CollectionEventRegister<T> {
     private CollectionEventRegister<T> delegate;
     private DomainObjectCollectionCallbackActionDecorator decorator;
 
