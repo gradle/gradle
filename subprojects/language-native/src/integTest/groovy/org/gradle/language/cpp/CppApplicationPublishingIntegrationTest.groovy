@@ -42,6 +42,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         when:
         FeaturePreviewsFixture.enableGradleMetadata(consumer.file("settings.gradle"))
         consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+
             repositories {
                 maven { 
                     url '${mavenRepo.uri}' 
@@ -54,9 +56,18 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                     attributes.attribute(Attribute.of('org.gradle.native.optimized', Boolean), false)
                 }
             }
-            task install(type: Sync) {
-                from configurations.install
-                into 'install'
+            // HACK to install the executable from a repository 
+            def binary = application.developmentBinary
+            task install(type: InstallExecutable) {
+                targetPlatform.set(binary.map { it.targetPlatform })
+                toolChain.set(binary.map { it.toolChain }) 
+                installDirectory = layout.projectDirectory.dir("install")
+                lib(configurations.install)
+                executableFile = layout.file(provider {
+                    def appFile = configurations.install.files[0]
+                    appFile.executable = true
+                    appFile
+                })
             }
         """
     }
@@ -219,7 +230,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         when:
         def consumer = file("consumer").createDir()
         consumer.file("settings.gradle") << ''
-        consumer.file("build.gradle") << """
+        consumer.file("build.gradle") << """ 
             dependencies {
                 install 'some.group:app:1.2'
             }
