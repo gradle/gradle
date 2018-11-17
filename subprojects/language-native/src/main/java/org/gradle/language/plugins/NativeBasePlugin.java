@@ -192,12 +192,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(LinkExecutable link) {
                         link.source(executable.getObjects());
                         link.lib(executable.getLinkLibraries());
-                        link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + executable.getBaseName().get());
-                            }
-                        })));
+                        link.getLinkedFile().set(buildDirectory.file(
+                                executable.getBaseName().map(new Transformer<String, String>() {
+                                    @Override
+                                    public String transform(String baseName) {
+                                        return toolProvider.getExecutableName("exe/" + names.getDirName() + baseName);
+                                    }
+                                })));
                         link.getTargetPlatform().set(targetPlatform);
                         link.getToolChain().set(toolChain);
                         link.getDebuggable().set(executable.isDebuggable());
@@ -214,18 +215,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }));
 
                 if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
-                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
-                        }
-                    }));
-                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
-                        }
-                    }));
+                    Provider<RegularFile> symbolLocation = buildDirectory.file(
+                            executable.getBaseName().map(new Transformer<String, String>() {
+                                @Override
+                                public String transform(String baseName) {
+                                    return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + baseName);
+                                }
+                            }));
+                    Provider<RegularFile> strippedLocation = buildDirectory.file(
+                            executable.getBaseName().map(new Transformer<String, String>() {
+                                @Override
+                                public String transform(String baseName) {
+                                    return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + baseName);
+                                }
+                            }));
                     TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
                     executable.getExecutableFile().set(stripSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, StripSymbols>() {
                         @Override
@@ -301,19 +304,17 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(LinkSharedLibrary link) {
                         link.source(library.getObjects());
                         link.lib(library.getLinkLibraries());
-                        link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
+                        link.getLinkedFile().set(buildDirectory.file(
+                                library.getBaseName().map(new Transformer<String, String>() {
+                                    @Override
+                                    public String transform(String baseName) {
+                                        return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + baseName);
+                                    }
+                                })));
+                        link.getInstallName().set(link.getLinkedFile().map(new Transformer<String, RegularFile>() {
                             @Override
-                            public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                            }
-                        })));
-                        link.getInstallName().set(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() throws Exception {
-                                if (!link.getTargetPlatform().get().getOperatingSystem().isLinux()) {
-                                    return null;
-                                }
-                                return link.getLinkedFile().getAsFile().get().getName();
+                            public String transform(RegularFile linkedFile) {
+                                return linkedFile.getAsFile().getName();
                             }
                         }));
                         link.getTargetPlatform().set(targetPlatform);
@@ -341,12 +342,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     link.configure(new Action<LinkSharedLibrary>() {
                         @Override
                         public void execute(LinkSharedLibrary linkSharedLibrary) {
-                            linkSharedLibrary.getImportLibrary().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                                @Override
-                                public String call() {
-                                    return toolProvider.getImportLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                                }
-                            })));
+                            linkSharedLibrary.getImportLibrary().set(buildDirectory.file(
+                                    library.getBaseName().map(new Transformer<String, String>() {
+                                        @Override
+                                        public String transform(String baseName) {
+                                            return toolProvider.getImportLibraryName("lib/" + names.getDirName() + baseName);
+                                        }
+                                    })));
                         }
                     });
                     linkFile = link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkSharedLibrary>() {
@@ -358,19 +360,21 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
 
                 if (library.isDebuggable() && library.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
-                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
-                        }
-                    }));
-                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
-                        }
-                    }));
 
+                    Provider<RegularFile> symbolLocation = buildDirectory.file(
+                            library.getBaseName().map(new Transformer<String, String>() {
+                                @Override
+                                public String transform(String baseName) {
+                                    return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + baseName);
+                                }
+                            }));
+                    Provider<RegularFile> strippedLocation = buildDirectory.file(
+                            library.getBaseName().map(new Transformer<String, String>() {
+                                @Override
+                                public String transform(String baseName) {
+                                    return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + baseName);
+                                }
+                            }));
                     TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
                     linkFile = runtimeFile = stripSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, StripSymbols>() {
                         @Override
@@ -410,12 +414,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(CreateStaticLibrary createTask) {
                         createTask.source(library.getObjects());
                         final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-                        Provider<RegularFile> linktimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                            }
-                        }));
+                        Provider<RegularFile> linktimeFile = buildDirectory.file(
+                                library.getBaseName().map(new Transformer<String, String>() {
+                                    @Override
+                                    public String transform(String baseName) {
+                                        return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + baseName);
+                                    }
+                                }));
                         createTask.getOutputFile().set(linktimeFile);
                         createTask.getTargetPlatform().set(library.getTargetPlatform());
                         createTask.getToolChain().set(library.getToolChain());
