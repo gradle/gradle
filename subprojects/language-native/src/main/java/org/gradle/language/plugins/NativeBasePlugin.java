@@ -217,7 +217,11 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 task.source(library.getObjects());
                 task.lib(library.getLinkLibraries());
                 task.getLinkedFile().set(buildDirectory.file(library.getBaseName().map(baseName -> toolProvider.getSharedLibraryName("lib/" + names.getDirName() + baseName))));
-                task.getInstallName().set(task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName()));
+                // TODO: We should set this for macOS, but this currently breaks XCTest support for Swift
+                // when Swift depends on C++ libraries built by Gradle.
+                if (!targetPlatform.getOperatingSystem().isMacOsX()) {
+                    task.getInstallName().set(task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName()));
+                }
                 task.getTargetPlatform().set(targetPlatform);
                 task.getToolChain().set(toolChain);
                 task.getDebuggable().set(library.isDebuggable());
