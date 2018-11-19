@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
+import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
