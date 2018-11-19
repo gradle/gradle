@@ -165,6 +165,18 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 
 
 /**
+ * Configures the artifacts for this project.
+ *
+ * Executes the given configuration block against the [ArtifactHandlerScope] for this
+ * project.
+ *
+ * @param configuration the configuration block.
+ */
+fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
+    ArtifactHandlerScope.of(artifacts).configuration()
+
+
+/**
  * Locates a property on [Project].
  */
 operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
