@@ -400,7 +400,7 @@ We recommend configuring a ruleset explicitly, though.
 === [5.0] Library upgrades
 Several libraries that are used by Gradle have been upgraded:
 
- * Groovy was upgraded from 2.4.15 to http://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.3].
+ * Groovy was upgraded from 2.4.15 to http://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.4].
  * Ant has been upgraded from 1.9.11 to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.13.html[1.9.13].
  * The AWS SDK used to access S3-backed Maven/Ivy repositories has been upgraded from 1.11.267 to https://github.com/aws/aws-sdk-java/blob/master/CHANGELOG.md#111407-2018-09-11[1.11.407].
  * The BND library used by the OSGi Plugin has been upgraded from 3.4.0 to https://github.com/bndtools/bnd/wiki/Changes-in-4.0.0[4.0.0].
@@ -982,4 +982,3 @@ This fix the following security issues:
  * SONATYPE-2017-0348 (severe)
 
 Gradle does not expose public APIs for these 3rd-party dependencies, but those who customize Gradle will want to be aware.
-

@@ -16,7 +16,7 @@
 
 ext {
     libraries = [:]
-    groovyVersion = '2.5.3'
+    groovyVersion = '2.5.4'
 }
 
 // TODO This must match the version number in code-quality-configuration.gradle.kts
