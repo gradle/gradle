@@ -853,10 +853,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static void enforceFinalizers(Node node) {
-        if (!(node instanceof TaskNode)) {
-            return;
-        }
-        for (Node finalizerNode : ((TaskNode) node).getFinalizers()) {
+        for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<Node>newHashSet());
             }
@@ -938,10 +935,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void collectFailures(Collection<? super Throwable> failures) {
-        if (buildCancelled) {
+        List<Throwable> collectedFailures = failureCollector.getFailures();
+        failures.addAll(collectedFailures);
+        if (buildCancelled && collectedFailures.isEmpty()) {
             failures.add(new BuildCancelledException());
         }
-        failures.addAll(failureCollector.getFailures());
     }
 
     @Override

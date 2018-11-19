@@ -81,9 +81,15 @@ latch.await()
     void configureWasCancelled(TestResultHandler resultHandler, String failureMessage) {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith(failureMessage)
+
+        // Verify there is a cause that explains that the build was cancelled (and where).
+        // Some versions do not included this
         if (targetDist.toolingApiHasCauseOnCancel) {
             assert resultHandler.failure.cause.message == "Build cancelled."
         }
+
+        // Verify that there is some logging output that explains that the build was cancelled.
+        // Some versions do not log anything on build cancellation
         if (targetDist.toolingApiLogsFailureOnCancel) {
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription('Build cancelled.')
@@ -94,14 +100,22 @@ latch.await()
     void taskWasCancelled(TestResultHandler resultHandler, String taskPath) {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith("Could not execute build using Gradle")
+
         if (targetDist.toolingApiRetainsOriginalFailureOnCancel) {
-            assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, could probably suppress this
-            assert resultHandler.failure.cause.cause.message == "Execution failed for task '${taskPath}'."
-            assert resultHandler.failure.cause.cause.cause.message == "Build cancelled during executing task '${taskPath}'"
+            if (targetDist.toolingApiDoesNotAddCausesOnTaskCancel) {
+                // Verify the cause exception gives some context about the cancellation
+                // Some versions either do not included this, or provide a pointless wrapper, or include multiple 'build cancelled' failures
+                assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, could probably suppress this
+                assert resultHandler.failure.cause.cause.message == "Execution failed for task '${taskPath}'."
+                assert resultHandler.failure.cause.cause.cause.message == "Build cancelled during executing task '${taskPath}'"
+            }
+
+            // Verify that there is some logging output that explains that the build was cancelled
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription("Execution failed for task '${taskPath}'.")
             failure.assertHasCause("Build cancelled during executing task '${taskPath}'")
         } else {
+            // Verify that there is some logging output that explains that the build was cancelled, for versions that do not include any context in the message
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
             failure.assertHasDescription("Build cancelled")
         }
