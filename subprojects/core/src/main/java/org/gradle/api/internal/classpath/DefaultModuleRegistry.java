@@ -255,7 +255,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     /**
      * Provides the locations where classes and resources of a Gradle module can be found when
      * running in embedded mode from IDEA, where the project was generated using the `idea` task.
-     * Due to de-duplication with names in the buildSrc project, that module name can start with "gradle-".
+     * To avoid name conflicts with buildSrc projects, that module name can start with "gradle-".
      */
     private List<String> getClasspathSuffixesForProjectName(String projectName) {
         List<String> suffixes = new ArrayList<String>();
