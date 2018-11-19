@@ -45,7 +45,7 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(type)) {
-            throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
+            throw ModelMapping.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;

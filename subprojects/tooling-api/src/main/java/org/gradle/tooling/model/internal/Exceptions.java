@@ -19,7 +19,6 @@ package org.gradle.tooling.model.internal;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
@@ -39,18 +38,6 @@ public class Exceptions {
                 + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
                 + "\nAlternatively, you can ignore this exception and read other information from the model.",
             method);
-    }
-
-    public static UnknownModelException unsupportedModel(Class<?> modelType, String targetVersion) {
-        ModelMapping modelMapping = new ModelMapping();
-        String versionAdded = modelMapping.getVersionAdded(modelType);
-        if (versionAdded != null) {
-            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building '%s' models was added in Gradle %s and is available in all later versions.",
-                    targetVersion, modelType.getSimpleName(), modelType.getSimpleName(), versionAdded));
-        } else {
-            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.",
-                    targetVersion, modelType.getSimpleName()));
-        }
     }
 
     public static UnknownModelException unknownModel(Class<?> type, InternalUnsupportedModelException failure) {

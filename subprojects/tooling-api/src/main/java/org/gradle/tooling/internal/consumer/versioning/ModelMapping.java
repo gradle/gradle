@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
@@ -49,6 +50,18 @@ public class ModelMapping {
         map.put(Void.class, "1.0-milestone-3");
         map.put(GradleBuild.class, "1.8");
         map.put(ProjectPublications.class, "1.12");
+    }
+
+    public static UnknownModelException unsupportedModel(Class<?> modelType, String targetVersion) {
+        ModelMapping modelMapping = new ModelMapping();
+        String versionAdded = modelMapping.getVersionAdded(modelType);
+        if (versionAdded != null) {
+            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building '%s' models was added in Gradle %s and is available in all later versions.",
+                    targetVersion, modelType.getSimpleName(), modelType.getSimpleName(), versionAdded));
+        } else {
+            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.",
+                    targetVersion, modelType.getSimpleName()));
+        }
     }
 
     public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {

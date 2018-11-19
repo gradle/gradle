@@ -65,7 +65,7 @@ class TransformerInvokerTest extends Specification {
         1 * historyRepository.withWorkspace(_, _) >> { TransformationIdentity identity, action ->
             action.apply(identity.getIdentity(), new File("workspace"))
         }
-        1 * sourceSubject.dependenciesProvider >> null
+        1 * sourceSubject.artifactDependenciesProvider >> null
         _ * artifactTransformListener._
         0 * _
     }

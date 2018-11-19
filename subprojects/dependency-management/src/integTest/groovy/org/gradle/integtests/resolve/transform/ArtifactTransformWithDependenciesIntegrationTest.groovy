@@ -100,7 +100,7 @@ class FileSizer extends ArtifactTransform {
     }
     
     List<File> transform(File input) {
-        println "Received dependencies files \${artifactDependencies.dependencies*.name} for processing \${input.name}"
+        println "Received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")

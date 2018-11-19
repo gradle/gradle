@@ -48,7 +48,7 @@ public abstract class TransformationSubject implements Describable {
     /**
      * Gives access to the artifacts of the dependencies of the subject of the transformation
      */
-    public abstract ArtifactTransformDependenciesProvider getDependenciesProvider();
+    public abstract ArtifactTransformDependenciesProvider getArtifactDependenciesProvider();
 
     /**
      * Records the failure to transform a previous subject.
@@ -80,7 +80,7 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
+        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
             throw new UnsupportedOperationException();
         }
 
@@ -136,7 +136,7 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
+        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
             return ArtifactTransformDependenciesProvider.EMPTY;
         }
 
@@ -157,7 +157,7 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
+        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
             return dependencies;
         }
 
@@ -182,8 +182,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
-            return previous.getDependenciesProvider();
+        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
+            return previous.getArtifactDependenciesProvider();
         }
 
         @Override

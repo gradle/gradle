@@ -100,7 +100,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getDependenciesProvider());
+                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getArtifactDependenciesProvider());
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
