@@ -17,7 +17,7 @@
 
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
-We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the <<tutorial_java_projects.adoc#tutorial_java_projects,Java Quickstart>> first as it will give you a good overview of the basics.
+We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:{guidesUrl}/?q=JVM[Java tutorials] for step-by-step instructions on how to build various types of basic Java projects.
 
 == Introduction
 
