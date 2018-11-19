@@ -1781,6 +1781,51 @@ Found the following transforms:
         output.count("Transforming") == 1
     }
 
+
+    def "notifies the transform listener on execution"() {
+        given:
+        buildFile << """                                                                   
+            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.internal.event.ListenerManager
+
+            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+                @Override
+                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                    println "Before transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+                
+                @Override
+                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                    println "After transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+            })
+
+            project(":lib") {
+                task jar(type: Jar) {
+                    archiveName = 'lib.jar'
+                    destinationDir = buildDir                    
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+            
+            project(":app") {
+                dependencies {
+                    compile project(":lib")
+                }
+                ${configurationAndTransform()}
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        outputContains("Before transformer FileSizer on artifact lib.jar (project :lib)")
+        outputContains("After transformer FileSizer on artifact lib.jar (project :lib)")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/6156")
     def "stops resolving dependencies of task when artifact transforms are encountered"() {
         given:
