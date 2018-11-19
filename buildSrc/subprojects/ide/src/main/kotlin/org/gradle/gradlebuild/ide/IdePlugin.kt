@@ -397,7 +397,7 @@ open class IdePlugin : Plugin<Project> {
                         if (classpathManifest != null) {
                             afterSync(classpathManifest)
                         }
-                        when (name) {
+                        when (subproject.name) {
                             "baseServices" -> afterSync(tasks.getByName("buildReceiptResource"))
                             "core" -> afterSync(tasks.getByName("pluginsManifest"), tasks.getByName("implementationPluginsManifest"))
                             "docs" -> afterSync(tasks.getByName("defaultImports"))
