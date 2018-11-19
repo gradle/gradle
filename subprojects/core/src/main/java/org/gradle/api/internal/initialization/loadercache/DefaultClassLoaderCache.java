@@ -26,10 +26,10 @@ import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
@@ -137,7 +137,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     public void stop() {
         synchronized (lock) {
             for (CachedClassLoader cachedClassLoader : byId.values()) {
-                ClassLoaderUtils.tryClose(cachedClassLoader.classLoader);
+                MultiParentClassLoader.tryClose(cachedClassLoader.classLoader);
             }
             byId.clear();
             bySpec.clear();

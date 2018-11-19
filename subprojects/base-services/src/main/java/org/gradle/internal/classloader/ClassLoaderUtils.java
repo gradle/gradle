@@ -18,10 +18,8 @@ package org.gradle.internal.classloader;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.JavaMethod;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -47,10 +45,6 @@ public abstract class ClassLoaderUtils {
      */
     public static ClassLoader getPlatformClassLoader() {
         return ClassLoader.getSystemClassLoader().getParent();
-    }
-
-    public static void tryClose(@Nullable ClassLoader classLoader) {
-        CompositeStoppable.stoppable(classLoader).stop();
     }
 
     public static void disableUrlConnectionCaching() {

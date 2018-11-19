@@ -20,7 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
-import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -87,7 +87,7 @@ public class ClassLoaderCache {
         lock.lock();
         try {
             for (ClassLoader classLoader : classLoaderDetails.asMap().keySet()) {
-                ClassLoaderUtils.tryClose(classLoader);
+                MultiParentClassLoader.tryClose(classLoader);
             }
             classLoaderDetails.invalidateAll();
             classLoaderIds.invalidateAll();

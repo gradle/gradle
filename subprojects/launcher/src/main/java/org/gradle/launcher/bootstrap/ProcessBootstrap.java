@@ -20,8 +20,8 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -61,8 +61,8 @@ public class ProcessBootstrap {
         } finally {
             Thread.currentThread().setContextClassLoader(oldClassLoader);
 
-            ClassLoaderUtils.tryClose(runtimeClassLoader);
-            ClassLoaderUtils.tryClose(antClassLoader);
+            MultiParentClassLoader.tryClose(runtimeClassLoader);
+            MultiParentClassLoader.tryClose(antClassLoader);
         }
     }
 }

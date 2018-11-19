@@ -16,7 +16,9 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -53,6 +55,10 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     public MultiParentClassLoader(Collection<? extends ClassLoader> parents) {
         super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(parents);
+    }
+
+    public static void tryClose(@Nullable ClassLoader classLoader) {
+        CompositeStoppable.stoppable(classLoader).stop();
     }
 
     public void addParent(ClassLoader parent) {

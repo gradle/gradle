@@ -16,7 +16,7 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.PhantomReference;
@@ -58,7 +58,7 @@ class Cleanup extends PhantomReference<CachedClassLoader> {
         gradleApiGroovyLoader.discardTypesFrom(classLoader);
         antBuilderGroovyLoader.discardTypesFrom(classLoader);
         if (mode == Mode.CLOSE_CLASSLOADER) {
-            ClassLoaderUtils.tryClose(classLoader);
+            MultiParentClassLoader.tryClose(classLoader);
         }
     }
 }

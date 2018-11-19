@@ -53,7 +53,7 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.DeprecationLogger;
@@ -136,7 +136,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             validateTaskClasses(classLoader);
         } finally {
             Thread.currentThread().setContextClassLoader(previousContextClassLoader);
-            ClassLoaderUtils.tryClose(classLoader);
+            MultiParentClassLoader.tryClose(classLoader);
         }
     }
 

@@ -25,11 +25,19 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
+import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ToolingApiSubscribableBuildActionRunnerRegistration implements SubscribableBuildActionRunnerRegistration {
+
+    private final OperationResultPostProcessor operationResultPostProcessor;
+
+    ToolingApiSubscribableBuildActionRunnerRegistration(OperationResultPostProcessor operationResultPostProcessor) {
+        this.operationResultPostProcessor = operationResultPostProcessor;
+    }
+
     @Override
     public Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
         List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
@@ -41,7 +49,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
             if (clientSubscriptions.isSendBuildProgressEvents()) {
                 buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(consumer));
             }
-            listeners.add(new ClientForwardingTaskOperationListener(consumer, clientSubscriptions, buildListener));
+            listeners.add(new ClientForwardingTaskOperationListener(consumer, clientSubscriptions, buildListener, operationResultPostProcessor));
         }
         return listeners;
     }

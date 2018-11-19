@@ -41,8 +41,8 @@ import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -143,7 +143,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
         } finally {
-            ClassLoaderUtils.tryClose(groovyClassLoader);
+            MultiParentClassLoader.tryClose(groovyClassLoader);
         }
     }
 
