@@ -36,7 +36,7 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 ====
 
 
-[[sec:prerequisites]]
+[[kotdsl:prerequisites]]
 == Prerequisites
 
 * The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
@@ -412,7 +412,7 @@ include::sample[dir="kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags
 ====
 
 
-[[sec:multi_project_builds]]
+[[kotdsl:multi_project_builds]]
 == Multi-project builds (e.g. Android)
 
 Multi-project builds are very common.
@@ -483,7 +483,7 @@ See the <<sec:configuring_plugins>> section above for a detailed explanation.
 Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the `plugins {}` block.
 It depends on how they have been published.
 
-If your build is a multi-project build and you don't need to apply such a plugin to your root project, see the <<kotlin_dsl#sec:multi_project_builds_applying_plugins,dedicated section>> above.
+If your build is a multi-project build and you don't need to apply such a plugin to your root project, see the <<kotlin_dsl#kotdsl:multi_project_builds_applying_plugins,dedicated section>> above.
 Otherwise, keep reading.
 
 The Android Plugin for Gradle, for example, is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
