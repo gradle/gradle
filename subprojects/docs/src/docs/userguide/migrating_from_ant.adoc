@@ -319,6 +319,7 @@ The first option is usually quick and easy, but not always. And if you want to i
 
 The second option is preferable in the long term, if you have the time. Gradle task types tend to be simpler than Ant tasks because they don't have to work with an XML-based interface. You also gain access to Gradle's rich APIs. Lastly, this approach can make use of the <<more_about_tasks#sec:task_input_output_annotations,type-safe incremental build API>> based on typed properties.
 
+[[migant:working_with_files]]
 == Working with files
 
 Ant has many tasks for working with files, most of which have Gradle equivalents. As with other areas of Ant to Gradle migration, you can <<ant#sec:using_ant_tasks,use those Ant tasks>> from within your Gradle build. However, we strongly recommend migrating to native Gradle constructs where possible so that the build benefits from:

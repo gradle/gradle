@@ -23,6 +23,7 @@ In order to use Gradle effectively, you need to know what it is and understand s
 
 Even if you're experienced with using Gradle, we suggest you read the section <<what_is_gradle#five_things,5 things you need to know about Gradle>> as it clears up some common misconceptions.
 
+[[gs:installation]]
 == Installation
 
 If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build has a <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>, identifiable via the _gradlew_ and/or _gradlew.bat_ files in the root of the build. You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
