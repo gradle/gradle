@@ -53,7 +53,6 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
-    integTestRuntimeOnly(project(":platformNative"))
 
     testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
     testFixturesImplementation(project(":internalIntegTesting"))

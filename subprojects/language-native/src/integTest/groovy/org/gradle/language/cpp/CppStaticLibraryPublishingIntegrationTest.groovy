@@ -21,8 +21,8 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependen
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 
-import static org.gradle.api.platform.MachineArchitecture.*
-import static org.gradle.api.platform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.*
+import static org.gradle.nativeplatform.OperatingSystemFamily.*
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
