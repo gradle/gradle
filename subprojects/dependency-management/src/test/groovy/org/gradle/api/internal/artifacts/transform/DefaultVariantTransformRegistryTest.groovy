@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -321,7 +320,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     private void runTransformer(File input) {
         1 * transformerInvoker.invoke(_ as Transformer, input, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, TransformationSubject subject ->
-            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, Mock(ArtifactTransformDependencies))) }
+            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, Mock(ArtifactTransformDependenciesProvider))) }
         }
     }
 

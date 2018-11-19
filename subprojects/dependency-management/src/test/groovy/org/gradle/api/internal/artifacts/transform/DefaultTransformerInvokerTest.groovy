@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.Context
@@ -217,17 +217,17 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     }
 
     def "multiple threads can transform files concurrently"() {
-        def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
+        def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null, ImmutableAttributes.EMPTY) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
                 instant.a
                 thread.blockUntil.b
                 instant.a_done
                 [new TestFile(outputDir, primaryInput.getName()).touch()]            }
         }
-        def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
+        def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null, ImmutableAttributes.EMPTY) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
                 instant.b
                 thread.blockUntil.a
                 instant.b_done

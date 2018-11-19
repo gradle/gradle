@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
@@ -166,7 +165,7 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                ArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifact.getId(), resolvableDependencies);
+                ArtifactTransformDependenciesProvider dependencies = new ArtifactTransformDependenciesProvider(artifact.getId(), resolvableDependencies);
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), dependencies);
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);

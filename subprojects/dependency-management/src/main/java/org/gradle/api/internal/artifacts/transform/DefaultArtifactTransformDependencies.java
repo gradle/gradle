@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.io.File;
 import java.util.Set;
@@ -35,10 +37,12 @@ import java.util.Set;
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
     private final ComponentArtifactIdentifier artifactId;
     private final ResolvableDependencies resolvableDependencies;
+    private final ImmutableAttributes attributes;
 
-    public DefaultArtifactTransformDependencies(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+    public DefaultArtifactTransformDependencies(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies, ImmutableAttributes attributes) {
         this.artifactId = artifactId;
         this.resolvableDependencies = resolvableDependencies;
+        this.attributes = attributes;
     }
 
     @Override
@@ -54,6 +58,13 @@ public class DefaultArtifactTransformDependencies implements ArtifactTransformDe
             conf.componentFilter(element -> {
                 return dependenciesIdentifiers.contains(element);
             });
+            if (!attributes.isEmpty()) {
+                conf.attributes(container -> {
+                    for (Attribute attribute : attributes.keySet()) {
+                        container.attribute(attribute, attributes.findEntry(attribute).get());
+                    }
+                });
+            }
         }).getArtifacts().getArtifactFiles().getFiles();
     }
 

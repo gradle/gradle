@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -37,7 +36,7 @@ public abstract class TransformationSubject implements Describable {
         return new InitialFileTransformationSubject(file);
     }
 
-    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependencies dependencies) {
+    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependenciesProvider dependencies) {
         return new InitialArtifactTransformationSubject(artifactId, file, dependencies);
     }
 
@@ -49,7 +48,7 @@ public abstract class TransformationSubject implements Describable {
     /**
      * Gives access to the artifacts of the dependencies of the subject of the transformation
      */
-    public abstract ArtifactTransformDependencies getDependencies();
+    public abstract ArtifactTransformDependenciesProvider getDependenciesProvider();
 
     /**
      * Records the failure to transform a previous subject.
@@ -81,7 +80,7 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependencies getDependencies() {
+        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
             throw new UnsupportedOperationException();
         }
 
@@ -137,8 +136,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependencies getDependencies() {
-            return ArtifactTransformDependencies.EMPTY;
+        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
+            return ArtifactTransformDependenciesProvider.EMPTY;
         }
 
         @Override
@@ -149,16 +148,16 @@ public abstract class TransformationSubject implements Describable {
 
     private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
         private final ComponentArtifactIdentifier artifactId;
-        private final ArtifactTransformDependencies dependencies;
+        private final ArtifactTransformDependenciesProvider dependencies;
 
-        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependencies dependencies) {
+        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependenciesProvider dependencies) {
             super(file);
             this.artifactId = artifactId;
             this.dependencies = dependencies;
         }
 
         @Override
-        public ArtifactTransformDependencies getDependencies() {
+        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
             return dependencies;
         }
 
@@ -183,8 +182,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependencies getDependencies() {
-            return previous.getDependencies();
+        public ArtifactTransformDependenciesProvider getDependenciesProvider() {
+            return previous.getDependenciesProvider();
         }
 
         @Override
