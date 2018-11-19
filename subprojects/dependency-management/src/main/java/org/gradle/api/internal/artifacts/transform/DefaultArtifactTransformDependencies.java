@@ -46,7 +46,7 @@ public class DefaultArtifactTransformDependencies implements ArtifactTransformDe
     }
 
     @Override
-    public Iterable<File> getDependencies() {
+    public Iterable<File> getFiles() {
         ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
         Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
         for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {

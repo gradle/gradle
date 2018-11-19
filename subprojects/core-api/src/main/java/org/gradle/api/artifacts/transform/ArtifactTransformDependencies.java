@@ -33,14 +33,14 @@ public interface ArtifactTransformDependencies {
      * Returns the dependency artifacts of the artifact being transformed.
      * The order of the files match that of the dependencies in the source artifact view.
      */
-    Iterable<File> getDependencies();
+    Iterable<File> getFiles();
 
     /**
      * Empty dependencies.
      */
     ArtifactTransformDependencies EMPTY = new ArtifactTransformDependencies() {
         @Override
-        public Iterable<File> getDependencies() {
+        public Iterable<File> getFiles() {
             return Collections.emptySet();
         }
     };
