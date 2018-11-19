@@ -19,10 +19,13 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
@@ -35,6 +38,10 @@ import org.gradle.kotlin.dsl.support.bytecode.internalName
 
 internal
 object GradleType {
+
+    val artifactHandler = classOf<ArtifactHandler>()
+
+    val configurablePublishArtifact = classOf<ConfigurablePublishArtifact>()
 
     val dependencyConstraintHandler = classOf<DependencyConstraintHandler>()
 
@@ -55,6 +62,8 @@ object GradleType {
     val containerOfConfiguration = genericTypeOf(namedDomainObjectContainer, configuration)
 
     val providerOfConfiguration = genericTypeOf(namedDomainObjectProvider, configuration)
+
+    val publishArtifact = classOf<PublishArtifact>()
 }
 
 
@@ -62,6 +71,8 @@ internal
 object GradleTypeName {
 
     val action = Action::class.internalName
+
+    val artifactHandler = ArtifactHandler::class.internalName
 
     val externalModuleDependency = ExternalModuleDependency::class.internalName
 

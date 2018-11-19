@@ -539,6 +539,67 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    fun `can add artifacts using generated accessors for configurations`() {
+
+        withDefaultSettingsIn("buildSrc")
+
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                (plugins) {
+                    register("my-plugin") {
+                        id = "my-plugin"
+                        implementationClass = "plugins.MyPlugin"
+                    }
+                }
+            }
+
+            $repositoriesBlock
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
+            package plugins
+
+            import org.gradle.api.*
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    configurations.create("myConfig")
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            artifacts {
+                myConfig(file("first.txt"))
+                myConfig(file("second.txt")) {
+                    setType("other-type")
+                }
+            }
+
+            configurations.myConfig.artifacts.forEach {
+                println("${"$"}{it.name}:${"$"}{it.extension}:${"$"}{it.type}")
+            }
+        """)
+
+        val result = build("help", "-q")
+
+        assertThat(
+            result.output,
+            allOf(
+                containsString("first:txt:txt"),
+                containsString("second:txt:other-type")))
+    }
+
+    @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
         withSettings("include(\"a\")")

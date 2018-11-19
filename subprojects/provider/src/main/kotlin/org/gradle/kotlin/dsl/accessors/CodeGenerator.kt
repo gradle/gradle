@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
-    (extensionAccessors() + configurationAccessors()).forEach(action)
+    (extensionAccessors() + configurationAccessors() + artifactAccessors()).forEach(action)
 }
 
 
@@ -52,6 +52,15 @@ fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> =
 
 
 internal
+fun <T> ProjectSchema<T>.artifactAccessors(): Sequence<String> =
+    configurations
+        .asSequence()
+        .filter(::isLegalAccessorName)
+        .map(::accessorNameSpec)
+        .map(::artifactAccessor)
+
+
+internal
 data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
 ) {
@@ -61,7 +70,8 @@ data class AccessorScope(
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
 
-    private
+
+private
     fun add(accessorSpec: TypedAccessorSpec) =
         targetTypesOf(accessorSpec.name).add(accessorSpec.receiver)
 
@@ -367,6 +377,37 @@ fun configurationAccessor(name: AccessorNameSpec): String = name.run {
         fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
             add("$stringLiteral", constraintNotation, block)
 
+    """
+}
+
+
+private
+fun artifactAccessor(name: AccessorNameSpec): String = name.run {
+    """
+        /**
+         * Adds an artifact to the '$original' configuration.
+         *
+         * @param artifactNotation the group of the module to be added as a dependency.
+         * @return The artifact.
+         *
+         * @see [ArtifactHandler.add]
+         */
+        fun ArtifactHandler.`$kotlinIdentifier`(artifactNotation: Any): PublishArtifact =
+            add("$stringLiteral", artifactNotation)
+
+        /**
+         * Adds an artifact to the '$original' configuration.
+         *
+         * @param artifactNotation the group of the module to be added as a dependency.
+         * @param configureAction The action to execute to configure the artifact.
+         * @return The artifact.
+         *
+         * @see [ArtifactHandler.add]
+         */
+        fun ArtifactHandler.`$kotlinIdentifier`(
+            artifactNotation: Any,
+            configureAction:  ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
+                add("$stringLiteral", artifactNotation, configureAction)
     """
 }
 
