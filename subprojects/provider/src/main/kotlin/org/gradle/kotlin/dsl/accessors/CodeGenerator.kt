@@ -71,7 +71,7 @@ data class AccessorScope(
         accessorSpecs.filter(::add)
 
 
-private
+    private
     fun add(accessorSpec: TypedAccessorSpec) =
         targetTypesOf(accessorSpec.name).add(accessorSpec.receiver)
 
