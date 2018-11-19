@@ -259,7 +259,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("runInWorker")
 
         then:
-        buildOperations.hasOperation("Test Work")
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "Test Work"
+        with (operation.details) {
+            className == "org.gradle.test.TestRunnable"
+            displayName == "Test Work"
+        }
 
         where:
         isolationMode << ISOLATION_MODES
