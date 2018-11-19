@@ -38,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,6 +74,12 @@ public abstract class TransformationNode extends Node {
         }
         return transformedSubject;
     }
+
+    @Override
+    public Set<Node> getFinalizers() {
+        return Collections.emptySet();
+    }
+
     @Override
     public void prepareForExecution() {
     }

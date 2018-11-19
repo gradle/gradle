@@ -197,6 +197,12 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isToolingApiDoesNotAddCausesOnTaskCancel() {
+        // Versions before 5.1 would sometimes add some additional 'build cancelled' exceptions
+        return isSameOrNewer("5.1");
+    }
+
+    @Override
     public boolean isToolingApiHasCauseOnCancel() {
         // Versions before 3.2 would throw away the cause. There was also a regression in 4.0.x
         return isSameOrNewer("3.2") && !(isSameOrNewer("4.0") && isSameOrOlder("4.0.2"));

@@ -219,6 +219,8 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors.contains(successor);
     }
 
+    public abstract Set<Node> getFinalizers();
+
     @Override
     public abstract String toString();
 }
