@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.operations.BuildOperationListener
@@ -24,6 +23,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.tooling.events.OperationType
 import spock.lang.Specification
 
 class SubscribableBuildActionExecuterSpec extends Specification {
@@ -59,12 +59,8 @@ class SubscribableBuildActionExecuterSpec extends Specification {
     }
 
     SubscribableBuildAction subscribableBuildAction() {
-        SubscribableBuildAction buildAction = Mock()
-        BuildClientSubscriptions clientSubscriptions = Mock()
-        _ * clientSubscriptions.isSendBuildProgressEvents() >> true
-        _ * clientSubscriptions.isSendTaskProgressEvents() >> true
-        _ * clientSubscriptions.isSendTestProgressEvents() >> true
-        _ * buildAction.getClientSubscriptions() >> clientSubscriptions
+        SubscribableBuildAction buildAction = Stub()
+        _ * buildAction.getClientSubscriptions() >> new BuildClientSubscriptions(EnumSet.allOf(OperationType))
         buildAction
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.work;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * Enumerates the different types of operations for which progress events can be received.
+ * Root interface for all events that signal progress while executing a work item.
  *
- * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.Set)
+ * @since 5.1
  */
-public enum OperationType {
-
+@Incubating
+public interface WorkItemProgressEvent extends ProgressEvent {
     /**
-     * Flag for test operation progress events.
-     */
-    TEST,
-
-    /**
-     * Flag for task operation progress events.
-     */
-    TASK,
-
-    /**
-     * Flag for operations with no specific type.
-     */
-    GENERIC,
-
-    /**
-     * Flag for work item operation progress events.
+     * Returns the description of the work item for which progress is reported.
      *
-     * @since 5.1
+     * @return The description of the underlying work item operation.
      */
-    @Incubating
-    WORK_ITEM
-
+    @Override
+    WorkItemOperationDescriptor getDescriptor();
 }

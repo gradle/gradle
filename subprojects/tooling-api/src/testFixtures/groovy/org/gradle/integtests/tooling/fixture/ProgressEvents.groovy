@@ -30,6 +30,7 @@ import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 import org.gradle.util.GradleVersion
 
 class ProgressEvents implements ProgressListener {
@@ -315,8 +316,12 @@ class ProgressEvents implements ProgressListener {
             return descriptor instanceof TaskOperationDescriptor
         }
 
+        boolean isWorkItem() {
+            return descriptor instanceof WorkItemOperationDescriptor
+        }
+
         boolean isBuildOperation() {
-            return !test && !task
+            return !test && !task && !workItem
         }
 
         boolean isSuccessful() {

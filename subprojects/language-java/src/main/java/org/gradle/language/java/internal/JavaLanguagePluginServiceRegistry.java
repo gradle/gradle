@@ -38,6 +38,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
 
@@ -66,7 +67,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
             return new SubscribableBuildActionRunnerRegistration() {
                 @Override
                 public Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
-                    if (clientSubscriptions.isSendTaskProgressEvents()) {
+                    if (clientSubscriptions.isRequested(OperationType.TASK)) {
                         return Collections.<BuildOperationListener>singletonList(factory);
                     }
                     return emptyList();
