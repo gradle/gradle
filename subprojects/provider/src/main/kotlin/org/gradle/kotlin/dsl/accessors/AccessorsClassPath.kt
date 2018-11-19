@@ -544,7 +544,7 @@ const val projectSchemaResourcePath =
 
 
 const val projectSchemaResourceDiscontinuedWarning =
-    "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer needed and it can be safely deleted."
+    "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
 
 
 fun Project.warnAboutDiscontinuedJsonProjectSchema() {
