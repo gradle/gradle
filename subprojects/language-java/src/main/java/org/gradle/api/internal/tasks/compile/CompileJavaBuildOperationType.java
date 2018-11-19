@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -28,11 +27,9 @@ import java.util.List;
  */
 public class CompileJavaBuildOperationType implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         /**
@@ -48,7 +45,6 @@ public class CompileJavaBuildOperationType implements BuildOperationType<Compile
         /**
          * Details about an annotation processor used during compilation.
          */
-        @UsedByScanPlugin
         interface AnnotationProcessorDetails {
 
             /**
@@ -71,7 +67,6 @@ public class CompileJavaBuildOperationType implements BuildOperationType<Compile
              *
              * @see IncrementalAnnotationProcessorType
              */
-            @UsedByScanPlugin
             enum Type {
                 ISOLATING, AGGREGATING, UNKNOWN
             }

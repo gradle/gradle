@@ -17,10 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -37,6 +36,7 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEv
 import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.Collections;
 import java.util.Set;
@@ -50,14 +50,16 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final BuildOperationListener delegate;
+    private final OperationResultPostProcessor operationResultPostProcessor;
 
     // BuildOperationListener dispatch is not serialized
     private final Set<Object> skipEvents = Sets.newConcurrentHashSet();
 
-    ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
+    ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate, OperationResultPostProcessor operationResultPostProcessor) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
         this.delegate = delegate;
+        this.operationResultPostProcessor = operationResultPostProcessor;
     }
 
     @Override
@@ -70,8 +72,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
 
         if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, (TaskInternal) task)));
+                TaskInternal task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
             } else {
                 // Discard this operation and all children
                 skipEvents.add(buildOperation.getId());
@@ -92,9 +94,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         }
 
         if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
-            Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-            TaskInternal taskInternal = (TaskInternal) task;
-            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, taskInternal), toTaskResult(taskInternal, finishEvent)));
+            TaskInternal task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+            AbstractTaskResult result = operationResultPostProcessor.process(toTaskResult(task, finishEvent), buildOperation.getId());
+            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), result));
         } else {
             delegate.finished(buildOperation, finishEvent);
         }
