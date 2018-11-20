@@ -765,6 +765,65 @@ include 'other'
     }
 
 
+    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
+    def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                $dependencies
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.7.9", "org:core:2.9.4.1")
+                module("org:databind:2.9.4.1") {
+                    module('org:annotations:2.9.4.1')
+                    module('org:core:2.9.4.1')
+                }
+                edge("org:kotlin:2.9.4", "org:kotlin:2.9.4.1") {
+                    module('org:core:2.9.4.1')
+                    module('org:annotations:2.9.4.1')
+                }
+                constraint('org:platform:2.9.4.1', 'org:platform:2.9.4.1') {
+                    noArtifacts()
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    constraint('org:core:2.9.4.1')
+                    constraint('org:databind:2.9.4.1')
+                    constraint('org:annotations:2.9.4.1')
+                    constraint('org:kotlin:2.9.4.1')
+                }
+            }
+            virtualConfiguration('org:platform:2.9.4.1')
+        }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+            'conf("org:core:2.7.9")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4")',
+            'constraints { conf platform("org:platform:2.9.4.1") }'
+        ].permutations()*.join("\n")
+    }
+
+
     @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
