@@ -165,7 +165,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         def distUri = server.uri("cancelled-dist.zip")
 
         def content = distribution.binDistribution.bytes[0..30000] as byte[] // more than one progress tick in output
-        def downloadHandle = server.sendSomeAndBlock("cancelled-dist.zip", content)
+        def downloadHandle = server.get("cancelled-dist.zip").sendSomeAndBlock(content)
         server.expect(downloadHandle)
 
         and:

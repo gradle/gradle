@@ -26,15 +26,8 @@ class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.Ex
 
     ExpectMethodAndRunAction(String method, String path, Action<? super HttpExchange> action) {
         this.method = method;
-        this.path = removeLeadingSlash(path);
+        this.path = path;
         this.action = action;
-    }
-
-    static String removeLeadingSlash(String path) {
-        if (path.startsWith("/")) {
-            return path.substring(1);
-        }
-        return path;
     }
 
     @Override

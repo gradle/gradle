@@ -169,14 +169,19 @@ public class BlockingHttpServer extends ExternalResource {
      * Expect a HEAD request to the given path.
      */
     public ExpectedRequest head(String path) {
-        return new ExpectHead(path);
+        return new ExpectMethodAndRunAction("HEAD", normalizePath(path), new ErroringAction<HttpExchange>() {
+            @Override
+            protected void doExecute(HttpExchange exchange) throws Exception {
+                exchange.sendResponseHeaders(200, -1);
+            }
+        });
     }
 
     /**
      * Expect a GET request to the given path and run the given action to create the response.
      */
     public ExpectedRequest get(String path, Action<? super HttpExchange> action) {
-        return new ExpectMethodAndRunAction("GET", path, action);
+        return new ExpectMethodAndRunAction("GET", normalizePath(path), action);
     }
 
     /**
@@ -189,31 +194,21 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private ExpectMethod doGet(String path) {
-        return new ExpectMethod("GET", path);
+        return new ExpectMethod("GET", normalizePath(path), timeoutMs, lock);
     }
 
     /**
      * Expect a PUT request to the given path, discard the request body
      */
     public ExpectedRequest put(String path) {
-        return new ExpectMethodAndRunAction("PUT", path, new SendEmptyResponse());
+        return new ExpectMethodAndRunAction("PUT", normalizePath(path), new SendEmptyResponse());
     }
 
     /**
      * Expect a POST request to the given path and run the given action to create the response.
      */
     public ExpectedRequest post(String path, Action<? super HttpExchange> action) {
-        return new ExpectMethodAndRunAction("POST", path, action);
-    }
-
-    /**
-     * Expect a GET request to the given path. Return 1K of the given content then block waiting for {@link BlockingRequest#release()} before returning the remainder
-     */
-    public BlockingRequest sendSomeAndBlock(String path, byte[] content) {
-        if (content.length < 1024) {
-            throw new IllegalArgumentException("Content is too short.");
-        }
-        return new SendPartialResponseThenBlock(lock, timeoutMs, path, content);
+        return new ExpectMethodAndRunAction("POST", normalizePath(path), action);
     }
 
     /**
@@ -348,12 +343,22 @@ public class BlockingHttpServer extends ExternalResource {
         return server.getAddress().getPort();
     }
 
+    static String normalizePath(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
+    }
+
     /**
-     * Represents some HTTP request expectation.
+     * Represents an expectation about a particular HTTP request.
      */
     public interface ExpectedRequest {
     }
 
+    /**
+     * A mutable expectation about a particular HTTP request.
+     */
     public interface BuildableExpectedRequest extends ExpectedRequest {
         /**
          * Verifies that the user agent provided in the request matches the given criteria.
@@ -389,6 +394,11 @@ public class BlockingHttpServer extends ExternalResource {
          * @return this
          */
         BuildableExpectedRequest send(String content);
+
+        /**
+         * Sends a 200 response with the given content. Returns 1K of the content then blocks waiting for {@link BlockingRequest#release()} before returning the remainder to the client.
+         */
+        BlockingRequest sendSomeAndBlock(byte[] content);
     }
 
     /**
