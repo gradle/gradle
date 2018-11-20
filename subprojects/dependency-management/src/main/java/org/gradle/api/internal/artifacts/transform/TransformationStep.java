@@ -34,10 +34,12 @@ public class TransformationStep implements Transformation {
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
+    private final boolean requiresDependencies;
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, boolean requiresDependencies) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
+        this.requiresDependencies = requiresDependencies;
     }
 
     @Override
@@ -58,6 +60,11 @@ public class TransformationStep implements Transformation {
             builder.addAll(result.get());
         }
         return subjectToTransform.transformationSuccessful(builder.build());
+    }
+
+    @Override
+    public boolean requiresDependencies() {
+        return requiresDependencies;
     }
 
     @Override
