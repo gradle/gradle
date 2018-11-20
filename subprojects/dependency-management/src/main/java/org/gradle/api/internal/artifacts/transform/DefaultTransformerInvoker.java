@@ -90,11 +90,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean hasCachedResult(File primaryInput, Transformer transformer) {
-        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer));
-    }
-
-    @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject) {
         TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {

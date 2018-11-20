@@ -43,15 +43,6 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subject) {
-        if (first.hasCachedResult(subject)) {
-            TransformationSubject intermediate = first.transform(subject);
-            return second.hasCachedResult(intermediate);
-        }
-        return false;
-    }
-
-    @Override
     public String getDisplayName() {
         return first.getDisplayName() + " -> " + second.getDisplayName();
     }

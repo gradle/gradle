@@ -81,10 +81,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results) {
         TransformationOperation operation = new TransformationOperation(transformation, initialSubject);
         results.put(key, operation);
-        if (transformation.hasCachedResult(initialSubject)) {
-            operation.run(null);
-        } else {
-            actions.add(operation);
-        }
+        actions.add(operation);
     }
 }

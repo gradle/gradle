@@ -62,11 +62,6 @@ public class DefaultTransformerExecutionHistoryRepository implements Transformer
     }
 
     @Override
-    public boolean hasCachedResult(TransformationIdentity identity) {
-        return inMemoryResultCache.containsKey(identity);
-    }
-
-    @Override
     public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
         ImmutableList<File> resultFromCache = inMemoryResultCache.get(identity);
         if (resultFromCache != null) {

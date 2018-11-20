@@ -36,10 +36,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         getArtifactFile() >> artifactFile
     }
 
-    def "runs transforms in parallel if no cached result is available"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject) >> false
-
+    def "runs transforms in parallel"() {
         when:
         listener.artifactAvailable(artifact)
 
@@ -51,22 +48,5 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * operationQueue.add(_ as BuildOperation)
-    }
-
-    def "runs transforms immediately if the result is already cached"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject) >> true
-
-        when:
-        listener.artifactAvailable(artifact)
-
-        then:
-        1 * transformation.transform({ it.files == [artifactFile] })
-
-        when:
-        listener.fileAvailable(file)
-
-        then:
-        1 * transformation.transform({ it.files == [file] })
     }
 }

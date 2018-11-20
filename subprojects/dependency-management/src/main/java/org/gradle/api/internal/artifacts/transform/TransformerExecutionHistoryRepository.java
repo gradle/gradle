@@ -36,5 +36,4 @@ public interface TransformerExecutionHistoryRepository extends TransformerWorksp
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints,
         boolean successful
     );
-    boolean hasCachedResult(TransformationIdentity identity);
 }
