@@ -21,7 +21,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
