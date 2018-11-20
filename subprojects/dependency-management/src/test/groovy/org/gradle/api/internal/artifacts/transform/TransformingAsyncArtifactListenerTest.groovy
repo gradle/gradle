@@ -23,7 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
+import spock.lang.Ignore
 
+@Ignore
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)

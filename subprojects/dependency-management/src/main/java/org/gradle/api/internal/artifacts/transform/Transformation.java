@@ -39,11 +39,6 @@ public interface Transformation extends Describable {
     boolean requiresDependencies();
 
     /**
-     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject, ArtifactTransformDependenciesProvider)} will be fast.
-     */
-    boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider);
-
-    /**
      * Extract the transformation steps from this transformation.
      */
     void visitTransformationSteps(Action<? super TransformationStep> action);
