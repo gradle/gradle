@@ -18,20 +18,11 @@ package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
 import org.gradle.performance.measure.MeasuredOperation;
-import org.gradle.performance.results.PerformanceTestResult;
 
 public class OperationTimer {
     public MeasuredOperation measure(final Action<? super MeasuredOperation> action) {
         final MeasuredOperation result = new MeasuredOperation();
-        try {
-            DurationMeasurementImpl.measure(result, () -> action.execute(result));
-        } catch (Exception e) {
-            if (PerformanceTestResult.hasChecks()) {
-                throw e;
-            } else {
-                result.setException(e);
-            }
-        }
+        DurationMeasurementImpl.measure(result, () -> action.execute(result));
         return result;
     }
 }

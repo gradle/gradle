@@ -38,21 +38,15 @@ public abstract class PerformanceTestResult {
     }
 
     /**
-     * Returns true if checks is enabled.
+     * Returns true if regression checks is enabled.
      *
-     * When checks is enabled, an exception is thrown immediately upon two kind of failure:
+     * When checks is enabled, an exception is thrown upon the performance test regression.
+     * Otherwise the regression is ignored.
      *
-     * <ul>
-     * <li>A performance test iteration fails.</li>
-     * <li>A performance test regressed.</li>
-     * </ul>
-     *
-     * When checks is disabled, we ignore these two kinds of failures.
-     *
-     * @return true if checks enabled, false otherwise.
+     * @return true if regression checks enabled, false otherwise.
      */
-    public static boolean hasChecks() {
-        return Boolean.parseBoolean(System.getProperty("org.gradle.performance.execution.checks", "true"));
+    public static boolean hasRegressionChecks() {
+        return Boolean.parseBoolean(System.getProperty("org.gradle.performance.regression.checks", "true"));
     }
 
     public String getTestId() {

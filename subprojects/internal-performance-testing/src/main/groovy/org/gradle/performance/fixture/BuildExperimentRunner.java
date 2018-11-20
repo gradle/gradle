@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.performance.results.PerformanceTestResult;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -187,15 +186,7 @@ public class BuildExperimentRunner {
         }
 
         MeasuredOperation operation = new MeasuredOperation();
-        try {
-            runner.execute(operation);
-        } catch (Exception e) {
-            if (PerformanceTestResult.hasChecks()) {
-                throw e;
-            } else {
-                operation.setException(e);
-            }
-        }
+        runner.execute(operation);
 
         final AtomicBoolean omitMeasurement = new AtomicBoolean();
         if (experiment.getListener() != null) {

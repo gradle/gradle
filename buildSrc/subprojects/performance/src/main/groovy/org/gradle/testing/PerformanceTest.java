@@ -202,7 +202,7 @@ public class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
-            addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);
+            addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel);
 
             if (flamegraphs) {
