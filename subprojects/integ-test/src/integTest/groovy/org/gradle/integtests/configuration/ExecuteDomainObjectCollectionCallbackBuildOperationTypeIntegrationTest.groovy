@@ -277,8 +277,51 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         repositoriesContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
     }
 
-    private List<BuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
-        return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text.startsWith(markerOutput)})
+    def "applicationId for cross script buildscript configuration is emitted correctly"() {
+        given:
+        settingsFile << """
+        gradle.allprojects {
+                
+                // the configuration block of the repositories block below does not properly 
+                // emit the application id of the settings.gradle script as the beforeResolve 
+                // callback is not decorated at the moment it. The applicationId of the root
+                // build.gradle file is emitted instead.
+                
+//                buildscript.configurations["classpath"].incoming.beforeResolve {
+//                    buildscript.repositories.all {
+//                        println "script repo callback"
+//                    }
+//
+//                }
+                buildscript {
+                    repositories.all {
+                        println "script repo callback"
+                    }
+                }
+                repositories.all {
+                    println "project repo callback"
+                }
+        }
+        """
+        buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def settingsScriptApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('settings.gradle') })
+
+        findCallbackActionBuildOp('project repo callback').details.applicationId == settingsScriptApplicationId.details.applicationId
+        findCallbackActionBuildOp('script repo callback').details.applicationId == settingsScriptApplicationId.details.applicationId
     }
 
     def createArtifactTypeSnippet() {
@@ -340,6 +383,16 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
                     $creationLogic
                 }
             }"""
+    }
+
+    private List<BuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
+        return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text.startsWith(markerOutput) })
+    }
+
+    private BuildOperationRecord findCallbackActionBuildOp(String markerOutput) {
+        def ops = findCallbackActionBuildOps(markerOutput)
+        assert ops.size() == 1
+        ops[0]
     }
 
 }
