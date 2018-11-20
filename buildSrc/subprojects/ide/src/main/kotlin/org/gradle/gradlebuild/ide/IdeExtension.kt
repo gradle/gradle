@@ -22,7 +22,20 @@ import accessors.idea
 
 open class IdeExtension(private val project: Project) {
 
-    fun makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13(): Unit = project.run {
+    /**
+     * This is required if IDEA modules are imported without using the 'module per source set option'.
+     * In this cases, there exists only one module per subproject. Inside this module, there is a fixed
+     * number of classpath configurations (runtime, compile, test, ...) that is predefined by IDEA.
+     * Thus there is no separate support for a `testFixtures` classpath. The `testFixtures` source folders
+     * are treated as test source folders and thus we need everything on the test classpath in the
+     * internal testing projects.
+     *
+     * Note: Because of all this the classpath is often not correct (too large). Eventually we should
+     * remove this workaround and only use the `one modules per source set` import for the Gradle project.
+     *
+     * See: https://github.com/gradle/gradle-private/issues/1675
+     */
+    fun makeAllSourceDirsTestSourceDirsInIdeaModule(): Unit = project.run {
         idea {
             module {
                 testSourceDirs = testSourceDirs + sourceDirs
