@@ -764,8 +764,8 @@ include 'other'
     }
 
 
-    @Unroll("can constrain a virtual platform's components by adding the platform itself via a constraint")
-    def "can constrain a virtual platform's components by adding the platform itself via a constraint"() {
+    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
+    def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
                 path "databind:$it -> core:$it"
