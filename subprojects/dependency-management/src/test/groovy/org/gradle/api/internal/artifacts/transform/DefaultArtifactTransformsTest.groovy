@@ -21,7 +21,6 @@ import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -171,7 +170,7 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.hasCachedResult(_ as TransformationSubject) >> false
         _ * transformation.getDisplayName() >> "transform"
 
-        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile, Mock(ArtifactTransformDependencies)).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile, Mock(ArtifactTransformDependenciesProvider)).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
 
         1 * transformation.transform({ it.files == [sourceFile] }) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
 

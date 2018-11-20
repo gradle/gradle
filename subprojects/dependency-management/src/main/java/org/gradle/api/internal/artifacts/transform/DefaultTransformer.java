@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -34,17 +35,19 @@ public class DefaultTransformer implements Transformer {
     private final Isolatable<Object[]> parameters;
     private final InstantiatorFactory instantiatorFactory;
     private final HashCode inputsHash;
+    private final ImmutableAttributes fromAttributes;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiatorFactory = instantiatorFactory;
         this.inputsHash = inputsHash;
+        this.fromAttributes = fromAttributes;
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransform transformer = newTransformer(dependencies);
+    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependencies) {
+        ArtifactTransform transformer = newTransformer(dependencies.forAttributes(fromAttributes));
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);

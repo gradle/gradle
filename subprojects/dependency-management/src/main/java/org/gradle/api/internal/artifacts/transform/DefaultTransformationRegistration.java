@@ -52,7 +52,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
 
         paramsSnapshot.appendToHasher(hasher);
 
-        Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory);
+        Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
