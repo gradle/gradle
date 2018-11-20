@@ -35,7 +35,12 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
-        this.group = group;
+
+        if (GUtil.isTrue(group)) {
+            this.group = group.toLowerCase().replace("-", " ");
+        } else {
+            this.group = null;
+        }
     }
 
     public void add(TaskReportModel project) {
@@ -65,7 +70,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
 
     private boolean isVisible(String group) {
         if (GUtil.isTrue(group)) {
-            return !GUtil.isTrue(this.group) || group.equals(this.group);
+            return !GUtil.isTrue(this.group) || group.toLowerCase().equals(this.group);
         } else {
             return detail;
         }
