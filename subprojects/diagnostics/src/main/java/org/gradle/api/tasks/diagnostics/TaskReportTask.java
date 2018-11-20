@@ -46,6 +46,7 @@ public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
 
     private boolean detail;
+    private String group;
 
     @Override
     public ReportRenderer getRenderer() {
@@ -66,12 +67,22 @@ public class TaskReportTask extends AbstractReportTask {
         return detail;
     }
 
+    @Option(option = "group", description = "Show tasks for a specific group.")
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    @Console
+    public String getGroup() {
+        return group;
+    }
+
     @Override
     public void generate(Project project) throws IOException {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
-        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail());
+        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail(), getGroup());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
