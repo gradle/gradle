@@ -28,8 +28,10 @@ public interface Transformation extends Describable {
 
     /**
      * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
+     * @param subjectToTransform
+     * @param dependenciesProvider
      */
-    TransformationSubject transform(TransformationSubject subject);
+    TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider);
 
     /**
      * Whether the transformation requires dependencies of transformed artifact to be injected.
@@ -37,9 +39,9 @@ public interface Transformation extends Describable {
     boolean requiresDependencies();
 
     /**
-     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject)} will be fast.
+     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject, ArtifactTransformDependenciesProvider)} will be fast.
      */
-    boolean hasCachedResult(TransformationSubject subject);
+    boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider);
 
     /**
      * Extract the transformation steps from this transformation.

@@ -32,9 +32,9 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subject) {
-        TransformationSubject intermediateSubject = first.transform(subject);
-        return second.transform(intermediateSubject);
+    public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        TransformationSubject intermediateSubject = first.transform(subjectToTransform, dependenciesProvider);
+        return second.transform(intermediateSubject, dependenciesProvider);
     }
 
     @Override
@@ -43,10 +43,10 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subject) {
-        if (first.hasCachedResult(subject)) {
-            TransformationSubject intermediate = first.transform(subject);
-            return second.hasCachedResult(intermediate);
+    public boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        if (first.hasCachedResult(subject, dependenciesProvider)) {
+            TransformationSubject intermediate = first.transform(subject, dependenciesProvider);
+            return second.hasCachedResult(intermediate, dependenciesProvider);
         }
         return false;
     }

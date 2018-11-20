@@ -36,19 +36,14 @@ public abstract class TransformationSubject implements Describable {
         return new InitialFileTransformationSubject(file);
     }
 
-    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependenciesProvider dependencies) {
-        return new InitialArtifactTransformationSubject(artifactId, file, dependencies);
+    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file) {
+        return new InitialArtifactTransformationSubject(artifactId, file);
     }
 
     /**
      * The files which should be transformed.
      */
     public abstract ImmutableList<File> getFiles();
-
-    /**
-     * Gives access to the artifacts of the dependencies of the subject of the transformation
-     */
-    public abstract ArtifactTransformDependenciesProvider getArtifactDependenciesProvider();
 
     /**
      * Records the failure to transform a previous subject.
@@ -76,11 +71,6 @@ public abstract class TransformationSubject implements Describable {
 
         @Override
         public ImmutableList<File> getFiles() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
             throw new UnsupportedOperationException();
         }
 
@@ -136,11 +126,6 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
-            return ArtifactTransformDependenciesProvider.EMPTY;
-        }
-
-        @Override
         public String getDisplayName() {
             return "file " + getFile();
         }
@@ -148,17 +133,10 @@ public abstract class TransformationSubject implements Describable {
 
     private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
         private final ComponentArtifactIdentifier artifactId;
-        private final ArtifactTransformDependenciesProvider dependencies;
 
-        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformDependenciesProvider dependencies) {
+        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file) {
             super(file);
             this.artifactId = artifactId;
-            this.dependencies = dependencies;
-        }
-
-        @Override
-        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
-            return dependencies;
         }
 
         @Override
@@ -179,11 +157,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public ImmutableList<File> getFiles() {
             return files;
-        }
-
-        @Override
-        public ArtifactTransformDependenciesProvider getArtifactDependenciesProvider() {
-            return previous.getArtifactDependenciesProvider();
         }
 
         @Override

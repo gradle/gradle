@@ -401,7 +401,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         Mock(ComponentMetadataSupplierRuleExecutor) {
             execute(_, _, _, _, _) >> { args ->
                 def (key, rule, converter, producer, cachePolicy) = args
-                converter.transform(producer.transform(key))
+                converter.transform(producer.transform(key, dependenciesProvider), dependenciesProvider)
             }
         }
     }

@@ -82,7 +82,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject, dependenciesProvider)
 
         then:
         result2 == result
@@ -165,7 +165,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         0 * transformerRegistration._
 
         when:
-        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject, dependenciesProvider)
 
         then:
         result2 == result
@@ -279,8 +279,8 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = transformerInvoker.invoke(inputFile, transform1, subject)
-        def result3 = transformerInvoker.invoke(inputFile, transform2, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transform1, subject, dependenciesProvider)
+        def result3 = transformerInvoker.invoke(inputFile, transform2, subject, dependenciesProvider)
 
         then:
         result2*.name == ["a.1"]
@@ -321,8 +321,8 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
-        def result2 = transformerInvoker.invoke(inputFile, transform1, subject)
-        def result3 = transformerInvoker.invoke(inputFile, transform2, subject)
+        def result2 = transformerInvoker.invoke(inputFile, transform1, subject, dependenciesProvider)
+        def result3 = transformerInvoker.invoke(inputFile, transform2, subject, dependenciesProvider)
 
         then:
         result2*.name == ["a.1"]
@@ -361,7 +361,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         0 * transform._
 
         when:
-        def result = transformerInvoker.invoke(inputFile, transform, subject)
+        def result = transformerInvoker.invoke(inputFile, transform, subject, dependenciesProvider)
 
         then:
         result*.name == ["a.1"]
@@ -393,7 +393,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         when:
         def cache = createInvoker()
         result.first().delete()
-        def result2 = cache.invoke(inputFile, transform, subject)
+        def result2 = cache.invoke(inputFile, transform, subject, dependenciesProvider)
 
         then:
         result2 == result

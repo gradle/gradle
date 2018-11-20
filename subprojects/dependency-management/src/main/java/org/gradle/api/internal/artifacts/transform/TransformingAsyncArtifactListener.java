@@ -54,11 +54,11 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        ArtifactTransformDependenciesProvider dependencies = transformation.requiresDependencies()
+        ArtifactTransformDependenciesProvider dependenciesProvider = transformation.requiresDependencies()
             ? new ArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
             : ArtifactTransformDependenciesProvider.EMPTY;
-        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file, dependencies);
-        initialSubjectAvailable(artifactId, initialSubject, artifactResults);
+        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+        initialSubjectAvailable(artifactId, initialSubject, artifactResults, dependenciesProvider);
     }
 
     @Override
@@ -75,13 +75,13 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        initialSubjectAvailable(file, initialSubject, fileResults);
+        initialSubjectAvailable(file, initialSubject, fileResults, ArtifactTransformDependenciesProvider.EMPTY);
     }
 
-    private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results) {
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject);
+    private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
         results.put(key, operation);
-        if (transformation.hasCachedResult(initialSubject)) {
+        if (transformation.hasCachedResult(initialSubject, dependenciesProvider)) {
             operation.run(null);
         } else {
             actions.add(operation);

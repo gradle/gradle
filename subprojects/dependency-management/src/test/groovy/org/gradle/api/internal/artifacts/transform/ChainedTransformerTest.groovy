@@ -28,7 +28,7 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new CachingTransformation())
 
         expect:
-        chain.hasCachedResult(initialSubject)
+        chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
     }
 
     def "is not cached if first part is not cached"() {
@@ -36,7 +36,7 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new NonCachingTransformation(), new CachingTransformation())
 
         expect:
-        !chain.hasCachedResult(initialSubject)
+        !chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
     }
 
     def "is not cached if second part is not cached"() {
@@ -44,7 +44,7 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        !chain.hasCachedResult(initialSubject)
+        !chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
     }
 
     def "applies second transform on the result of the first"() {
@@ -52,15 +52,15 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        chain.transform(initialSubject).files == [new File("foo/cached/non-cached")]
+        chain.transform(initialSubject, Mock(ArtifactTransformDependenciesProvider)).files == [new File("foo/cached/non-cached")]
     }
 
     class CachingTransformation implements Transformation {
 
 
         @Override
-        TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "cached")))
+        TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+            return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "cached")))
         }
 
         @Override
@@ -69,7 +69,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        boolean hasCachedResult(TransformationSubject subject) {
+        boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
             return true
         }
 
@@ -86,8 +86,8 @@ class ChainedTransformerTest extends Specification {
     class NonCachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")))
+        TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+            return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached")))
         }
 
         @Override
@@ -96,7 +96,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        boolean hasCachedResult(TransformationSubject subject) {
+        boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
             return false
         }
 

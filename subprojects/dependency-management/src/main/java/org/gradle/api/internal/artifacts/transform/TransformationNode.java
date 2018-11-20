@@ -48,6 +48,7 @@ public abstract class TransformationNode extends Node {
     private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
+    protected ArtifactTransformDependenciesProvider dependenciesProvider;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous) {
         return new ChainedTransformationNode(current, previous);
@@ -78,6 +79,14 @@ public abstract class TransformationNode extends Node {
     @Override
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
+    }
+
+
+    private ArtifactTransformDependenciesProvider getDependenciesProvider() {
+        if (dependenciesProvider == null) {
+            throw new IllegalStateException("Transformation hasn't been executed yet");
+        }
+        return dependenciesProvider;
     }
 
     @Override
@@ -172,12 +181,12 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                ArtifactTransformDependenciesProvider dependencies = transformationStep.requiresDependencies()
+                dependenciesProvider = transformationStep.requiresDependencies()
                     ? new ArtifactTransformDependenciesProvider(artifact.getId(), resolvableDependencies)
                     : ArtifactTransformDependenciesProvider.EMPTY;
-                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), dependencies);
+                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
 
-                this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
+                this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);
             }
 
             public TransformationSubject getTransformedSubject() {
@@ -213,7 +222,7 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public void run(BuildOperationContext context) {
-                this.transformedSubject = transformationStep.transform(previousTransformationNode.getTransformedSubject());
+                this.transformedSubject = transformationStep.transform(previousTransformationNode.getTransformedSubject(), previousTransformationNode.getDependenciesProvider());
             }
 
             @Override
