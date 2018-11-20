@@ -317,7 +317,12 @@ class ProgressEvents implements ProgressListener {
         }
 
         boolean isWorkItem() {
-            return descriptor instanceof WorkItemOperationDescriptor
+            try {
+                // the class is not present in pre 5.1 TAPI
+                return descriptor instanceof WorkItemOperationDescriptor
+            } catch (NoClassDefFoundError ignore) {
+                false
+            }
         }
 
         boolean isBuildOperation() {
