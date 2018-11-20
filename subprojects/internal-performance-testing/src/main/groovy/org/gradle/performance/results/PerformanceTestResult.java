@@ -37,6 +37,20 @@ public abstract class PerformanceTestResult {
         whereAmI = new Throwable();
     }
 
+    /**
+     * Returns true if checks is enabled.
+     *
+     * When checks is enabled, an exception is thrown immediately upon two kind of failure:
+     *
+     * <ul>
+     * <li>A performance test iteration fails.</li>
+     * <li>A performance test regressed.</li>
+     * </ul>
+     *
+     * When checks is disabled, we ignore these two kinds of failures.
+     *
+     * @return true if checks enabled, false otherwise.
+     */
     public static boolean hasChecks() {
         return Boolean.parseBoolean(System.getProperty("org.gradle.performance.execution.checks", "true"));
     }
