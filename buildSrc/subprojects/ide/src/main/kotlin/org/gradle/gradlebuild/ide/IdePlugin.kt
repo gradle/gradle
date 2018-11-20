@@ -282,6 +282,8 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+        // Remove the `isExecutingIdeaTask` variant of run configurations once we completely migrated to the native IDEA import
+        // See: https://github.com/gradle/gradle-private/issues/1675
         val isExecutingIdeaTask = rootProject.gradle.startParameter.taskNames.contains("idea")
         runConfigurations {
             val gradleRunners = if (isExecutingIdeaTask) {
