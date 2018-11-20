@@ -23,15 +23,20 @@ import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.concurrent.Callable;
+
 public class InstantiatorBackedObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
+    private final ProviderFactory providerFactory;
 
-    public InstantiatorBackedObjectFactory(Instantiator instantiator) {
+    public InstantiatorBackedObjectFactory(Instantiator instantiator, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -47,6 +52,13 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     @Override
     public <T> Property<T> property(Class<T> valueType) {
         return new DefaultPropertyState<T>(valueType);
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType, Callable<? extends T> defaultValue) {
+        Property<T> property = property(valueType);
+        property.set(providerFactory.provider(defaultValue));
+        return property;
     }
 
     @Override

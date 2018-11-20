@@ -28,6 +28,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * A factory for creating various kinds of model objects.
@@ -103,6 +104,25 @@ public interface ObjectFactory {
      * @since 4.3
      */
     <T> Property<T> property(Class<T> valueType);
+
+    /**
+     * Creates a {@link Property} implementation to hold values of the given type. If nothing else
+     * sets this property value, it will be computed from the supplied callable.
+     *
+     * <p>For certain types, there are more specialized property factory methods available:</p>
+     * <ul>
+     * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
+     * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
+     * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
+     * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
+     * </ul>
+     *
+     * @param valueType The type of the property.
+     * @param defaultValue the default value generator
+     * @return The property. Never returns null.
+     * @since 5.1
+     */
+    <T> Property<T> property(Class<T> valueType, Callable<? extends T> defaultValue);
 
     /**
      * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.

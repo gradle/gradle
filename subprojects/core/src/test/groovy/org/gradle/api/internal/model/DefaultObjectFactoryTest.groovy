@@ -19,13 +19,13 @@ package org.gradle.api.internal.model
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 import spock.lang.Unroll
 
-
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory))
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory), new DefaultProviderFactory())
 
     def "can create a property"() {
         expect:
@@ -87,6 +87,29 @@ class DefaultObjectFactoryTest extends Specification {
         def property = factory.setProperty(String)
         !property.present
         property.getOrNull() == null
+    }
+
+    def "can create a property with a default value"() {
+        given:
+        def property = factory.property(String) {
+            "foo"
+        }
+
+        expect:
+        property.present
+        property.get() == "foo"
+    }
+
+    def "doesn't call the default value provider if overridden"() {
+        given:
+        def property = factory.property(String) {
+            throw new AssertionError("this should never be called")
+        }
+        property.set("foo")
+
+        expect:
+        property.present
+        property.get() == "foo"
     }
 
 }

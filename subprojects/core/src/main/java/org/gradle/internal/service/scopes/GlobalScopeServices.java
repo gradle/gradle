@@ -320,13 +320,13 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ProviderFactory providerFactory) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
             NamedObjectInstantiator.INSTANCE,
             fileResolver,
             directoryFileTreeFactory,
-            new DefaultFilePropertyFactory(fileResolver));
+            new DefaultFilePropertyFactory(fileResolver), providerFactory);
     }
 
     ProviderFactory createProviderFactory() {

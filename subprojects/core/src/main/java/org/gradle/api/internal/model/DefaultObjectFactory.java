@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
@@ -43,6 +44,7 @@ import org.gradle.util.DeprecationLogger;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
@@ -50,13 +52,15 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FilePropertyFactory filePropertyFactory;
+    private final ProviderFactory providerFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.filePropertyFactory = filePropertyFactory;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -111,6 +115,13 @@ public class DefaultObjectFactory implements ObjectFactory {
         }
 
         return new DefaultPropertyState<T>(valueType);
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType, Callable<? extends T> defaultValue) {
+        Property<T> property = property(valueType);
+        property.set(providerFactory.provider(defaultValue));
+        return property;
     }
 
     @Override
