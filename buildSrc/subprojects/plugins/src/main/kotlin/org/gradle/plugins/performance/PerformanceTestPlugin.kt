@@ -261,7 +261,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "experiments"
         }
         create("distributedFullPerformanceTest") {
-            baselines = Config.baseLineList
+            setBaselines(Config.baseLineList)
             checks = "none"
             channel = "historical"
         }
@@ -330,17 +330,24 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>) {
         // The data flow here is:
-        // determineForkPointCommitBaseline.forkPointCommitBaseline -> performanceTest.forkPointCommitBaseline
-        // performanceTest.baselines -> buildCommitDistribution.commitBaseline
-        val determineForkPointCommitBaseline = tasks.register("${performanceTest.name}DetermineForkPointCommitBaseline", DetermineForkPointCommitBaseline::class)
+        // performanceTest.configuredBaselines -> determineBaselines.configuredBaselines
+        // determineBaselines.determinedBaselines -> performanceTest.determinedBaselines
+        // determineBaselines.determinedBaselines -> buildCommitDistribution.commitBaseline
+        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class)
         val buildCommitDistribution = tasks.register("${performanceTest.name}BuildCommitDistribution", BuildCommitDistribution::class)
+
+        determineBaselines.configure {
+            configuredBaselines.set(performanceTest.flatMap { it.configuredBaselines })
+        }
+
+        buildCommitDistribution.configure {
+            dependsOn(determineBaselines)
+            commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
+        }
+
         performanceTest.configure {
             dependsOn(buildCommitDistribution)
-            forkPointCommitBaseline.set(determineForkPointCommitBaseline.flatMap { it.forkPointCommitBaseline })
-        }
-        buildCommitDistribution.configure {
-            dependsOn(determineForkPointCommitBaseline)
-            commitBaseline.set(performanceTest.flatMap { provider { it.baselines } })
+            determinedBaselines.set(determineBaselines.flatMap { it.determinedBaselines })
         }
     }
 
@@ -419,7 +426,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.baselines = baselines as String
+                task.setBaselines(baselines as String)
             }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")

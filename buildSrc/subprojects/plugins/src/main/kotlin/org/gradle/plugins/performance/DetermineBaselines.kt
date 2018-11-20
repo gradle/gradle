@@ -23,14 +23,27 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 
 
-open class DetermineForkPointCommitBaseline : DefaultTask() {
+const val defaultBaseline = "defaults"
+
+
+const val forceDefaultBaseline = "force-defaults"
+
+
+open class DetermineBaselines : DefaultTask() {
     @Internal
-    val forkPointCommitBaseline = project.objects.property<String>()
+    val configuredBaselines = project.objects.property<String>()
+
+    @Internal
+    val determinedBaselines = project.objects.property<String>()
 
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        if (!currentBranchIsMasterOrRelease() && forkPointCommitBaseline.isDefaultValue()) {
-            forkPointCommitBaseline.set(forkPointCommitBaseline())
+        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
+            determinedBaselines.set(defaultBaseline)
+        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
+            determinedBaselines.set(forkPointCommitBaseline())
+        } else {
+            determinedBaselines.set(configuredBaselines)
         }
     }
 
@@ -43,7 +56,7 @@ open class DetermineForkPointCommitBaseline : DefaultTask() {
         }
 
     private
-    fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", "defaults", Config.baseLineList)
+    fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline, Config.baseLineList)
 
     private
     fun forkPointCommitBaseline(): String {

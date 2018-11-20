@@ -43,10 +43,10 @@ import org.gradle.process.CommandLineArgumentProvider;
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
-    private static final String DEFAULT_BASELINE = "defaults";
-    private static final String FORCE_DEFAULT_BASELINE = "force-defaults";
-    private Property<String> configuredBaselines = getProject().getObjects().property(String.class).value(DEFAULT_BASELINE);
-    private Property<String> forkPointCommitBaseline = getProject().getObjects().property(String.class);
+    // Baselines configured by command line `--baselines`
+    private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
+    // Baselines determined by determineBaselines task
+    private Property<String> determinedBaselines = getProject().getObjects().property(String.class);
     private String scenarios;
     private String warmups;
     private String runs;
@@ -66,7 +66,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     private boolean notContainsLastOrNightly(Task task) {
-        return Arrays.stream(getBaselines().split(","))
+        return Arrays.stream(determinedBaselines.getOrElse("").split(","))
             .map(String::trim)
             .noneMatch(baselineVersion -> "last".equals(baselineVersion) || "nightly".equals(baselineVersion));
     }
@@ -90,25 +90,19 @@ public class PerformanceTest extends DistributionTest {
         return scenarios;
     }
 
+    @Optional @Input
+    public Property<String> getDeterminedBaselines() {
+        return determinedBaselines;
+    }
+
     @Internal
-    public Property<String> getForkPointCommitBaseline() {
-        return forkPointCommitBaseline;
+    public Property<String> getConfiguredBaselines() {
+        return configuredBaselines;
     }
 
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     public void setBaselines(@Nullable String baselines) {
         this.configuredBaselines.set(baselines);
-    }
-
-    @Optional @Input
-    public String getBaselines() {
-        if (FORCE_DEFAULT_BASELINE.equals(configuredBaselines.get())) {
-            return DEFAULT_BASELINE;
-        } else if (forkPointCommitBaseline.isPresent()) {
-            return forkPointCommitBaseline.get();
-        } else {
-            return configuredBaselines.get();
-        }
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -205,7 +199,7 @@ public class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios);
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", getBaselines());
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull());
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);

@@ -118,7 +118,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
-        println("Running against baseline $baselines")
+        println("Running against baseline ${determinedBaselines.getOrElse('defaults')}")
         try {
             doExecuteTests()
         } finally {
@@ -172,7 +172,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: baselines],
+                    [name: 'baselines', value: determinedBaselines.getOrElse('defaults')],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],
