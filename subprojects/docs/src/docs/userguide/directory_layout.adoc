@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[directory_layout]]
-= Directory Layout
+= The Directories and Files Gradle Uses
 
 Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>. The following two sections describe what is stored in each of them and how transient files and directories are cleaned up.
 

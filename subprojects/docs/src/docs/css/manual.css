@@ -1812,7 +1812,7 @@ div.screenshot {
 .docs-navigation .pdf-link-container {
     display: inline-block;
     position: absolute;
-    top: 0.1em;
+    top: -1.25em;
     right: 0;
 }
 
