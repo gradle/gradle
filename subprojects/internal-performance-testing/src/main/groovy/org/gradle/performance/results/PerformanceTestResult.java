@@ -37,13 +37,8 @@ public abstract class PerformanceTestResult {
         whereAmI = new Throwable();
     }
 
-    protected static Checks whatToCheck() {
-        Checks result = Checks.ALL;
-        String override = System.getProperty("org.gradle.performance.execution.checks");
-        if (override != null) {
-            result = Checks.valueOf(override.toUpperCase());
-        }
-        return result;
+    public static boolean hasChecks() {
+        return Boolean.parseBoolean(System.getProperty("org.gradle.performance.execution.checks", "true"));
     }
 
     public String getTestId() {
@@ -133,8 +128,6 @@ public abstract class PerformanceTestResult {
     public void setChannel(String channel) {
         this.channel = channel;
     }
-
-    public abstract void assertEveryBuildSucceeds();
 
     public String getHost() {
         return host;

@@ -72,9 +72,6 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
         def results = runner.run()
 
         then:
-        results.assertEveryBuildSucceeds()
-
-        and:
         def groovyDslResults = buildBaselineResults(results, groovyDslBuildName)
         def kotlinDslResults = results.buildResult(kotlinDslBuildName)
 
