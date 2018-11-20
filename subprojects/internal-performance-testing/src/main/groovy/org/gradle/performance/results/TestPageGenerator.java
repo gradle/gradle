@@ -62,9 +62,6 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
             addPerformanceGraphs();
 
-            div().id("tooltip").end();
-            div().id("controls").end();
-
             h3().text("Test details").end();
             table().classAttr("test-details");
             tr();
@@ -201,6 +198,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                     div().classAttr("chart").id(chart.getChartId());
                         p().text("Loading...").end();
                     end();
+                    div().id(chart.getChartId() + "Legend").end();
                 });
 
                 script();
