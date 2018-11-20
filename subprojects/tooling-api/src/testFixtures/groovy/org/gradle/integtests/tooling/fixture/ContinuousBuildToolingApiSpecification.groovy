@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -48,9 +47,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
 
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
-
-    TestOutputStream stderr = new TestOutputStream()
-    TestOutputStream stdout = new TestOutputStream()
 
     ExecutionResult result
     ExecutionFailure failure
@@ -115,15 +111,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 
-                if (toolingApi.isEmbedded()) {
-                    launcher
-                        .setStandardOutput(stdout)
-                        .setStandardError(stderr)
-                } else {
-                    launcher
-                        .setStandardOutput(new TeeOutputStream(stdout, System.out))
-                        .setStandardError(new TeeOutputStream(stderr, System.err))
-                }
+                collectOutputs(launcher)
 
                 customizeLauncher(launcher)
 

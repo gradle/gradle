@@ -24,6 +24,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.Lock;
 class ChainingHttpHandler implements HttpHandler {
     private final AtomicInteger counter;
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
-    private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
+    private final List<RequestOutcome> outcomes = new CopyOnWriteArrayList<RequestOutcome>();
     private final Lock lock;
     private WaitPrecondition last;
     private boolean completed;
@@ -62,6 +63,12 @@ class ChainingHttpHandler implements HttpHandler {
     public void assertComplete() {
         lock.lock();
         try {
+            List<Throwable> failures = new ArrayList<Throwable>();
+            for (RequestOutcome outcome : outcomes) {
+                if (outcome.failure != null) {
+                    failures.add(outcome.failure);
+                }
+            }
             if (!completed) {
                 for (TrackingHttpHandler handler : handlers) {
                     try {
@@ -84,19 +91,21 @@ class ChainingHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             int id = counter.incrementAndGet();
+            RequestOutcome outcome = new RequestOutcome();
+            outcomes.add(outcome);
             String requestMethod = httpExchange.getRequestMethod();
             String requestPath = httpExchange.getRequestURI().getPath();
 
             System.out.println(String.format("[%d] handling %s %s", id, requestMethod, requestPath));
 
-            ResourceHandler resourceHandler = selectHandler(id, httpExchange);
+            ResourceHandler resourceHandler = selectHandler(id, httpExchange, outcome);
             if (resourceHandler != null) {
                 System.out.println(String.format("[%d] sending response for %s %s", id, requestMethod, requestPath));
                 try {
                     resourceHandler.writeTo(id, httpExchange);
                 } catch (Throwable t) {
                     System.out.println(String.format("[%d] handling %s %s failed with exception", id, requestMethod, requestPath));
-                    failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
+                    outcome.failure = new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t);
                 }
             } else {
                 System.out.println(String.format("[%d] sending error response for unexpected request", id));
@@ -117,7 +126,7 @@ class ChainingHttpHandler implements HttpHandler {
      * Returns null on failure.
      */
     @Nullable
-    private ResourceHandler selectHandler(int id, HttpExchange httpExchange) {
+    private ResourceHandler selectHandler(int id, HttpExchange httpExchange, RequestOutcome outcome) {
         lock.lock();
         try {
             requestCount++;
@@ -133,10 +142,10 @@ class ChainingHttpHandler implements HttpHandler {
                 }
             }
             System.out.println(String.format("[%d] unexpected request %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
-            failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));
+            outcome.failure = new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
         } catch (Throwable t) {
             System.out.println(String.format("[%d] error during handling of request %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
-            failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
+            outcome.failure = new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t);
         } finally {
             lock.unlock();
         }
@@ -156,6 +165,10 @@ class ChainingHttpHandler implements HttpHandler {
         } finally {
             lock.unlock();
         }
+    }
+
+    private static class RequestOutcome {
+        Throwable failure;
     }
 
     interface HandlerFactory<T extends TrackingHttpHandler> {
