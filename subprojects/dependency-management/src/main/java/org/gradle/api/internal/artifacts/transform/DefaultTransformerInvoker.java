@@ -87,7 +87,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
-                                     GradleUserHomeTransformerExecutionHistoryRepository gradleUserHomeHistoryRepository,
+                                     TransformerExecutionHistoryRepository gradleUserHomeHistoryRepository,
                                      OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                      ProjectFinder projectFinder,
@@ -155,7 +155,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private TransformerExecutionHistoryRepository determineHistoryRepository(Optional<ProjectInternal> producerProject) {
         return producerProject
-            .map(project -> (TransformerExecutionHistoryRepository) project.getServices().get(ProjectTransformerExecutionHistoryRepository.class))
+            .map(project -> project.getServices().get(TransformerExecutionHistoryRepository.class))
             .orElse(gradleUserHomeHistoryRepository);
     }
 

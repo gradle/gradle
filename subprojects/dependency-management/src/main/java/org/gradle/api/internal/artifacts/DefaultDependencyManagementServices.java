@@ -240,13 +240,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
-                                                    GradleUserHomeTransformerExecutionHistoryRepository historyRepository,
+                                                    GradleUserHomeTransformerExecutionHistoryRepository gradleUserHomeTransformerExecutionHistoryRepository,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                                     ProjectFinder projectFinder,
                                                     FeaturePreviews featurePreviews) {
-            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS));
+            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, gradleUserHomeTransformerExecutionHistoryRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS));
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {
