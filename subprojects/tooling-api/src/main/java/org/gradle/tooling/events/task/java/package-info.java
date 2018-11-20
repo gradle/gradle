@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.processing;
-
-import java.util.Locale;
-
 /**
- * The different kinds of annotation processors that the incremental compiler knows how to handle.
- * See the user guide chapter on incremental annotation processing for more information.
+ * Task execution result interfaces specific to Java projects.
  */
-public enum IncrementalAnnotationProcessorType {
-    ISOLATING,
-    AGGREGATING,
-    DYNAMIC,
-    UNKNOWN;
-
-    public String getProcessorOption() {
-        return "org.gradle.annotation.processing." + name().toLowerCase(Locale.ROOT);
-    }
-}
+package org.gradle.tooling.events.task.java;

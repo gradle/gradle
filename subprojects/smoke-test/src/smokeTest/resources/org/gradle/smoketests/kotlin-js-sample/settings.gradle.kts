@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.time
+rootProject.name = "kotlin-js-sample"
 
-import java.util.concurrent.TimeUnit
-
-class ControlledTimeSource implements TimeSource {
-
-    long nanoTime
-    long currentTimeMillis
-
-    @Override
-    long currentTimeMillis() {
-        currentTimeMillis
+pluginManagement {
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "kotlin2js") {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            }
+        }
     }
-
-    @Override
-    long nanoTime() {
-        TimeUnit.MILLISECONDS.toNanos(nanoTime)
-    }
-
 }

@@ -139,6 +139,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        // Remove this IDEA import workaround once we completely migrated to the native IDEA import
+        // See: https://github.com/gradle/gradle-private/issues/1675
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {

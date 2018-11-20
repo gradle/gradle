@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.util.ToBeImplemented
 
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -66,9 +65,22 @@ project(':app') {
     }
 
     dependencies {
+        // Single step transform
         registerTransform {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'size')
+            artifactTransform(FileSizer)
+        }
+
+        // Multi step transform
+        registerTransform {
+            from.attribute(artifactType, 'jar')
+            to.attribute(artifactType, 'inter')
+            artifactTransform(FileSizer)
+        }
+        registerTransform {
+            from.attribute(artifactType, 'inter')
+            to.attribute(artifactType, 'final')
             artifactTransform(FileSizer)
         }
     }
@@ -88,7 +100,7 @@ class FileSizer extends ArtifactTransform {
     }
     
     List<File> transform(File input) {
-        println "Received dependencies files \${artifactDependencies.dependencies*.name} for processing \${input.name}"
+        println "Received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
@@ -109,7 +121,7 @@ class FileSizer extends ArtifactTransform {
 project(':app') {
     task resolve(type: Copy) {
         def artifacts = configurations.compileClasspath.incoming.artifactView {
-            attributes { it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size')) }
+            attributes { it.attribute(artifactType, 'size') }
         }.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
@@ -133,7 +145,40 @@ project(':app') {
         output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
-    @ToBeImplemented("See assertions")
+    def "transform can access artifact dependencies, in previous transform step, as FileCollection when using ArtifactView"() {
+
+        given:
+
+        buildFile << """
+project(':app') {
+    task resolve(type: Copy) {
+        def artifacts = configurations.compileClasspath.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'final') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+        doLast {
+            println "files: " + artifacts.collect { it.file.name }
+            println "ids: " + artifacts.collect { it.id }
+            println "components: " + artifacts.collect { it.id.componentIdentifier }
+            println "variants: " + artifacts.collect { it.variant.attributes }
+        }
+    }
+}
+
+"""
+
+        when:
+        run "resolve"
+
+        then:
+        output.count('Transforming') == 8
+        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar.txt')
+        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+        output.contains('Received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar.txt')
+    }
+
     def "transform can access artifact dependencies as FileCollection when using configuration attributes"() {
 
         given:
@@ -167,7 +212,7 @@ project(':app') {
         then:
         output.count("Transforming") == 4
         // The asserts below should not have the .txt part
-        output.contains('Received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar')
-        output.contains('Received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar')
+        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 }

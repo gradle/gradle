@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -29,13 +30,12 @@ import java.util.Set;
  * @see DynamicProcessor
  */
 public class DynamicProcessingStrategy extends IncrementalProcessingStrategy {
-    private IncrementalProcessingStrategy delegate;
-    private AnnotationProcessingResult result;
 
-    DynamicProcessingStrategy(String processorName, AnnotationProcessingResult result) {
+    private IncrementalProcessingStrategy delegate;
+
+    DynamicProcessingStrategy(String processorName, AnnotationProcessorResult result) {
         super(result);
         this.delegate = new NonIncrementalProcessingStrategy(processorName, result);
-        this.result = result;
     }
 
     public void updateFromOptions(Set<String> supportedOptions) {

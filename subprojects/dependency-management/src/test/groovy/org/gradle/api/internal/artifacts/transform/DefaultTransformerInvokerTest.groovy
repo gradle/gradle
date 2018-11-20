@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
@@ -100,7 +99,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+        List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependencies) {
             return transformationAction.apply(primaryInput, outputDir)
         }
 
@@ -361,12 +360,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
             ), file.getName())
         return TransformationSubject.initial(artifactIdentifier,
         file,
-        new ArtifactTransformDependencies() {
-            @Override
-            Iterable<File> getDependencies() {
-                return ImmutableList.of()
-            }
-        })
+        ArtifactTransformDependenciesProvider.EMPTY)
     }
 
 }

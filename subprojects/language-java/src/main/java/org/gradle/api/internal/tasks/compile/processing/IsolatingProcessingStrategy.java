@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.ISOLATING;
 
 /**
  * The strategy for isolating annotation processors.
@@ -30,11 +32,9 @@ import java.util.Set;
  */
 class IsolatingProcessingStrategy extends IncrementalProcessingStrategy {
 
-    private final AnnotationProcessingResult result;
-
-    IsolatingProcessingStrategy(AnnotationProcessingResult result) {
+    IsolatingProcessingStrategy(AnnotationProcessorResult result) {
         super(result);
-        this.result = result;
+        result.setType(ISOLATING);
     }
 
     @Override

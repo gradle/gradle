@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -117,7 +116,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
                 return fireTransformListeners(transformer, subject, () -> {
                     CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getDependencies());
+                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getArtifactDependenciesProvider());
                     UpToDateResult outcome = workExecutor.execute(execution);
                     return execution.getResult(outcome);
                 });
@@ -189,18 +188,18 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File resultsFile;
         private final String identityString;
         private final TransformerExecutionHistoryRepository historyRepository;
-        private final ArtifactTransformDependencies dependencies;
+        private final ArtifactTransformDependenciesProvider dependenciesProvider;
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, String identityString, TransformerExecutionHistoryRepository historyRepository, CurrentFileCollectionFingerprint primaryInputFingerprint, ArtifactTransformDependencies dependencies) {
+        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, String identityString, TransformerExecutionHistoryRepository historyRepository, CurrentFileCollectionFingerprint primaryInputFingerprint, ArtifactTransformDependenciesProvider dependenciesProvider) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
             this.identityString = "transform/" + identityString;
             this.historyRepository = historyRepository;
             this.outputDir = workspace;
             this.resultsFile = new File(workspace.getParentFile(),  workspace.getName() + RESULTS_FILE_SUFFIX);
-            this.dependencies = dependencies;
+            this.dependenciesProvider = dependenciesProvider;
             this.inputSnapshots = ImmutableSortedMap.of(
                 // Emulate secondary inputs as a single property for now
                 SECONDARY_INPUTS_HASH_PROPERTY_NAME, ImplementationSnapshot.of("secondary inputs", transformer.getSecondaryInputHash())
@@ -214,7 +213,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public boolean execute() {
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
+            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependenciesProvider));
             writeResultsFile(outputDir, resultsFile, result);
             return true;
         }

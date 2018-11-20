@@ -16,7 +16,11 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @IntegrationTestTimeout(120)
 class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
@@ -226,6 +230,40 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         then:
         daemons.daemon.stops()
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
+    }
+
+    @Requires(TestPrecondition.UNIX)
+    def "worker daemons exit when the parent build daemon is killed"() {
+        withRunnableClassInBuildScript()
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+            }
+        """
+
+        when:
+        succeeds "runInWorker"
+
+        and:
+        def daemonProcess = new ProcessFixture(daemons.daemon.context.pid)
+        def children = daemonProcess.getChildProcesses()
+        // Sends a kill -9 to the daemon process only
+        daemons.daemon.killDaemonOnly()
+
+        then:
+        ConcurrentTestUtil.poll {
+            def info = daemonProcess.getProcessInfo(children)
+            // There is a header line in the process info
+            if (info.size() > 1) {
+                throw new IllegalStateException("Not all child processes have expired for daemon (pid ${daemons.daemon.context.pid}):\n" + info.join("\n"))
+            }
+        }
+
+        cleanup:
+        // In the event this fails, clean up any orphaned children
+        children.each { child ->
+            new ProcessFixture(child as Long).kill(true)
+        }
     }
 
     void newSnapshot() {

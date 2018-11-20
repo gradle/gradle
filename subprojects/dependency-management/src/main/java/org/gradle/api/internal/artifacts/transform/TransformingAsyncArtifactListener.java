@@ -54,7 +54,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        DefaultArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifactId, resolvableDependencies);
+        ArtifactTransformDependenciesProvider dependencies = transformation.requiresDependencies()
+            ? new ArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
+            : ArtifactTransformDependenciesProvider.EMPTY;
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file, dependencies);
         initialSubjectAvailable(artifactId, initialSubject, artifactResults);
     }

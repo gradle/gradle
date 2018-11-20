@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
+
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.AGGREGATING
 
 class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
@@ -233,6 +236,20 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         and:
         outputContains("Full recompilation is required because '@Service' has source retention. Aggregating annotation processors require class or runtime retention.")
+    }
+
+    def "reports aggregating processor in build operation"() {
+        java "class Irrelevant {}"
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'ServiceProcessor'
+            first().type == AGGREGATING.name()
+        }
     }
 
     private boolean serviceRegistryReferences(String... services) {

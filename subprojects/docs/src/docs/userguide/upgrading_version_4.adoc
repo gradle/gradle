@@ -20,7 +20,7 @@ This chapter provides the information you need to migrate your older Gradle 4.x 
 We recommend the following steps for all users:
 
  . If you are not already on version 4.10.2, read the sections <<#changes_5.0,below>> for help upgrading your project to 4.10.2.
- . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+ . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan. If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
@@ -177,11 +177,12 @@ Miscellaneous::
  * The internal `org.gradle.util` package is no longer imported by default.
 +
 Ideally you shouldn't use classes from this package, but, as a quick fix, you can add explicit imports to your build scripts for those classes.
+ * The `gradlePluginPortal()` repository <<#rel5.0:gradle_plugin_portal_metadata,no longer looks for JARs without a POM by default>>.
  * The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. The same applies to builds run through TestKit.
  * Gradle 5.0 requires a minimum Tooling API client version of 3.0. Older client libraries can no longer run builds with Gradle 5.0.
  * The IdeaModule Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of `IdeaModule.getSourceDirs()` and `IdeaModule.getTestSourceDirs()`.
  * In previous Gradle versions, the `source` field in `SourceTask` was accessible from subclasses. This is not the case anymore as the `source` field is now declared as `private`.
- * In the Worker API, <<#rel5.0_worker_api, the working directory of a worker can no longer be set>>.
+ * In the Worker API, <<#rel5.0:worker_api, the working directory of a worker can no longer be set>>.
  * A change in behavior related to <<#rel5.0:dependency_constraints,dependency and version constraints>> may impact a small number of users.
  * There have been several changes to <<#rel5.0:changes_to_default_task,property factory methods on DefaultTask>> that may impact the creation of custom tasks.
 
@@ -399,7 +400,7 @@ We recommend configuring a ruleset explicitly, though.
 === [5.0] Library upgrades
 Several libraries that are used by Gradle have been upgraded:
 
- * Groovy was upgraded from 2.4.15 to http://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.3].
+ * Groovy was upgraded from 2.4.15 to http://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.4].
  * Ant has been upgraded from 1.9.11 to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.13.html[1.9.13].
  * The AWS SDK used to access S3-backed Maven/Ivy repositories has been upgraded from 1.11.267 to https://github.com/aws/aws-sdk-java/blob/master/CHANGELOG.md#111407-2018-09-11[1.11.407].
  * The BND library used by the OSGi Plugin has been upgraded from 3.4.0 to https://github.com/bndtools/bnd/wiki/Changes-in-4.0.0[4.0.0].
@@ -456,7 +457,11 @@ The Property instances that are returned by these methods are no longer automati
 
 For example, you could previously use the following syntax and have both outputFile instances registered as declared outputs:
 
-[source, groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
 ----
 class MyTask extends DefaultTask {
     // note: no annotation here
@@ -468,9 +473,31 @@ task myOtherTask {
     doLast { ... }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+open class MyTask : DefaultTask() {
+    // note: no annotation here
+    val outputFile: RegularFileProperty = newOutputFile()
+}
+
+task("myOtherTask") {
+    val outputFile = newOutputFile()
+    doLast { ... }
+}
+----
+=====
+====
 
 Now you have to explicitly register `outputFile`, like this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 class MyTask extends DefaultTask {
@@ -484,6 +511,25 @@ task myOtherTask {
     doLast { ... }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+open class MyTask : DefaultTask() {
+    @OutputFile // property needs an annotation
+    val outputFile: RegularFileProperty = project.objects.fileProperty()
+}
+
+task("myOtherTask") {
+    val outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+----
+=====
+====
 
 [[rel5.0:jaxb_and_java9]]
 === [5.0] Gradle now bundles JAXB for Java 9 and above
@@ -493,6 +539,53 @@ In order to use S3 backed artifact repositories, you previously had to add `--ad
 Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
 
 Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
+[[rel5.0:gradle_plugin_portal_metadata]]
+=== [5.0] The `gradlePluginPortal()` repository no longer looks for JARs without a POM by default
+
+With this new behavior, if a plugin or a transitive dependency of a plugin found in the `gradlePluginPortal()` repository has no Maven POM it will fail to resolve.
+
+Artifacts published to a Maven repository without a POM should be fixed. If you encounter such artifacts, please ask the plugin or library author to publish a new version with proper metadata.
+
+If you are stuck with a bad plugin, you can work around by re-enabling JARs as metadata source for the `gradlePluginPortal()` repository:
+
+====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal().tap {
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+    }
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal().apply {
+            (this as MavenArtifactRepository).metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+    }
+}
+----
+=====
+====
 
 [[rel5.0:java_library_distribution_plugin]]
 === Java Library Distribution Plugin utilizes Java Library Plugin
@@ -509,22 +602,54 @@ The <<#task_configuration_avoidance, configuration avoidance API>> introduced in
 
 With the existing API, this example adds two tasks (`foo` and `bar`):
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 tasks.create("foo") {
     tasks.create("bar")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.create("foo") {
+    tasks.create("bar")
+}
+----
+=====
+====
 
 When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary,
 so the `register()` for task `bar` only executes when `foo` is configured.
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source, groovy]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+----
+=====
+====
 
 To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create()` or `register()`) when using the new API.
 
@@ -586,13 +711,34 @@ As part of the stabilization effort in Gradle 4.8, we are deprecating this behav
 
 The new, stable behavior can be switched on by adding the following to your settings file:
 
-    enableFeaturePreview('STABLE_PUBLISHING')
+====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('STABLE_PUBLISHING')
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+enableFeaturePreview("STABLE_PUBLISHING")
+----
+=====
+====
 
 We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates. In most cases everything should work as before and you are done. However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
 
 For example, under the new behavior, the following logic assumes that `jar.baseName` doesn't change after `artifactId` is set:
 
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 subprojects {
     publishing {
@@ -605,11 +751,33 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                artifactId = tasks.jar.get().baseName
+            }
+        }
+    }
+}
+----
+=====
+====
 
 If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
 
-
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 subprojects {
     publishing {
@@ -624,25 +792,80 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                afterEvaluate {
+                    artifactId = tasks.jar.get().baseName
+                }
+            }
+        }
+    }
+}
+----
+=====
+====
 
 [[rel4.8:configure_internal_tasks]]
 === [4.8] Configure existing `wrapper` and `init` tasks
 
 You should no longer define your own `wrapper` and `init` tasks. Configure the existing tasks instead, for example by converting this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 task wrapper(type: Wrapper) {
     ...
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+task<Wrapper>("wrapper") {
+    ...
+}
+----
+=====
+====
 
 to this:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 wrapper {
     ...
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.wrapper {
+    ...
+}
+----
+=====
+====
 
 [[rel4.8:pom_wildcard_exclusions]]
 === [4.8] Gradle now honors implicit wildcards in Maven POM exclusions
@@ -711,6 +934,11 @@ The following have also seen similar changes:
 
 link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioExtension.html[VisualStudioExtension] no longer has a `solutions` property. Instead, you configure a single solution via link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioRootExtension.html[VisualStudioRootExtension] in the root project, like so:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
 ----
 model {
     visualStudio {
@@ -720,6 +948,8 @@ model {
     }
 }
 ----
+=====
+====
 
 In addition, there are no longer individual tasks to generate the solution files for each component, but rather a single `visualStudio` task that generates a solution file that encompasses all components in the build.
 
@@ -752,4 +982,3 @@ This fix the following security issues:
  * SONATYPE-2017-0348 (severe)
 
 Gradle does not expose public APIs for these 3rd-party dependencies, but those who customize Gradle will want to be aware.
-

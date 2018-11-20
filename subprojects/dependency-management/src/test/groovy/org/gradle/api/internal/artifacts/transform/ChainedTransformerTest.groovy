@@ -64,6 +64,11 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
+        boolean requiresDependencies() {
+            return false
+        }
+
+        @Override
         boolean hasCachedResult(TransformationSubject subject) {
             return true
         }
@@ -83,6 +88,11 @@ class ChainedTransformerTest extends Specification {
         @Override
         TransformationSubject transform(TransformationSubject subject) {
             return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")))
+        }
+
+        @Override
+        boolean requiresDependencies() {
+            return false
         }
 
         @Override

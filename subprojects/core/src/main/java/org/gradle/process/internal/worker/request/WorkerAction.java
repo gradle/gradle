@@ -23,6 +23,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -35,7 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
-public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable {
+public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable, StreamCompletion {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
@@ -77,6 +78,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void stop() {
         completed.countDown();
         CurrentBuildOperationRef.instance().clear();
+    }
+
+    @Override
+    public void endStream() {
+        // This happens when the connection between the worker and the build daemon is closed for some reason,
+        // possibly because the build daemon died unexpectedly.
+        stop();
     }
 
     @Override

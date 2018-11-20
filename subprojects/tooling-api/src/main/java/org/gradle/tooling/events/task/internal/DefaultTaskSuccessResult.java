@@ -22,7 +22,7 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 /**
  * Implementation of the {@code TaskSuccessResult} interface.
  */
-public final class DefaultTaskSuccessResult extends DefaultOperationSuccessResult implements TaskSuccessResult {
+public class DefaultTaskSuccessResult extends DefaultOperationSuccessResult implements TaskSuccessResult {
 
     private final boolean upToDate;
     private final boolean fromCache;

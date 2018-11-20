@@ -32,6 +32,11 @@ public interface Transformation extends Describable {
     TransformationSubject transform(TransformationSubject subject);
 
     /**
+     * Whether the transformation requires dependencies of transformed artifact to be injected.
+     */
+    boolean requiresDependencies();
+
+    /**
      * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject)} will be fast.
      */
     boolean hasCachedResult(TransformationSubject subject);

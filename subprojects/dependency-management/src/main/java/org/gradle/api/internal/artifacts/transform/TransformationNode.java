@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
@@ -162,11 +161,13 @@ public abstract class TransformationNode extends Node {
                     } else {
                         failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", failures);
                     }
-                    this.transformedSubject =TransformationSubject.failure("artifact " + artifactSet.getArtifactId().getDisplayName(), failure);
+                    this.transformedSubject = TransformationSubject.failure("artifact " + artifactSet.getArtifactId().getDisplayName(), failure);
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                ArtifactTransformDependencies dependencies = new DefaultArtifactTransformDependencies(artifact.getId(), resolvableDependencies);
+                ArtifactTransformDependenciesProvider dependencies = transformationStep.requiresDependencies()
+                    ? new ArtifactTransformDependenciesProvider(artifact.getId(), resolvableDependencies)
+                    : ArtifactTransformDependenciesProvider.EMPTY;
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile(), dependencies);
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
