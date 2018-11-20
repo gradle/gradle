@@ -390,7 +390,7 @@ open class IdePlugin : Plugin<Project> {
     private
     fun ProjectSettings.configureSyncTasks(subprojects: Set<Project>) {
         subprojects.forEach { subproject ->
-            with(subproject) {
+            subproject.run {
                 afterEvaluate {
                     taskTriggers {
                         val classpathManifest = tasks.findByName("classpathManifest")
