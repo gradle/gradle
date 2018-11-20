@@ -792,22 +792,18 @@ include 'other'
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:core:2.7.9", "org:core:2.9.4.1") {
-                    forced()
-                }
+                edge("org:core:2.7.9", "org:core:2.9.4.1")
                 module("org:databind:2.9.4.1") {
                     module('org:annotations:2.9.4.1')
                     module('org:core:2.9.4.1')
                 }
                 edge("org:kotlin:2.9.4", "org:kotlin:2.9.4.1") {
-                    forced()
                     module('org:core:2.9.4.1')
                     module('org:annotations:2.9.4.1')
                 }
                 constraint('org:platform:2.9.4.1', 'org:platform:2.9.4.1') {
                     noArtifacts()
                     byConstraint("belongs to platform org:platform:2.9.4.1")
-                    forced()
                     constraint('org:core:2.9.4.1')
                     constraint('org:databind:2.9.4.1')
                     constraint('org:annotations:2.9.4.1')
