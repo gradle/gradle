@@ -64,6 +64,13 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         this.consumerAttributes = ((AttributeContainerInternal)attributes).asImmutable();
     }
 
+    public Action<? super ArtifactResolutionDetails> getFilterAction() {
+        return filterAction;
+    }
+
+    public String getConsumerName() {
+        return consumerName;
+    }
 
     @Override
     public String getId() {

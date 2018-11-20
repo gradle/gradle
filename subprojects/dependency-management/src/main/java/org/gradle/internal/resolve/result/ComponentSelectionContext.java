@@ -16,8 +16,11 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
@@ -61,4 +64,19 @@ public interface ComponentSelectionContext {
      * @param rejectedVersion a version rejected by attribute matching
      */
     void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion);
+
+    /**
+     * Returns the repository content filter, if any.
+     */
+    Action<? super ArtifactResolutionDetails> getContentFilter();
+
+    /**
+     * Returns the name of the configuration being resolved
+     */
+    String getConfigurationName();
+
+    /**
+     * Returns the consumer attributes
+     */
+    ImmutableAttributes getConsumerAttributes();
 }

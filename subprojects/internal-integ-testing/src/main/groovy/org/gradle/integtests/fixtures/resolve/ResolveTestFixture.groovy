@@ -571,13 +571,14 @@ allprojects {
         /**
          * Defines a dependency on a unique snapshot module.
          */
-        NodeBuilder snapshot(String moduleVersionId, String timestamp) {
+        NodeBuilder snapshot(String moduleVersionId, String timestamp, String requestedVersion = null) {
             def id = moduleVersionId + ":" + timestamp
             def parts = moduleVersionId.split(':')
             assert parts.length == 3
-            def attrs = [group: parts[0], module: parts[1], version: parts[2]]
+            def (group, name, version) = parts
+            def attrs = [group: group, module: name, version: version]
             def node = graph.node(id, moduleVersionId, attrs)
-            deps << new EdgeBuilder(this, moduleVersionId, node)
+            deps << new EdgeBuilder(this, requestedVersion?"${group}:${name}:${requestedVersion}":moduleVersionId, node)
             return node
         }
 

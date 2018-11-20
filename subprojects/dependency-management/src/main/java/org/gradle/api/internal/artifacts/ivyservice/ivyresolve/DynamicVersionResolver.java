@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -332,6 +333,27 @@ public class DynamicVersionResolver {
         @Override
         public void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion) {
             rejectedVersions.add(rejectedVersion);
+        }
+
+        @Override
+        public Action<? super ArtifactResolutionDetails> getContentFilter() {
+            if (repository instanceof FilteredModuleComponentRepository) {
+                return ((FilteredModuleComponentRepository) repository).getFilterAction();
+            }
+            return null;
+        }
+
+        @Override
+        public String getConfigurationName() {
+            if (repository instanceof FilteredModuleComponentRepository) {
+                return ((FilteredModuleComponentRepository) repository).getConsumerName();
+            }
+            return null;
+        }
+
+        @Override
+        public ImmutableAttributes getConsumerAttributes() {
+            return consumerAttributes;
         }
 
         @Override

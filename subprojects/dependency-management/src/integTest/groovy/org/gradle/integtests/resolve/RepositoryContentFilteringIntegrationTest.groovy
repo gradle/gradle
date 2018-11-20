@@ -585,6 +585,63 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
+    def "presence of snapshots in a repo shouldn't prevent from getting latest release"() {
+        def latestSnapshot = mavenHttpRepo.module('org', 'foo', '1.1-SNAPSHOT').publish()
+        def latestRelease = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""mavenContent { releasesOnly() }""")
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:latest.release"
+            }
+        """
+        when:
+        latestSnapshot.rootMetaData.expectGet()
+        latestRelease.pom.expectGet()
+        latestRelease.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:latest.release', 'org:foo:1.0')
+            }
+        }
+    }
+
+    def "presence of releases in a repo shouldn't prevent from getting latest snapshot"() {
+        def latestRelease = mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        def latestSnapshot = mavenHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+
+        given:
+        repositories {
+            maven("""mavenContent { snapshotsOnly() }""")
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:latest.integration"
+            }
+        """
+        when:
+        latestRelease.rootMetaData.expectGet()
+        latestSnapshot.metaData.expectGet()
+        latestSnapshot.pom.expectGet()
+        latestSnapshot.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                snapshot('org:foo:1.0-SNAPSHOT', latestSnapshot.uniqueSnapshotVersion, 'latest.integration')
+            }
+        }
+    }
+
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
                     assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
