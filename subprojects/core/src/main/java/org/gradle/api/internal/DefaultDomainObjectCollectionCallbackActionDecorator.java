@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -27,12 +26,12 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class DefaultDomainObjectCollectionCallbackActionDecorator implements DomainObjectCollectionCallbackActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final DefaultUserCodeApplicationContext userCodeApplicationContext;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultDomainObjectCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
         // TODO RG: discuss interface
-        this.userCodeApplicationContext = (DefaultUserCodeApplicationContext) userCodeApplicationContext;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override

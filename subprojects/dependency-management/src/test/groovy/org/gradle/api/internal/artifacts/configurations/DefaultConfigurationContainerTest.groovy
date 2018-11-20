@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -59,7 +60,8 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
+    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = Mock()
+    private UserCodeApplicationContext userCodeApplicationContext = Mock()
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -73,7 +75,8 @@ class DefaultConfigurationContainerTest extends Specification {
             resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry, documentationRegistry, callbackActionDecorator)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry,
+            documentationRegistry, callbackActionDecorator, userCodeApplicationContext)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

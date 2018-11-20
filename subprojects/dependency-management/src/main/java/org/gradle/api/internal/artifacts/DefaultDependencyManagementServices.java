@@ -88,6 +88,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
@@ -292,7 +293,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     DocumentationRegistry documentationRegistry,
-                                                                    DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
+                                                                    DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator,
+                                                                    UserCodeApplicationContext userCodeApplicationContext) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -314,7 +316,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 dependencyLockingProvider,
                 projectStateRegistry,
                 documentationRegistry,
-                domainObjectCollectioncallbackActionDecorator
+                domainObjectCollectioncallbackActionDecorator,
+                userCodeApplicationContext
             );
         }
 

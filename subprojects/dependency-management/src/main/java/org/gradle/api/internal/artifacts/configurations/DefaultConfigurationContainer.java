@@ -42,6 +42,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -66,6 +67,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final ProjectFinder projectFinder;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final UserCodeApplicationContext userCodeApplicationContext;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
@@ -92,7 +94,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          final DependencyLockingProvider dependencyLockingProvider,
                                          ProjectStateRegistry projectStateRegistry,
                                          DocumentationRegistry documentationRegistry,
-                                         DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
+                                         DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator,
+                                         UserCodeApplicationContext userCodeApplicationContext) {
         super(Configuration.class, instantiator, new Configuration.Namer(), domainObjectCollectioncallbackActionDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -103,6 +106,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.projectFinder = projectFinder;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.userCodeApplicationContext = userCodeApplicationContext;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory().create();
         this.attributesFactory = attributesFactory;
@@ -121,7 +125,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry, getCallbackActionDecorator());
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry, getCallbackActionDecorator(), userCodeApplicationContext);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -152,7 +156,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             context, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), projectStateRegistry, documentationRegistry, getCallbackActionDecorator());
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), projectStateRegistry, documentationRegistry, getCallbackActionDecorator(), userCodeApplicationContext);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

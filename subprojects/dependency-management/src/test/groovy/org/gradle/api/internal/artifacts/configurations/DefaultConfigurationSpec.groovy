@@ -60,6 +60,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
 import org.gradle.internal.event.ListenerBroadcast
@@ -98,6 +99,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
     def domainObjectCollectioncallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
+    def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -1755,7 +1757,8 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry), domainObjectCollectioncallbackActionDecorator)
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry),
+            domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext)
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -281,12 +281,12 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         settingsFile << """
         gradle.allprojects {
-                
-                // the configuration block of the repositories block below does not properly 
-                // emit the application id of the settings.gradle script as the beforeResolve 
-                // callback is not decorated at the moment it. The applicationId of the root
-                // build.gradle file is emitted instead.
-                
+//                
+//                // the configuration block of the repositories block below does not properly 
+//                // emit the application id of the settings.gradle script as the beforeResolve 
+//                // callback is not decorated at the moment it. The applicationId of the root
+//                // build.gradle file is emitted instead.
+//                
 //                buildscript.configurations["classpath"].incoming.beforeResolve {
 //                    buildscript.repositories.all {
 //                        println "script repo callback"
@@ -323,6 +323,46 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         findCallbackActionBuildOp('project repo callback').details.applicationId == settingsScriptApplicationId.details.applicationId
         findCallbackActionBuildOp('script repo callback').details.applicationId == settingsScriptApplicationId.details.applicationId
     }
+
+    def "applicationIds for container callbacks registered in beforeResolve and afterResolve callbacks are emitted correctly"() {
+        given:
+        file('callback.gradle') << """
+            configurations {
+                foo {
+                    incoming.beforeResolve {
+                        repositories.all {
+                            println "before resolve repo container callback"
+                        }
+                    }
+                    incoming.afterResolve {
+                        repositories.all {
+                            println "after resolve repo container callback"
+                        }
+                    }
+                }
+            }"""
+
+        buildFile << """
+            apply from: 'callback.gradle'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            configurations.foo.resolve()
+            
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def callbackScriptApplicationId = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('callback.gradle') })
+
+        findCallbackActionBuildOp('before resolve repo container callback').details.applicationId == callbackScriptApplicationId.details.applicationId
+        findCallbackActionBuildOp('after resolve repo container callback').details.applicationId == callbackScriptApplicationId.details.applicationId
+    }
+
 
     def createArtifactTypeSnippet() {
         """

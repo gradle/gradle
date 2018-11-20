@@ -26,4 +26,14 @@ class TestUserCodeApplicationContext implements UserCodeApplicationContext {
     void apply(Action<? super UserCodeApplicationId> action) {
         DELEGATE.apply(action)
     }
+
+    @Override
+    void reapply(UserCodeApplicationId id, Runnable runnable) {
+        DELEGATE.reapply(id, runnable)
+    }
+
+    @Override
+    UserCodeApplicationId current() {
+        return null
+    }
 }
