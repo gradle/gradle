@@ -119,10 +119,6 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             } else if (element instanceof TaskOutputs) {
                 TaskOutputs outputs = (TaskOutputs) element;
                 queue.add(0, outputs.getFiles());
-            } else if (element instanceof Provider) {
-                Provider provider = (Provider) element;
-                Object providerResult = provider.get();
-                queue.add(0, providerResult);
             } else if (DeferredUtil.isDeferred(element)) {
                 Object deferredResult = DeferredUtil.unpack(element);
                 if (deferredResult != null) {
