@@ -30,7 +30,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
-            $runnableThatFails
+            ${fixture.runnableThatFails}
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
@@ -56,7 +56,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
-            $runnableThatFails
+            ${fixture.runnableThatFails}
             $workerTaskThatWaits
 
             task runInWorker(type: WorkerTaskThatWaits) {
@@ -296,28 +296,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         } else {
             return "Unrecognized option: -foo"
         }
-    }
-
-    String getRunnableThatFails() {
-        return """
-            public class RunnableThatFails implements Runnable {
-                private final File outputDir;
-                
-                @javax.inject.Inject
-                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
-                    this.outputDir = outputDir;
-                }
-
-                public void run() {
-                    try {
-                        throw new RuntimeException("Failure from runnable");
-                    } finally {
-                        outputDir.mkdirs();
-                        new File(outputDir, "finished").createNewFile();
-                    }                    
-                }
-            }
-        """
     }
 
     String getWorkerTaskThatWaits() {

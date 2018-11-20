@@ -116,6 +116,28 @@ class WorkerExecutorFixture {
         """
     }
 
+    String getRunnableThatFails(Class<? extends RuntimeException> exceptionClass = RuntimeException.class, String message = "Failure from runnable") {
+        return """
+            public class RunnableThatFails implements Runnable {
+                private final File outputDir;
+                
+                @javax.inject.Inject
+                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
+                    this.outputDir = outputDir;
+                }
+
+                public void run() {
+                    try {
+                        throw new ${exceptionClass.name}("$message");
+                    } finally {
+                        outputDir.mkdirs();
+                        new File(outputDir, "finished").createNewFile();
+                    }                    
+                }
+            }
+        """
+    }
+
     void withParameterClassInBuildSrc() {
         file("buildSrc/src/main/java/org/gradle/other/Foo.java") << """
             package org.gradle.other;

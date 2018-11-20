@@ -272,6 +272,30 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
+    def "includes failures in build operation in #isolationMode"() {
+        given:
+        fixture.withRunnableClassInBuildSrc()
+        buildFile << """
+            ${fixture.runnableThatFails}
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                runnableClass = RunnableThatFails.class
+            }
+        """
+
+        when:
+        fails("runInWorker")
+
+        then:
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "RunnableThatFails"
+        operation.failure == "java.lang.RuntimeException: Failure from runnable"
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
     def "can use a parameter that references classes in other packages in #isolationMode"() {
         fixture.withRunnableClassInBuildSrc()
         withParameterClassReferencingClassInAnotherPackage()

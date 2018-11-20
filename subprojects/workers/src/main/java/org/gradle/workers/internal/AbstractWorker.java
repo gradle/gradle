@@ -43,6 +43,7 @@ public abstract class AbstractWorker implements Worker {
             public DefaultWorkResult call(BuildOperationContext context) {
                 DefaultWorkResult result = work.execute(spec);
                 context.setResult(RESULT);
+                context.failed(result.getException());
                 return result;
             }
 
