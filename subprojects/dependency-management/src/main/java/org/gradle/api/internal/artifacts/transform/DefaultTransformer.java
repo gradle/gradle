@@ -53,7 +53,7 @@ public class DefaultTransformer implements Transformer {
         return validateOutputs(primaryInput, outputDir, outputs);
     }
 
-    private List<File> validateOutputs(File primaryInput, File outputDir, @Nullable List<File> outputs) {
+    private static List<File> validateOutputs(File primaryInput, File outputDir, @Nullable List<File> outputs) {
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }

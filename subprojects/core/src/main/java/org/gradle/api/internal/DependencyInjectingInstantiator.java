@@ -23,12 +23,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 
-import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -82,7 +80,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 try {
                     validateType(type);
                     Class<? extends T> implClass = classGenerator.generate(type);
-                    Constructor<?> constructor = selectConstructor(type, implClass);
+                    Constructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
                     constructor.setAccessible(true);
                     return CachedConstructor.of(constructor);
                 } catch (Throwable e) {
@@ -140,18 +138,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         return resolvedParameters;
     }
 
-    private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
-        if (isPackagePrivate(type.getModifiers())) {
-            return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
-        } else {
-            return Modifier.isPublic(constructor.getModifiers());
-        }
-    }
-
-    private static boolean isPackagePrivate(int modifiers) {
-        return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
-    }
-
     private static <T> void validateType(Class<T> type) {
         if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
             throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
@@ -162,40 +148,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         if (Modifier.isAbstract(type.getModifiers())) {
             throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
         }
-    }
-
-    private static Constructor<?> selectConstructor(Class<?> type, Class<?> implType) {
-        Constructor<?>[] constructors = implType.getDeclaredConstructors();
-
-        if (constructors.length == 1) {
-            Constructor<?> constructor = constructors[0];
-            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(implType, constructor)) {
-                return constructor;
-            }
-            if (constructor.getAnnotation(Inject.class) != null) {
-                return constructor;
-            }
-            if (constructor.getParameterTypes().length == 0) {
-                throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", type.getName()));
-            } else {
-                throw new IllegalArgumentException(String.format("The constructor for class %s should be annotated with @Inject.", type.getName()));
-            }
-        }
-
-        List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
-        for (Constructor<?> constructor : constructors) {
-            if (constructor.getAnnotation(Inject.class) != null) {
-                injectConstructors.add(constructor);
-            }
-        }
-
-        if (injectConstructors.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", type.getName()));
-        }
-        if (injectConstructors.size() > 1) {
-            throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
-        }
-        return injectConstructors.get(0);
     }
 
     static class CachedConstructor {

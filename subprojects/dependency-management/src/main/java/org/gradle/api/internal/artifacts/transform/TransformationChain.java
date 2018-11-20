@@ -38,6 +38,11 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
+    public boolean requiresDependencies() {
+        return first.requiresDependencies() || second.requiresDependencies();
+    }
+
+    @Override
     public boolean hasCachedResult(TransformationSubject subject) {
         if (first.hasCachedResult(subject)) {
             TransformationSubject intermediate = first.transform(subject);

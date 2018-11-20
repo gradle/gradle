@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
+import org.gradle.api.internal.InjectUtil;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -29,6 +31,7 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
@@ -53,7 +56,18 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         paramsSnapshot.appendToHasher(hasher);
 
         Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
-        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        boolean requiresDependencies = hasDependenciesAmongConstructorParameters(implementation);
+        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker, requiresDependencies));
+    }
+
+    private static boolean hasDependenciesAmongConstructorParameters(Class<? extends ArtifactTransform> implementation) {
+        Constructor<?> constructor = InjectUtil.selectConstructor(implementation);
+        for (Class<?> parameterType : constructor.getParameterTypes()) {
+            if (ArtifactTransformDependencies.class.equals(parameterType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
