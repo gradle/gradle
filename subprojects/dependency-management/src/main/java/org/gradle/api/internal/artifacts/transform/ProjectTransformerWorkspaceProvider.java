@@ -21,8 +21,10 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
+@NotThreadSafe
 public class ProjectTransformerWorkspaceProvider implements TransformerWorkspaceProvider {
 
     private final Provider<Directory> baseDirectory;

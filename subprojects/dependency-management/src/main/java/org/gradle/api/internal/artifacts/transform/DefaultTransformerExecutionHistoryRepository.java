@@ -29,10 +29,12 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@ThreadSafe
 public abstract class DefaultTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
     
     private final ExecutionHistoryStore executionHistoryStore;

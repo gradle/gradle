@@ -28,6 +28,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORM
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
+@NotThreadSafe
 public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
 
