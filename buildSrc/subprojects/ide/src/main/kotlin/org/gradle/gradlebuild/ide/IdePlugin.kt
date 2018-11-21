@@ -223,10 +223,6 @@ open class IdePlugin : Plugin<Project> {
                     // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
-                    delegateActions {
-                        delegateBuildRunToGradle = false
-                        testRunner = ActionDelegationConfig.TestRunner.PLATFORM
-                    }
                     configureSyncTasks(subprojects)
                 }
             }
