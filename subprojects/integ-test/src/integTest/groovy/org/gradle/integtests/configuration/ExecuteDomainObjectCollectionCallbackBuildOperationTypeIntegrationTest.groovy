@@ -234,19 +234,21 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         tasksContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
     }
 
-    def "filtered container callbacks emit build operation with application id for matching items only"() {
+    @Unroll
+    def "filtered #container container callbacks emit build operation with application id for matching items only"() {
         given:
         file('script.gradle') << """
-            tasks.withType(Test).matching {it.path == ':someTest'}.all {
-                println 'test tasks container callback'
+            ${container}.${filter}.all {
+                println 'container callback'
             }
         """
         buildFile << """
             apply from:'script.gradle'
-
-            tasks.register('someTest', Test)
-            tasks.register('anotherTest', Test)
-            tasks.register('someCompile', JavaCompile)
+            class FooPlugin implements Plugin<Project> { void apply(Project p) {} }
+            class BarPlugin implements Plugin<Project> { void apply(Project p) {} }
+            
+            ${domainObjectCreation('foo')}
+            ${domainObjectCreation('bar')}
         """
 
         when:
@@ -256,6 +258,13 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         def scriptPluginApplication = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('script.gradle') })
         def executeDomainObjectCallbackOps = ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.details.applicationId == scriptPluginApplication.details.applicationId })
         assert executeDomainObjectCallbackOps.size() == 1
+
+        where:
+        container        | filter                                                     | domainObjectCreation
+        'tasks'          | "withType(Test).matching {it.name == 'foo'}"               | { name -> "tasks.register('$name', Test)" }
+        'repositories'   | "withType(ArtifactRepository).matching {it.name == 'foo'}" | { name -> "repositories {maven { name = '$name' }}" }
+        'configurations' | "matching {it.name == 'foo'}"                              | { name -> "configurations.create('$name')" }
+        'plugins'        | "matching {it.class.simpleName == 'FooPlugin'}"            | { name -> "apply plugin:${name.capitalize()}Plugin" }
     }
 
     def "container callbacks registered from lifecycle listener emit build operation with application id"() {
