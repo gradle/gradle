@@ -109,7 +109,7 @@ class DefaultTransformerExecutionHistoryRepositoryTest extends ConcurrentSpec {
         }
 
         @Override
-        String getInitialSubjectFileName() {
+        String getHumanReadableIdentifier() {
             return name
         }
 

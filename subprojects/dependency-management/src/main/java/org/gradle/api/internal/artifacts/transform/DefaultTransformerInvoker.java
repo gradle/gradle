@@ -130,24 +130,24 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, File primaryInput, Transformer transformer, TransformationSubject subject) {
-        String initialFileName = subject.getInitialFileName();
-        return project == null ? getImmutableTransformationIdentity(primaryInput, transformer, initialFileName) :
-            getMutableTransformationIdentity(primaryInput, transformer, initialFileName);
+        String humanReadableIdentifier = subject.getHumanReadableIdentifier();
+        return project == null ? getImmutableTransformationIdentity(primaryInput, transformer, humanReadableIdentifier) :
+            getMutableTransformationIdentity(primaryInput, transformer, humanReadableIdentifier);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer, String initialFileName) {
+    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer, String humanReadableIdentifier) {
         FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
         return new ImmutableTransformationIdentity(
-            initialFileName,
+            humanReadableIdentifier,
             snapshot.getAbsolutePath(),
             snapshot.getHash(),
             transformer.getSecondaryInputHash()
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, String initialFileName) {
+    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, String humanReadableIdentifier) {
         return new MutableTransformationIdentity(
-            initialFileName,
+            humanReadableIdentifier,
             primaryInput.getAbsolutePath(),
             transformer.getSecondaryInputHash()
         );
@@ -416,21 +416,21 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     public static class ImmutableTransformationIdentity implements TransformationIdentity {
-        private final String initialSubjectFileName;
+        private final String humanReadableIdentifier;
         private final String primaryInputAbsolutePath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
 
-        public ImmutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
-            this.initialSubjectFileName = initialSubjectFileName;
+        public ImmutableTransformationIdentity(String humanReadableIdentifier, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
+            this.humanReadableIdentifier = humanReadableIdentifier;
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
         }
 
         @Override
-        public String getInitialSubjectFileName() {
-            return initialSubjectFileName;
+        public String getHumanReadableIdentifier() {
+            return humanReadableIdentifier;
         }
 
         @Override
@@ -459,7 +459,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!secondaryInputHash.equals(that.secondaryInputHash)) {
                 return false;
             }
-            if (!initialSubjectFileName.equals(that.initialSubjectFileName)) {
+            if (!humanReadableIdentifier.equals(that.humanReadableIdentifier)) {
                 return false;
             }
             return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
@@ -474,25 +474,25 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     public static class MutableTransformationIdentity implements TransformationIdentity {
-        private final String initialSubjectFileName;
+        private final String humanReadableIdentifier;
         private final String primaryInputAbsolutePath;
         private final HashCode secondaryInputsHash;
 
-        public MutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode secondaryInputsHash) {
-            this.initialSubjectFileName = initialSubjectFileName;
+        public MutableTransformationIdentity(String humanReadableIdentifier, String primaryInputAbsolutePath, HashCode secondaryInputsHash) {
+            this.humanReadableIdentifier = humanReadableIdentifier;
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.secondaryInputsHash = secondaryInputsHash;
         }
 
         @Override
-        public String getInitialSubjectFileName() {
-            return initialSubjectFileName;
+        public String getHumanReadableIdentifier() {
+            return humanReadableIdentifier;
         }
 
         @Override
         public String getIdentity() {
             Hasher hasher = Hashing.newHasher();
-            hasher.putString(initialSubjectFileName);
+            hasher.putString(humanReadableIdentifier);
             hasher.putString(primaryInputAbsolutePath);
             hasher.putHash(secondaryInputsHash);
             return hasher.hash().toString();
@@ -512,7 +512,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!secondaryInputsHash.equals(that.secondaryInputsHash)) {
                 return false;
             }
-            if (!initialSubjectFileName.equals(that.initialSubjectFileName)) {
+            if (!humanReadableIdentifier.equals(that.humanReadableIdentifier)) {
                 return false;
             }
             return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
@@ -520,8 +520,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public int hashCode() {
-            int result = initialSubjectFileName.hashCode();
-            result = 31 * result + initialSubjectFileName.hashCode();
+            int result = humanReadableIdentifier.hashCode();
+            result = 31 * result + humanReadableIdentifier.hashCode();
             result = 31 * result + primaryInputAbsolutePath.hashCode();
             result = 31 * result + secondaryInputsHash.hashCode();
             return result;

@@ -17,6 +17,19 @@
 package org.gradle.api.internal.artifacts.transform;
 
 public interface TransformationIdentity {
-    String getInitialSubjectFileName();
+    /**
+     * Human readable identifier.
+     *
+     * Is used to show something to humans so that they can identify what transformation executed.
+     * This is should be used as part of the workspace path as well.
+     */
+    String getHumanReadableIdentifier();
+
+    /**
+     * Identity of the transformation.
+     *
+     * Allows to identify an artifact transformation between Gradle invocations.
+     * This allows to determine the previous execution of a transformation.
+     */
     String getIdentity();
 }

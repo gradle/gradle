@@ -66,7 +66,7 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     @Override
     public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
-        String workspacePath = identity.getInitialSubjectFileName() + "/" + identityString;
+        String workspacePath = identity.getHumanReadableIdentifier() + "/" + identityString;
         TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
         fileAccessTracker.markAccessed(workspace.getResultsFile());
         fileAccessTracker.markAccessed(workspace.getOutputDirectory());
