@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     }
 
     @Override
-    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
         return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,7 +43,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
         String path = identity.getHumanReadableIdentifier() + "/" + identityString;
         DefaultTransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(baseDirectory.get().getAsFile(), path));

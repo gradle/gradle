@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ExecutionError;
+import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class DefaultCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
 
     private final TransformationWorkspaceProvider delegate;
-    private final Cache<TransformationIdentity, ImmutableList<File>> inMemoryResultCache = CacheBuilder.newBuilder().build();
+    private final Cache<TransformationIdentity, Try<ImmutableList<File>>> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
     public DefaultCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         this.delegate = delegate;
@@ -48,13 +48,13 @@ public abstract class DefaultCachingTransformationWorkspaceProvider implements C
     }
 
     @Override
-    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         try {
             return inMemoryResultCache.get(identity, () -> {
                     return delegate.withWorkspace(identity, workspaceAction);
                 });
-        } catch (ExecutionException | UncheckedException | ExecutionError e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

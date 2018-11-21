@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.internal.Try
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -42,7 +43,7 @@ class DefaultCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
                         if (numberOfCalls.getAndIncrement() != 0) {
                             throw new IllegalStateException("Use workspace called concurrently")
                         }
-                        return ImmutableList.of()
+                        return Try.successful(ImmutableList.of())
                     }
                 }
             }
@@ -59,14 +60,14 @@ class DefaultCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
                 workspaceProvider.withWorkspace(new TestIdentity("first")) { id, workspace ->
                     instant.first
                     thread.blockUntil.go
-                    return ImmutableList.of()
+                    return Try.successful(ImmutableList.of())
                 }
             }
             start {
                 workspaceProvider.withWorkspace(new TestIdentity("second")) { id, workspace ->
                     instant.second
                     thread.blockUntil.go
-                    return ImmutableList.of()
+                    return Try.successful(ImmutableList.of())
                 }
             }
             start {
@@ -86,7 +87,7 @@ class DefaultCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
 
         when:
         workspaceProvider.withWorkspace(new TestIdentity("first")) { id, workspace ->
-            return ImmutableList.of()
+            return Try.successful(ImmutableList.of())
         }
         then:
         workspaceProvider.hasCachedResult(new TestIdentity("first"))

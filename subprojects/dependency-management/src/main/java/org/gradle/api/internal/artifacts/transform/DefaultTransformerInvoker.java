@@ -111,17 +111,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        return Try.ofFailable(() -> {
-            ProjectInternal producerProject = determineProducerProject(subject);
-            CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
-            TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject);
-            return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
-                return fireTransformListeners(transformer, subject, () -> {
-                    CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, workspaceProvider.getExecutionHistoryStore(), primaryInputFingerprint, dependenciesProvider);
-                    UpToDateResult outcome = workExecutor.execute(execution);
-                    return execution.getResult(outcome);
-                });
+        ProjectInternal producerProject = determineProducerProject(subject);
+        CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
+        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject);
+        return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
+            return fireTransformListeners(transformer, subject, () -> {
+                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
+                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, workspaceProvider.getExecutionHistoryStore(), primaryInputFingerprint, dependenciesProvider);
+                UpToDateResult outcome = workExecutor.execute(execution);
+                return execution.getResult(outcome);
             });
         }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
     }
@@ -170,7 +168,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return projectFinder.findProject(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getProjectPath());
     }
 
-    private ImmutableList<File> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<ImmutableList<File>> execution) {
+    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
             return execution.get();
@@ -245,11 +243,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        public ImmutableList<File> getResult(UpToDateResult outcome) {
-            if (outcome.getFailure() != null) {
-                throw UncheckedException.throwAsUncheckedException(outcome.getFailure());
-            }
-            return loadResultsFile();
+        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
+            return outcome.getFailure() == null ? Try.successful(loadResultsFile()) : Try.failure(outcome.getFailure());
         }
 
         private ImmutableList<File> loadResultsFile() {

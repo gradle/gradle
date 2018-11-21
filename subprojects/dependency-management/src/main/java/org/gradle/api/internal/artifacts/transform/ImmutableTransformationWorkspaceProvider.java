@@ -25,6 +25,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
@@ -72,7 +73,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
         String workspacePath = identity.getHumanReadableIdentifier() + "/" + identityString;
         TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
