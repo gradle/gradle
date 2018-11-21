@@ -15,8 +15,13 @@
  */
 package org.gradle.testing.performance.generator.tasks
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -37,6 +42,7 @@ import org.gradle.internal.os.OperatingSystem
  * When targeting a <em>commit</em> or a <em>tag</em>, set the {@link #ref} property accordingly.
  * The task will then do a full clone and then checkout the specified git reference.
  */
+@CompileStatic
 class RemoteProject extends DefaultTask {
 
     /**
@@ -45,7 +51,7 @@ class RemoteProject extends DefaultTask {
      * Either the remote git repository URL, the path to a local bare git repository or the path to a local git clone.
      */
     @Input
-    String remoteUri
+    final Property<String> remoteUri = project.objects.property(String)
 
     /**
      * Git branch to use.
@@ -54,7 +60,7 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    String branch
+    final Property<String> branch = project.objects.property(String)
 
     /**
      * Git reference to use.
@@ -63,7 +69,7 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    Property<String> ref = project.objects.property(String)
+    final Property<String> ref = project.objects.property(String)
 
     /**
      * Relative path of a subdirectory within the git repository to use as the project template base directory.
@@ -72,50 +78,54 @@ class RemoteProject extends DefaultTask {
      */
     @Input
     @Optional
-    String subdirectory
+    final Property<String> subdirectory = project.objects.property(String)
 
     /**
      * Directory where the project template should be copied.
      */
     @OutputDirectory
-    File outputDirectory = project.file("$project.buildDir/$name")
+    final File outputDirectory = project.file("$project.buildDir/$name")
 
     @TaskAction
-    void checkout() {
-        validateInputs()
-
+    void checkoutAndCopy() {
         outputDirectory.deleteDir()
-        File tmpDir = cleanTemporaryDir()
+        File checkoutDir = checkout(this, remoteUri.get(), ref.getOrNull(), branch.getOrNull())
+        moveToOutputDir(checkoutDir, outputDirectory, subdirectory.getOrNull())
+    }
+
+    public static File checkout(Task task, String remoteUri, String ref, String branch) {
+        validateInputs(task.name, ref, branch)
+        File checkoutDir = cleanTemporaryDir(task)
 
         if (branch) {
-            checkoutBranch(remoteUri, branch, tmpDir)
+            checkoutBranch(task.project, remoteUri, branch, checkoutDir)
         } else {
-            checkoutRef(remoteUri, ref.get(), tmpDir)
+            checkoutRef(task.project, remoteUri, ref, checkoutDir)
         }
-
-        moveToOutputDir(tmpDir, outputDirectory, subdirectory)
+        return checkoutDir
     }
 
-    private void validateInputs() {
-        if (!branch && !ref.isPresent()) {
-            throw new InvalidUserDataException("Either ${name}.branch or ${name}.ref must be set")
+    private static validateInputs(String taskName, String ref, String branch) {
+        if (!branch && !ref) {
+            throw new InvalidUserDataException("Either ${taskName}.branch or ${taskName}.ref must be set")
         }
-        if (branch && ref.isPresent() && branch != ref.get()) {
+        if (branch && ref && branch != ref) {
             throw new InvalidUserDataException(
-                "Both ${name}.branch and ${name}.ref cannot have different values, " +
-                    "respectively '$branch' and '${ref.get()}'")
+                "Both ${taskName}.branch and ${taskName}.ref cannot have different values, " +
+                    "respectively '$branch' and '$ref'")
         }
     }
 
-    private File cleanTemporaryDir() {
-        File tmpDir = getTemporaryDir()
+    private static File cleanTemporaryDir(Task task) {
+        File tmpDir = task.getTemporaryDir()
         if (tmpDir.exists()) {
-            project.delete(tmpDir)
+            task.project.delete(tmpDir)
         }
         return tmpDir
     }
 
-    private void checkoutBranch(String remoteUri, String branch, File tmpDir) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private static void checkoutBranch(Project project, String remoteUri, String branch, File tmpDir) {
         project.exec {
             commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, tmpDir.absolutePath]
             if (OperatingSystem.current().windows) {
@@ -125,7 +135,8 @@ class RemoteProject extends DefaultTask {
         }
     }
 
-    private void checkoutRef(String remoteUri, String ref, File tmpDir) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private static void checkoutRef(Project project, String remoteUri, String ref, File tmpDir) {
         project.exec {
             commandLine = ["git", "clone", remoteUri, tmpDir.absolutePath]
             errorOutput = System.out

@@ -16,13 +16,13 @@
 
 package org.gradle.testing;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.Task;
 
 import org.gradle.api.tasks.CacheableTask;
@@ -30,6 +30,7 @@ import org.gradle.api.tasks.CacheableTask;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -42,8 +43,11 @@ import org.gradle.process.CommandLineArgumentProvider;
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
+    // Baselines configured by command line `--baselines`
+    private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
+    // Baselines determined by determineBaselines task
+    private Property<String> determinedBaselines = getProject().getObjects().property(String.class);
     private String scenarios;
-    private String baselines;
     private String warmups;
     private String runs;
     private String checks;
@@ -57,23 +61,14 @@ public class PerformanceTest extends DistributionTest {
 
     public PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
+        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", this::notContainsLastOrNightly);
+        getOutputs().upToDateWhen(this::notContainsLastOrNightly);
+    }
 
-        Spec<Task> spec = new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                List<String> baseLineList = new ArrayList<>();
-                if (baselines != null) {
-                    for (String baseline : baselines.split(",")) {
-                        baseLineList.add(baseline.trim());
-                    }
-                }
-
-                return !(baseLineList.contains("last") || baseLineList.contains("nightly"));
-            }
-        };
-
-        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", spec);
-        getOutputs().upToDateWhen(spec);
+    private boolean notContainsLastOrNightly(Task task) {
+        return Arrays.stream(determinedBaselines.getOrElse("").split(","))
+            .map(String::trim)
+            .noneMatch(baselineVersion -> "last".equals(baselineVersion) || "nightly".equals(baselineVersion));
     }
 
     public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
@@ -95,14 +90,19 @@ public class PerformanceTest extends DistributionTest {
         return scenarios;
     }
 
-    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    public void setBaselines(@Nullable String baselines) {
-        this.baselines = baselines;
+    @Optional @Input
+    public Property<String> getDeterminedBaselines() {
+        return determinedBaselines;
     }
 
-    @Nullable @Optional @Input
-    public String getBaselines() {
-        return baselines;
+    @Internal
+    public Property<String> getConfiguredBaselines() {
+        return configuredBaselines;
+    }
+
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
+    public void setBaselines(@Nullable String baselines) {
+        this.configuredBaselines.set(baselines);
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -199,7 +199,7 @@ public class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios);
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines);
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull());
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);
