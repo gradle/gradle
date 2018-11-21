@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.internal.UserCodeApplicationId;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -36,25 +37,27 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
 
     @Override
     public <T> Action<? super T> decorate(Action<? super T> action) {
-        if (action == null) {
-            return null;
-        }
-        if (InternalAction.class.isAssignableFrom(action.getClass())) {
+        if (action == null || action instanceof InternalListener) {
             return action;
         }
+
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null) {
             return action;
         }
-        return new BuildOperationEmittingAction<T>(applicationId, (Action<T>) action);
+
+        return doDecorate(action, applicationId);
     }
 
+    private <S> Action<S> doDecorate(Action<S> action, UserCodeApplicationId applicationId) {
+        return new BuildOperationEmittingAction<S>(applicationId, action);
+    }
 
     private static abstract class Operation implements RunnableBuildOperation {
 
         private final UserCodeApplicationId applicationId;
 
-        protected Operation(UserCodeApplicationId applicationId) {
+        Operation(UserCodeApplicationId applicationId) {
             this.applicationId = applicationId;
         }
 
@@ -72,7 +75,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
         private final UserCodeApplicationId applicationId;
         private final Action<T> delegate;
 
-        private BuildOperationEmittingAction(UserCodeApplicationId applicationId, Action<T> delegate) {
+        BuildOperationEmittingAction(UserCodeApplicationId applicationId, Action<T> delegate) {
             this.applicationId = applicationId;
             this.delegate = delegate;
         }
