@@ -69,7 +69,7 @@ tasks {
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
-            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)", versionProperties)
+            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,1.4]", versionProperties)
 
             val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
             org.gradle.build.ReproduciblePropertiesWriter.store(
