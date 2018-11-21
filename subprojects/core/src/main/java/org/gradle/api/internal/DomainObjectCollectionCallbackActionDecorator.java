@@ -18,13 +18,16 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nullable;
+
 public interface DomainObjectCollectionCallbackActionDecorator {
 
-    <T> Action<? super T> decorate(Action<? super T> action);
+    @Nullable
+    <T> Action<? super T> decorate(@Nullable Action<? super T> action);
 
     DomainObjectCollectionCallbackActionDecorator NOOP = new DomainObjectCollectionCallbackActionDecorator() {
         @Override
-        public <T> Action<? super T> decorate(Action<? super T> action) {
+        public <T> Action<? super T> decorate(@Nullable Action<? super T> action) {
             return action;
         }
     };

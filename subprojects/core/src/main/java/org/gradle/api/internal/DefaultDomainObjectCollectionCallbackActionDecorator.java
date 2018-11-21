@@ -25,6 +25,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
+
 public class DefaultDomainObjectCollectionCallbackActionDecorator implements DomainObjectCollectionCallbackActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -36,7 +38,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
     }
 
     @Override
-    public <T> Action<? super T> decorate(Action<? super T> action) {
+    public <T> Action<? super T> decorate(@Nullable Action<? super T> action) {
         if (action == null || action instanceof InternalListener) {
             return action;
         }
