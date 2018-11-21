@@ -239,8 +239,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can send partial response and block"() {
         given:
-        def request1 = server.sendSomeAndBlock("a", new byte[2048])
-        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        def request1 = server.get("a").sendSomeAndBlock(new byte[2048])
+        def request2 = server.get("b").sendSomeAndBlock(new byte[2048])
         server.expect(request1)
         server.expect(request2)
         server.start()
@@ -318,8 +318,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can send partial response and block for concurrent requests"() {
         given:
-        def request1 = server.sendSomeAndBlock("a", new byte[2048])
-        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        def request1 = server.get("a").sendSomeAndBlock(new byte[2048])
+        def request2 = server.get("b").sendSomeAndBlock(new byte[2048])
         server.expectConcurrent(request1, request2)
         server.start()
 
@@ -478,8 +478,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can send partial response and block again after blocking for concurrent requests"() {
         given:
-        def request1 = server.sendSomeAndBlock("a", new byte[2048])
-        def request2 = server.sendSomeAndBlock("b", new byte[2048])
+        def request1 = server.get("a").sendSomeAndBlock(new byte[2048])
+        def request2 = server.get("b").sendSomeAndBlock(new byte[2048])
         def handle = server.expectConcurrentAndBlock(2, request1, request2)
         server.start()
 
@@ -1082,7 +1082,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         given:
         def handle1 = server.expectConcurrentAndBlock("a", "b")
         def handle2 = server.expectConcurrentAndBlock(2, "c", "d")
-        def request1 = server.sendSomeAndBlock("e", new byte[2048])
+        def request1 = server.get("e").sendSomeAndBlock(new byte[2048])
         server.expect(request1)
 
         when:
@@ -1192,7 +1192,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "fails when request is not released after sending partial response"() {
         given:
-        def request = server.sendSomeAndBlock("a", new byte[2048])
+        def request = server.get("a").sendSomeAndBlock(new byte[2048])
         def handle = server.expectConcurrentAndBlock(1, request)
         server.start()
 
@@ -1225,8 +1225,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
     def "fails when attempting to wait for a request that has not been released to send partial response"() {
         given:
         server.expect("a")
-        def request1 = server.sendSomeAndBlock("b", new byte[2048])
-        def request2 = server.sendSomeAndBlock("c", new byte[2048])
+        def request1 = server.get("b").sendSomeAndBlock(new byte[2048])
+        def request2 = server.get("c").sendSomeAndBlock(new byte[2048])
         server.expectConcurrentAndBlock(1, request1)
         server.expect(request2)
         server.start()

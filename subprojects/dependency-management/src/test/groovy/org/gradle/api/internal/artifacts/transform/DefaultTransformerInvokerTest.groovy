@@ -69,6 +69,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         findProject(_, _) >> childProject
     }
 
+    def dependenciesProvider = ArtifactTransformDependenciesProvider.EMPTY
+
     def invoker = new DefaultTransformerInvoker(
         workExecutorTestFixture.workExecutor,
         fileSystemSnapshotter,
@@ -124,7 +126,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, primaryInput, dependency(transformationType, primaryInput))
+        def result = invoker.invoke(transformer, primaryInput, dependency(transformationType, primaryInput), dependenciesProvider)
 
         then:
         result.get().size() == 1
@@ -147,7 +149,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
 
         then:
         transformerInvocations == 1
@@ -155,7 +157,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
-        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
         then:
         transformerInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -179,7 +181,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        def result = invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
 
         then:
         transformerInvocations == 1
@@ -190,7 +192,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         wrappedFailure.cause.cause == failure
 
         when:
-        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
         then:
         transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -211,7 +213,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
         then:
         transformerInvocations == 1
         outputFile?.isFile()
@@ -220,7 +222,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         outputFile.text = "changed"
         fileSystemMirror.beforeBuildFinished()
 
-        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
         then:
         transformerInvocations == 2
     }
@@ -240,8 +242,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
         def subject = dependency(transformationType, primaryInput)
         when:
-        invoker.invoke(transformer1, primaryInput, subject)
-        invoker.invoke(transformer2, primaryInput, subject)
+        invoker.invoke(transformer1, primaryInput, subject, dependenciesProvider)
+        invoker.invoke(transformer2, primaryInput, subject, dependenciesProvider)
 
         then:
         workspaces.size() == 2
@@ -264,14 +266,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
         def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
         when:
-        invoker.invoke(transformer, primaryInput1, dependency(transformationType, primaryInput1))
+        invoker.invoke(transformer, primaryInput1, dependency(transformationType, primaryInput1), dependenciesProvider)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         primaryInput1.text = "changed"
-        invoker.invoke(transformer, primaryInput2, dependency(transformationType, primaryInput2))
+        invoker.invoke(transformer, primaryInput2, dependency(transformationType, primaryInput2), dependenciesProvider)
 
         then:
         workspaces.size() == 2
@@ -294,14 +296,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         def subject = immutableDependency(primaryInput)
 
         when:
-        invoker.invoke(transformer, primaryInput, subject)
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         primaryInput.text = "changed"
-        invoker.invoke(transformer, primaryInput, subject)
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
 
         then:
         workspaces.size() == 2
@@ -321,14 +323,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         def subject = mutableDependency(primaryInput)
 
         when:
-        invoker.invoke(transformer, primaryInput, subject)
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         primaryInput.text = "changed"
-        invoker.invoke(transformer, primaryInput, subject)
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
 
         then:
         workspaces.size() == 1
@@ -359,8 +361,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
                 "child"
             ), file.getName())
         return TransformationSubject.initial(artifactIdentifier,
-        file,
-        ArtifactTransformDependenciesProvider.EMPTY)
+        file)
     }
 
 }

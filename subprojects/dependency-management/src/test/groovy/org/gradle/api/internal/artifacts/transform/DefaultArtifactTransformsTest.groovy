@@ -167,13 +167,13 @@ class DefaultArtifactTransformsTest extends Specification {
                 }
             }
         }
-        _ * transformation.hasCachedResult(_ as TransformationSubject) >> false
+        _ * transformation.hasCachedResult(_ as TransformationSubject, _ as ArtifactTransformDependenciesProvider) >> false
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
 
-        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile, Mock(ArtifactTransformDependenciesProvider)).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ArtifactTransformDependenciesProvider) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
 
-        1 * transformation.transform({ it.files == [sourceFile] }) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
+        1 * transformation.transform({ it.files == [sourceFile] }, _ as ArtifactTransformDependenciesProvider) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})

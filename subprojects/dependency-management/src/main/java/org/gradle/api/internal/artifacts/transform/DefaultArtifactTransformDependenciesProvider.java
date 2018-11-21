@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-interface ArtifactTransformDependenciesProvider {
+class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
-    ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
+    private final ComponentArtifactIdentifier artifactId;
+    private final ResolvableDependencies resolvableDependencies;
 
-        @Override
-        public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
-            return ArtifactTransformDependencies.EMPTY;
-        }
-    };
+    DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+        this.artifactId = artifactId;
+        this.resolvableDependencies = resolvableDependencies;
+    }
 
-    ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes);
+    @Override
+    public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
+        return new DefaultArtifactTransformDependencies(artifactId, resolvableDependencies, attributes);
+    }
 }

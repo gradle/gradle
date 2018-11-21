@@ -28,16 +28,18 @@ import javax.annotation.Nullable;
 class TransformationOperation implements RunnableBuildOperation {
     private final Transformation transformation;
     private final TransformationSubject subject;
+    private final ArtifactTransformDependenciesProvider dependenciesProvider;
     private TransformationSubject result;
 
-    TransformationOperation(Transformation transformation, TransformationSubject subject) {
+    TransformationOperation(Transformation transformation, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
         this.transformation = transformation;
         this.subject = subject;
+        this.dependenciesProvider = dependenciesProvider;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject);
+        result = transformation.transform(subject, dependenciesProvider);
     }
 
     @Override

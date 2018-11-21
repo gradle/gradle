@@ -35,9 +35,10 @@
                 lines: { show: true }
             },
             legend: {
-                noColumns: 2,
+                noColumns: 4,
                 margin: 1,
                 position: "se",
+                container: $("#" + chartId + "Legend"),
                 labelFormatter:
                     function(label, series) {
                         return '<a href="#" class="chart-legend" onClick="performanceTests.togglePlot(\''+chartId+'\', \''+label+'\'); return false;">'+label+'</a>';

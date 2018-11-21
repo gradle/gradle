@@ -65,23 +65,28 @@ project(':app') {
     }
 
     dependencies {
-        // Single step transform
         registerTransform {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'size')
-            artifactTransform(FileSizer)
+            artifactTransform(TestTransform) {
+                params('Single step transform')
+            }
         }
 
         // Multi step transform
         registerTransform {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'inter')
-            artifactTransform(FileSizer)
+            artifactTransform(TestTransform) {
+                params('Transform step 1')
+            }
         }
         registerTransform {
             from.attribute(artifactType, 'inter')
             to.attribute(artifactType, 'final')
-            artifactTransform(FileSizer)
+            artifactTransform(TestTransform) {
+                params('Transform step 2')
+            }
         }
     }
 }
@@ -89,18 +94,19 @@ project(':app') {
 import javax.inject.Inject
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 
-class FileSizer extends ArtifactTransform {
+class TestTransform extends ArtifactTransform {
 
     ArtifactTransformDependencies artifactDependencies
+    String transformName
 
     @Inject
-    FileSizer(ArtifactTransformDependencies artifactDependencies) {
+    TestTransform(String transformName, ArtifactTransformDependencies artifactDependencies) {
+        this.transformName = transformName
         this.artifactDependencies = artifactDependencies
-        println "Creating FileSizer"
     }
     
     List<File> transform(File input) {
-        println "Received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
+        println "\${transformName} received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
@@ -141,8 +147,8 @@ project(':app') {
 
         then:
         output.count('Transforming') == 4
-        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
-        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
     def "transform can access artifact dependencies, in previous transform step, as FileCollection when using ArtifactView"() {
@@ -173,10 +179,10 @@ project(':app') {
 
         then:
         output.count('Transforming') == 8
-        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
-        output.contains('Received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar.txt')
-        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
-        output.contains('Received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar.txt')
+        output.contains('Transform step 1 received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Transform step 2 received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar.txt')
+        output.contains('Transform step 1 received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+        output.contains('Transform step 2 received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar.txt')
     }
 
     def "transform can access artifact dependencies as FileCollection when using configuration attributes"() {
@@ -211,8 +217,7 @@ project(':app') {
 
         then:
         output.count("Transforming") == 4
-        // The asserts below should not have the .txt part
-        output.contains('Received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
-        output.contains('Received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 }

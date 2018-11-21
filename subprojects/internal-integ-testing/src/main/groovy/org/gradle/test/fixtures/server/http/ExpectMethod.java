@@ -19,16 +19,20 @@ package org.gradle.test.fixtures.server.http;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
+import org.gradle.test.fixtures.server.http.BlockingHttpServer.BlockingRequest;
+import org.gradle.test.fixtures.server.http.BlockingHttpServer.BuildableExpectedRequest;
 import org.hamcrest.Matcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
-import static org.gradle.test.fixtures.server.http.ExpectMethodAndRunAction.removeLeadingSlash;
-
-class ExpectMethod implements ResourceHandler, BlockingHttpServer.BuildableExpectedRequest, ResourceExpectation {
+class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, ResourceExpectation, BlockingRequest {
     private final String method;
     private final String path;
+    private final int timeoutMs;
+    private final Lock lock;
+
     private ResponseProducer producer = new ResponseProducer() {
         @Override
         public void writeTo(int requestId, HttpExchange exchange) throws IOException {
@@ -36,10 +40,14 @@ class ExpectMethod implements ResourceHandler, BlockingHttpServer.BuildableExpec
         }
     };
     private ResponseProducer responseBody = new SendFixedContent(200, "hi");
+    private BlockingRequest blockingRequest;
+    private WaitPrecondition precondition;
 
-    ExpectMethod(String method, String path) {
+    ExpectMethod(String method, String path, int timeoutMs, Lock lock) {
         this.method = method;
-        this.path = removeLeadingSlash(path);
+        this.path = path;
+        this.timeoutMs = timeoutMs;
+        this.lock = lock;
     }
 
     @Override
@@ -54,37 +62,74 @@ class ExpectMethod implements ResourceHandler, BlockingHttpServer.BuildableExpec
 
     @Override
     public ResourceHandler create(WaitPrecondition precondition) {
+        this.precondition = precondition;
         return this;
     }
 
     @Override
-    public BlockingHttpServer.BuildableExpectedRequest expectUserAgent(Matcher expectedUserAgent) {
+    public void waitUntilBlocked() {
+        if (blockingRequest == null) {
+            throw new IllegalStateException("This request is not expected to block.");
+        }
+        blockingRequest.waitUntilBlocked();
+    }
+
+    @Override
+    public void release() {
+        if (blockingRequest == null) {
+            throw new IllegalStateException("This request is not expected to block.");
+        }
+        blockingRequest.release();
+    }
+
+    @Override
+    public BuildableExpectedRequest expectUserAgent(Matcher expectedUserAgent) {
         producer = new UserAgentVerifier(expectedUserAgent, producer);
         return this;
     }
 
     @Override
-    public BlockingHttpServer.BuildableExpectedRequest missing() {
-        this.responseBody = new SendFixedContent(404, "not found");
+    public BuildableExpectedRequest missing() {
+        replaceBody(new SendFixedContent(404, "not found"), null);
         return this;
     }
 
     @Override
-    public BlockingHttpServer.BuildableExpectedRequest broken() {
-        this.responseBody = new SendFixedContent(500, "broken");
+    public BuildableExpectedRequest broken() {
+        replaceBody(new SendFixedContent(500, "broken"), null);
         return this;
     }
 
     @Override
-    public BlockingHttpServer.BuildableExpectedRequest send(String content) {
-        this.responseBody = new SendFixedContent(200, content);
+    public BuildableExpectedRequest send(String content) {
+        replaceBody(new SendFixedContent(200, content), null);
         return this;
     }
 
     @Override
-    public BlockingHttpServer.BuildableExpectedRequest sendFile(File file) {
-        this.responseBody = new SendFileContents(file);
+    public BlockingRequest sendSomeAndBlock(byte[] content) {
+        if (content.length < 1024) {
+            throw new IllegalArgumentException("Content is too short.");
+        }
+        SendPartialResponseThenBlock block = new SendPartialResponseThenBlock(lock, timeoutMs, new WaitPrecondition() {
+            @Override
+            public void assertCanWait() throws IllegalStateException {
+                ExpectMethod.this.precondition.assertCanWait();
+            }
+        }, content);
+        replaceBody(block, block);
         return this;
+    }
+
+    @Override
+    public BuildableExpectedRequest sendFile(File file) {
+        replaceBody(new SendFileContents(file), null);
+        return this;
+    }
+
+    private void replaceBody(ResponseProducer producer, BlockingRequest blocker) {
+        this.responseBody = producer;
+        this.blockingRequest = blocker;
     }
 
     @Override

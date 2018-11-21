@@ -59,11 +59,9 @@ open class IntegrationTest : DistributionTest() {
     }
 
     private
-    fun determineTimeoutMillis(): Long {
-        return if ("embedded" == getSystemProperties()["org.gradle.integtest.executer"]) {
-            TimeUnit.MINUTES.toMillis(30)
-        } else {
-            TimeUnit.HOURS.toMillis(2)
+    fun determineTimeoutMillis() =
+        when (systemProperties["org.gradle.integtest.executer"]) {
+            "embedded" -> TimeUnit.MINUTES.toMillis(30)
+            else -> TimeUnit.MINUTES.toMillis(165) // 2h45m
         }
-    }
 }

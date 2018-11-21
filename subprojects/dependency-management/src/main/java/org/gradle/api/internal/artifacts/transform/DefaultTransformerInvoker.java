@@ -109,7 +109,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
         return Try.ofFailable(() -> {
             ProjectInternal producerProject = determineProducerProject(subject);
             TransformerExecutionHistoryRepository historyRepository = determineHistoryRepository(producerProject);
@@ -117,7 +117,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
                 return fireTransformListeners(transformer, subject, () -> {
                     CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, subject.getArtifactDependenciesProvider());
+                    TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, dependenciesProvider);
                     UpToDateResult outcome = workExecutor.execute(execution);
                     return execution.getResult(outcome);
                 });

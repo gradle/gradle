@@ -43,7 +43,7 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform) {
+    public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
         }
@@ -52,7 +52,7 @@ public class TransformationStep implements Transformation {
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform);
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, dependenciesProvider);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());
@@ -68,7 +68,7 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subject) {
+    public boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
         if (subject.getFailure() != null) {
             return true;
         }

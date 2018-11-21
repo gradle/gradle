@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.api.platform.MachineArchitecture
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 
