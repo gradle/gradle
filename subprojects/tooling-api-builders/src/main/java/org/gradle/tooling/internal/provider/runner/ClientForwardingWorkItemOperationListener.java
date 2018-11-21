@@ -19,9 +19,11 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultWorkItemDescriptor;
@@ -34,38 +36,20 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  *
  * @since 5.1
  */
-class ClientForwardingWorkItemOperationListener implements BuildOperationListener {
+class ClientForwardingWorkItemOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteWorkItemBuildOperationType.Details> {
 
-    private final ProgressEventConsumer eventConsumer;
-    private final BuildOperationListener delegate;
-
-    ClientForwardingWorkItemOperationListener(ProgressEventConsumer eventConsumer, BuildOperationListener delegate) {
-        this.eventConsumer = eventConsumer;
-        this.delegate = delegate;
+    ClientForwardingWorkItemOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
+        super(eventConsumer, clientSubscriptions, delegate, OperationType.WORK_ITEM, ExecuteWorkItemBuildOperationType.Details.class);
     }
 
     @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (buildOperation.getDetails() instanceof ExecuteWorkItemBuildOperationType.Details) {
-            ExecuteWorkItemBuildOperationType.Details details = (ExecuteWorkItemBuildOperationType.Details) buildOperation.getDetails();
-            eventConsumer.started(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toWorkItemDescriptor(buildOperation, details)));
-        } else {
-            delegate.started(buildOperation, startEvent);
-        }
+    protected InternalOperationStartedProgressEvent toStartedEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent, ExecuteWorkItemBuildOperationType.Details details) {
+        return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toWorkItemDescriptor(buildOperation, details));
     }
 
     @Override
-    public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-    }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (buildOperation.getDetails() instanceof ExecuteWorkItemBuildOperationType.Details) {
-            ExecuteWorkItemBuildOperationType.Details details = (ExecuteWorkItemBuildOperationType.Details) buildOperation.getDetails();
-            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), toWorkItemDescriptor(buildOperation, details), toOperationResult(finishEvent)));
-        } else {
-            delegate.finished(buildOperation, finishEvent);
-        }
+    protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ExecuteWorkItemBuildOperationType.Details details) {
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), toWorkItemDescriptor(buildOperation, details), toOperationResult(finishEvent));
     }
 
     private DefaultWorkItemDescriptor toWorkItemDescriptor(BuildOperationDescriptor buildOperation, ExecuteWorkItemBuildOperationType.Details details) {

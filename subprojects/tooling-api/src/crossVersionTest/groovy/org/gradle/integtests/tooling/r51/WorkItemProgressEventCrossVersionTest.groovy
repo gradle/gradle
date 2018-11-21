@@ -24,7 +24,6 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
-import org.gradle.util.GradleVersion
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=5.1')
@@ -43,7 +42,8 @@ class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
     }
 
-    def "reports work item progress events as descendants of tasks"() {
+    @TargetGradleVersion('>=5.1')
+    def "reports typed work item progress events as descendants of tasks"() {
         when:
         def events = runBuild("runInWorker", EnumSet.allOf(OperationType))
 
@@ -52,24 +52,34 @@ class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
         taskOperation.task
         with(taskOperation.descendant("Test Work")) {
             successful
-            if (targetVersion >= GradleVersion.version("5.1")) {
-                assert workItem
-                assert descriptor.className == "org.gradle.test.TestRunnable"
-            } else {
-                assert buildOperation
-            }
+            workItem
+            descriptor.className == "org.gradle.test.TestRunnable"
+        }
+    }
+
+    @TargetGradleVersion('<5.1')
+    def "reports generic work item progress events as descendants of tasks"() {
+        when:
+        def events = runBuild("runInWorker", EnumSet.allOf(OperationType))
+
+        then:
+        def taskOperation = events.operation("Task :runInWorker")
+        taskOperation.task
+        with(taskOperation.descendant("Test Work")) {
+            successful
+            buildOperation
         }
     }
 
     @TargetGradleVersion('>=5.1')
-    def "reports work item progress events as generic events when WORK_ITEM operations are not requested"() {
+    def "does not report work item progress events when WORK_ITEM operations are not requested"() {
         when:
         def events = runBuild("runInWorker", EnumSet.complementOf(EnumSet.of(OperationType.WORK_ITEM)))
 
         then:
         def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.isTask()
-        taskOperation.descendant("Test Work").buildOperation
+        taskOperation.task
+        taskOperation.descendants { it.descriptor.displayName == "Test Work" }.empty
     }
 
     @TargetGradleVersion('>=5.1')
@@ -79,16 +89,6 @@ class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         events.empty
-    }
-
-    def "does not report work item progress when neither WORK_ITEM nor GENERIC operations are requested"() {
-        when:
-        def events = runBuild("runInWorker", EnumSet.complementOf(EnumSet.of(OperationType.WORK_ITEM, OperationType.GENERIC)))
-
-        then:
-        def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.task
-        taskOperation.children.empty
     }
 
     @TargetGradleVersion('>=5.1')
