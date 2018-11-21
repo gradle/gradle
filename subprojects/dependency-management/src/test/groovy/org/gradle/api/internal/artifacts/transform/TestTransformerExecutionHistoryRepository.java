@@ -77,6 +77,6 @@ public class TestTransformerExecutionHistoryRepository implements TransformerExe
     @Override
     public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
-        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
+        return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
     }
 }

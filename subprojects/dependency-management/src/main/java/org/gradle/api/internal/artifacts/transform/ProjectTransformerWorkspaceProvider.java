@@ -37,6 +37,7 @@ public class ProjectTransformerWorkspaceProvider implements TransformerWorkspace
     public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
         String path = identity.getInitialSubjectFileName() + "/" + identityString;
-        return workspaceAction.useWorkspace(identityString, new File(baseDirectory.get().getAsFile(), path));
+        DefaultTransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(baseDirectory.get().getAsFile(), path));
+        return workspaceAction.useWorkspace(identityString, workspace);
     }
 }

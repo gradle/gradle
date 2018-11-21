@@ -16,23 +16,27 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-
 import java.io.File;
 
-public interface TransformerWorkspaceProvider {
-    /**
-     * Provides a workspace for executing the transformation.
-     */
-    ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction);
+public class DefaultTransformationWorkspace implements TransformerWorkspaceProvider.TransformationWorkspace {
 
-    @FunctionalInterface
-    interface TransformationWorkspaceAction {
-        ImmutableList<File> useWorkspace(String transformationIdentity, TransformationWorkspace workspace);
+    private static final String RESULTS_FILE_SUFFIX = ".bin";
+
+    private final File outputDirectory;
+    private final File resultsFile;
+
+    public DefaultTransformationWorkspace(File workspaceBase) {
+        this.outputDirectory = workspaceBase;
+        this.resultsFile = new File(workspaceBase.getParentFile(), workspaceBase.getName() + RESULTS_FILE_SUFFIX);
     }
 
-    interface TransformationWorkspace {
-        File getOutputDirectory();
-        File getResultsFile();
+    @Override
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    @Override
+    public File getResultsFile() {
+        return resultsFile;
     }
 }

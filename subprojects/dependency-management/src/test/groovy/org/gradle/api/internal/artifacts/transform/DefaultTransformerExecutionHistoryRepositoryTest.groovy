@@ -97,7 +97,7 @@ class DefaultTransformerExecutionHistoryRepositoryTest extends ConcurrentSpec {
 
         @Override
         ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-            return workspaceAction.useWorkspace(identity.identity, tmpDir.file(identity))
+            return workspaceAction.useWorkspace(identity.identity, new DefaultTransformationWorkspace(tmpDir.file(identity)))
         }
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.artifacts.transform.DefaultTransformationWorkspace
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
@@ -1435,7 +1436,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
-        writeLastFileAccessTimeToJournal(outputDir, millis)
-        writeLastFileAccessTimeToJournal(new File(outputDir.absolutePath + ".bin"), millis)
+        def workspace = new DefaultTransformationWorkspace(outputDir)
+        writeLastFileAccessTimeToJournal(workspace.getOutputDirectory(), millis)
+        writeLastFileAccessTimeToJournal(workspace.getResultsFile(), millis)
     }
 }
