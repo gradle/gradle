@@ -50,7 +50,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
 
     @Inject
     public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, TargetMachineFactory targetMachineFactory) {
-        super(name, fileOperations, objectFactory, targetMachineFactory);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);

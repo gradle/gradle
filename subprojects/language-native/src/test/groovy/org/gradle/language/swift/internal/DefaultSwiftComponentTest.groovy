@@ -109,7 +109,7 @@ class DefaultSwiftComponentTest extends Specification {
 
     class TestComponent extends DefaultSwiftComponent {
         TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
-            super(name, fileOperations, objectFactory, targetMachineFactory)
+            super(name, fileOperations, objectFactory)
         }
 
         @Override

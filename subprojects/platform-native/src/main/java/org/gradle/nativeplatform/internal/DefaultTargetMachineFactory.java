@@ -30,7 +30,10 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         this.objectFactory = objectFactory;
     }
 
-    @Override public TargetMachine host() {
+    /**
+     * Returns a {@link TargetMachine} representing the operating system and architecture of the current host.
+     */
+    public TargetMachine host() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
         OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, host.getOperatingSystem().toFamilyName());
         MachineArchitecture machineArchitecture = objectFactory.named(MachineArchitecture.class, host.getArchitecture().getName());

@@ -18,7 +18,6 @@ package org.gradle.language.swift.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -32,6 +31,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
@@ -47,12 +47,11 @@ import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -60,6 +59,7 @@ import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
+import static org.gradle.language.plugins.NativeBasePlugin.setDefaultAndGetTargetMachineValues;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -75,12 +75,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -101,8 +103,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                library.getTargetMachines().finalizeValue();
-                Set<TargetMachine> targetMachines = library.getTargetMachines().get();
+                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(library.getTargetMachines(), targetMachineFactory);
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the library.");
                 }
@@ -226,34 +227,5 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 library.getBinaries().realizeNow();
             }
         });
-    }
-
-    private static final class BuildType implements Named {
-        private static final BuildType DEBUG = new BuildType("debug", true, false);
-        private static final BuildType RELEASE = new BuildType("release", true, true);
-        public static final Collection<BuildType> DEFAULT_BUILD_TYPES = Arrays.asList(DEBUG, RELEASE);
-
-        private final boolean debuggable;
-        private final boolean optimized;
-        private final String name;
-
-        private BuildType(String name, boolean debuggable, boolean optimized) {
-            this.debuggable = debuggable;
-            this.optimized = optimized;
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        public boolean isDebuggable() {
-            return debuggable;
-        }
-
-        public boolean isOptimized() {
-            return optimized;
-        }
     }
 }

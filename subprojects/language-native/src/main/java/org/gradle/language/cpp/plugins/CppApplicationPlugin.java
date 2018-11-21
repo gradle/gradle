@@ -39,6 +39,7 @@ import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
@@ -48,6 +49,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
+import static org.gradle.language.plugins.NativeBasePlugin.setDefaultAndGetTargetMachineValues;
 
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
@@ -90,8 +92,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                application.getTargetMachines().finalizeValue();
-                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
+                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(application.getTargetMachines(), targetMachineFactory);
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }
@@ -136,7 +137,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                             // Use the debug variant as the development binary
                             // Prefer the host architecture, if present, else use the first architecture specified
-                            if (buildType == BuildType.DEBUG && (targetMachine.getArchitecture().equals(targetMachineFactory.host().getArchitecture()) || !application.getDevelopmentBinary().isPresent())) {
+                            if (buildType == BuildType.DEBUG && (targetMachine.getArchitecture().equals(((DefaultTargetMachineFactory)targetMachineFactory).host().getArchitecture()) || !application.getDevelopmentBinary().isPresent())) {
                                 application.getDevelopmentBinary().set(executable);
                             }
 
@@ -152,6 +153,4 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
             }
         });
     }
-
-
 }

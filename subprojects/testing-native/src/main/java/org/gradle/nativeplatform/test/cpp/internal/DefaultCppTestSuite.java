@@ -46,7 +46,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
 
     @Inject
     public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, TargetMachineFactory targetMachineFactory) {
-        super(name, fileOperations, objectFactory, targetMachineFactory);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
         this.testBinary = objectFactory.property(CppTestExecutable.class);

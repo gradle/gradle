@@ -16,6 +16,7 @@
 
 package org.gradle.language.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -36,9 +37,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -60,6 +61,8 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -415,5 +418,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 details.closestMatch(Linkage.SHARED);
             }
         }
+    }
+
+    /**
+     * Used by all native plugins to work around the missing default feature on Property
+     *
+     * See https://github.com/gradle/gradle-native/issues/918
+     *
+     * @since 5.1
+     */
+    public static Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> targetMachines, TargetMachineFactory targetMachineFactory) {
+        if (!targetMachines.isPresent()) {
+            targetMachines.set(ImmutableSet.of(((DefaultTargetMachineFactory)targetMachineFactory).host()));
+        }
+        targetMachines.finalizeValue();
+        return targetMachines.get();
     }
 }

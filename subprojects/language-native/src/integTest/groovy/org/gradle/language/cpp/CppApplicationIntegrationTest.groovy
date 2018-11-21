@@ -409,7 +409,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':app') {
                 apply plugin: 'cpp-application'
                 application {
-                    targetMachines = [machines.host()${currentHostArchitectureDsl}, machines.os('host-family')]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.os('host-family')]
                 }
                 dependencies {
                     implementation project(':hello')
@@ -418,7 +418,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.host()${currentHostArchitectureDsl}, machines.os('host-family')]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.os('host-family')]
                 }
             }
         """
@@ -445,7 +445,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':app') {
                 apply plugin: 'cpp-application'
                 application {
-                    targetMachines = [machines.host()${currentHostArchitectureDsl}]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}]
                 }
                 dependencies {
                     implementation project(':hello')
@@ -454,7 +454,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.host().architecture('foo')]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
                 }
             }
         """

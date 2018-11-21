@@ -55,6 +55,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -84,6 +85,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
+import static org.gradle.language.plugins.NativeBasePlugin.setDefaultAndGetTargetMachineValues;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -97,14 +99,16 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
         this.toolChainSelector = toolChainSelector;
         this.componentFactory = componentFactory;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -118,8 +122,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getTargetMachines().finalizeValue();
-                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), targetMachineFactory);
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }

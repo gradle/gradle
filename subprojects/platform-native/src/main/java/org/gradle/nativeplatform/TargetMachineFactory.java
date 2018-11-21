@@ -26,11 +26,6 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface TargetMachineFactory {
     /**
-     * Returns a {@link TargetMachine} representing the operating system and architecture of the current host.
-     */
-    TargetMachine host();
-
-    /**
      * Returns a {@link TargetMachine} for the windows operating system family and the architecture of the current host.
      */
     TargetMachine windows();
