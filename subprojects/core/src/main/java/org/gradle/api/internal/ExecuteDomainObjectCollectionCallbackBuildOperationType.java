@@ -17,7 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Fired when a domain object collection executes a registered callback that was registed by user code.
+ *
+ * @since 5.1
+ */
+@UsedByScanPlugin
 public final class ExecuteDomainObjectCollectionCallbackBuildOperationType implements BuildOperationType<ExecuteDomainObjectCollectionCallbackBuildOperationType.Details, ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
 
     public interface Details {
