@@ -395,7 +395,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (hasWithName(name)) {
             failOnDuplicateTask(name);
         }
-        final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
+
+        TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
+        Action<? super T> effectiveAction = getCallbackActionDecorator().decorate(configurationAction);
+
         TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
@@ -404,10 +407,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public TaskProvider<T> call(BuildOperationContext context) {
-                DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = DefaultTaskContainer.this.getCallbackActionDecorator();
-                Action<? super T> effectiveAction = callbackActionDecorator.decorate(configurationAction);
-                TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
-                    .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, effectiveAction, constructorArgs)
+                TaskProvider<T> provider = Cast.uncheckedNonnullCast(
+                    getInstantiator().newInstance(
+                        TaskCreatingProvider.class, DefaultTaskContainer.this, identity, effectiveAction, constructorArgs
+                    )
                 );
                 addLaterInternal(provider);
                 context.setResult(REGISTER_RESULT);
