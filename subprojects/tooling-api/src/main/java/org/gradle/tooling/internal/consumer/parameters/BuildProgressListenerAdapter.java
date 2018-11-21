@@ -41,7 +41,7 @@ import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
 import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
 import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
-import org.gradle.tooling.events.task.java.JavaCompileTaskSuccessResult.AnnotationProcessorResult;
+import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
@@ -59,8 +59,8 @@ import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
@@ -325,8 +325,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
 
         if (result instanceof InternalTaskSuccessResult) {
-            if (result instanceof InternalJavaCompileTaskSuccessResult) {
-                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskSuccessResult) result).getAnnotationProcessorResults());
+            if (result instanceof InternalJavaCompileTaskOperationResult) {
+                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
                 return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache, annotationProcessorResults);
             }
             return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache);

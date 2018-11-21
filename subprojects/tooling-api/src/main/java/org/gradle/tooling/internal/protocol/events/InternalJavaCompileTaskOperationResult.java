@@ -27,7 +27,7 @@ import java.util.List;
  *
  * @since 5.1
  */
-public interface InternalJavaCompileTaskSuccessResult extends InternalTaskSuccessResult {
+public interface InternalJavaCompileTaskOperationResult extends InternalTaskResult {
 
     @Nullable
     List<InternalAnnotationProcessorResult> getAnnotationProcessorResults();
