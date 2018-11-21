@@ -59,7 +59,7 @@ tasks {
 
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
-            findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,2.6]", versionProperties)
+            findLatest("groovy", "org.codehaus.groovy:groovy:2.5.+", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
@@ -69,7 +69,7 @@ tasks {
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
-            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,1.4]", versionProperties)
+            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.+", versionProperties)
 
             val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
             org.gradle.build.ReproduciblePropertiesWriter.store(
