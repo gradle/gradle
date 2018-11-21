@@ -40,7 +40,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                        
+
             allprojects {
                 dependencies {
                     attributesSchema {
@@ -63,7 +63,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     compile
                 }            
             }
-            
+
             class SynchronizedTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     ${server.callFromBuildUsingExpression("input.name")}

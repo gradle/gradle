@@ -75,10 +75,7 @@ public abstract class TransformationSubject implements Describable {
     }
 
     public TransformationSubject transformationSuccessful(ImmutableList<File> result) {
-        return new SubsequentTransformationSubject(
-            this,
-            result
-        );
+        return new SubsequentTransformationSubject(this, result);
     }
 
     private static class TransformationFailedSubject extends TransformationSubject {
