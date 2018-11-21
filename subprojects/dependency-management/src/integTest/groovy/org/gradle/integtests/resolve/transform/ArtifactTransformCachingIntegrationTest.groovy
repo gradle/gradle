@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
+import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -33,11 +33,11 @@ import java.util.regex.Pattern
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
-import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
-import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.incrementalArtifactTransformations
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.incrementalArtifactTransformations
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@RunWith(IncrementalArtifactTransformationsRunner)
+@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
@@ -713,9 +713,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("dir1.classes", "dir1.classes.dir")
         isTransformed("lib1.jar", "lib1.jar.txt")
         if (incrementalArtifactTransformations) {
-            projectOutputDir("dir1.classes", "dir1.classes.dir") == outputDir1
+            outputDir("dir1.classes", "dir1.classes.dir") == outputDir1
         } else {
-            gradleUserHomeOutputDir("dir1.classes", "dir1.classes.dir") != outputDir1
+            outputDir("dir1.classes", "dir1.classes.dir") != outputDir1
         }
         gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir2
 
@@ -728,7 +728,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @RequiredFeatures(@RequiredFeature(feature = IncrementalArtifactTransformationsRunner.INCREMENTAL_ARTIFACT_TRANSFORMATIONS, value = "true"))
+    @RequiredFeatures(@RequiredFeature(feature = ExperimentalIncrementalArtifactTransformationsRunner.INCREMENTAL_ARTIFACT_TRANSFORMATIONS, value = "true"))
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """

@@ -291,7 +291,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         assertHasBuildPhase("0% EXECUTING")
         task2.releaseAll()
 
-
         and:
         rootBuildFinished.waitForAllPendingCalls()
         assertHasBuildPhase("100% EXECUTING")

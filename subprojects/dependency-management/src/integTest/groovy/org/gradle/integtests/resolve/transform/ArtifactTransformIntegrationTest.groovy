@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
+import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.junit.runner.RunWith
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
 
-@RunWith(IncrementalArtifactTransformationsRunner)
+@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """

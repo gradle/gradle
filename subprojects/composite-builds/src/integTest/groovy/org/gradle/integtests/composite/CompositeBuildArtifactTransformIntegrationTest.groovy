@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner
+import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.junit.runner.RunWith
 
-import static org.gradle.integtests.fixtures.IncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
 
-@RunWith(IncrementalArtifactTransformationsRunner)
+@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -42,7 +42,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         buildA.buildFile << """
             class XForm extends ArtifactTransform {
                 List<File> transform(File file) {
-                    println("Transforming \$file in \$outputDirectory")
+                    println("Transforming \$file in output directory \$outputDirectory")
                     return [file]
                 }
             }
@@ -64,7 +64,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 }.artifacts
                 inputs.files artifacts.artifactFiles
                 doLast {
-                    artifacts.each { println it }
+                    artifacts.each { println "Transformed artifact: \$it" }
                 }
             }
         """
@@ -73,13 +73,13 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
 
-        outputContains("buildB-1.0.jar (project :buildB)")
-        outputContains("buildC-1.0.jar (project :buildC)")
+        outputContains("Transformed artifact: buildB-1.0.jar (project :buildB)")
+        outputContains("Transformed artifact: buildC-1.0.jar (project :buildC)")
         output.count("Transforming") == 2
 
-        if (IncrementalArtifactTransformationsRunner.incrementalArtifactTransformations) {
-            outputContains(buildB.file("build/transforms/buildB-1.0.jar").absolutePath)
-            outputContains(buildC.file("build/transforms/buildC-1.0.jar").absolutePath)
+        if (ExperimentalIncrementalArtifactTransformationsRunner.incrementalArtifactTransformations) {
+            outputContains("in output directory " + buildB.file("build/transforms/buildB-1.0.jar").absolutePath)
+            outputContains("in output directory " + buildC.file("build/transforms/buildC-1.0.jar").absolutePath)
         }
     }
 }

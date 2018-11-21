@@ -20,10 +20,10 @@ import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.file.TestFile
 
 @CompileStatic
-class IncrementalArtifactTransformationsRunner extends BehindFlagFeatureRunner {
+class ExperimentalIncrementalArtifactTransformationsRunner extends BehindFlagFeatureRunner {
     public final static String INCREMENTAL_ARTIFACT_TRANSFORMATIONS = "org.gradle.internal.artifacts.transforms.testWithTransformerWorkspaces"
 
-    IncrementalArtifactTransformationsRunner(Class<?> target) {
+    ExperimentalIncrementalArtifactTransformationsRunner(Class<?> target) {
         super(target, [
             (INCREMENTAL_ARTIFACT_TRANSFORMATIONS): booleanFeature("project workspaces for transformations")
         ])
