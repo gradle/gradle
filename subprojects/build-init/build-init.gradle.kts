@@ -59,7 +59,7 @@ tasks {
 
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
-            findLatest("groovy", "org.codehaus.groovy:groovy:(2.4,2.5]", versionProperties)
+            findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,2.6]", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
