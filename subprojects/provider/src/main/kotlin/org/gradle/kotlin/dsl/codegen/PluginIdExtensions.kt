@@ -109,7 +109,7 @@ object UserGuideLink {
             "assembler" to "native_software.html#assemblerPlugin",
             "assembler-lang" to "native_software.html#assemblerPlugin",
 
-            "base" to "standard_plugins.html#sec:base_plugins",
+            "base" to "plugin_reference.html#sec:base_plugins",
 
             "binary-base" to "software_model_concepts.html",
 
@@ -155,7 +155,7 @@ object UserGuideLink {
             "google-test-test-suite" to "native_software.html#native_binaries:google_test",
 
             "groovy" to "groovy_plugin.html",
-            "groovy-base" to "standard_plugins.html#sec:base_plugins",
+            "groovy-base" to "plugin_reference.html#sec:base_plugins",
 
             "help-tasks" to "tutorial_gradle_command_line.html#sec:obtaining_information_about_your_build",
 
@@ -166,7 +166,7 @@ object UserGuideLink {
             "jacoco" to "jacoco_plugin.html",
 
             "java" to "java_plugin.html",
-            "java-base" to "standard_plugins.html#sec:base_plugins",
+            "java-base" to "plugin_reference.html#sec:base_plugins",
 
             "java-gradle-plugin" to "java_gradle_plugin.html",
 
@@ -218,12 +218,12 @@ object UserGuideLink {
 
             // "publishing" to "publishing_plugin.html",
 
-            "reporting-base" to "standard_plugins.html#sec:base_plugins",
+            "reporting-base" to "plugin_reference.html#sec:base_plugins",
 
             // "rhino" to "rhino_plugin.html",
 
             "scala" to "scala_plugin.html",
-            "scala-base" to "standard_plugins.html#sec:base_plugins",
+            "scala-base" to "plugin_reference.html#sec:base_plugins",
 
             // "scala-lang" to "scala_lang_plugin.html",
 
