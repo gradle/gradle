@@ -46,17 +46,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
+    private final CollectionEventRegister<T> baseEventRegister;
     private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
     private final ElementSource<T> store;
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
-        this(type, store, new BuildOperationActionDecoratingCollectionEventRegistrar<T>(callbackActionDecorator, new BroadcastingCollectionEventRegister<T>(type)), callbackActionDecorator);
+        this(type, store, new BroadcastingCollectionEventRegister<T>(type), callbackActionDecorator);
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> baseEventRegister, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
         this.type = type;
         this.store = store;
-        this.eventRegister = eventRegister;
+        this.baseEventRegister = baseEventRegister;
+        this.eventRegister = new BuildOperationActionDecoratingCollectionEventRegistrar(callbackActionDecorator, baseEventRegister);
         this.callbackActionDecorator = callbackActionDecorator;
         this.store.onRealize(new Action<T>() {
             @Override
@@ -115,7 +117,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
-        return new FlushingEventRegister<S>(filter, getEventRegister());
+        return new FlushingEventRegister<S>(filter, baseEventRegister);
     }
 
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {

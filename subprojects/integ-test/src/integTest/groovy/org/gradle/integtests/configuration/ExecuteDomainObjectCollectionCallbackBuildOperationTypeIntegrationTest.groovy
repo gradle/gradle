@@ -182,8 +182,8 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
         then:
         def registerPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'RegisterPlugin' })
-        def resgisterCallbackBuildOp = ops.only(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        assert registerPluginApplication.details.applicationId == resgisterCallbackBuildOp.details.applicationId
+        def registerCallbackBuildOp = ops.only(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        assert registerPluginApplication.details.applicationId == registerCallbackBuildOp.details.applicationId
     }
 
     def "nested container callbacks emit build operation with application id"() {
@@ -234,6 +234,30 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         tasksContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
     }
 
+    def "filtered container callbacks emit build operation with application id for matching items only"() {
+        given:
+        file('script.gradle') << """
+            tasks.withType(Test).matching {it.path == ':someTest'}.all {
+                println 'test tasks container callback'
+            }
+        """
+        buildFile << """
+            apply from:'script.gradle'
+
+            tasks.register('someTest', Test)
+            tasks.register('anotherTest', Test)
+            tasks.register('someCompile', JavaCompile)
+        """
+
+        when:
+        run('tasks')
+
+        then:
+        def scriptPluginApplication = ops.only(ApplyScriptPluginBuildOperationType, { it.details.file.endsWith('script.gradle') })
+        def executeDomainObjectCallbackOps = ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.details.applicationId == scriptPluginApplication.details.applicationId })
+        assert executeDomainObjectCallbackOps.size() == 1
+    }
+
     def "container callbacks registered from lifecycle listener emit build operation with application id"() {
         given:
         file('registration.gradle') << """
@@ -281,26 +305,14 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         settingsFile << """
         gradle.allprojects {
-//                
-//                // the configuration block of the repositories block below does not properly 
-//                // emit the application id of the settings.gradle script as the beforeResolve 
-//                // callback is not decorated at the moment it. The applicationId of the root
-//                // build.gradle file is emitted instead.
-//                
-//                buildscript.configurations["classpath"].incoming.beforeResolve {
-//                    buildscript.repositories.all {
-//                        println "script repo callback"
-//                    }
-//
-//                }
-                buildscript {
-                    repositories.all {
-                        println "script repo callback"
-                    }
-                }
+            buildscript {
                 repositories.all {
-                    println "project repo callback"
+                    println "script repo callback"
                 }
+            }
+            repositories.all {
+                println "project repo callback"
+            }
         }
         """
         buildFile << """

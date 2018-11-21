@@ -41,8 +41,8 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
     };
 
-    public DefaultArtifactRepositoryContainer(Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator decorator) {
-        super(ArtifactRepository.class, instantiator, new RepositoryNamer(), decorator);
+    public DefaultArtifactRepositoryContainer(Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+        super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
         whenObjectAdded(new InternalAction<ArtifactRepository>() {
             public void execute(ArtifactRepository artifactRepository) {
                 if (artifactRepository instanceof ArtifactRepositoryInternal) {
