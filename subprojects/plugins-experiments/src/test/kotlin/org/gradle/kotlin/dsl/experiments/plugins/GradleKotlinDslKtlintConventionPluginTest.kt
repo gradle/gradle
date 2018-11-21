@@ -5,8 +5,8 @@ import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -34,7 +34,8 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
 
         assertThat(
             build("dependencies", "--configuration", "ktlint").output,
-            containsString("org.jetbrains.kotlin:kotlin-reflect:$embeddedKotlinVersion"))
+            containsString("org.jetbrains.kotlin:kotlin-reflect:{prefer $embeddedKotlinVersion}")
+        )
     }
 
     @Test
