@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -95,12 +96,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependencies dependencies) {
         TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, dependenciesProvider);
+                TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, historyRepository, primaryInputFingerprint, dependencies);
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
@@ -144,18 +145,18 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File resultsFile;
         private final String identityString;
         private final TransformerExecutionHistoryRepository historyRepository;
-        private final ArtifactTransformDependenciesProvider dependenciesProvider;
+        private final ArtifactTransformDependencies dependencies;
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
 
-        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, String identityString, TransformerExecutionHistoryRepository historyRepository, CurrentFileCollectionFingerprint primaryInputFingerprint, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        public TransformerExecution(File primaryInput, Transformer transformer, File workspace, String identityString, TransformerExecutionHistoryRepository historyRepository, CurrentFileCollectionFingerprint primaryInputFingerprint, ArtifactTransformDependencies dependencies) {
             this.primaryInput = primaryInput;
             this.transformer = transformer;
             this.identityString = "transform/" + identityString;
             this.historyRepository = historyRepository;
             this.outputDir = new File(workspace, "outputDirectory");
             this.resultsFile = new File(workspace,  "results.bin");
-            this.dependenciesProvider = dependenciesProvider;
+            this.dependencies = dependencies;
             this.inputSnapshots = ImmutableSortedMap.of(
                 // Emulate secondary inputs as a single property for now
                 SECONDARY_INPUTS_HASH_PROPERTY_NAME, ImplementationSnapshot.of("secondary inputs", transformer.getSecondaryInputHash())
@@ -169,7 +170,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public boolean execute() {
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependenciesProvider));
+            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
             writeResultsFile(outputDir, resultsFile, result);
             return true;
         }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -219,7 +220,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
     def "multiple threads can transform files concurrently"() {
         def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null, ImmutableAttributes.EMPTY) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependenciesProvider) {
                 instant.a
                 thread.blockUntil.b
                 instant.a_done
@@ -227,7 +228,7 @@ class DefaultTransformerInvokerTest extends ConcurrentSpec {
         }
         def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null, ImmutableAttributes.EMPTY) {
             @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
+            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependenciesProvider) {
                 instant.b
                 thread.blockUntil.a
                 instant.b_done

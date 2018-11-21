@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +48,13 @@ public class TransformationStep implements Transformation {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
         }
+        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, dependenciesProvider);
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, dependencies);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -50,7 +51,7 @@ class TransformerInvokerTest extends Specification {
         def executionResult = Mock(UpToDateResult)
 
         when:
-        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject, Mock(ArtifactTransformDependenciesProvider))
+        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject, Mock(ArtifactTransformDependencies))
         def transformationFailure = result.failure.get()
         then:
         transformationFailure instanceof TransformationException
