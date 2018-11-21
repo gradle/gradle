@@ -297,12 +297,9 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     private Action blocking() {
         new ActionSupport("throw socket timeout exception") {
             CountDownLatch latch = new CountDownLatch(1)
+
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
-                    latch.await(60, TimeUnit.SECONDS)
-                } catch (InterruptedException e) {
-                    // ignore
-                }
+                latch.await(60, TimeUnit.SECONDS)
             }
         }
     }
