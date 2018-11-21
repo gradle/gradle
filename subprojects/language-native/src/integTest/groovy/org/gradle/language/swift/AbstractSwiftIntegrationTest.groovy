@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.api.platform.MachineArchitecture
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement

@@ -26,13 +26,13 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 
-import static org.gradle.api.platform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
-import static org.gradle.api.platform.MachineArchitecture.X86
-import static org.gradle.api.platform.MachineArchitecture.X86_64
-import static org.gradle.api.platform.OperatingSystemFamily.LINUX
-import static org.gradle.api.platform.OperatingSystemFamily.MACOS
-import static org.gradle.api.platform.OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE
-import static org.gradle.api.platform.OperatingSystemFamily.WINDOWS
+import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
     def consumer = file("consumer").createDir()

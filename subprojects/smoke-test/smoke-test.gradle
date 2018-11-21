@@ -29,7 +29,6 @@ dependencies {
     smokeTestRuntimeOnly project(':plugins')
     smokeTestRuntimeOnly project(':pluginDevelopment')
     smokeTestRuntimeOnly project(':toolingApiBuilders')
-    smokeTestRuntimeOnly project(':platformNative')
 }
 
 gradlebuildJava {

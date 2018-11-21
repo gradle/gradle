@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.api.platform.OperatingSystemFamily;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 
 public class DefaultOperatingSystem implements OperatingSystemInternal {
     private static final OperatingSystem CURRENT_OS = OperatingSystem.current();

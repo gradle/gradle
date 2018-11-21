@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.platform;
+package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Nested;

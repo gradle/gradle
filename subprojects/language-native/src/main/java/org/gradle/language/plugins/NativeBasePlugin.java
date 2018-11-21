@@ -36,6 +36,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -57,6 +59,7 @@ import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStat
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -68,6 +71,7 @@ import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Set;
 
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
@@ -95,15 +99,26 @@ import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
  *
  * <li>Maven publications. Currently requires component implements internal API {@link PublicationAwareComponent}.</li>
  *
+ * <li>Adds {@link TargetMachineFactory} for configuring {@link TargetMachine}.</li>
+ *
  * </ul>
  *
  * @since 4.5
  */
 @Incubating
 public class NativeBasePlugin implements Plugin<ProjectInternal> {
+    private final TargetMachineFactory targetMachineFactory;
+
+    @Inject
+    public NativeBasePlugin(TargetMachineFactory targetMachineFactory) {
+        this.targetMachineFactory = targetMachineFactory;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
+
+        addTargetMachineFactoryAsExtension(project.getExtensions(), targetMachineFactory);
 
         final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
@@ -127,6 +142,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         addOutgoingConfigurationForRuntimeUsage(components, configurations);
 
         addPublicationsFromVariants(project, components);
+    }
+
+    private static void addTargetMachineFactoryAsExtension(ExtensionContainer extensions, TargetMachineFactory targetMachineFactory) {
+        extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
     }
 
     private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {

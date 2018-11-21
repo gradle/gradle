@@ -29,8 +29,8 @@ import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.api.platform.MachineArchitecture.*
-import static org.gradle.api.platform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.*
+import static org.gradle.nativeplatform.OperatingSystemFamily.*
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
