@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.impl.steps.UpToDateResult
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
@@ -44,14 +44,14 @@ class TransformerInvokerTest extends Specification {
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def historyRepository = Mock(TransformerExecutionHistoryRepository)
     def outputFileCollectionFingerprinter = Mock(OutputFileCollectionFingerprinter)
-    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher))
+    def transformerInvoker = new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, Stub(FileCollectionFingerprinter), outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher))
 
     def "wraps failures into TransformInvocationException"() {
         def failure = new RuntimeException()
         def executionResult = Mock(UpToDateResult)
 
         when:
-        def result = transformerInvoker.invoke(transformer, sourceFile, Mock(ArtifactTransformDependencies), sourceSubject)
+        def result = transformerInvoker.invoke(transformer, sourceFile, DefaultArtifactTransformDependenciesProvider.EMPTY_DEPENDENCIES, sourceSubject)
         def transformationFailure = result.failure.get()
         then:
         transformationFailure instanceof TransformationException

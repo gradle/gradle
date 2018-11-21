@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -29,17 +30,39 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 import java.util.Set;
 
 class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
+    @VisibleForTesting
+    static final ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
+        @Override
+        public FileCollection getFiles() {
+            return ImmutableFileCollection.of();
+        }
+    };
+    @VisibleForTesting
+    static final ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
+        @Override
+        public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
+            return EMPTY_DEPENDENCIES;
+        }
+    };
+
     private final ComponentArtifactIdentifier artifactId;
     private final ResolvableDependencies resolvableDependencies;
 
-    DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+     DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
         this.artifactId = artifactId;
         this.resolvableDependencies = resolvableDependencies;
+    }
+
+    public static ArtifactTransformDependenciesProvider create(Transformation transformation, ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+        return transformation.requiresDependencies()
+            ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
+            : EMPTY;
     }
 
     @Override

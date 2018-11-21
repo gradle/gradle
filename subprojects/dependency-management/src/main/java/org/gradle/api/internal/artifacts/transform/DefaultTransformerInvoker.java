@@ -96,7 +96,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Override
     public boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies) {
-        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer ,dependencies));
+        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer, dependencies));
     }
 
     @Override
