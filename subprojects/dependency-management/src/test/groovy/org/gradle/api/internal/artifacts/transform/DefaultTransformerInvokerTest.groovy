@@ -48,7 +48,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
-    TestTransformerExecutionHistoryRepository historyRepository = new TestTransformerExecutionHistoryRepository(immutableTransformsStoreDirectory)
+    def executionHistoryStore = new TestExecutionHistoryStore()
+    def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(new StringInterner(), fileSystemSnapshotter)
@@ -58,7 +59,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
-        get(TransformerExecutionHistoryRepository) >> new TestTransformerExecutionHistoryRepository(mutableTransformsStoreDirectory)
+        get(CachingTransformationWorkspaceProvider) >> new TestTransformationWorkspaceProvider(mutableTransformsStoreDirectory, executionHistoryStore)
     }
 
     def childProject = Stub(ProjectInternal) {
@@ -75,7 +76,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         workExecutorTestFixture.workExecutor,
         fileSystemSnapshotter,
         artifactTransformListener,
-        historyRepository,
+        transformationWorkspaceProvider,
         outputFilesFingerprinter,
         classloaderHasher,
         projectFinder,

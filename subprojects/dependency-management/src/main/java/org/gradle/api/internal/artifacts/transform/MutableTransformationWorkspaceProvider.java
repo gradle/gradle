@@ -20,17 +20,25 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
 @NotThreadSafe
-public class ProjectTransformerWorkspaceProvider implements TransformerWorkspaceProvider {
+public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider {
 
     private final Provider<Directory> baseDirectory;
+    private final ExecutionHistoryStore executionHistoryStore;
 
-    public ProjectTransformerWorkspaceProvider(ProjectLayout layout) {
+    public MutableTransformationWorkspaceProvider(ProjectLayout layout, ExecutionHistoryStore executionHistoryStore) {
         baseDirectory = layout.getBuildDirectory().dir("transforms");
+        this.executionHistoryStore = executionHistoryStore;
+    }
+
+    @Override
+    public ExecutionHistoryStore getExecutionHistoryStore() {
+        return executionHistoryStore;
     }
 
     @Override

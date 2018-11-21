@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultAfterPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -27,56 +28,40 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import java.io.File;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
 
-public class TestTransformerExecutionHistoryRepository implements TransformerExecutionHistoryRepository {
+public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     private final Map<String, AfterPreviousExecutionState> executionHistory = new HashMap<>();
-    private final File transformationsStoreDirectory;
 
-    public TestTransformerExecutionHistoryRepository(File transformationsStoreDirectory) {
-        this.transformationsStoreDirectory = transformationsStoreDirectory;
+    @Nullable
+    @Override
+    public AfterPreviousExecutionState load(String key) {
+        return executionHistory.get(key);
     }
 
     @Override
-    public Optional<AfterPreviousExecutionState> getPreviousExecution(String identity) {
-        return Optional.ofNullable(executionHistory.get(identity));
-    }
-
-    @Override
-    public void persist(String identity, OriginMetadata originMetadata, ImplementationSnapshot implementationSnapshot, ImmutableSortedMap<String, ValueSnapshot> inputSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints, boolean successful) {
-        AfterPreviousExecutionState persistedState = new DefaultAfterPreviousExecutionState(
+    public void store(String key, OriginMetadata originMetadata, ImplementationSnapshot implementation, ImmutableList<ImplementationSnapshot> additionalImplementations, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties, boolean successful) {
+        AfterPreviousExecutionState afterPreviousExecutionState = new DefaultAfterPreviousExecutionState(
             originMetadata,
-            implementationSnapshot,
-            ImmutableList.of(),
-            inputSnapshots,
-            prepareForSerialization(inputFileFingerprints),
-            prepareForSerialization(outputFingerprints),
+            implementation,
+            additionalImplementations,
+            inputProperties,
+            prepareForSerialization(inputFileProperties),
+            prepareForSerialization(outputFileProperties),
             successful
         );
-        executionHistory.put(identity, persistedState);
+        executionHistory.put(key, afterPreviousExecutionState);
     }
-
-    @Override
-    public boolean hasCachedResult(TransformationIdentity identity) {
-        return false;
-    }
-
+    
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
         return copyOfSorted(transformValues(fingerprints, value -> {
             //noinspection ConstantConditions
             return new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes());
         }));
-    }
-
-    @Override
-    public ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        String identityString = identity.getIdentity();
-        return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
     }
 }

@@ -16,23 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-
-import java.io.File;
-
-public interface TransformerWorkspaceProvider {
-    /**
-     * Provides a workspace for executing the transformation.
-     */
-    ImmutableList<File> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction);
-
-    @FunctionalInterface
-    interface TransformationWorkspaceAction {
-        ImmutableList<File> useWorkspace(String transformationIdentity, TransformationWorkspace workspace);
-    }
-
-    interface TransformationWorkspace {
-        File getOutputDirectory();
-        File getResultsFile();
+public class MutableCachingTransformationWorkspaceProvider extends DefaultCachingTransformationWorkspaceProvider {
+    public MutableCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
+        super(delegate);
     }
 }

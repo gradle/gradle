@@ -25,6 +25,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
@@ -38,15 +39,17 @@ import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MA
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @NotThreadSafe
-public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProvider, Closeable {
+public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
+    private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public GradleUserHomeWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+    public ImmutableTransformationWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        this.executionHistoryStore = executionHistoryStore;
         cache = cacheRepository
             .cache(transformsStoreDirectory)
             .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
@@ -61,6 +64,11 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
         return CompositeCleanupAction.builder()
             .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
+    }
+
+    @Override
+    public ExecutionHistoryStore getExecutionHistoryStore() {
+        return executionHistoryStore;
     }
 
     @Override

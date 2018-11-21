@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import java.io.File;
 
-public class DefaultTransformationWorkspace implements TransformerWorkspaceProvider.TransformationWorkspace {
+public class DefaultTransformationWorkspace implements TransformationWorkspaceProvider.TransformationWorkspace {
 
     private static final String RESULTS_FILE_SUFFIX = ".bin";
 

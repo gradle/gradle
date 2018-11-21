@@ -71,9 +71,9 @@ import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.GradleUserHomeTransformerExecutionHistoryRepository;
-import org.gradle.api.internal.artifacts.transform.ProjectTransformerExecutionHistoryRepository;
-import org.gradle.api.internal.artifacts.transform.ProjectTransformerWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -230,23 +230,23 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
         }
 
-        ProjectTransformerWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout) {
-            return new ProjectTransformerWorkspaceProvider(projectLayout);
+        MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
+            return new MutableTransformationWorkspaceProvider(projectLayout, executionHistoryStore);
         }
 
-        ProjectTransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(ProjectTransformerWorkspaceProvider transformerWorkspaceProvider, ExecutionHistoryStore executionHistoryStore) {
-            return new ProjectTransformerExecutionHistoryRepository(transformerWorkspaceProvider, executionHistoryStore);
+        MutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(MutableTransformationWorkspaceProvider workspaceProvider) {
+            return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
         TransformerInvoker createTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
-                                                    GradleUserHomeTransformerExecutionHistoryRepository gradleUserHomeTransformerExecutionHistoryRepository,
+                                                    ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                                     ProjectFinder projectFinder,
                                                     FeaturePreviews featurePreviews) {
-            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, gradleUserHomeTransformerExecutionHistoryRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS));
+            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, transformationWorkspaceProvider, outputFileCollectionFingerprinter, classLoaderHierarchyHasher, projectFinder, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS));
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

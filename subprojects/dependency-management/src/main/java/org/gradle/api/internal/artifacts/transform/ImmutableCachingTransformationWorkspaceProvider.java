@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-
-public class GradleUserHomeTransformerExecutionHistoryRepository extends DefaultTransformerExecutionHistoryRepository {
-    public GradleUserHomeTransformerExecutionHistoryRepository(GradleUserHomeWorkspaceProvider workspaceProvider, ExecutionHistoryStore executionHistoryStore) {
-        super(workspaceProvider, executionHistoryStore);
+public class ImmutableCachingTransformationWorkspaceProvider extends DefaultCachingTransformationWorkspaceProvider {
+    public ImmutableCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
+        super(delegate);
     }
 }
