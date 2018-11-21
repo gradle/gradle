@@ -65,10 +65,22 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
                 .displayName("Execute container callback action")
-                .details(new ExecuteDomainObjectCollectionCallbackBuildOperationType.DetailsImpl(applicationId));
+                .details(new OperationDetails(applicationId));
         }
     }
 
+    private static class OperationDetails implements ExecuteDomainObjectCollectionCallbackBuildOperationType.Details {
+        private final UserCodeApplicationId applicationId;
+
+        OperationDetails(UserCodeApplicationId applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        @Override
+        public long getApplicationId() {
+            return applicationId.longValue();
+        }
+    }
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
 

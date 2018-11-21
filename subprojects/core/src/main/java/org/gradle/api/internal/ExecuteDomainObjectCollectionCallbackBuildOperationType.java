@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.internal.operations.BuildOperationType;
 
-public class ExecuteDomainObjectCollectionCallbackBuildOperationType implements BuildOperationType<ExecuteDomainObjectCollectionCallbackBuildOperationType.Details, ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
+public final class ExecuteDomainObjectCollectionCallbackBuildOperationType implements BuildOperationType<ExecuteDomainObjectCollectionCallbackBuildOperationType.Details, ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
 
     public interface Details {
 
@@ -34,20 +33,6 @@ public class ExecuteDomainObjectCollectionCallbackBuildOperationType implements 
     }
 
     public interface Result {
-    }
-
-    static class DetailsImpl implements ExecuteDomainObjectCollectionCallbackBuildOperationType.Details {
-        final UserCodeApplicationId applicationId;
-
-        DetailsImpl(UserCodeApplicationId applicationId) {
-            this.applicationId = applicationId;
-        }
-
-        @Override
-        public long getApplicationId() {
-            return applicationId.longValue();
-        }
-
     }
 
     static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
