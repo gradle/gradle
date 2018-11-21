@@ -37,6 +37,13 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
         super(objects, filter, instantiator, namer, callbackActionDecorator);
     }
+    
+    /**
+     * only left here to not break `nebula.dependency-recommender` plugin.
+     * */
+    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+        super(type, new ListElementSource<T>(), instantiator, namer, DomainObjectCollectionCallbackActionDecorator.NOOP);
+    }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator decorator) {
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
