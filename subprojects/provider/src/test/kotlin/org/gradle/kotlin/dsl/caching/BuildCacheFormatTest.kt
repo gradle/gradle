@@ -57,10 +57,7 @@ class BuildCacheFormatTest : TestWithTempFiles() {
         // when:
         val metadata = PackMetadata(UniqueId.generate(), 42L)
         val inputDir = file("input")
-        val (packedEntryCount, bytes) =
-            ByteArrayOutputStream().use { it ->
-                pack(inputDir, metadata, it) to it.toByteArray()
-            }
+        val (packedEntryCount, bytes) = packToByteArray(inputDir, metadata)
         assertThat(
             packedEntryCount,
             equalTo(5L)
@@ -95,3 +92,10 @@ class BuildCacheFormatTest : TestWithTempFiles() {
     fun descriptorFor(f: File, baseDir: File) =
         f.normalisedPathRelativeTo(baseDir) + (if (f.isFile) ":${f.readText()}" else "/")
 }
+
+
+internal
+fun packToByteArray(inputDir: File, metadata: PackMetadata): Pair<Long, ByteArray> =
+    ByteArrayOutputStream().use { it ->
+        pack(inputDir, metadata, it) to it.toByteArray()
+    }
