@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import groovy.lang.Closure;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
@@ -55,17 +54,10 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
                 || notation instanceof Number
                 || notation instanceof Boolean) {
             result.converted(notation.toString());
-        } else if (notation instanceof Closure) {
-            final Closure closure = (Closure) notation;
-            final Object called = closure.call();
-            convert(called, result);
         } else if (notation instanceof Callable) {
             final Callable callableNotation = (Callable) notation;
             final Object called = uncheckedCall(callableNotation);
             convert(called, result);
-            if (!result.hasResult()) {
-                throw new TypeConversionException("Couldn't convert " + notation);
-            }
         }
     }
 }
