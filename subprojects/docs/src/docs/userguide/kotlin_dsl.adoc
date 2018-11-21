@@ -289,7 +289,7 @@ tasks.test {
 }
 
 // Lazy reference
-val testProvider: TaskProvider<SourceSet> = tasks.test
+val testProvider: TaskProvider<Test> = tasks.test
 
 testProvider {
     // lazy configuration
