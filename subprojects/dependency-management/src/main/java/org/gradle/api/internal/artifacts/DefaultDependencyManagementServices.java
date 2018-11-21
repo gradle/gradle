@@ -113,6 +113,7 @@ import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -230,9 +231,18 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     TransformerExecutionHistoryRepository historyRepository,
                                                     ArtifactTransformListener artifactTransformListener,
+                                                    // For now we assume absolute paths when dealing with dependencies
+                                                    AbsolutePathFileCollectionFingerprinter dependencyFingerprinter,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            return new DefaultTransformerInvoker(workExecutor, fileSystemSnapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, classLoaderHierarchyHasher);
+            return new DefaultTransformerInvoker(
+                workExecutor,
+                fileSystemSnapshotter,
+                artifactTransformListener,
+                historyRepository,
+                dependencyFingerprinter,
+                outputFileCollectionFingerprinter,
+                classLoaderHierarchyHasher);
         }
 
         VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {

@@ -48,13 +48,14 @@ public class TransformationStep implements Transformation {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
         }
-        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
+        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File file : subjectToTransform.getFiles()) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, dependencies);
+        for (File primaryInput : primaryInputs) {
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());
@@ -70,12 +71,14 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        if (subject.getFailure() != null) {
+    public boolean hasCachedResult(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        if (subjectToTransform.getFailure() != null) {
             return true;
         }
-        for (File file : subject.getFiles()) {
-            if (!transformerInvoker.hasCachedResult(file, transformer)) {
+        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
+        for (File primaryInput : primaryInputs) {
+            if (!transformerInvoker.hasCachedResult(transformer, primaryInput, dependencies)) {
                 return false;
             }
         }

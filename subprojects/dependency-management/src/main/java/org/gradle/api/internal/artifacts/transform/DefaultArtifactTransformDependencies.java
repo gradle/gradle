@@ -17,19 +17,17 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
-
-import java.io.File;
-import java.util.Collection;
+import org.gradle.api.file.FileCollection;
 
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
-    private final Collection<File> files;
+    private final FileCollection files;
 
-    public DefaultArtifactTransformDependencies(Collection<File> files) {
+    public DefaultArtifactTransformDependencies(FileCollection files) {
         this.files = files;
     }
 
     @Override
-    public Collection<File> getFiles() {
+    public FileCollection getFiles() {
         return files;
     }
 }

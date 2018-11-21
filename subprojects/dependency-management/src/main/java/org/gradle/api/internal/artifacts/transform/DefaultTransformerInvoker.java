@@ -43,6 +43,7 @@ import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -73,6 +74,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final WorkExecutor<UpToDateResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final TransformerExecutionHistoryRepository historyRepository;
+    private final FileCollectionFingerprinter dependencyFingerprinter;
     private final OutputFileCollectionFingerprinter outputFileCollectionFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
@@ -80,24 +82,26 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      TransformerExecutionHistoryRepository historyRepository,
+                                     FileCollectionFingerprinter dependencyFingerprinter,
                                      OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
         this.historyRepository = historyRepository;
+        this.dependencyFingerprinter = dependencyFingerprinter;
         this.outputFileCollectionFingerprinter = outputFileCollectionFingerprinter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
     @Override
-    public boolean hasCachedResult(File primaryInput, Transformer transformer) {
-        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer));
+    public boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies) {
+        return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer ,dependencies));
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependencies dependencies) {
-        TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer);
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
+        TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer, dependencies);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -112,13 +116,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer) {
+    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer, ArtifactTransformDependencies dependencies) {
         FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
+        CurrentFileCollectionFingerprint dependenciesFingerprint = dependencyFingerprinter.fingerprint((FileCollection) dependencies.getFiles());
         return new ImmutableTransformationIdentity(
             primaryInput.getName(),
             snapshot.getAbsolutePath(),
             snapshot.getHash(),
-            transformer.getSecondaryInputHash()
+            transformer.getSecondaryInputHash(),
+            dependenciesFingerprint.getHash()
         );
     }
 
@@ -367,12 +373,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final String primaryInputAbsolutePath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
+        private final HashCode dependenciesHash;
 
-        public ImmutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
+        public ImmutableTransformationIdentity(String initialSubjectFileName, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
             this.initialSubjectFileName = initialSubjectFileName;
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
+            this.dependenciesHash = dependenciesHash;
         }
 
         @Override
@@ -386,6 +394,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             hasher.putHash(secondaryInputHash);
             hasher.putString(primaryInputAbsolutePath);
             hasher.putHash(primaryInputHash);
+            hasher.putHash(dependenciesHash);
             return hasher.hash().toString();
         }
 
@@ -406,6 +415,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!secondaryInputHash.equals(that.secondaryInputHash)) {
                 return false;
             }
+            if (!dependenciesHash.equals(that.dependenciesHash)) {
+                return false;
+            }
             if (!initialSubjectFileName.equals(that.initialSubjectFileName)) {
                 return false;
             }
@@ -416,6 +428,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public int hashCode() {
             int result = primaryInputHash.hashCode();
             result = 31 * result + secondaryInputHash.hashCode();
+            result = 31 * result + dependenciesHash.hashCode();
             return result;
         }
     }

@@ -22,7 +22,9 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
     def setup() {
         // TODO LJA Investigate, this makes little sense
-        executer.expectDeprecationWarning()
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         settingsFile << """
             rootProject.name = 'transform-deps'
@@ -52,7 +54,11 @@ project(':lib') {
     apply plugin: 'java-library'
 
     dependencies {
-        api 'org.slf4j:slf4j-api:1.7.25'
+        if (rootProject.hasProperty("useOldDependencyVersion")) {
+            api 'org.slf4j:slf4j-api:1.7.24'
+        } else {
+            api 'org.slf4j:slf4j-api:1.7.25'
+        }
     }
 }
 
@@ -219,5 +225,31 @@ project(':app') {
         output.count("Transforming") == 4
         output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+    }
+
+    def "transform with changed dependencies are re-executed"() {
+        given:
+        buildFile << """
+project(':app') {
+    task resolve(type: Copy) {
+        def artifacts = configurations.compileClasspath.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'size') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+    }
+}
+"""
+        run "resolve", "-PuseOldDependencyVersion"
+
+        when:
+        run "resolve", "--info"
+
+        then:
+        output.readLines().any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
+        output.readLines().any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
+        output.readLines().count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
+        output.contains('Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar')
+        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
     }
 }

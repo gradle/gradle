@@ -17,17 +17,16 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-
-import java.io.File;
-import java.util.Collections;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 interface ArtifactTransformDependenciesProvider {
 
     ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
         @Override
-        public Iterable<File> getFiles() {
-            return Collections.emptySet();
+        public FileCollection getFiles() {
+            return ImmutableFileCollection.of();
         }
     };
 

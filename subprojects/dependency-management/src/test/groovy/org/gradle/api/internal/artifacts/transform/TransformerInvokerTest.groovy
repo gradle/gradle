@@ -51,7 +51,7 @@ class TransformerInvokerTest extends Specification {
         def executionResult = Mock(UpToDateResult)
 
         when:
-        def result = transformerInvoker.invoke(transformer, sourceFile, sourceSubject, Mock(ArtifactTransformDependencies))
+        def result = transformerInvoker.invoke(transformer, sourceFile, Mock(ArtifactTransformDependencies), sourceSubject)
         def transformationFailure = result.failure.get()
         then:
         transformationFailure instanceof TransformationException
