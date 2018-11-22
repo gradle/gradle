@@ -48,7 +48,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
             return action;
         }
 
-        return new BuildOperationEmittingAction<>(applicationId, action);
+        return new BuildOperationEmittingAction<T>(applicationId, action);
     }
 
     private static abstract class Operation implements RunnableBuildOperation {
