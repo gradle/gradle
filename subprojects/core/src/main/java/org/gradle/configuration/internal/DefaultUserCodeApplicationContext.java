@@ -62,8 +62,8 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
-    public <T> Action<T> decorateWithCurrent(Action<T> action) {
-        UserCodeApplicationId id = current();
+    public <T> Action<T> decorateWithCurrent(final Action<T> action) {
+        final UserCodeApplicationId id = current();
         if (id == null) {
             return action;
         }
