@@ -117,7 +117,7 @@ data class CIBuildModel (
             GradleSubproject("javascript"),
             GradleSubproject("jvmServices", functionalTests = false),
             GradleSubproject("languageGroovy"),
-            GradleSubproject("languageJava"),
+            GradleSubproject("languageJava", crossVersionTests = true),
             GradleSubproject("languageJvm"),
             GradleSubproject("languageNative"),
             GradleSubproject("languageScala"),
