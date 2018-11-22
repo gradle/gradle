@@ -23,6 +23,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -43,6 +45,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -325,26 +328,61 @@ public class DependencyGraphBuilder {
                 // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                 // at all, but we still want to see an error message for it.
                 attachFailureToEdges(error, module.getUnattachedDependencies());
-            } else if (module.isVirtualPlatform() && module.hasCompetingForceSelectors()) {
+            } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
     }
 
     private void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {
-        List<EdgeState> forcedEdges = Lists.newArrayList();
+        List<EdgeState> forcedEdges = null;
+        boolean hasMultipleVersions = false;
+        String currentVersion = maybeFindForcedPlatformVersion(module);
         Set<ModuleResolveState> participatingModules = module.getPlatformState().getParticipatingModules();
         for (ModuleResolveState participatingModule : participatingModules) {
             for (EdgeState incomingEdge : participatingModule.getIncomingEdges()) {
-                if (incomingEdge.getSelector().isForce()) {
+                SelectorState selector = incomingEdge.getSelector();
+                if (selector.isForce() && !selector.isSoftForce()) {
                     // Filter out platform originating edges
-                    if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
-                        forcedEdges.add(incomingEdge);
+                    ComponentSelector componentSelector = selector.getSelector();
+                    if (componentSelector instanceof ModuleComponentSelector) {
+                        ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
+                        if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
+                            if (forcedEdges == null) {
+                                forcedEdges = Lists.newArrayList();
+                            }
+                            forcedEdges.add(incomingEdge);
+                            if (currentVersion == null) {
+                                currentVersion = mcs.getVersion();
+                            } else {
+                                if (!currentVersion.equals(mcs.getVersion())) {
+                                    hasMultipleVersions = true;
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        attachFailureToEdges(new GradleException("Multiple forces on different versions for virtual platform " + module.getId()), forcedEdges);
+        if (hasMultipleVersions) {
+            attachFailureToEdges(new GradleException("Multiple forces on different versions for virtual platform " + module.getId()), forcedEdges);
+        }
+    }
+
+    private String maybeFindForcedPlatformVersion(ModuleResolveState module) {
+        for (NodeState node : module.getSelected().getNodes()) {
+            if (node.isSelected()) {
+                for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                    DependencyMetadata dependencyMetadata = incomingEdge.getDependencyMetadata();
+                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata) && dependencyMetadata instanceof ForcingDependencyMetadata) {
+                        if (((ForcingDependencyMetadata) dependencyMetadata).isForce()) {
+                            return module.getSelected().getVersion();
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**

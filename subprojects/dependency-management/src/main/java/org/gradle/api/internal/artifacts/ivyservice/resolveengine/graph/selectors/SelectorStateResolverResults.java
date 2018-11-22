@@ -42,8 +42,12 @@ class SelectorStateResolverResults {
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
+        boolean onlyLookAtSoftForces = shouldOnlyLookAtSoftForces();
         for (Registration entry : results) {
             ResolvableSelectorState selectorState = entry.selector;
+            if (onlyLookAtSoftForces && !selectorState.isSoftForce()) {
+                continue;
+            }
             ComponentIdResolveResult idResolveResult = entry.result;
 
             if (selectorState.isForce()) {
@@ -71,6 +75,21 @@ class SelectorStateResolverResults {
         }
 
         return resolved == null ? Collections.<T>emptyList() : resolved;
+    }
+
+    private boolean shouldOnlyLookAtSoftForces() {
+        int forces = 0;
+        int softForces = 0;
+        for (Registration entry : results) {
+            ResolvableSelectorState selectorState = entry.selector;
+            if (selectorState.isForce()) {
+                forces++;
+            }
+            if (selectorState.isSoftForce()) {
+                softForces++;
+            }
+        }
+        return forces>0 && forces == softForces;
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
@@ -102,7 +121,7 @@ class SelectorStateResolverResults {
         boolean replaces = false;
         for (Registration registration : results) {
             if (emptyVersion(registration.result) || sameVersion(registration.result, resolveResult) ||
-                (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
+                    (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
                 replaces = true;
             }
@@ -149,7 +168,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector

@@ -34,12 +34,7 @@ public class VirtualPlatformState {
     private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
 
     public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule) {
-        this.vC = new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return versionComparator.compare(versionParser.transform(o2), versionParser.transform(o1));
-            }
-        };
+        this.vC = (o1, o2) -> versionComparator.compare(versionParser.transform(o2), versionParser.transform(o1));
         this.platformModule = platformModule;
     }
 
@@ -58,22 +53,28 @@ public class VirtualPlatformState {
     }
 
     List<String> getCandidateVersions() {
+        String forcedVersion = null;
         ComponentState selectedPlatformComponent = platformModule.getSelected();
+        List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size() + 1);
         if (selectedPlatformComponent.getSelectionReason().isForced()) {
-            return Collections.singletonList(selectedPlatformComponent.getVersion());
+            forcedVersion = selectedPlatformComponent.getVersion();
         }
-        List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size());
+        sorted.add(selectedPlatformComponent.getVersion());
         for (ModuleResolveState module : participatingModules) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
-                if (selected.getSelectionReason().isForced()) {
-                    return Collections.singletonList(selected.getVersion());
+                if (selected.getSelectionReason().isForced() && forcedVersion == null) {
+                    forcedVersion = selected.getVersion();
                 }
                 sorted.add(selected.getVersion());
             }
         }
         Collections.sort(sorted, vC);
-        return sorted;
+        if (forcedVersion != null) {
+            return sorted.subList(sorted.indexOf(forcedVersion), sorted.size());
+        } else {
+            return sorted;
+        }
     }
 
     Set<ModuleResolveState> getParticipatingModules() {
