@@ -38,7 +38,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
-    @TargetGradleVersion('<5.1')
+    @TargetGradleVersion('>=4.0 <5.1')
     def "generates events for worker actions executed in-process and forked (pre 5.1)"() {
         when:
         def events = runBuildWithWorkerActions()

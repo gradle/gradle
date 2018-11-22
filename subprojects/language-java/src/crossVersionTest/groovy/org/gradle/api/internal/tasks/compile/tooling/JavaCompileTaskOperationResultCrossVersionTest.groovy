@@ -30,6 +30,7 @@ import java.time.Duration
 import static org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.ISOLATING
 
 @ToolingApiVersion('>=5.1')
+@TargetGradleVersion('>=4.6')
 class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 
     void setup() {
@@ -80,7 +81,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         ((JavaCompileTaskOperationResult) processorOperation.result).annotationProcessorResults.empty
     }
 
-    @TargetGradleVersion("<5.1")
+    @TargetGradleVersion(">=4.6 <5.1")
     def "reports regular success result for older Gradle versions"() {
         when:
         def events = runBuild("compileJava")
