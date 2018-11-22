@@ -33,7 +33,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
             daemon = useDaemon)
 
     params {
-        param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.oracle.64bit%")
+        param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
         if (testCoverage.os == OS.linux) {
             param("env.ANDROID_HOME", "/opt/android/sdk")
         }

@@ -11,7 +11,6 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
     params {
-        param("system.java9Home", "%linux.java9.oracle.64bit%")
         param("env.JAVA_HOME", buildJavaHome)
     }
 

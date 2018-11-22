@@ -11,7 +11,6 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     description = "Compiles all the source code and warms up the build cache"
 
     params {
-        param("system.java9Home", "%linux.java9.oracle.64bit%")
         param("env.JAVA_HOME", buildJavaHome)
     }
 

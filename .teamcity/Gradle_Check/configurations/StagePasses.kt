@@ -70,7 +70,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "createBuildReceipt"
-            gradleParams = "-PtimestampedVersion -Djava7Home=%linux.jdk.for.gradle.compile% -Djava9Home=%linux.java9.oracle.64bit% --daemon"
+            gradleParams = "-PtimestampedVersion --daemon"
         }
         script {
             name = "CHECK_CLEAN_M2"

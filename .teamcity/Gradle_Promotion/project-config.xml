@@ -4,7 +4,7 @@
   <parameters>
     <param name="env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY" value="AKIAJFJBF5BXLBNI3E5A" />
     <param name="env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY" value="credentialsJSON:ed0db35e-2034-444c-a9b1-d966b9abe89b" spec="password display='normal'" />
-    <param name="env.JAVA_HOME" value="%linux.java9.oracle.64bit%" />
+    <param name="env.JAVA_HOME" value="%linux.java11.openjdk.64bit%" />
     <param name="env.ORG_GRADLE_PROJECT_artifactoryUserName" value="bot-build-tool" />
     <param name="env.ORG_GRADLE_PROJECT_artifactoryUserPassword" value="credentialsJSON:2b7529cd-77cd-49f4-9416-9461f6ac9018" spec="password display='normal'" />
     <param name="env.ORG_GRADLE_PROJECT_gradleS3AccessKey" value="AKIAJUN6ZAPAEO3BC7AQ" />

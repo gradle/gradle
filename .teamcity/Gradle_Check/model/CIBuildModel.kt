@@ -221,7 +221,7 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
     val id = stageName.id
 }
 
-data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java9) {
+data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}$testCoveragePrefix"
     }
