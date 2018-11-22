@@ -106,17 +106,19 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     @Override
     public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject) {
         ProjectInternal producerProject = determineProducerProject(subject);
-        return determineWorkspaceProvider(producerProject).hasCachedResult(getTransformationIdentity(producerProject, primaryInput, transformer, subject));
+        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
+        return determineWorkspaceProvider(producerProject).hasCachedResult(getTransformationIdentity(producerProject, snapshot, transformer, subject));
     }
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
-        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInput, transformer, subject);
+        FileSystemLocationSnapshot primaryInputSnapshot = fileSystemSnapshotter.snapshot(primaryInput);
+        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, subject);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
-                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(fileSystemSnapshotter.snapshot(primaryInput)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
+                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
                 TransformerExecution execution = new TransformerExecution(primaryInput, transformer, workspace, identityString, workspaceProvider.getExecutionHistoryStore(), primaryInputFingerprint, dependenciesProvider);
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
@@ -128,26 +130,25 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, File primaryInput, Transformer transformer, TransformationSubject subject) {
+    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, TransformationSubject subject) {
         String humanReadableIdentifier = subject.getHumanReadableIdentifier();
-        return project == null ? getImmutableTransformationIdentity(primaryInput, transformer, humanReadableIdentifier) :
-            getMutableTransformationIdentity(primaryInput, transformer, humanReadableIdentifier);
+        return project == null ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer, humanReadableIdentifier) :
+            getMutableTransformationIdentity(primaryInputSnapshot, transformer, humanReadableIdentifier);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(File primaryInput, Transformer transformer, String humanReadableIdentifier) {
-        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
+    private TransformationIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, String humanReadableIdentifier) {
         return new ImmutableTransformationIdentity(
             humanReadableIdentifier,
-            snapshot.getAbsolutePath(),
-            snapshot.getHash(),
+            primaryInputSnapshot.getAbsolutePath(),
+            primaryInputSnapshot.getHash(),
             transformer.getSecondaryInputHash()
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(File primaryInput, Transformer transformer, String humanReadableIdentifier) {
+    private TransformationIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, String humanReadableIdentifier) {
         return new MutableTransformationIdentity(
             humanReadableIdentifier,
-            primaryInput.getAbsolutePath(),
+            primaryInputSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash()
         );
     }
