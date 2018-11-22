@@ -38,29 +38,29 @@ import java.util.Set;
  */
 public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
 
-    private static DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
+
     private final DefaultDomainObjectSet<T> backingSet;
+    private final DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
         return create(type, DomainObjectCollectionCallbackActionDecorator.NOOP, collections);
     }
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
-        CompositeDomainObjectSet.callbackActionDecorator = callbackActionDecorator;
-        //noinspection unchecked
         DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
-        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }
         return out;
     }
 
-    CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet) {
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
         super(backingSet);
-        this.backingSet = backingSet; //TODO SF try avoiding keeping this state here
+        this.backingSet = backingSet;
+        this.callbackActionDecorator = callbackActionDecorator;
     }
 
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
