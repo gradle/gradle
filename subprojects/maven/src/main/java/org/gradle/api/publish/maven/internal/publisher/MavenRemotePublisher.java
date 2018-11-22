@@ -28,7 +28,6 @@ import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeploy
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
-import org.gradle.internal.logging.LoggingManagerInternal;
 
 import java.io.File;
 import java.net.URI;
@@ -37,8 +36,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     private final Factory<File> temporaryDirFactory;
     private final RepositoryTransportFactory repositoryTransportFactory;
 
-    public MavenRemotePublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator, Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
-        super(loggingManagerFactory, mavenRepositoryLocator);
+    public MavenRemotePublisher(LocalMavenRepositoryLocator mavenRepositoryLocator, Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory) {
+        super(mavenRepositoryLocator);
         this.temporaryDirFactory = temporaryDirFactory;
         this.repositoryTransportFactory = repositoryTransportFactory;
     }

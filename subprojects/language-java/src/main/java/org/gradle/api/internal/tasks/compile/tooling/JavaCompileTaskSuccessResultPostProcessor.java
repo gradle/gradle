@@ -25,7 +25,7 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
 import org.gradle.tooling.internal.provider.events.DefaultAnnotationProcessorResult;
 import org.gradle.tooling.internal.provider.events.DefaultJavaCompileTaskSuccessResult;

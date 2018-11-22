@@ -98,6 +98,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         }
     }
 
+    @Deprecated
     @Inject
     protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
         throw new UnsupportedOperationException();

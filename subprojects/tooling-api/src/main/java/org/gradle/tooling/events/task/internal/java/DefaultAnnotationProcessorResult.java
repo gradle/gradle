@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.task.internal.java;
 
-import org.gradle.tooling.events.task.java.JavaCompileTaskSuccessResult.AnnotationProcessorResult;
+import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
 
 import java.time.Duration;
 

@@ -70,6 +70,7 @@ testFixtures {
     from(":logging")
     from(":dependencyManagement")
     from(":ide")
+    from(":workers")
 }
 
 apply(from = "buildship.gradle")

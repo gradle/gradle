@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult.InternalAnnotationProcessorResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 
 import java.io.Serializable;
 import java.time.Duration;

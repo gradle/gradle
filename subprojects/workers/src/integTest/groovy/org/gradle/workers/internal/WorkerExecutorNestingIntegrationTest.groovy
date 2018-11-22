@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.DefaultConditionalExecutionQueue
 import spock.lang.Unroll
 
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+
 @IntegrationTestTimeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 

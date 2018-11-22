@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
+
 /**
  * Enumerates the different types of operations for which progress events can be received.
  *
@@ -36,6 +38,14 @@ public enum OperationType {
     /**
      * Flag for operations with no specific type.
      */
-    GENERIC
+    GENERIC,
+
+    /**
+     * Flag for work item operation progress events.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    WORK_ITEM
 
 }
