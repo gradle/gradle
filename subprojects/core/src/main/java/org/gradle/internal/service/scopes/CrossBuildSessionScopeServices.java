@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.DefaultDomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
@@ -101,7 +102,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
     }
 
     ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
-        return services.get(DefaultListenerBuildOperationDecorator.class);
+        return services.get(ListenerBuildOperationDecorator.class);
     }
 
     UserCodeApplicationContext createUserCodeApplicationContext() {
@@ -166,12 +167,12 @@ public class CrossBuildSessionScopeServices implements Closeable {
             );
         }
 
-        UserCodeApplicationContext createUserCodeApplicationContext(DefaultListenerBuildOperationDecorator operationDecorator) {
-            return operationDecorator.getUserCodeApplicationContext();
+        UserCodeApplicationContext createUserCodeApplicationContext() {
+            return new DefaultUserCodeApplicationContext();
         }
 
-        DefaultListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
+        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
 
         DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
