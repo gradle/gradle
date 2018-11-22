@@ -20,7 +20,7 @@
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -PconfirmationCode=%confirmationCode% &quot;-PgitUserName=%gitUserName%&quot; &quot;-PgitUserEmail=%gitUserEmail%&quot; -Igradle/buildScanInit.gradle -Djava7Home=%linux.jdk.for.gradle.compile% -Djava9Home=%linux.java9.oracle.64bit%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -PconfirmationCode=%confirmationCode% &quot;-PgitUserName=%gitUserName%&quot; &quot;-PgitUserEmail=%gitUserEmail%&quot; -Igradle/buildScanInit.gradle" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="promoteRc" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>

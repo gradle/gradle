@@ -16,18 +16,6 @@ import model.GradleSubproject
 import model.OS
 import model.TestCoverage
 
-private val java7Homes = mapOf(
-        OS.windows to """"-Djava7Home=%windows.java7.oracle.64bit%"""",
-        OS.linux to "-Djava7Home=%linux.jdk.for.gradle.compile%",
-        OS.macos to "-Djava7Home=%macos.java7.oracle.64bit%"
-)
-
-private val java9Homes = mapOf(
-    OS.windows to """"-Djava9Home=%windows.java9.oracle.64bit%"""",
-    OS.linux to "-Djava9Home=%linux.java9.oracle.64bit%",
-    OS.macos to "-Djava9Home=%macos.java9.oracle.64bit%"
-)
-
 
 fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
     // TODO: Hacky. We should really be running all the subprojects on macOS
@@ -43,8 +31,6 @@ fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true, isContinue: Bool
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-        java7Homes[os]!!,
-        java9Homes[os]!!,
         "-Dorg.gradle.internal.tasks.createops",
         "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
 

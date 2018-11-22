@@ -24,7 +24,7 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts &quot;-Djava7Home=%windows.java7.oracle.64bit%&quot; &quot;-PtestJavaHome=%windows.java8.oracle.64bit%&quot;" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts &quot;-PtestJavaHome=%windows.java8.oracle.64bit%&quot;" />
           <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean %subproject%:%buildType%" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
@@ -48,7 +48,7 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts &quot;-Djava7Home=%windows.java7.oracle.64bit%&quot;" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts" />
           <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="verifyTestFilesCleanup" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
@@ -61,7 +61,7 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="execute_always" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% &quot;-Djava7Home=%windows.java7.oracle.64bit%&quot;" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%" />
           <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="tagBuild" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
