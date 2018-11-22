@@ -146,7 +146,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.kotlin.dsl.*
 
-            open class DeepThoughtPlugin : Plugin<Project> {
+            class DeepThoughtPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
                     project.run {
                         task("compute") {
@@ -832,7 +832,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             class Book(val name: String)
 
-            open class MyPlugin : Plugin<Project> {
+            class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
                     extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))

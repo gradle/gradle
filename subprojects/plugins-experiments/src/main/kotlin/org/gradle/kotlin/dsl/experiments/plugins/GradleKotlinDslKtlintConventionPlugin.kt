@@ -24,7 +24,7 @@ val rulesetJar by lazy {
 }
 
 
-open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
+class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

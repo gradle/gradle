@@ -46,7 +46,7 @@ import java.io.File
 /*
  * Exposes `*.gradle.kts` scripts from regular Kotlin source-sets as binary Gradle plugins.
  */
-open class PrecompiledScriptPlugins : Plugin<Project> {
+class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

@@ -38,7 +38,7 @@ import javax.inject.Inject
  * adds compile only dependencies on `kotlin-stdlib` and `kotlin-reflect`,
  * configures an embedded repository that contains all embedded Kotlin libraries.
  */
-open class EmbeddedKotlinPlugin @Inject internal constructor(
+class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider
 ) : Plugin<Project> {
 
