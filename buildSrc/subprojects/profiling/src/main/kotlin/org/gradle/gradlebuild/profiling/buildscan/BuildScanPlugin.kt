@@ -128,6 +128,12 @@ open class BuildScanPlugin : Plugin<Project> {
             }
         } else {
             buildScan.tag("LOCAL")
+            if (listOf("idea.registered", "idea.active", "idea.paths.selector").map(System::getProperty).filterNotNull().isNotEmpty()) {
+                buildScan.tag("IDEA")
+                System.getProperty("idea.paths.selector")?.let { ideaVersion ->
+                    buildScan.value("IDEA version", ideaVersion)
+                }
+            }
         }
     }
 
