@@ -29,6 +29,8 @@ public interface UserCodeApplicationContext {
 
     void reapply(UserCodeApplicationId id, Runnable runnable);
 
+    <T> Action<T> decorateWithCurrent(Action<T> action);
+
     @Nullable
     UserCodeApplicationId current();
 }

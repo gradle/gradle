@@ -23,11 +23,11 @@ import javax.annotation.Nullable;
 public interface DomainObjectCollectionCallbackActionDecorator {
 
     @Nullable
-    <T> Action<? super T> decorate(@Nullable Action<? super T> action);
+    <T> Action<T> decorate(@Nullable Action<T> action);
 
     DomainObjectCollectionCallbackActionDecorator NOOP = new DomainObjectCollectionCallbackActionDecorator() {
         @Override
-        public <T> Action<? super T> decorate(@Nullable Action<? super T> action) {
+        public <T> Action<T> decorate(@Nullable Action<T> action) {
             return action;
         }
     };

@@ -38,7 +38,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
     }
 
     @Override
-    public <T> Action<? super T> decorate(@Nullable Action<? super T> action) {
+    public <T> Action<T> decorate(@Nullable Action<T> action) {
         if (action == null || action instanceof InternalListener) {
             return action;
         }
@@ -48,11 +48,7 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
             return action;
         }
 
-        return doDecorate(action, applicationId);
-    }
-
-    private <S> Action<S> doDecorate(Action<S> action, UserCodeApplicationId applicationId) {
-        return new BuildOperationEmittingAction<S>(applicationId, action);
+        return new BuildOperationEmittingAction<>(applicationId, action);
     }
 
     private static abstract class Operation implements RunnableBuildOperation {

@@ -61,6 +61,27 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
     }
 
+    @Override
+    public <T> Action<T> decorateWithCurrent(Action<T> action) {
+        UserCodeApplicationId id = current();
+        if (id == null) {
+            return action;
+        }
+
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
+                stack.push(id);
+                try {
+                    action.execute(t);
+                } finally {
+                    stack.pop();
+                }
+            }
+        };
+    }
+
     @VisibleForTesting
     UserCodeApplicationId push() {
         return push(stackThreadLocal.get());

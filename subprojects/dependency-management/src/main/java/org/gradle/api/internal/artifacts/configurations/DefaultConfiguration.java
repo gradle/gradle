@@ -101,8 +101,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.dispatch.Dispatch;
-import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -111,8 +109,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
@@ -261,7 +259,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.projectStateRegistry = projectStateRegistry;
         this.documentationRegistry = documentationRegistry;
         this.resolutionLock = projectStateRegistry.newExclusiveOperationLock();
-        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this, userCodeApplicationContext);
+        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
@@ -1242,12 +1240,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
-        private UserCodeApplicationContext userCodeApplicationContext;
-
-        public ConfigurationResolvableDependencies(UserCodeApplicationContext userCodeApplicationContext) {
-            this.userCodeApplicationContext = userCodeApplicationContext;
-        }
-
         public String getName() {
             return name;
         }
@@ -1276,31 +1268,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            UserCodeApplicationId userCodeApplicationId = userCodeApplicationContext.current();
-            Action<? super ResolvableDependencies> effectiveAction = userCodeApplicationId == null ? action : new UserCodeApplicationContextAction(userCodeApplicationId, userCodeApplicationContext, action);
-            dependencyResolutionListeners.add("beforeResolve", effectiveAction);
+            dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.decorateWithCurrent(action));
         }
 
         public void beforeResolve(Closure action) {
-            UserCodeApplicationId userCodeApplicationId = userCodeApplicationContext.current();
-            ClosureBackedMethodInvocationDispatch closureBackedMethodInvocationDispatch = new ClosureBackedMethodInvocationDispatch("beforeResolve", action);
-            Dispatch<MethodInvocation> effectiveDispatch = userCodeApplicationId == null ? closureBackedMethodInvocationDispatch : new UserCodeApplicationContextMethodInvocationDispatch(userCodeApplicationId, userCodeApplicationContext, closureBackedMethodInvocationDispatch);
-            dependencyResolutionListeners.add(effectiveDispatch);
+            beforeResolve(ConfigureUtil.configureUsing(action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            UserCodeApplicationId userCodeApplicationId = userCodeApplicationContext.current();
-            Action<? super ResolvableDependencies> effectiveAction = userCodeApplicationId == null ? action : new UserCodeApplicationContextAction(userCodeApplicationId, userCodeApplicationContext, action);
-            dependencyResolutionListeners.add("afterResolve", effectiveAction);
+            dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.decorateWithCurrent(action));
         }
 
-
         public void afterResolve(Closure action) {
-            UserCodeApplicationId userCodeApplicationId = userCodeApplicationContext.current();
-            ClosureBackedMethodInvocationDispatch closureBackedMethodInvocationDispatch = new ClosureBackedMethodInvocationDispatch("afterResolve", action);
-            Dispatch<MethodInvocation> effectiveDispatch = userCodeApplicationId == null ? closureBackedMethodInvocationDispatch : new UserCodeApplicationContextMethodInvocationDispatch(userCodeApplicationId, userCodeApplicationContext, closureBackedMethodInvocationDispatch);
-            dependencyResolutionListeners.add(effectiveDispatch);
-
+            afterResolve(ConfigureUtil.configureUsing(action));
         }
 
         public ResolutionResult getResolutionResult() {
@@ -1459,73 +1439,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
 
-        private class UserCodeApplicationContextAction<T extends ResolvableDependencies> implements Action<T> {
-            private final Action<? super ResolvableDependencies> delegate;
-            private final UserCodeApplicationId userCodeApplicationId;
-            private final UserCodeApplicationContext userCodeApplicationContext;
-
-            public UserCodeApplicationContextAction(UserCodeApplicationId userCodeApplicationId, UserCodeApplicationContext userCodeApplicationContext, Action<? super ResolvableDependencies> delegate) {
-                this.userCodeApplicationId = userCodeApplicationId;
-                this.userCodeApplicationContext = userCodeApplicationContext;
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void execute(T dependencies) {
-                userCodeApplicationContext.reapply(userCodeApplicationId, new Runnable() {
-                    @Override
-                    public void run() {
-                        delegate.execute(dependencies);
-                    }
-                });
-
-            }
-        }
-
-        private class UserCodeApplicationContextMethodInvocationDispatch implements Dispatch<MethodInvocation> {
-            private final UserCodeApplicationId userCodeApplicationId;
-            private final UserCodeApplicationContext userCodeApplicationContext;
-            private final ClosureBackedMethodInvocationDispatch delegate;
-
-            public UserCodeApplicationContextMethodInvocationDispatch(UserCodeApplicationId userCodeApplicationId, UserCodeApplicationContext userCodeApplicationContext, ClosureBackedMethodInvocationDispatch delegate) {
-                this.userCodeApplicationId = userCodeApplicationId;
-                this.userCodeApplicationContext = userCodeApplicationContext;
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void dispatch(MethodInvocation message) {
-                userCodeApplicationContext.reapply(userCodeApplicationId, new Runnable() {
-                    @Override
-                    public void run() {
-                        delegate.dispatch(message);
-                    }
-                });
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                UserCodeApplicationContextMethodInvocationDispatch that = (UserCodeApplicationContextMethodInvocationDispatch) o;
-                return delegate != null ? delegate.equals(that.delegate) : that.delegate == null;
-            }
-
-            @Override
-            public int hashCode() {
-                int result = userCodeApplicationContext != null ? userCodeApplicationContext.hashCode() : 0;
-                result = 31 * result + (delegate != null ? delegate.hashCode() : 0);
-                return result;
-            }
-        }
     }
 
     public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+
         private final ImmutableAttributesFactory attributesFactory;
         private final AttributeContainerInternal configurationAttributes;
         private AttributeContainerInternal viewAttributes;
