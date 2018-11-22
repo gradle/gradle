@@ -617,7 +617,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             open class MyExtension<T>
 
-            open class FooPlugin : Plugin<Project> {
+            class FooPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     // Using add() without specifying the public type causes type erasure
                     extensions.add("mine", MyExtension<String>())
@@ -671,7 +671,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             import org.gradle.api.internal.*
             import org.gradle.api.internal.plugins.*
 
-            open class MyPlugin : Plugin<Project> {
+            class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
 
                     val rootExtension = MyExtension("root")
@@ -762,7 +762,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.api.plugins.*
 
-            open class MyPlugin : Plugin<Project> {
+            class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     convention.plugins.put("myConvention", MyPrivateConventionImpl())
                 }

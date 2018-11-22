@@ -7,7 +7,7 @@ import org.gradle.api.tasks.Copy
 
 import org.gradle.kotlin.dsl.*
 
-open class MyPlugin : Plugin<Project> {
+class MyPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {

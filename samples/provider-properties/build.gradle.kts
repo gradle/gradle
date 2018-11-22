@@ -11,7 +11,7 @@ configure<GreetingPluginExtension> {
         buildFile("b.txt"))
 }
 
-open class GreetingPlugin : Plugin<Project> {
+class GreetingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
