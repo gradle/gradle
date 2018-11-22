@@ -27,7 +27,7 @@ import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=5.1')
-@TargetGradleVersion('>=4.0')
+@TargetGradleVersion('>=4.1')
 class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def fixture = new WorkerExecutorFixture(temporaryFolder)
@@ -57,7 +57,7 @@ class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    @TargetGradleVersion('>=4.0 <5.1')
+    @TargetGradleVersion('>=4.1 <5.1')
     def "reports generic work item progress events as descendants of tasks"() {
         when:
         def events = runBuild("runInWorker", EnumSet.allOf(OperationType))
