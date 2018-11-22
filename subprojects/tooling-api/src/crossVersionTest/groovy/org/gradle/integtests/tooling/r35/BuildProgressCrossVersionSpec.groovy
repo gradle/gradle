@@ -258,7 +258,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
     }
 
-    @TargetGradleVersion('<5.1')
+    @TargetGradleVersion('>=3.5 <5.1')
     def "generates events for worker actions (pre 5.1)"() {
         expect:
         runBuildWithWorkerAction() != null
