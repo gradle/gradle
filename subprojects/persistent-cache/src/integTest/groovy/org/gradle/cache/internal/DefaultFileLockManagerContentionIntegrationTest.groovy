@@ -228,7 +228,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     // This test simulates a long running Zinc compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
-    def "if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
+    // if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before
+    def "worker not timeout"() {
         given:
         def gradleUserHome = file("home").absoluteFile
         buildFile << """
