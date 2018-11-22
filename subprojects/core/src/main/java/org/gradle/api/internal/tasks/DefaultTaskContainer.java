@@ -396,8 +396,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             failOnDuplicateTask(name);
         }
 
-        TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
-        Action<? super T> effectiveAction = getCallbackActionDecorator().decorate(configurationAction);
+        final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
+        final Action<? super T> effectiveAction = getCallbackActionDecorator().decorate(configurationAction);
 
         TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
