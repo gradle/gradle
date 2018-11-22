@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
@@ -37,11 +38,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 @SuppressWarnings("deprecation")
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -52,9 +55,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public static class Builder {
         private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
-        private final List<ProgressListener> testProgressListeners = new ArrayList<ProgressListener>();
-        private final List<ProgressListener> taskProgressListeners = new ArrayList<ProgressListener>();
-        private final List<ProgressListener> buildOperationProgressListeners = new ArrayList<ProgressListener>();
+        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
         private String entryPoint;
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
@@ -184,16 +185,16 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             legacyProgressListeners.add(listener);
         }
 
-        public void addTestProgressListener(ProgressListener listener) {
-            testProgressListeners.add(listener);
-        }
-
-        public void addTaskProgressListener(ProgressListener listener) {
-            taskProgressListeners.add(listener);
-        }
-
-        public void addBuildOperationProgressListeners(ProgressListener listener) {
-            buildOperationProgressListeners.add(listener);
+        public void addProgressListener(ProgressListener listener, Set<OperationType> eventTypes) {
+            for (OperationType type : eventTypes) {
+                List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(type, new Function<OperationType, List<ProgressListener>>() {
+                    @Override
+                    public List<ProgressListener> apply(OperationType operationType) {
+                        return new ArrayList<ProgressListener>();
+                    }
+                });
+                listeners.add(listener);
+            }
         }
 
         public void setCancellationToken(CancellationToken cancellationToken) {
@@ -206,7 +207,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken);
+                legacyProgressListeners, progressListeners, cancellationToken);
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -214,9 +215,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             launchables = operationParameters.launchables;
             cancellationToken = operationParameters.cancellationToken;
             legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
-            taskProgressListeners.addAll(operationParameters.taskProgressListeners);
-            testProgressListeners.addAll(operationParameters.testProgressListeners);
-            buildOperationProgressListeners.addAll(operationParameters.buildOperationProgressListeners);
+            progressListeners.putAll(operationParameters.progressListeners);
             arguments = operationParameters.arguments;
             jvmArguments = operationParameters.jvmArguments;
             envVariables = operationParameters.envVariables;
@@ -250,14 +249,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final ClassPath injectedPluginClasspath;
 
     private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
-    private final List<ProgressListener> testProgressListeners;
-    private final List<ProgressListener> taskProgressListeners;
-    private final List<ProgressListener> buildOperationProgressListeners;
+    private final Map<OperationType, List<ProgressListener>> progressListeners;
 
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments,  Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, List<ProgressListener> testProgressListeners, List<ProgressListener> taskProgressListeners,
-                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken) {
+                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -273,16 +269,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.injectedPluginClasspath = injectedPluginClasspath;
         this.cancellationToken = cancellationToken;
         this.legacyProgressListeners = legacyProgressListeners;
-        this.testProgressListeners = testProgressListeners;
-        this.taskProgressListeners = taskProgressListeners;
-        this.buildOperationProgressListeners = buildOperationProgressListeners;
+        this.progressListeners = progressListeners;
 
         // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
         // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
         // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
         this.progressListener = new ProgressListenerAdapter(this.legacyProgressListeners);
-        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(
-            new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
+        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
     }
 
     private static void validateJavaHome(File javaHome) {

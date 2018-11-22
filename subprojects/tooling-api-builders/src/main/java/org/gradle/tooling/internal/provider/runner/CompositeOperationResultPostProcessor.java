@@ -21,7 +21,7 @@ import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.List;
 
-public class CompositeOperationResultPostProcessor implements OperationResultPostProcessor {
+class CompositeOperationResultPostProcessor implements OperationResultPostProcessor {
 
     private final List<OperationResultPostProcessor> processors;
 

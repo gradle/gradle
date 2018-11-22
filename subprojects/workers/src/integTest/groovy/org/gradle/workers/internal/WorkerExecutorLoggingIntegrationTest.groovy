@@ -19,12 +19,14 @@ package org.gradle.workers.internal
 import spock.lang.Timeout
 import spock.lang.Unroll
 
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+
 @Timeout(120)
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {

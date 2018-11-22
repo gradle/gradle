@@ -9,6 +9,7 @@ dependencies {
     compile(library("jcip"))
 
     integTestCompile(project(":internalIntegTesting"))
+    testFixturesApi(project(":internalTesting"))
 }
 
 gradlebuildJava {

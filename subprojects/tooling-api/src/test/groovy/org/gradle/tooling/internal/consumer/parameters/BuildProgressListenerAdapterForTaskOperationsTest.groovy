@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
@@ -356,11 +357,11 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
     }
 
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter([], [], [])
+        new BuildProgressListenerAdapter([:])
     }
 
     private static BuildProgressListenerAdapter createAdapter(ProgressListener taskListener) {
-        new BuildProgressListenerAdapter([], [taskListener], [])
+        new BuildProgressListenerAdapter([(OperationType.TASK): [taskListener]])
     }
 
 }

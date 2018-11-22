@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -37,8 +38,27 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
-    def "generates events for worker actions executed in-process and forked"() {
-        given:
+    @TargetGradleVersion('<5.1')
+    def "generates events for worker actions executed in-process and forked (pre 5.1)"() {
+        when:
+        def events = runBuildWithWorkerActions()
+
+        then:
+        events.operation('Task :runInProcess').descendant('My in-process worker action')
+        events.operation('Task :runForked').descendant('My forked worker action')
+    }
+
+    @ToolingApiVersion('>=5.1')
+    def "generates events for worker actions executed in-process and forked (post 5.1)"() {
+        when:
+        def events = runBuildWithWorkerActions()
+
+        then:
+        events.operation('Task :runInProcess').descendant('My in-process worker action')
+        events.operation('Task :runForked').descendant('My forked worker action')
+    }
+
+    private ProgressEvents runBuildWithWorkerActions() {
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
         import org.gradle.workers.*
@@ -83,7 +103,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     """.stripIndent()
 
-        when:
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
@@ -94,12 +113,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                     .run()
         }
 
-        then:
         events.assertIsABuild()
-
-        and:
-        events.operation('Task :runInProcess').descendant('My in-process worker action')
-        events.operation('Task :runForked').descendant('My forked worker action')
+        return events
     }
 
     def "generates events for interleaved project configuration and dependency resolution"() {
