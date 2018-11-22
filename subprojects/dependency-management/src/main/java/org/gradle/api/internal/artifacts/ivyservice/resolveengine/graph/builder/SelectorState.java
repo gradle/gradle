@@ -81,6 +81,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private ModuleResolveState targetModule;
     private boolean resolved;
     private boolean forced;
+    private boolean softForced;
     private boolean fromLock;
 
     // An internal counter used to track the number of outgoing edges
@@ -314,6 +315,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    public boolean isSoftForce() {
+        return softForced;
+    }
+
+    @Override
     public boolean isFromLock() {
         return fromLock;
     }
@@ -326,6 +332,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (dependencyState != this.dependencyState) {
             if (!forced && dependencyState.isForced()) {
                 forced = true;
+                if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
+                    softForced = true;
+                }
                 resolved = false; // when a selector changes from non forced to forced, we must reselect
             }
             if (!fromLock && dependencyState.isFromLock()) {

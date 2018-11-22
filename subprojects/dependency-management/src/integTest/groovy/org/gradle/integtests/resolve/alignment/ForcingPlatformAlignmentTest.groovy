@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @IgnoreIf({
@@ -568,8 +569,8 @@ include 'other'
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-   ])
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+    ])
     def 'forced platform turning selector state to force after being selected and deselected'() {
         repository {
             ['1.0', '2.0'].each {
@@ -694,10 +695,10 @@ include 'other'
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-            'conf("org:core:2.9.4")',
-            'conf("org:databind:2.9.4")',
-            'conf("org:kotlin:2.9.4.1")',
-            'conf enforcedPlatform("org:platform:2.7.9")'
+                'conf("org:core:2.9.4")',
+                'conf("org:databind:2.9.4")',
+                'conf("org:kotlin:2.9.4.1")',
+                'conf enforcedPlatform("org:platform:2.7.9")'
         ].permutations()*.join("\n")
     }
 
@@ -756,18 +757,18 @@ include 'other'
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-            'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
-            'conf("org:kotlin:2.9.4.1")',
-            'constraints { conf enforcedPlatform("org:platform:2.7.9") }'
+                'conf("org:core:2.9.4")',
+                'conf("org:databind:2.7.9")',
+                'conf("org:kotlin:2.9.4.1")',
+                'constraints { conf enforcedPlatform("org:platform:2.7.9") }'
         ].permutations()*.join("\n")
     }
 
 
     @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -778,10 +779,10 @@ include 'other'
                 path "kotlin:$v -> annotations:$v"
 
                 platform("org", "platform", v, [
-                    "org:core:$v",
-                    "org:databind:$v",
-                    "org:kotlin:$v",
-                    "org:annotations:$v",
+                        "org:core:$v",
+                        "org:databind:$v",
+                        "org:kotlin:$v",
+                        "org:annotations:$v",
                 ])
             }
         }
@@ -815,7 +816,7 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled()?'enforced-platform':'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforced-platform' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
@@ -827,16 +828,16 @@ include 'other'
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-            'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
-            'conf("org:kotlin:2.9.4.1")',
-            'conf enforcedPlatform("org:platform:2.7.9")',
+                'conf("org:core:2.9.4")',
+                'conf("org:databind:2.7.9")',
+                'conf("org:kotlin:2.9.4.1")',
+                'conf enforcedPlatform("org:platform:2.7.9")',
         ].permutations()*.join("\n")
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Unroll("can force a published platform version by forcing the platform itself via a constraint")
     def "can force a published platform version by forcing the platform itself via a constraint"() {
@@ -848,10 +849,10 @@ include 'other'
                 path "kotlin:$v -> annotations:$v"
 
                 platform("org", "platform", v, [
-                    "org:core:$v",
-                    "org:databind:$v",
-                    "org:kotlin:$v",
-                    "org:annotations:$v",
+                        "org:core:$v",
+                        "org:databind:$v",
+                        "org:kotlin:$v",
+                        "org:annotations:$v",
                 ])
             }
         }
@@ -900,11 +901,105 @@ include 'other'
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-            'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
-            'conf("org:kotlin:2.9.4.1")',
-            'constraints { conf enforcedPlatform("org:platform:2.7.9") }',
+                'conf("org:core:2.9.4")',
+                'conf("org:databind:2.7.9")',
+                'conf("org:kotlin:2.9.4.1")',
+                'constraints { conf enforcedPlatform("org:platform:2.7.9") }',
         ].permutations()*.join("\n")
+    }
+
+    @Issue("nebula-plugins/gradle-nebula-integration#51")
+    @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
+    def "force to higher patch version should bring the rest of aligned group up"() {
+        given:
+        "repository simulating Jackson situation" {
+            path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
+            path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:databind:2.6.7.1'
+        }
+        buildFile << """
+            dependencies {
+                conf "com.amazonaws:aws-java-sdk-core:1.11.438"
+            }
+            $forceNotation
+        """
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        allowAllRepositoryInteractions {
+            "com.amazonaws:aws-java-sdk-core:1.11.438" {
+                allowAll()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("com.amazonaws:aws-java-sdk-core:1.11.438") {
+                    edge("org:cbor:2.6.7", "org:cbor:2.8.10") {
+                        module("org:core:2.8.10")
+                    }
+                    edge("org:databind:2.6.7.1", "org:databind:2.8.11.1") {
+                        edge("org:annotations:2.8.0", "org:annotations:2.8.10")
+                        module("org:core:2.8.10")
+                    }
+                }
+            }
+        }
+
+        where:
+        forceNotation << [
+                "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }"
+        ]
+    }
+
+    @Issue("nebula-plugins/gradle-nebula-integration#51")
+    @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
+    def "force to lower patch version should bring the rest of aligned group up"() {
+        given:
+        "repository simulating Jackson situation" {
+            path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
+            path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:databind:2.8.0'
+        }
+        buildFile << """
+            dependencies {
+                conf "com.amazonaws:aws-java-sdk-core:1.11.438"
+            }
+            $forceNotation
+        """
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        allowAllRepositoryInteractions {
+            "com.amazonaws:aws-java-sdk-core:1.11.438" {
+                allowAll()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("com.amazonaws:aws-java-sdk-core:1.11.438") {
+                    module("org:cbor:2.6.7") {
+                        module("org:core:2.6.7")
+                    }
+                    edge("org:databind:2.8.0", "org:databind:2.6.7.1") {
+                        edge("org:annotations:2.6.0", "org:annotations:2.6.7")
+                        module("org:core:2.6.7")
+                    }
+                }
+            }
+        }
+
+        where:
+        forceNotation << [
+                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }"
+        ]
     }
 
     def setup() {
@@ -945,12 +1040,12 @@ include 'other'
         }
     }
 
-    void allowAllRepositoryInteractions() {
+    void allowAllRepositoryInteractions(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
         repositoryInteractions {
             group('org') {
-                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
+                ['core', 'databind', 'annotations', 'kotlin', 'cbor', 'platform'].each { mod ->
                     module(mod) {
-                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
+                        ['2.6.0', '2.6.7', '2.6.7.1', '2.7.9', '2.8.0', '2.8.10', '2.8.11', '2.8.11.1', '2.9.0', '2.9.7', '2.9.4', '2.9.4.1'].each { v ->
                             version(v) {
                                 // Not interested in the actual interactions, especially with
                                 // the complexity introduced by permutation testing
@@ -959,9 +1054,134 @@ include 'other'
                         }
                     }
                 }
-
             }
+
+            extraSpec.delegate = delegate
+            extraSpec.resolveStrategy = Closure.DELEGATE_FIRST
+            extraSpec()
         }
     }
 
+    void "repository simulating Jackson situation"(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
+        // see https://gist.github.com/melix/0f539bca5d29dafe295877ddff707e4a to generate the code below
+
+        repository {
+            "org:annotations:2.6.0"()
+            "org:annotations:2.6.7"()
+            "org:annotations:2.8.0"()
+            "org:annotations:2.8.10"()
+            "org:annotations:2.8.11"()
+            "org:annotations:2.9.0"()
+            "org:annotations:2.9.4"()
+            "org:annotations:2.9.7"()
+            "org:cbor:2.6.0"()
+            "org:cbor:2.6.7"()
+            "org:cbor:2.8.0"()
+            "org:cbor:2.8.10"()
+            "org:cbor:2.8.11"()
+            "org:cbor:2.9.0"()
+            "org:cbor:2.9.4"()
+            "org:cbor:2.9.7"()
+            "org:core:2.6.0"()
+            "org:core:2.6.7"()
+            "org:core:2.8.0"()
+            "org:core:2.8.10"()
+            "org:core:2.8.11"()
+            "org:core:2.9.0"()
+            "org:core:2.9.4"()
+            "org:core:2.9.7"()
+            "org:databind:2.6.0"()
+            "org:databind:2.6.7"()
+            "org:databind:2.6.7.1"()
+            "org:databind:2.8.0"()
+            "org:databind:2.8.10"()
+            "org:databind:2.8.11"()
+            "org:databind:2.8.11.1"()
+            "org:databind:2.9.0"()
+            "org:databind:2.9.4"()
+            "org:databind:2.9.7"()
+            "org:kotlin:2.6.0"()
+            "org:kotlin:2.6.7"()
+            "org:kotlin:2.8.0"()
+            "org:kotlin:2.8.10"()
+            "org:kotlin:2.8.11"()
+            "org:kotlin:2.8.11.1"()
+            "org:kotlin:2.9.0"()
+            "org:kotlin:2.9.4"()
+            "org:kotlin:2.9.4.1"()
+            "org:kotlin:2.9.7"()
+            path "cbor:2.6.0 -> core:2.6.0"
+            path "cbor:2.6.7 -> core:2.6.7"
+            path "cbor:2.8.0 -> core:2.8.0"
+            path "cbor:2.8.10 -> core:2.8.10"
+            path "cbor:2.8.11 -> core:2.8.11"
+            path "cbor:2.9.0 -> core:2.9.0"
+            path "cbor:2.9.4 -> core:2.9.4"
+            path "cbor:2.9.7 -> core:2.9.7"
+            path "databind:2.6.0 -> annotations:2.6.0"
+            path "databind:2.6.0 -> annotations:2.6.0"
+            path "databind:2.6.0 -> core:2.6.0"
+            path "databind:2.6.0 -> core:2.6.0"
+            path "databind:2.6.7 -> annotations:2.6.0"
+            path "databind:2.6.7 -> annotations:2.6.0"
+            path "databind:2.6.7 -> core:2.6.7"
+            path "databind:2.6.7 -> core:2.6.7"
+            path "databind:2.6.7.1 -> annotations:2.6.0"
+            path "databind:2.6.7.1 -> core:2.6.7"
+            path "databind:2.8.0 -> annotations:2.8.0"
+            path "databind:2.8.0 -> annotations:2.8.0"
+            path "databind:2.8.0 -> core:2.8.0"
+            path "databind:2.8.0 -> core:2.8.0"
+            path "databind:2.8.10 -> annotations:2.8.0"
+            path "databind:2.8.10 -> annotations:2.8.0"
+            path "databind:2.8.10 -> core:2.8.10"
+            path "databind:2.8.10 -> core:2.8.10"
+            path "databind:2.8.11 -> annotations:2.8.0"
+            path "databind:2.8.11 -> annotations:2.8.0"
+            path "databind:2.8.11 -> annotations:2.8.0"
+            path "databind:2.8.11 -> core:2.8.10"
+            path "databind:2.8.11 -> core:2.8.10"
+            path "databind:2.8.11 -> core:2.8.10"
+            path "databind:2.8.11.1 -> annotations:2.8.0"
+            path "databind:2.8.11.1 -> core:2.8.10"
+            path "databind:2.9.0 -> annotations:2.9.0"
+            path "databind:2.9.0 -> annotations:2.9.0"
+            path "databind:2.9.0 -> core:2.9.0"
+            path "databind:2.9.0 -> core:2.9.0"
+            path "databind:2.9.4 -> annotations:2.9.0"
+            path "databind:2.9.4 -> annotations:2.9.0"
+            path "databind:2.9.4 -> annotations:2.9.0"
+            path "databind:2.9.4 -> core:2.9.4"
+            path "databind:2.9.4 -> core:2.9.4"
+            path "databind:2.9.4 -> core:2.9.4"
+            path "databind:2.9.7 -> annotations:2.9.0"
+            path "databind:2.9.7 -> annotations:2.9.0"
+            path "databind:2.9.7 -> core:2.9.7"
+            path "databind:2.9.7 -> core:2.9.7"
+            path "kotlin:2.6.0 -> annotations:2.6.0"
+            path "kotlin:2.6.0 -> databind:2.6.0"
+            path "kotlin:2.6.7 -> annotations:2.6.0"
+            path "kotlin:2.6.7 -> databind:2.6.7"
+            path "kotlin:2.8.0 -> annotations:2.8.0"
+            path "kotlin:2.8.0 -> databind:2.8.0"
+            path "kotlin:2.8.10 -> annotations:2.8.0"
+            path "kotlin:2.8.10 -> databind:2.8.10"
+            path "kotlin:2.8.11 -> annotations:2.8.0"
+            path "kotlin:2.8.11 -> databind:2.8.11"
+            path "kotlin:2.8.11.1 -> annotations:2.8.0"
+            path "kotlin:2.8.11.1 -> databind:2.8.11"
+            path "kotlin:2.9.0 -> annotations:2.9.0"
+            path "kotlin:2.9.0 -> databind:2.9.0"
+            path "kotlin:2.9.4 -> annotations:2.9.0"
+            path "kotlin:2.9.4 -> databind:2.9.4"
+            path "kotlin:2.9.4.1 -> annotations:2.9.0"
+            path "kotlin:2.9.4.1 -> databind:2.9.4"
+            path "kotlin:2.9.7 -> annotations:2.9.0"
+            path "kotlin:2.9.7 -> databind:2.9.7"
+
+            extraSpec.delegate = delegate
+            extraSpec.resolveStrategy = Closure.DELEGATE_FIRST
+            extraSpec()
+        }
+    }
 }

@@ -353,17 +353,6 @@ class ModuleResolveState implements CandidateModule {
         return false;
     }
 
-    boolean hasCompetingForceSelectors() {
-        if (selectors.size() > 1) {
-            for (SelectorState selector : selectors) {
-                if (selector.isForce() && !selector.getRequested().matchesStrictly(selected.getComponentId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadata() == null) {
