@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactS
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -110,6 +111,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
                                     TaskExecutionListener taskExecutionListener,
+                                    FileOperations fileOperations,
                                     WorkExecutor<UpToDateResult> workExecutor
     ) {
 
@@ -123,7 +125,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);
+        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, fileOperations, executer);
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());
         }

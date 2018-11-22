@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -43,16 +44,17 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def cacheKey = Stub(TaskOutputCachingBuildCacheKey) {
         isValid() >> true
     }
+    def fileOperations = Mock(FileOperations)
 
     def "error message contains which cacheIf spec failed to evaluate"() {
         when:
         resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ throw new RuntimeException()}, "Exception is thrown")],
-                [],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ throw new RuntimeException() }, "Exception is thrown")],
+            [],
+            null
         )
 
         then:
@@ -63,12 +65,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "error message contains which doNotCacheIf spec failed to evaluate"() {
         when:
         resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [spec({ "throw new RuntimeException()" }, "Exception is thrown")],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [spec({ "throw new RuntimeException()" }, "Exception is thrown")],
+            null
         )
 
         then:
@@ -79,12 +81,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "report no reason if the task is cacheable"() {
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
 
         then:
@@ -96,12 +98,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "caching is disabled with no outputs"() {
         when:
         def state = resolveCachingState(
-                [],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
 
         then:
@@ -113,12 +115,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "no cacheIf() means no caching"() {
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [],
-                [],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [],
+            [],
+            null
         )
 
         then:
@@ -130,12 +132,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "can turn caching off via cacheIf()"() {
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ false }, "Cacheable test")],
-                [],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ false }, "Cacheable test")],
+            [],
+            null
         )
 
         then:
@@ -147,12 +149,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "can turn caching off via doNotCacheIf()"() {
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [spec({ true }, "Uncacheable test")],
-                null
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [spec({ true }, "Uncacheable test")],
+            null
         )
 
         then:
@@ -164,14 +166,14 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "caching is disabled for non-cacheable file outputs is reported"() {
         when:
         def state = resolveCachingState(
-                [Stub(TaskOutputFilePropertySpec) {
-                    getPropertyName() >> "non-cacheable property"
-                }],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [Stub(TaskOutputFilePropertySpec) {
+                getPropertyName() >> "non-cacheable property"
+            }],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
         then:
         !state.enabled
@@ -186,12 +188,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                invalidBuildCacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [cacheableOutputProperty],
+            invalidBuildCacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
 
         then:
@@ -207,12 +209,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                invalidBuildCacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [cacheableOutputProperty],
+            invalidBuildCacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
 
         then:
@@ -228,12 +230,12 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                invalidBuildCacheKey,
-                task,
-                [spec({ true })],
-                [],
-                null
+            [cacheableOutputProperty],
+            invalidBuildCacheKey,
+            task,
+            [spec({ true })],
+            [],
+            null
         )
 
         then:
@@ -247,17 +249,19 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
         when:
         def state = resolveCachingState(
-                [cacheableOutputProperty],
-                cacheKey,
-                task,
-                [spec({ true })],
-                [],
-                overlappingOutputs
+            [cacheableOutputProperty],
+            cacheKey,
+            task,
+            [spec({ true })],
+            [],
+            overlappingOutputs
         )
 
         then:
+        1 * fileOperations.relativePath(overlappingOutputs.overlappedFilePath) >> "relative/path"
+
         !state.enabled
-        state.disabledReason == "Gradle does not know how file 'path/to/outputFile' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
+        state.disabledReason == "Gradle does not know how file 'relative/path' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
         state.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
     }
 
@@ -265,7 +269,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         def taskState = Mock(TaskStateInternal)
         def taskContext = Mock(TaskExecutionContext)
         def delegate = Mock(TaskExecuter)
-        def executer = new ResolveTaskOutputCachingStateExecuter(false, delegate)
+        def executer = new ResolveTaskOutputCachingStateExecuter(false, fileOperations, delegate)
 
         when:
         executer.execute(task, taskState, taskContext)
@@ -282,22 +286,23 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         new SelfDescribingSpec<TaskInternal>(spec, description)
     }
 
-    static TaskOutputCachingState resolveCachingState(
-            Collection<TaskOutputFilePropertySpec> outputFileProperties,
-            TaskOutputCachingBuildCacheKey buildCacheKey,
-            TaskInternal task,
-            Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
-            Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
-            @Nullable OverlappingOutputs overlappingOutputs
+    TaskOutputCachingState resolveCachingState(
+        Collection<TaskOutputFilePropertySpec> outputFileProperties,
+        TaskOutputCachingBuildCacheKey buildCacheKey,
+        TaskInternal task,
+        Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
+        Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
+        @Nullable OverlappingOutputs overlappingOutputs
     ) {
         return ResolveTaskOutputCachingStateExecuter.resolveCachingState(
-                !outputFileProperties.isEmpty(),
-                outputFileProperties,
-                buildCacheKey,
-                task,
-                cacheIfSpecs,
-                doNotCacheIfSpecs,
-                overlappingOutputs
+            !outputFileProperties.isEmpty(),
+            outputFileProperties,
+            buildCacheKey,
+            task,
+            cacheIfSpecs,
+            doNotCacheIfSpecs,
+            overlappingOutputs,
+            fileOperations
         )
     }
 }

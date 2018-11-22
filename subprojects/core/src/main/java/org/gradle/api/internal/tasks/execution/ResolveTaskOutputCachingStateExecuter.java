@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.DefaultTaskOutputCachingState;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -41,7 +42,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
 
 public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskOutputCachingStateExecuter.class);
@@ -52,10 +59,12 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final boolean buildCacheEnabled;
+    private final FileOperations fileOperations;
     private final TaskExecuter delegate;
 
-    public ResolveTaskOutputCachingStateExecuter(boolean buildCacheEnabled, TaskExecuter delegate) {
+    public ResolveTaskOutputCachingStateExecuter(boolean buildCacheEnabled, FileOperations fileOperations, TaskExecuter delegate) {
         this.buildCacheEnabled = buildCacheEnabled;
+        this.fileOperations = fileOperations;
         this.delegate = delegate;
     }
 
@@ -69,8 +78,8 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
                 task,
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
-                context.getTaskArtifactState().getOverlappingOutputs()
-            );
+                context.getTaskArtifactState().getOverlappingOutputs(),
+                fileOperations);
             context.setTaskCachingEnabled(taskOutputCachingState.isEnabled());
             state.setTaskOutputCaching(taskOutputCachingState);
             if (!taskOutputCachingState.isEnabled()) {
@@ -90,8 +99,8 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         TaskInternal task,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
-        @Nullable OverlappingOutputs overlappingOutputs
-    ) {
+        @Nullable OverlappingOutputs overlappingOutputs,
+        FileOperations fileOperations) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
@@ -101,9 +110,10 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         }
 
         if (overlappingOutputs != null) {
+            String relativePath = fileOperations.relativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
                 String.format("Gradle does not know how file '%s' was created (output property '%s'). Task output caching requires exclusive access to output paths to guarantee correctness.",
-                    overlappingOutputs.getOverlappedFilePath(), overlappingOutputs.getPropertyName()));
+                    relativePath, overlappingOutputs.getPropertyName()));
         }
 
         for (TaskOutputFilePropertySpec spec : outputFileProperties) {
