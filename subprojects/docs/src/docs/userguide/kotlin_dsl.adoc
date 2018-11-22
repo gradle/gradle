@@ -683,7 +683,7 @@ tasks.create<Zip>("archiveTestReports") {
 <2> Uses the "global" property to initialize the `archiveTestReports` task
 
 There is one last syntax for extra properties that we should cover, one that treats `extra` as a map.
-We recommend against using this in general as it bypasses Kotlin's type checking and prevents IDEs from providing as much support as they could.
+We recommend against using this in general as you lose the benefits of Kotlin's type checking and it prevents IDEs from providing as much support as they could.
 However, it is more succinct than the delegated properties syntax and can reasonably be used if you only need to set the value of an extra property without referencing it later.
 
 Here's a simple example demonstrating how to set and read extra properties using the map syntax:
