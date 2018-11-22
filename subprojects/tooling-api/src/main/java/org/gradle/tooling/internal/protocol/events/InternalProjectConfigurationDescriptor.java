@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
-
-import org.gradle.tooling.model.BuildIdentifier;
+package org.gradle.tooling.internal.protocol.events;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity, BuildIdentifier {
-    private final File rootDir;
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 5.1
+ */
+public interface InternalProjectConfigurationDescriptor extends InternalOperationDescriptor {
 
-    public DefaultBuildIdentifier(File rootDir) {
-        this.rootDir = rootDir.getAbsoluteFile();
-    }
+    /**
+     * The root directory of this build
+     */
+    File getRootDir();
 
-    @Override
-    public File getRootDir() {
-        return rootDir;
-    }
-
-    @Override
-    public String toString() {
-        return "build=" + rootDir.getPath();
-    }
+    /**
+     * The path of the project, relative to its build.
+     */
+    String getProjectPath();
 
 }

@@ -28,6 +28,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
@@ -325,8 +326,17 @@ class ProgressEvents implements ProgressListener {
             }
         }
 
+        boolean isProjectConfiguration() {
+            try {
+                // the class is not present in pre 5.1 TAPI
+                return descriptor instanceof ProjectConfigurationOperationDescriptor
+            } catch (NoClassDefFoundError ignore) {
+                false
+            }
+        }
+
         boolean isBuildOperation() {
-            return !test && !task && !workItem
+            return !test && !task && !workItem && !projectConfiguration
         }
 
         boolean isSuccessful() {

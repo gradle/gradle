@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
@@ -310,12 +311,14 @@ public class ProviderConnection {
         }
     }
 
-    private static final class ProgressListenerConfiguration {
+    @VisibleForTesting
+    static final class ProgressListenerConfiguration {
 
         private static final Map<String, OperationType> OPERATION_TYPE_MAPPING = ImmutableMap.<String, OperationType>builderWithExpectedSize(OperationType.values().length)
             .put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST)
             .put(InternalBuildProgressListener.TASK_EXECUTION, OperationType.TASK)
             .put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM)
+            .put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION)
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .build();
 
@@ -323,13 +326,19 @@ public class ProviderConnection {
         private final FailsafeBuildProgressListenerAdapter failsafeWrapper;
         private final BuildEventConsumer buildEventConsumer;
 
-        public ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
+        ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
             this.clientSubscriptions = clientSubscriptions;
             this.buildEventConsumer = buildEventConsumer;
             this.failsafeWrapper = failsafeWrapper;
         }
 
-        private static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
+        @VisibleForTesting
+        BuildClientSubscriptions getClientSubscriptions() {
+            return clientSubscriptions;
+        }
+
+        @VisibleForTesting
+        static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener);
             BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(operationTypes);
@@ -347,7 +356,9 @@ public class ProviderConnection {
             if (buildProgressListener != null) {
                 Set<OperationType> operationTypes = EnumSet.noneOf(OperationType.class);
                 for (String operation : buildProgressListener.getSubscribedOperations()) {
-                    operationTypes.add(OPERATION_TYPE_MAPPING.get(operation));
+                    if (OPERATION_TYPE_MAPPING.containsKey(operation)) {
+                        operationTypes.add(OPERATION_TYPE_MAPPING.get(operation));
+                    }
                 }
                 return operationTypes;
             }

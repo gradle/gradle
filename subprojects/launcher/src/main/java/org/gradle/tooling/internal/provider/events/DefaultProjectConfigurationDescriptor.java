@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity, BuildIdentifier {
+public class DefaultProjectConfigurationDescriptor extends DefaultOperationDescriptor implements InternalProjectConfigurationDescriptor {
+
     private final File rootDir;
+    private final String projectPath;
 
-    public DefaultBuildIdentifier(File rootDir) {
-        this.rootDir = rootDir.getAbsoluteFile();
+    public DefaultProjectConfigurationDescriptor(Object id, String displayName, Object parentId, File rootDir, String projectPath) {
+        super(id, displayName, displayName, parentId);
+        this.rootDir = rootDir;
+        this.projectPath = projectPath;
     }
 
     @Override
@@ -34,8 +37,8 @@ public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity
     }
 
     @Override
-    public String toString() {
-        return "build=" + rootDir.getPath();
+    public String getProjectPath() {
+        return projectPath;
     }
 
 }
