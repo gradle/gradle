@@ -98,7 +98,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
-    def domainObjectCollectioncallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
+    def domainObjectCollectionCallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
@@ -108,7 +108,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * projectState.withMutableState(_) >> { args -> args[0].create() }
-        _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
+        _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
     }
 
@@ -1759,7 +1759,7 @@ All Artifacts:
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
             new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry),
-            domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext)
+            domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext)
     }
 
     private DefaultPublishArtifact artifact(String name) {
