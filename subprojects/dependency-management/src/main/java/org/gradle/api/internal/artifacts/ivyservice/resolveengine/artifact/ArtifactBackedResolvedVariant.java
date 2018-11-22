@@ -152,7 +152,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
                 if (context != null) {
                     context.setResult(DownloadArtifactBuildOperationType.RESULT);
                 }
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 owner.failure = t;
             }
         }

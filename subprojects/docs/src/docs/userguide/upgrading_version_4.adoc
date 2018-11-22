@@ -27,6 +27,7 @@ image::deprecations.png[Deprecations View of a Gradle Build Scan]
 This is so that you can see any deprecation warnings that apply to your build. Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
 +
 Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. If you are using Android Studio, you need to move to version 3.3 or higher.
 . Update your plugins.
 +
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.

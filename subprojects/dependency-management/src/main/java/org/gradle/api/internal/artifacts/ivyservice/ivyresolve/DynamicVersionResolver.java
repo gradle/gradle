@@ -170,7 +170,7 @@ public class DynamicVersionResolver {
             RepositoryResolveState request = queue.removeFirst();
             try {
                 request.resolve();
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 failures.add(t);
                 if (isCriticalFailure(t)) {
                     queue.clear();

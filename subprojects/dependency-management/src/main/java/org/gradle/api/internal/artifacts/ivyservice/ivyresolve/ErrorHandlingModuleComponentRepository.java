@@ -62,8 +62,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister remoteRepositoryBlacklister) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NoOpBlacklister.INSTANCE);
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister);
+        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NoOpBlacklister.INSTANCE, getName());
+        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister, getName());
     }
 
     @Override
@@ -113,12 +113,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         private final RepositoryBlacklister repositoryBlacklister;
         private final int maxTentativesCount;
         private final int initialBackOff;
+        private final String repositoryName;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister) {
-            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000));
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, String repositoryName) {
+            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff, String repositoryName) {
+            this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackoff >= 0 : "Initial backoff must be >= 0";
             this.delegate = delegate;
@@ -238,7 +240,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                         }
                         return;
                     }
-                } catch (Throwable throwable) {
+                } catch (Exception throwable) {
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
@@ -249,7 +251,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     result.failed(failure);
                     break;
                 } else {
-                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryId, backoff, maxTentativesCount - retries);
+                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryName, backoff, maxTentativesCount - retries, failure);
                     try {
                         Thread.sleep(backoff);
                         backoff *= 2;

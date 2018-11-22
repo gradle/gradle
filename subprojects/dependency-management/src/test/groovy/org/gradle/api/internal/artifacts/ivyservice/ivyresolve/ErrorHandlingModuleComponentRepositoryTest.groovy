@@ -50,7 +50,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
 
     private ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess createAccess(int maxRetries = 1, int backoff = 0) {
-        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff)
+        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff, 'abc')
     }
 
     @Unroll("can list module versions (max retries = #retries)")
