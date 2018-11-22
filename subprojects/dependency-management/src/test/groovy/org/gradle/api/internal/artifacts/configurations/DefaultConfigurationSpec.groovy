@@ -109,6 +109,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * projectState.withMutableState(_) >> { args -> args[0].create() }
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
     }
 
     void defaultValues() {

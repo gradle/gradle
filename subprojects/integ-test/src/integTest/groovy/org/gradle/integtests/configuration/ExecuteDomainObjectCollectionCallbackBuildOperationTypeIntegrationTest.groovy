@@ -34,11 +34,11 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
 
     @Unroll
-    def '#containerType container callbacks emit registrant with filter #containerFilter (callback registered before creation)'() {
+    def '#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)'() {
         given:
-        callbackScript(containerAccess, containerFilter)
+        callbackScript(containerAccess, callbackName)
         buildFile << """
-            ${callbackClass(containerAccess, containerFilter)}
+            ${callbackClass(containerAccess, callbackName)}
             ${addingPluginClass(containerItemCreation)}
             apply plugin: CallbackPlugin
             apply from: 'callbackScript.gradle'
@@ -64,7 +64,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        containerFilter                      | containerType              | containerAccess                                              | containerItemCreation               | creatingBuildOpParentQuery
+        callbackName                         | containerType              | containerAccess                                              | containerItemCreation               | creatingBuildOpParentQuery
         'all'                                | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
         'withType(Task)'                     | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
         'matching{true}.all'                 | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
@@ -90,11 +90,11 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     }
 
     @Unroll
-    def '#containerName container callbacks emit registrant with filter #containerFilter (callback registered after creation)'() {
+    def '#containerName container callbacks emit registrant with #callbackName callback(after creation registered)'() {
         given:
-        callbackScript(containerAccess, containerFilter)
+        callbackScript(containerAccess, callbackName)
         buildFile << """
-            ${callbackClass(containerAccess, containerFilter)}
+            ${callbackClass(containerAccess, callbackName)}
             ${addingPluginClass(containerItemCreation)}
             apply plugin: AddingPlugin
             apply plugin: CallbackPlugin
@@ -116,7 +116,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
         where:
-        containerFilter                      | containerName              | containerAccess                               | containerItemCreation
+        callbackName                      | containerName              | containerAccess                               | containerItemCreation
         'all'                                | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
         'withType(Task)'                     | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
         'matching{true}.all'                 | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
@@ -419,19 +419,19 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
     }
 
-    void callbackScript(String containerAccess, String containerFilter) {
+    void callbackScript(String containerAccess, String callbackName) {
         file("callbackScript.gradle") << """
         
-        ${containerAccess}.${containerFilter} {
+        ${containerAccess}.${callbackName} {
             println "script callback from callbackScriptPlugin.gradle for \$it"
         }
         """
     }
 
-    static String callbackClass(String containerAccess, String containerFilter) {
+    static String callbackClass(String containerAccess, String callbackName) {
         """class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p){
-                    p.${containerAccess}.$containerFilter {
+                    p.${containerAccess}.$callbackName {
                         println "plugin callback \$it"
                     }
                 }
