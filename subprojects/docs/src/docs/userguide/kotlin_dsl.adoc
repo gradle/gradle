@@ -38,6 +38,110 @@ If you are interested in migrating an existing Gradle build to the Kotlin DSL, p
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] will help you to learn the basics.
 * Use of the <<plugins#sec:plugins_block,plugins {}>> block to declare Gradle plugins significantly improves the editing experience and is highly recommended.
 
+[[sec:ide_support]]
+== IDE support
+
+The Kotlin DSL is fully supported by Intellij IDEA and Android Studio. Other IDEs do not yet provide helpful tools for editing Kotlin DSL files, but you can still import Kotlin-DSL-based builds and work with them as usual.
+
+.IDE support matrix
+[cols=">.^,^.^,^.^,^.^",frame=none,grid=rows,options="header"]
+|===
+||Build import|Syntax highlighting ^1^|Semantic editor ^2^
+
+|IntelliJ IDEA
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.green]#*✓*#
+
+|Android Studio
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.green]#*✓*#
+
+|Eclipse IDE
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|CLion
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|Apache Netbeans
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|Visual Studio Code ^(LSP)^
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|Visual Studio
+|[.green]#*✓*#
+|[.red]#✖#
+|[.red]#✖#
+
+|===
+
+[%hardbreaks]
+^1^ ^Kotlin^ ^syntax^ ^highlighting^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
+^2^ ^code^ ^completion,^ ^navigation^ ^to^ ^sources,^ ^documentation,^ ^refactorings^ ^etc...^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
+
+As mentioned in the limitations, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts in IntelliJ IDEA.
+
+In addition, IntelliJ IDEA and Android Studio might spawn up to 3 Gradle daemons when editing Gradle scripts — one for each type of script: build scripts, settings files and initialization scripts.
+Builds with slow configuration time might affect the IDE responsiveness, so please check out the link:https://guides.gradle.org/performance/#configuration[performance guide] to help resolve such issues.
+
+=== Automatic build import vs. automatic reloading of script dependencies
+
+Both IntelliJ IDEA and Android Studio — which is derived from IntelliJ IDEA — will detect when you make changes to your build logic and offer two suggestions:
+
+ 1. Import the whole build again
++
+image::intellij-build-import-popup.png[IntelliJ IDEA, width=300]
++
+image::android-studio-build-sync-popup.png[IntelliJ IDEA]
+ 2. Reload script dependencies when editing a build script
++
+image::intellij-script-dependencies-reload.png[Reload script dependencies]
+
+We recommend that you _disable automatic build import_, but _enable automatic reloading of script dependencies_.
+That way you get early feedback while editing Gradle scripts and control over when the whole build setup gets synchronized with your IDE.
+
+=== Troubleshooting
+
+The IDE support is provided by two components:
+
+* The Kotlin Plugin used by IntelliJ IDEA/Android Studio
+* Gradle
+
+The level of support varies based on the versions of each.
+
+If you run into trouble, the first thing you should try is running `./gradlew tasks` from the command line to see whether your issue is limited to the IDE. If you encounter the same problem from the command line, then the issue is with the build rather than the IDE integration.
+
+If you can run the build successfully from the command line but your script editor is complaining, then you should try restarting your IDE and invalidating its caches.
+
+If the above doesn't work and you suspect an issue with the Kotlin DSL script editor, you can:
+
+* Run `./gradle tasks` to get more details
+* Check the logs in one of these locations:
+** `$HOME/Library/Logs/gradle-kotlin-dsl` on Mac OS X
+** `$HOME/.gradle-kotlin-dsl/logs` on Linux
+** `$HOME/Application Data/gradle-kotlin-dsl/log` on Windows
+* Open an issue on the link:{kotlin-dsl-issues}[Kotlin DSL issue tracker], including as much detail as you can.
+
+For IDE problems outside of the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
+
+* link:[JetBrains's IDEA issue tracker],
+* link:[Google's Android Studio issue tracker].
+
+Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the corresponding issue tracker:
+
+* link:{gradle-issues}[Gradle build tool issue tracker],
+* link:{kotlin-dsl-issues}[Kotlin DSL issue tracker].
+
 
 [[sec:scripts]]
 == Kotlin DSL scripts
@@ -415,7 +519,7 @@ We look at each of those ways next, using the `tasks` container as an example.
 
 [TIP]
 ====
-Note that you can leverage the type-safe accessors described in the <<kotdsl:accessor_applicability,another section>> if you are configuring existing elements on supported containers. That section also describes which containers support type-safe accessors.
+Note that you can leverage the type-safe accessors described in <<kotdsl:accessor_applicability,another section>> if you are configuring existing elements on supported containers. That section also describes which containers support type-safe accessors.
 ====
 
 
@@ -568,7 +672,7 @@ If you're happy to use eager configuration rather than the configuration avoidan
 ----
 tasks.test.doLast { ... }
 
-val testReportType by tasks.test.extra("dev")  // <1>
+val testReportType by tasks.test.get().extra("dev")  // <1>
 
 tasks.create<Zip>("archiveTestReports") {
     appendix = testReportType  // <2>
@@ -638,7 +742,7 @@ include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts
 === Precompiled script plugins
 
 In addition to normal Kotlin source files that go under `src/main/kotlin` by convention, the Kotlin DSL Plugin also allows you to provide your build logic as precompiled script plugins.
-You write these as `*.gradle.kts` files in the `src/main/kotlin` directory.
+You write these as `*.gradle.kts` files in that same `src/main/kotlin` directory.
 
 Precompiled script plugins are Kotlin DSL scripts that are compiled as part of a regular Kotlin source set and then placed on the build classpath or packaged in a binary plugin, depending on what type of project they're in.
 For all intents and purposes, they _are_ binary plugins, particularly as they can be applied by plugin ID, just like a normal plugin.
@@ -919,110 +1023,6 @@ native {                                                    <3>
 <1> The Kotlin build script requests and applies the plugin
 <2> The Kotlin build script applies the Groovy script
 <3> The Groovy script uses dynamic Groovy to configure plugin
-
-[[sec:ide_support]]
-== IDE support
-
-The Kotlin DSL is fully supported by Intellij IDEA and Android Studio. Other IDEs do not yet provide helpful tools for editing Kotlin DSL files, but you can still import Kotlin-DSL-based builds and work with them as usual.
-
-.IDE support matrix
-[cols=">.^,^.^,^.^,^.^",frame=none,grid=rows,options="header"]
-|===
-||Build import|Syntax highlighting ^1^|Semantic editor ^2^
-
-|IntelliJ IDEA
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.green]#*✓*#
-
-|Android Studio
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.green]#*✓*#
-
-|Eclipse IDE
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.red]#✖#
-
-|CLion
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.red]#✖#
-
-|Apache Netbeans
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.red]#✖#
-
-|Visual Studio Code ^(LSP)^
-|[.green]#*✓*#
-|[.green]#*✓*#
-|[.red]#✖#
-
-|Visual Studio
-|[.green]#*✓*#
-|[.red]#✖#
-|[.red]#✖#
-
-|===
-
-[%hardbreaks]
-^1^ ^Kotlin^ ^syntax^ ^highlighting^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
-^2^ ^code^ ^completion,^ ^navigation^ ^to^ ^sources,^ ^documentation,^ ^refactorings^ ^etc...^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
-
-As mentioned in the limitations, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts in IntelliJ IDEA.
-
-In addition, IntelliJ IDEA and Android Studio might spawn up to 3 Gradle daemons when editing Gradle scripts — one for each type of script: build scripts, settings files and initialization scripts.
-Builds with slow configuration time might affect the IDE responsiveness, so please check out the link:https://guides.gradle.org/performance/#configuration[performance guide] to help resolve such issues.
-
-=== Automatic build import vs. automatic reloading of script dependencies
-
-Both IntelliJ IDEA and Android Studio — which is derived from IntelliJ IDEA — will detect when you make changes to your build logic and offer two suggestions:
-
- 1. Import the whole build again
-+
-image::intellij-build-import-popup.png[IntelliJ IDEA, width=300]
-+
-image::android-studio-build-sync-popup.png[IntelliJ IDEA]
- 2. Reload script dependencies when editing a build script
-+
-image::intellij-script-dependencies-reload.png[Reload script dependencies]
-
-We recommend that you _disable automatic build import_, but _enable automatic reloading of script dependencies_.
-That way you get early feedback while editing Gradle scripts and control over when the whole build setup gets synchronized with your IDE.
-
-=== Troubleshooting
-
-The IDE support is provided by two components:
-
-* The Kotlin Plugin used by IntelliJ IDEA/Android Studio
-* Gradle
-
-The level of support varies based on the versions of each.
-
-If you run into trouble, the first thing you should try is running `./gradlew tasks` from the command line to see whether your issue is limited to the IDE. If you encounter the same problem from the command line, then the issue is with the build rather than the IDE integration.
-
-If you can run the build successfully from the command line but your script editor is complaining, then you should try restarting your IDE and invalidating its caches.
-
-If the above doesn't work and you suspect an issue with the Kotlin DSL script editor, you can:
-
-* Run `./gradle tasks` to get more details
-* Check the logs in one of these locations:
-** `$HOME/Library/Logs/gradle-kotlin-dsl` on Mac OS X
-** `$HOME/.gradle-kotlin-dsl/logs` on Linux
-** `$HOME/Application Data/gradle-kotlin-dsl/log` on Windows
-* Open an issue on the link:{kotlin-dsl-issues}[Kotlin DSL issue tracker], including as much detail as you can.
-
-For IDE problems outside of the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
-
-* link:[JetBrains's IDEA issue tracker],
-* link:[Google's Android Studio issue tracker].
-
-Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the corresponding issue tracker:
-
-* link:{gradle-issues}[Gradle build tool issue tracker],
-* link:{kotlin-dsl-issues}[Kotlin DSL issue tracker].
 
 [[kotdsl:limitations]]
 == Limitations
