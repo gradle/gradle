@@ -22,6 +22,8 @@ import javax.annotation.Nullable;
 
 public interface DomainObjectCollectionCallbackActionDecorator {
 
+    String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
+
     @Nullable
     <T> Action<T> decorate(@Nullable Action<T> action);
 

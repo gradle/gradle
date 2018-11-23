@@ -65,7 +65,6 @@ import java.io.IOException;
  * It, importantly, is not the parent of build session scope services.
  */
 public class CrossBuildSessionScopeServices implements Closeable {
-
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
@@ -176,7 +175,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         }
 
         DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
+            return Boolean.getBoolean(DomainObjectCollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE) ? new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext) : DomainObjectCollectionCallbackActionDecorator.NOOP;
         }
     }
 }
