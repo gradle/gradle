@@ -16,16 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.operations.BuildOperationCategory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import javax.annotation.Nullable;
 
-class TransformationOperation implements RunnableBuildOperation {
+class TransformationOperation {
     private final Transformation transformation;
     private final TransformationSubject subject;
     private final ArtifactTransformDependenciesProvider dependenciesProvider;
@@ -37,17 +32,8 @@ class TransformationOperation implements RunnableBuildOperation {
         this.dependenciesProvider = dependenciesProvider;
     }
 
-    @Override
-    public void run(@Nullable BuildOperationContext context) {
+    public void run() {
         result = transformation.transform(subject, dependenciesProvider);
-    }
-
-    @Override
-    public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
-        return BuildOperationDescriptor.displayName(displayName)
-            .progressDisplayName(displayName)
-            .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
     @Nullable

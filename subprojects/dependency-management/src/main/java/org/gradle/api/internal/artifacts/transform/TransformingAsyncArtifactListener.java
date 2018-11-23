@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
@@ -29,7 +27,6 @@ import java.util.Map;
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
     private final Map<File, TransformationOperation> fileResults;
-    private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
     private final ResolvableDependencies resolvableDependencies;
@@ -37,13 +34,11 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     TransformingAsyncArtifactListener(
         Transformation transformation,
         ResolvedArtifactSet.AsyncArtifactListener delegate,
-        BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults,
         Map<File, TransformationOperation> fileResults,
         ResolvableDependencies resolvableDependencies
     ) {
         this.artifactResults = artifactResults;
-        this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
@@ -81,6 +76,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results, ArtifactTransformDependenciesProvider dependenciesProvider) {
         TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
         results.put(key, operation);
-        operation.run(null);
+        operation.run();
     }
 }
