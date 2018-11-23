@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.DefaultTaskOutputCachingState;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,12 +59,12 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final boolean buildCacheEnabled;
-    private final FileOperations fileOperations;
+    private final RelativeFilePathResolver relativeFilePathResolver;
     private final TaskExecuter delegate;
 
-    public ResolveTaskOutputCachingStateExecuter(boolean buildCacheEnabled, FileOperations fileOperations, TaskExecuter delegate) {
+    public ResolveTaskOutputCachingStateExecuter(boolean buildCacheEnabled, RelativeFilePathResolver relativeFilePathResolver, TaskExecuter delegate) {
         this.buildCacheEnabled = buildCacheEnabled;
-        this.fileOperations = fileOperations;
+        this.relativeFilePathResolver = relativeFilePathResolver;
         this.delegate = delegate;
     }
 
@@ -79,7 +79,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
                 context.getTaskArtifactState().getOverlappingOutputs(),
-                fileOperations);
+                relativeFilePathResolver);
             context.setTaskCachingEnabled(taskOutputCachingState.isEnabled());
             state.setTaskOutputCaching(taskOutputCachingState);
             if (!taskOutputCachingState.isEnabled()) {
@@ -100,7 +100,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
         @Nullable OverlappingOutputs overlappingOutputs,
-        FileOperations fileOperations) {
+        RelativeFilePathResolver relativeFilePathResolver) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
@@ -110,7 +110,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         }
 
         if (overlappingOutputs != null) {
-            String relativePath = fileOperations.relativePath(overlappingOutputs.getOverlappedFilePath());
+            String relativePath = relativeFilePathResolver.resolveAsRelativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
                 String.format("Gradle does not know how file '%s' was created (output property '%s'). Task output caching requires exclusive access to output paths to guarantee correctness.",
                     relativePath, overlappingOutputs.getPropertyName()));
