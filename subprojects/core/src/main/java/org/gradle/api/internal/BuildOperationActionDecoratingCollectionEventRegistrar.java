@@ -23,8 +23,8 @@ import org.gradle.internal.ImmutableActionSet;
 import javax.annotation.Nullable;
 
 public class BuildOperationActionDecoratingCollectionEventRegistrar<T> implements CollectionEventRegister<T> {
-    private final CollectionEventRegister<T> delegate;
-    private final DomainObjectCollectionCallbackActionDecorator decorator;
+    private CollectionEventRegister<T> delegate;
+    private DomainObjectCollectionCallbackActionDecorator decorator;
 
     public BuildOperationActionDecoratingCollectionEventRegistrar(DomainObjectCollectionCallbackActionDecorator decorator, CollectionEventRegister<T> delegate) {
         this.decorator = decorator;
@@ -53,17 +53,11 @@ public class BuildOperationActionDecoratingCollectionEventRegistrar<T> implement
 
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        if (decorator == null) {
-            return delegate.registerEagerAddAction(type, addAction);
-        }
         return delegate.registerEagerAddAction(type, decorator.decorate(addAction));
     }
 
     @Override
     public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
-        if (decorator == null) {
-            return delegate.registerLazyAddAction(addAction);
-        }
         return delegate.registerLazyAddAction(decorator.decorate(addAction));
     }
 
