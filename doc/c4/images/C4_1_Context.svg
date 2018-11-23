@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="682px" preserveAspectRatio="none" style="width:508px;height:682px;" version="1.1" viewBox="0 0 508 682" width="508px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="369" x="73.5" y="17.4023">Context diagram for the Gradle Kotlin DSL</text><!--cluster gradle--><rect fill="#999999" height="107" style="stroke: #8A8A8A; stroke-width: 1.5;" width="157" x="167.5" y="393.1992"/><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="125" x="183.5" y="408.7344">«external_system»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="141" x="175.5" y="427.1563">Gradle Build Tool</text><!--entity gradleKotlinDsl--><rect fill="#1168BD" height="52.9766" style="stroke: #3C7FC0; stroke-width: 1.5;" width="104" x="176.5" y="439.1992"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="52" x="202.5" y="460.8008">«system»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="84" x="186.5" y="478.8008">Kotlin DSL</text><!--entity dev--><rect fill="#08427B" height="102.4414" style="stroke: #073B6F; stroke-width: 1.5;" width="220" x="124.5" y="29.1992"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="52" x="208.5" y="50.8008">«person»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="82" x="193.5" y="68.8008">Developer</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="236.5" y="85.7109"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="196" x="134.5" y="102.1992">Developer using a Kotlin DSL</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="129" x="170" y="118.6875">based Gradle build</text><!--entity ide--><rect fill="#999999" height="102.4414" style="stroke: #8A8A8A; stroke-width: 1.5;" width="181" x="64" y="222.1992"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="105" x="102" y="243.8008">«external_system»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="28" x="140.5" y="261.8008">IDE</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="156.5" y="278.7109"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="157" x="74" y="295.1992">IntelliJ IDEA or Android</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="44" x="132.5" y="311.6875">Studio</text><!--entity kotlinTools--><rect fill="#999999" height="85.9531" style="stroke: #8A8A8A; stroke-width: 1.5;" width="203" x="6" y="577.1992"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="105" x="55" y="598.8008">«external_system»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="134" x="40.5" y="616.8008">Kotlin Toolchain</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="109.5" y="633.7109"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="183" x="16" y="650.1992">kotlinc, Gradle plugin etc...</text><!--entity buildCache--><rect fill="#999999" height="102.4414" style="stroke: #8A8A8A; stroke-width: 1.5;" width="220" x="277.5" y="569.1992"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="105" x="335" y="590.8008">«external_system»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="154" x="310.5" y="608.8008">Gradle Build Cache</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="389.5" y="625.7109"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="200" x="287.5" y="642.1992">Local, Gradle Enterprise Build</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="122" x="326.5" y="658.6875">Cache Node, etc...</text><!--link dev to gradle--><path d="M245.8016,131.4004 C257.8773,186.402 277.4499,276.4005 293.5,354.1992 C295.9318,365.9868 298.4539,378.4876 300.885,390.6924 C301.037,391.4553 301.1886,392.2169 301.3397,392.9771 " fill="none" id="dev-gradle" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="301.3397,392.9771,303.5074,383.3698,300.3645,388.0732,295.6611,384.9302,301.3397,392.9771" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="318.5" y="271.2676">Uses</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="94" x="287.5" y="285.6113">[Command Line]</text><!--link gradleKotlinDsl to kotlinTools--><path d="M207.6994,492.2587 C190.382,514.3706 165.2951,546.403 144.5561,572.8838 " fill="none" id="gradleKotlinDsl-kotlinTools" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="141.2668,577.0837,149.9653,572.4646,144.3498,573.1473,143.667,567.5318,141.2668,577.0837" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="182.5" y="535.7676">Uses</text><!--link gradleKotlinDsl to buildCache--><path d="M255.8331,492.2587 C276.4823,512.3235 305.5382,540.5571 331.1034,565.3987 " fill="none" id="gradleKotlinDsl-buildCache" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="334.8486,569.0379,331.1816,559.8972,331.2627,565.5535,325.6064,565.6346,334.8486,569.0379" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="303.5" y="535.7676">Uses</text><!--link dev to ide--><path d="M213.2715,131.413 C202.2882,157.9103 188.8628,190.2989 177.6176,217.4279 " fill="none" id="dev-ide" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="175.6888,222.0813,182.8304,215.2991,177.6035,217.4625,175.4402,212.2356,175.6888,222.0813" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="199.5" y="174.7676">Uses</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="28" x="201.5" y="189.1113">[GUI]</text><!--link ide to gradle--><path d="M170.0527,324.3438 C179.5406,346.7123 194.0739,371.0362 215.5,385.1992 C223.229,390.3082 240.491,389.2596 257.5648,388.4581 C266.1017,388.0573 274.5915,387.7183 281.8191,388.2416 C285.4329,388.5033 288.7311,388.9805 291.5619,389.7734 C292.9773,390.1699 294.2758,390.6453 295.4385,391.2121 C296.0198,391.4955 296.5672,391.8017 297.0783,392.1324 C297.3338,392.2977 297.5802,392.4692 297.8173,392.6469 C297.9358,392.7358 298.052,392.8262 298.1658,392.9183 C298.2227,392.9643 298.279,393.0107 298.3347,393.0575 " fill="none" id="ide-gradle" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="298.3347,393.0575,294.0192,384.2045,294.5073,389.8402,288.8715,390.3283,298.3347,393.0575" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="236.5" y="367.7676">Uses</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="72" x="216.5" y="382.1113">[Tooling API]</text><!--link ide to kotlinTools--><path d="M140.284,324.2269 C134.8759,345.4111 129.145,370.3403 125.5,393.1992 C115.7594,454.2853 111.2015,525.5007 109.1298,571.6427 " fill="none" id="ide-kotlinTools" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="108.9012,576.8638,113.2913,568.0475,109.1201,571.8686,105.299,567.6974,108.9012,576.8638" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="126.5" y="470.7676">Uses</text><!--link kotlinTools to buildCache--><path d="M209.3785,620.1992 C229.7035,620.1992 251.1889,620.1992 271.9355,620.1992 " fill="none" id="kotlinTools-buildCache" style="stroke: #666666; stroke-width: 1.0;"/><polygon fill="#666666" points="277.193,620.1992,268.193,616.1992,272.193,620.1992,268.193,624.1992,277.193,620.1992" style="stroke: #666666; stroke-width: 1.0;"/><text fill="#666666" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="227.25" y="613.7676">Uses</text><!--
+@startuml
+
+
+
+
+skinparam defaultTextAlignment center
+
+skinparam wrapWidth 200
+skinparam maxMessageSize 150
+
+skinparam rectangle {
+    StereotypeFontSize 12
+    shadowing false
+}
+
+skinparam Arrow {
+    Color #666666
+    FontColor #666666
+    FontSize 12
+}
+
+skinparam rectangle<<boundary>> {
+    Shadowing false
+    StereotypeFontSize 0
+    FontSize 12
+    FontColor #444444
+    BorderColor #444444
+    BorderStyle dashed
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+skinparam rectangle<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+
+skinparam rectangle<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+
+skinparam rectangle<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+
+skinparam rectangle<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+
+
+
+
+
+
+
+
+
+
+top to bottom direction
+
+title Context diagram for the Gradle Kotlin DSL
+
+rectangle "==Developer\n\n Developer using a Kotlin DSL based Gradle build" <<person>> as dev
+
+rectangle "==Gradle Build Tool" <<external_system>> as gradle {
+    rectangle "==Kotlin DSL" <<system>> as gradleKotlinDsl
+}
+
+rectangle "==IDE\n\n IntelliJ IDEA or Android Studio" <<external_system>> as ide
+
+rectangle "==Kotlin Toolchain\n\n kotlinc, Gradle plugin etc..." <<external_system>> as kotlinTools
+
+rectangle "==Gradle Build Cache\n\n Local, Gradle Enterprise Build Cache Node, etc..." <<external_system>> as buildCache
+
+dev - -> gradle : "===Uses\n//<size:12>[Command Line]</size>//"
+gradleKotlinDsl - -> kotlinTools : "===Uses"
+gradleKotlinDsl - -> buildCache : "===Uses"
+
+dev - -> ide : "===Uses\n//<size:12>[GUI]</size>//"
+ide - -> gradle : "===Uses\n//<size:12>[Tooling API]</size>//"
+ide - -> kotlinTools : "===Uses"
+kotlinTools -> buildCache : "===Uses"
+
+@enduml
+
+PlantUML version 1.2018.12(Sun Oct 21 12:15:15 CEST 2018)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Java Version: 1.8.0_181-b13
+Operating System: Mac OS X
+OS Version: 10.13.4
+Default Encoding: UTF-8
+Language: fr
+Country: FR
+--></g></svg>
