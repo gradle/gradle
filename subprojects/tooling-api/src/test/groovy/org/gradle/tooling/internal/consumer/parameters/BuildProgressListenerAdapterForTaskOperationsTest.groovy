@@ -356,6 +356,103 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         }
     }
 
+    def "convert task dependencies"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def dependencyTaskDescriptor = Stub(InternalTaskWithDependenciesDescriptor)
+        _ * dependencyTaskDescriptor.getId() >> ':dependency'
+        _ * dependencyTaskDescriptor.getName() >> 'dependency task'
+        _ * dependencyTaskDescriptor.getParentId() >> null
+        _ * dependencyTaskDescriptor.getTaskPath() >> ':dependency:path'
+        _ * dependencyTaskDescriptor.getDependencies() >> []
+
+        def dependencyStartEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * dependencyStartEvent.getEventTime() >> 800
+        _ * dependencyStartEvent.getDisplayName() >> 'task started'
+        _ * dependencyStartEvent.getDescriptor() >> dependencyTaskDescriptor
+
+        def dependencyTaskResult = Stub(InternalTaskSuccessResult)
+        _ * dependencyTaskResult.getStartTime() >> 1
+        _ * dependencyTaskResult.getEndTime() >> 2
+
+        def dependencyFinishEvent = Stub(InternalOperationFinishedProgressEvent)
+        _ * dependencyFinishEvent.getEventTime() >> 900
+        _ * dependencyFinishEvent.getDisplayName() >> 'task finished'
+        _ * dependencyFinishEvent.getDescriptor() >> dependencyTaskDescriptor
+        _ * dependencyFinishEvent.getResult() >> dependencyTaskResult
+
+        def taskDescriptor = Stub(InternalTaskWithDependenciesDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getTaskPath() >> ':some:path'
+        _ * taskDescriptor.getDependencies() >> [dependencyTaskDescriptor]
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 1000
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(dependencyStartEvent)
+        adapter.onEvent(dependencyFinishEvent)
+
+        then:
+        2 * listener.statusChanged(_)
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.eventTime == 1000
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.taskPath == ':some:path'
+            assert event.descriptor.parent == null
+            assert event.descriptor.dependencies.size() == 1
+            with(event.descriptor.dependencies[0]) {
+                assert it.name == 'dependency task'
+                assert it.taskPath == ':dependency:path'
+                assert it.parent == null
+                assert it.dependencies.empty
+            }
+        }
+    }
+
+    def "ignores unknown dependencies"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def taskDescriptor = Stub(InternalTaskWithDependenciesDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+        _ * taskDescriptor.getTaskPath() >> ':some:path'
+        _ * taskDescriptor.getDependencies() >> [Stub(InternalOperationDescriptor)]
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 1000
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.eventTime == 1000
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.taskPath == ':some:path'
+            assert event.descriptor.parent == null
+            assert event.descriptor.dependencies.empty
+        }
+    }
+
     private static BuildProgressListenerAdapter createAdapter() {
         new BuildProgressListenerAdapter([:])
     }

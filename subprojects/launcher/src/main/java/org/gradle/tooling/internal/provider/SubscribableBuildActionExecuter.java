@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -34,12 +35,14 @@ import java.util.List;
  */
 public class SubscribableBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
+    private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
     private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
 
-    public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
+    public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
         this.delegate = delegate;
+        this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.registrations = registrations;
     }
@@ -56,6 +59,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
             return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
             for (BuildOperationListener listener : listeners) {
+                listenerManager.removeListener(listener);
                 buildOperationListenerManager.removeListener(listener);
             }
             listeners.clear();
@@ -72,6 +76,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
 
     private void registerListener(BuildOperationListener listener) {
         listeners.add(listener);
+        listenerManager.addListener(listener);
         buildOperationListenerManager.addListener(listener);
     }
 }
