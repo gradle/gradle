@@ -1131,7 +1131,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         executer.withTasks("tasks").start().waitForFinish()
 
         then:
-        outputDir1.parentFile.assertDoesNotExist()
+        outputDir1.assertDoesNotExist()
         outputDir2.assertExists()
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
@@ -1397,7 +1397,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
         if (incrementalArtifactTransformations) {
-            def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", "transforms", Pattern.quote(from), "\\w+"]
+            def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", "transforms", "\\w+"]
             return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
         } else {
             return gradleUserHomeOutputDirs(from, to, stream)
@@ -1405,7 +1405,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey()).absolutePath), Pattern.quote(from), "\\w+"]
+        def parts = [Pattern.quote(cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey()).absolutePath), "\\w+"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 

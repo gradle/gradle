@@ -49,14 +49,6 @@ public abstract class TransformationSubject implements Describable {
     public abstract ImmutableList<File> getFiles();
 
     /**
-     * Human readable identifier for the subject.
-     *
-     * This is to provide some context about the subject when the transformation happens.
-     * The difference to {@link #getDisplayName()} is that the identifier can also be used for file names on disk.
-     */
-    public abstract String getHumanReadableIdentifier();
-
-    /**
      * Component producing this subject.
      *
      * {@link Optional#empty()} if the subject is not produced by a project.
@@ -89,10 +81,6 @@ public abstract class TransformationSubject implements Describable {
 
         @Override
         public ImmutableList<File> getFiles() {
-            throw new UnsupportedOperationException();
-        }
-
-        public String getHumanReadableIdentifier() {
             throw new UnsupportedOperationException();
         }
 
@@ -138,11 +126,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public Throwable getFailure() {
             return null;
-        }
-
-        @Override
-        public String getHumanReadableIdentifier() {
-            return getFile().getName();
         }
 
         @Override
@@ -203,11 +186,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public ImmutableList<File> getFiles() {
             return files;
-        }
-
-        @Override
-        public String getHumanReadableIdentifier() {
-            return previous.getHumanReadableIdentifier();
         }
 
         @Override

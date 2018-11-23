@@ -102,11 +102,6 @@ class DefaultCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
         }
 
         @Override
-        String getHumanReadableIdentifier() {
-            return name
-        }
-
-        @Override
         String getIdentity() {
             return name
         }

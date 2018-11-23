@@ -107,7 +107,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     public boolean hasCachedResult(File primaryInput, Transformer transformer, TransformationSubject subject) {
         ProjectInternal producerProject = determineProducerProject(subject);
         FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        return determineWorkspaceProvider(producerProject).hasCachedResult(getTransformationIdentity(producerProject, snapshot, transformer, subject));
+        return determineWorkspaceProvider(producerProject).hasCachedResult(getTransformationIdentity(producerProject, snapshot, transformer));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
         FileSystemLocationSnapshot primaryInputSnapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, subject);
+        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -130,24 +130,21 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, TransformationSubject subject) {
-        String humanReadableIdentifier = subject.getHumanReadableIdentifier();
-        return project == null ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer, humanReadableIdentifier) :
-            getMutableTransformationIdentity(primaryInputSnapshot, transformer, humanReadableIdentifier);
+    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer) {
+        return project == null ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer) :
+            getMutableTransformationIdentity(primaryInputSnapshot, transformer);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, String humanReadableIdentifier) {
+    private TransformationIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer) {
         return new ImmutableTransformationIdentity(
-            humanReadableIdentifier,
             primaryInputSnapshot.getAbsolutePath(),
             primaryInputSnapshot.getHash(),
             transformer.getSecondaryInputHash()
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, String humanReadableIdentifier) {
+    private TransformationIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer) {
         return new MutableTransformationIdentity(
-            humanReadableIdentifier,
             primaryInputSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash()
         );
@@ -414,21 +411,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     public static class ImmutableTransformationIdentity implements TransformationIdentity {
-        private final String humanReadableIdentifier;
         private final String primaryInputAbsolutePath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
 
-        public ImmutableTransformationIdentity(String humanReadableIdentifier, String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
-            this.humanReadableIdentifier = humanReadableIdentifier;
+        public ImmutableTransformationIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
-        }
-
-        @Override
-        public String getHumanReadableIdentifier() {
-            return humanReadableIdentifier;
         }
 
         @Override
@@ -457,9 +447,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!secondaryInputHash.equals(that.secondaryInputHash)) {
                 return false;
             }
-            if (!humanReadableIdentifier.equals(that.humanReadableIdentifier)) {
-                return false;
-            }
             return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
         }
 
@@ -472,25 +459,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     public static class MutableTransformationIdentity implements TransformationIdentity {
-        private final String humanReadableIdentifier;
         private final String primaryInputAbsolutePath;
         private final HashCode secondaryInputsHash;
 
-        public MutableTransformationIdentity(String humanReadableIdentifier, String primaryInputAbsolutePath, HashCode secondaryInputsHash) {
-            this.humanReadableIdentifier = humanReadableIdentifier;
+        public MutableTransformationIdentity(String primaryInputAbsolutePath, HashCode secondaryInputsHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.secondaryInputsHash = secondaryInputsHash;
         }
 
         @Override
-        public String getHumanReadableIdentifier() {
-            return humanReadableIdentifier;
-        }
-
-        @Override
         public String getIdentity() {
             Hasher hasher = Hashing.newHasher();
-            hasher.putString(humanReadableIdentifier);
             hasher.putString(primaryInputAbsolutePath);
             hasher.putHash(secondaryInputsHash);
             return hasher.hash().toString();
@@ -510,17 +489,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!secondaryInputsHash.equals(that.secondaryInputsHash)) {
                 return false;
             }
-            if (!humanReadableIdentifier.equals(that.humanReadableIdentifier)) {
-                return false;
-            }
             return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
         }
 
         @Override
         public int hashCode() {
-            int result = humanReadableIdentifier.hashCode();
-            result = 31 * result + humanReadableIdentifier.hashCode();
-            result = 31 * result + primaryInputAbsolutePath.hashCode();
+            int result = primaryInputAbsolutePath.hashCode();
             result = 31 * result + secondaryInputsHash.hashCode();
             return result;
         }

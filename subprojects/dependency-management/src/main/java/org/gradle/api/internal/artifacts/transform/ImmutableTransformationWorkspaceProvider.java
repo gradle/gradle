@@ -33,7 +33,6 @@ import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -41,7 +40,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
@@ -74,16 +73,15 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
 
     @Override
     public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        String identityString = identity.getIdentity();
-        String workspacePath = identity.getHumanReadableIdentifier() + "/" + identityString;
+        String workspacePath = identity.getIdentity();
         TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
         fileAccessTracker.markAccessed(workspace.getResultsFile());
         fileAccessTracker.markAccessed(workspace.getOutputDirectory());
-        return workspaceAction.useWorkspace(identityString, workspace);
+        return workspaceAction.useWorkspace(workspacePath, workspace);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         cache.close();
     }
 }
