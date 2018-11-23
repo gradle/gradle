@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class PerformanceTestResult {
@@ -33,7 +34,7 @@ public abstract class PerformanceTestResult {
     private String channel;
     private Throwable whereAmI;
 
-    public  PerformanceTestResult() {
+    public PerformanceTestResult() {
         whereAmI = new Throwable();
     }
 
@@ -46,7 +47,8 @@ public abstract class PerformanceTestResult {
      * @return true if regression checks enabled, false otherwise.
      */
     public static boolean hasRegressionChecks() {
-        return Boolean.parseBoolean(System.getProperty("org.gradle.performance.regression.checks", "true"));
+        String check = System.getProperty("org.gradle.performance.regression.checks", "true");
+        return Arrays.asList("true", "all").contains(check);
     }
 
     public String getTestId() {
