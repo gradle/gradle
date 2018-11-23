@@ -84,7 +84,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return store;
     }
 
-    public DomainObjectCollectionCallbackActionDecorator getCallbackActionDecorator() {
+    protected DomainObjectCollectionCallbackActionDecorator getCallbackActionDecorator() {
         return callbackActionDecorator;
     }
 
@@ -146,7 +146,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void all(Action<? super T> action) {
         assertMutable("all(Action)");
-        Action<? super T> eagerAction= addEagerAction(action);
+        Action<? super T> decoratedAction = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
             return;
@@ -165,7 +165,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
         if (copied != null) {
             for (T t : copied) {
-                eagerAction.execute(t);
+                decoratedAction.execute(t);
             }
         }
     }

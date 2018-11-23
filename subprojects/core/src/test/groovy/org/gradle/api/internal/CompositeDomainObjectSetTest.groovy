@@ -364,7 +364,6 @@ class CompositeDomainObjectSetTest extends Specification {
 
         when:
         composite.all {
-            println 'calledFor ' + it
             calledFor << it
         }
 

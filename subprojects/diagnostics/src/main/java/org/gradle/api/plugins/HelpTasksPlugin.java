@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
@@ -67,7 +67,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.register(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
     }
 
-    private static class HelpAction implements InternalAction<Help> {
+    private static class HelpAction implements Action<Help> {
         @Override
         public void execute(Help task) {
             task.setDescription("Displays a help message.");
@@ -76,7 +76,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class ProjectReportTaskAction implements InternalAction<ProjectReportTask> {
+    private static class ProjectReportTaskAction implements Action<ProjectReportTask> {
         private final String project;
 
         public ProjectReportTaskAction(String projectName) {
@@ -91,7 +91,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class TaskReportTaskAction implements InternalAction<TaskReportTask> {
+    private static class TaskReportTaskAction implements Action<TaskReportTask> {
         private final String projectName;
         private final boolean noChildren;
 
@@ -114,7 +114,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class PropertyReportTaskAction implements InternalAction<PropertyReportTask> {
+    private static class PropertyReportTaskAction implements Action<PropertyReportTask> {
         private final String projectName;
 
         public PropertyReportTaskAction(String projectName) {
@@ -129,7 +129,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class DependencyInsightReportTaskAction implements InternalAction<DependencyInsightReportTask> {
+    private static class DependencyInsightReportTaskAction implements Action<DependencyInsightReportTask> {
         private final String projectName;
 
         public DependencyInsightReportTaskAction(String projectName) {
@@ -150,7 +150,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class DependencyReportTaskAction implements InternalAction<DependencyReportTask> {
+    private static class DependencyReportTaskAction implements Action<DependencyReportTask> {
         private final String projectName;
 
         public DependencyReportTaskAction(String projectName) {
@@ -165,7 +165,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class BuildEnvironmentReportTaskAction implements InternalAction<BuildEnvironmentReportTask> {
+    private static class BuildEnvironmentReportTaskAction implements Action<BuildEnvironmentReportTask> {
         private final String projectName;
 
         public BuildEnvironmentReportTaskAction(String projectName) {
@@ -180,7 +180,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class ComponentReportAction implements InternalAction<ComponentReport> {
+    private static class ComponentReportAction implements Action<ComponentReport> {
         private final String projectName;
 
         public ComponentReportAction(String projectName) {
@@ -195,7 +195,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class ModelReportAction implements InternalAction<ModelReport> {
+    private static class ModelReportAction implements Action<ModelReport> {
         private final String projectName;
 
         public ModelReportAction(String projectName) {
@@ -210,7 +210,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class DependentComponentsReportAction implements InternalAction<DependentComponentsReport> {
+    private static class DependentComponentsReportAction implements Action<DependentComponentsReport> {
         private final String projectName;
 
         public DependentComponentsReportAction(String projectName) {

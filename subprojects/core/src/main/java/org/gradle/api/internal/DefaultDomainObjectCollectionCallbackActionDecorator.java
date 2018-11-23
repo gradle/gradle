@@ -33,7 +33,6 @@ public class DefaultDomainObjectCollectionCallbackActionDecorator implements Dom
 
     public DefaultDomainObjectCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
-        // TODO RG: discuss interface
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 

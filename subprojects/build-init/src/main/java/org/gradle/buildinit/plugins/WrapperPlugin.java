@@ -16,9 +16,9 @@
 
 package org.gradle.buildinit.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.InternalAction;
 import org.gradle.api.tasks.wrapper.Wrapper;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.api.tasks.wrapper.Wrapper;
 public class WrapperPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getParent() == null) {
-            project.getTasks().register("wrapper", Wrapper.class, new InternalAction<Wrapper>() {
+            project.getTasks().register("wrapper", Wrapper.class, new Action<Wrapper>() {
                 @Override
                 public void execute(Wrapper wrapper) {
                     wrapper.setGroup("Build Setup");

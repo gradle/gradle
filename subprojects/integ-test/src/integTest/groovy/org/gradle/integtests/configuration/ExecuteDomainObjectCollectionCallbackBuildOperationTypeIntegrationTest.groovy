@@ -153,7 +153,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
 
         when:
-        run('tasks')
+        run('foo')
 
         then:
         def resgisterCallbackBuildOp = ops.only(ExecuteDomainObjectCollectionCallbackBuildOperationType)
@@ -178,7 +178,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
 
         when:
-        run('tasks')
+        run('foo')
 
         then:
         def registerPluginApplication = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'RegisterPlugin' })

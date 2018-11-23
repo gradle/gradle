@@ -16,10 +16,10 @@
 
 package org.gradle.buildinit.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.InternalAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.tasks.InitBuild;
@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 public class BuildInitPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         if (project.getParent() == null) {
-            project.getTasks().register("init", InitBuild.class, new InternalAction<InitBuild>() {
+            project.getTasks().register("init", InitBuild.class, new Action<InitBuild>() {
                 @Override
                 public void execute(InitBuild initBuild) {
                     initBuild.setGroup("Build Setup");
