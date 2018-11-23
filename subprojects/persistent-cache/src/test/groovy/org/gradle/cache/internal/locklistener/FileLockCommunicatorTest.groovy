@@ -36,7 +36,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         communicator.getPort() != -1
     }
 
-    def "knows port after stopping"() {
+    def "does not know port after stopping"() {
         when:
         communicator.stop()
 
@@ -79,7 +79,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        def socket = new DatagramSocket(0, addressFactory.getLocalBindingAddress())
+        def socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress())
         def bytes = [1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
         addressFactory.getCommunicationAddresses().each { address ->
             socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
