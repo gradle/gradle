@@ -103,7 +103,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
         results.endTime = clock.getCurrentTime()
 
-        results.assertEveryBuildSucceeds()
         reporter.report(results)
 
         return results

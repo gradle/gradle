@@ -73,7 +73,6 @@ In order to include only performance regressions we modify `CrossVersionPerforma
     void assertCurrentVersionHasNotRegressed() {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
 //        def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
-        assertEveryBuildSucceeds()
 //        if (slower && larger) {
 //            throw new AssertionError("$slower\n$larger")
 //        }

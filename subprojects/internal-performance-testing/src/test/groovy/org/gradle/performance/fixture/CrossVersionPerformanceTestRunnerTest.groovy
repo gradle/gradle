@@ -350,7 +350,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.targetVersions = ['last']
 
         when:
-        System.setProperty('org.gradle.performance.execution.checks', 'none')
+        System.setProperty('org.gradle.performance.regression.checks', 'none')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10)))
             result.add(operation(totalTime: Duration.seconds(10)))
@@ -373,16 +373,13 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(failure: new RuntimeException()))
-        }
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10)))
+            throw new RuntimeException()
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
 
         then:
-        thrown(AssertionError)
+        thrown(RuntimeException)
     }
 
     def "fails when baseline fails"() {
@@ -395,34 +392,13 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(failure: new RuntimeException()))
+            throw new RuntimeException()
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
 
         then:
-        thrown(AssertionError)
-    }
-
-    //current behavior, not necessarily desired
-    def "does not fail if build under test has exceptions and checks=none"() {
-        given:
-        def runner = runner()
-        runner.targetVersions = ['last']
-
-        when:
-        System.setProperty('org.gradle.performance.execution.checks', 'none')
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(failure: new RuntimeException()))
-        }
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(failure: new RuntimeException()))
-        }
-        def results = runner.run()
-        results.assertCurrentVersionHasNotRegressed()
-
-        then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
     def runner() {

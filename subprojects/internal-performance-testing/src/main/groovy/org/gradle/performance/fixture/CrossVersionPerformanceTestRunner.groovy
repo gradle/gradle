@@ -121,8 +121,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         results.endTime = clock.getCurrentTime()
 
-        results.assertEveryBuildSucceeds()
-
         reporter.report(results)
 
         return results
