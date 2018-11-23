@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
@@ -39,6 +41,7 @@ public class VirtualPlatformState {
     }
 
     void participatingModule(ModuleResolveState state) {
+        state.registerPlatformOwner(this);
         if (participatingModules.add(state)) {
             ComponentState selected = platformModule.getSelected();
             if (selected != null) {
@@ -52,20 +55,30 @@ public class VirtualPlatformState {
         }
     }
 
+    private String getForcedVersion() {
+        String version = null;
+        for (SelectorState selector : platformModule.getSelectors()) {
+            if (selector.isForce()) {
+                ComponentSelector requested = selector.getRequested();
+                if (requested instanceof ModuleComponentSelector) {
+                    String nv = ((ModuleComponentSelector) requested).getVersion();
+                    if (version == null || vC.compare(nv, version) < 0) {
+                        version = nv;
+                    }
+                }
+            }
+        }
+        return version;
+    }
+
     List<String> getCandidateVersions() {
-        String forcedVersion = null;
+        String forcedVersion = getForcedVersion();
         ComponentState selectedPlatformComponent = platformModule.getSelected();
         List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size() + 1);
-        if (selectedPlatformComponent.getSelectionReason().isForced()) {
-            forcedVersion = selectedPlatformComponent.getVersion();
-        }
         sorted.add(selectedPlatformComponent.getVersion());
         for (ModuleResolveState module : participatingModules) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
-                if (selected.getSelectionReason().isForced() && forcedVersion == null) {
-                    forcedVersion = selected.getVersion();
-                }
                 sorted.add(selected.getVersion());
             }
         }
@@ -81,7 +94,7 @@ public class VirtualPlatformState {
         return participatingModules;
     }
 
-    ComponentIdentifier getSelectedPlatformId() {
+    public ComponentIdentifier getSelectedPlatformId() {
         ComponentState selected = platformModule.getSelected();
         if (selected != null) {
             return selected.getComponentId();
@@ -105,6 +118,7 @@ public class VirtualPlatformState {
      * then the engine thinks that the platform module is unresolved. We need to
      * remember such edges, because in case a virtual platform gets defined, the error
      * is no longer valid and we can attach the target revision.
+     *
      * @param edge the orphan edge
      */
     void addOrphanEdge(EdgeState edge) {
@@ -116,5 +130,13 @@ public class VirtualPlatformState {
             orphanEdge.attachToTargetConfigurations();
         }
         orphanEdges.clear();
+    }
+
+    public boolean isGreaterThanForcedVersion(String version) {
+        String forcedVersion = getForcedVersion();
+        if (forcedVersion == null) {
+            return false;
+        }
+        return vC.compare(forcedVersion, version) > 0;
     }
 }

@@ -31,6 +31,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 
@@ -65,6 +67,7 @@ class ModuleResolveState implements CandidateModule {
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
+    private Set<VirtualPlatformState> platformOwners;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -87,6 +90,17 @@ class ModuleResolveState implements CandidateModule {
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
         this.selectorStateResolver = selectorStateResolver;
+    }
+
+    void registerPlatformOwner(VirtualPlatformState owner) {
+        if (platformOwners == null) {
+            platformOwners = Sets.newHashSetWithExpectedSize(1);
+        }
+        platformOwners.add(owner);
+    }
+
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return platformOwners == null ? Collections.emptySet() : platformOwners;
     }
 
     @Override
@@ -360,5 +374,23 @@ class ModuleResolveState implements CandidateModule {
                 componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
+    }
+
+    String maybeFindForcedPlatformVersion() {
+        ComponentState selected = getSelected();
+        for (NodeState node : selected.getNodes()) {
+            if (node.isSelected()) {
+                for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                    DependencyMetadata dependencyMetadata = incomingEdge.getDependencyMetadata();
+                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata) && dependencyMetadata instanceof ForcingDependencyMetadata) {
+                        if (((ForcingDependencyMetadata) dependencyMetadata).isForce()) {
+                            return selected.getVersion();
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

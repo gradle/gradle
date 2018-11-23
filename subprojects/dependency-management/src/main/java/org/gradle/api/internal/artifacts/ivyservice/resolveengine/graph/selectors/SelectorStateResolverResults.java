@@ -23,12 +23,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 class SelectorStateResolverResults {
     private static final VersionParser VERSION_PARSER = new VersionParser();
@@ -42,15 +44,12 @@ class SelectorStateResolverResults {
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
-        boolean onlyLookAtSoftForces = shouldOnlyLookAtSoftForces();
+        boolean hasSoftForce = hasSoftForce();
         for (Registration entry : results) {
             ResolvableSelectorState selectorState = entry.selector;
-            if (onlyLookAtSoftForces && !selectorState.isSoftForce()) {
-                continue;
-            }
             ComponentIdResolveResult idResolveResult = entry.result;
 
-            if (selectorState.isForce()) {
+            if (selectorState.isForce() && !hasSoftForce) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
                 return Collections.singletonList(forcedComponent);
             }
@@ -77,19 +76,32 @@ class SelectorStateResolverResults {
         return resolved == null ? Collections.<T>emptyList() : resolved;
     }
 
-    private boolean shouldOnlyLookAtSoftForces() {
-        int forces = 0;
-        int softForces = 0;
-        for (Registration entry : results) {
-            ResolvableSelectorState selectorState = entry.selector;
-            if (selectorState.isForce()) {
-                forces++;
+    static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
+        Set<VirtualPlatformState> platformOwners = componentState.getPlatformOwners();
+        if (!platformOwners.isEmpty()) {
+            for (VirtualPlatformState platformOwner : platformOwners) {
+                if (platformOwner.isGreaterThanForcedVersion(componentState.getVersion())) {
+                    return false;
+                }
             }
-            if (selectorState.isSoftForce()) {
-                softForces++;
+        } else {
+            VirtualPlatformState platform = componentState.getPlatformState();
+            if (platform != null && platform.isGreaterThanForcedVersion(componentState.getVersion())) {
+                // the platform itself is greater than the forced version
+                return false;
             }
         }
-        return forces>0 && forces == softForces;
+        return true;
+    }
+
+    private boolean hasSoftForce() {
+        for (Registration entry : results) {
+            ResolvableSelectorState selectorState = entry.selector;
+            if (selectorState.isSoftForce()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
