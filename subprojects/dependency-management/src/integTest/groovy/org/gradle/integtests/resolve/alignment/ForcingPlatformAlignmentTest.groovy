@@ -59,7 +59,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('core') tries('2.9.4') alignsTo('2.7.9') byVirtualPlatform()
             module('databind') alignsTo('2.7.9') byVirtualPlatform()
             module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
             module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
@@ -113,7 +113,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('core') tries('2.9.4') alignsTo('2.7.9') byVirtualPlatform()
             module('databind') alignsTo('2.7.9') byVirtualPlatform()
             module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
             module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
@@ -169,7 +169,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('core') tries('2.9.4') alignsTo('2.7.9') byVirtualPlatform()
             module('databind') alignsTo('2.7.9') byVirtualPlatform()
             module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
             module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
@@ -965,6 +965,10 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
+    @RequiredFeatures([
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+    ])
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to higher patch version should bring the rest of aligned group up"() {
@@ -1003,15 +1007,31 @@ include 'other'
                         module("org:core:2.8.10")
                     }
                 }
+                if (forceNotation.contains('enforcedPlatform')) {
+                    module("org:platform:2.8.11.1:default") {
+                        noArtifacts()
+                        byConstraint("belongs to platform org:platform:2.8.11.1")
+                        forced()
+                        constraint('org:core:2.8.10')
+                        constraint('org:databind:2.8.11.1')
+                        constraint('org:annotations:2.8.10')
+                        constraint('org:cbor:2.8.10')
+                    }
+                }
             }
         }
 
         where:
         forceNotation << [
-                "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }"
+                "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }",
+                "dependencies { conf enforcedPlatform('org:platform:2.8.11.1') }",
         ]
     }
 
+    @RequiredFeatures([
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+    ])
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to lower patch version should bring the rest of aligned group up"() {
@@ -1050,12 +1070,24 @@ include 'other'
                         module("org:core:2.6.7")
                     }
                 }
+                if (forceNotation.contains('enforcedPlatform')) {
+                    module("org:platform:2.6.7.1:default") {
+                        noArtifacts()
+                        byConstraint("belongs to platform org:platform:2.6.7.1")
+                        forced()
+                        constraint('org:core:2.6.7')
+                        constraint('org:databind:2.6.7.1')
+                        constraint('org:annotations:2.6.7')
+                        constraint('org:cbor:2.6.7')
+                    }
+                }
             }
         }
 
         where:
         forceNotation << [
-                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }"
+                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
+                "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
         ]
     }
 

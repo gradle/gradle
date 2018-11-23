@@ -45,6 +45,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Resolution state for a given component
@@ -314,6 +315,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return rejected;
     }
 
+    @Override
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return module.getPlatformOwners();
+    }
+
+    @Override
+    public VirtualPlatformState getPlatformState() {
+        return module.getPlatformState();
+    }
 
     public void removeOutgoingEdges() {
         for (NodeState configuration : getNodes()) {

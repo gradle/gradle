@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
@@ -65,6 +66,17 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
             return candidates.get(0);
+        }
+
+        List<T> allowed = candidates
+                .stream()
+                .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
+                .collect(Collectors.toList());
+        if (!allowed.isEmpty()) {
+            if (allowed.size() == 1) {
+                return allowed.get(0);
+            }
+            candidates = allowed;
         }
 
         // Perform conflict resolution
