@@ -54,7 +54,7 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
     private final ComponentArtifactIdentifier artifactId;
     private final ResolvableDependencies resolvableDependencies;
 
-     DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+    DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
         this.artifactId = artifactId;
         this.resolvableDependencies = resolvableDependencies;
     }
