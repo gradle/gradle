@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.configuration
 
+import org.gradle.api.internal.DefaultDomainObjectCollection
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
@@ -32,6 +33,12 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
     private static Closure fooTaskRealizationOpsQuery = { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':foo' }) }
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
+
+    def setup() {
+        executer.beforeExecute {
+            withArgument("-D${DefaultDomainObjectCollection.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
+        }
+    }
 
     @Unroll
     def '#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)'() {

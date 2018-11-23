@@ -44,10 +44,12 @@ import java.util.List;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize, WithMutationGuard {
 
+    public static final String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
+    private final boolean callbackExecutionCallbacksEnabled = Boolean.getBoolean(CALLBACK_EXECUTION_BUILD_OPS_TOGGLE);
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final CollectionEventRegister<T> baseEventRegister;
-    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
+    private final DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
     private final ElementSource<T> store;
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
@@ -58,7 +60,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.baseEventRegister = baseEventRegister;
-        this.eventRegister = new BuildOperationActionDecoratingCollectionEventRegistrar(callbackActionDecorator, baseEventRegister);
+        this.eventRegister = callbackExecutionCallbacksEnabled ? new BuildOperationActionDecoratingCollectionEventRegistrar(callbackActionDecorator, baseEventRegister) : baseEventRegister;
         this.callbackActionDecorator = callbackActionDecorator;
         this.store.onRealize(new Action<T>() {
             @Override
