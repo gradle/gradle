@@ -21,45 +21,114 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.model.UnsupportedMethodException
 
 @ToolingApiVersion('>=5.1')
+@TargetGradleVersion('>=5.1')
 class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def events = ProgressEvents.create()
 
-    void setup() {
+    def "reports task dependencies when target version supports it"() {
+        given:
         buildFile << """
             task a { enabled = false }
             task b { dependsOn(a) }
-            task c { finalizedBy(b) }
-            task d { shouldRunAfter(c) }
-            task e { mustRunAfter(d) }
+            task c { dependsOn(b) }
+            task d { dependsOn(b, c) }
         """
-    }
 
-    @TargetGradleVersion('>=5.1')
-    def "reports task dependencies when target version supports it"() {
         when:
-        runBuild('a', 'b', 'c', 'd', 'e')
+        runBuild('d')
 
         then:
-        task('a').dependencies.empty
-        task('b').dependencies == [task('a')] as Set
-        task('c').dependencies.empty
-        task('d').dependencies.empty
-        task('e').dependencies.empty
+        task(':a').dependencies.empty
+        task(':b').dependencies == tasks(':a')
+        task(':c').dependencies == tasks(':b')
+        task(':d').dependencies == tasks(':b', ':c')
+    }
+
+    def "reports task dependencies for tasks in buildSrc"() {
+        given:
+        file('buildSrc/build.gradle') << """
+            task a { enabled = false }
+            task b { dependsOn(a) }
+            task c { dependsOn(b) }
+            task d { dependsOn(b, c) }
+            build.dependsOn(d)
+        """
+
+        when:
+        runBuild('tasks')
+
+        then:
+        task(':buildSrc:a').dependencies.empty
+        task(':buildSrc:b').dependencies == tasks(':buildSrc:a')
+        task(':buildSrc:c').dependencies == tasks(':buildSrc:b')
+        task(':buildSrc:d').dependencies == tasks(':buildSrc:b', ':buildSrc:c')
+    }
+
+    def "reports task dependencies for tasks in included builds"() {
+        given:
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << """
+            task run {
+                dependsOn gradle.includedBuild('included').task(':d')
+            }
+        """
+        file('included/build.gradle') << """
+            task a { enabled = false }
+            task b { dependsOn(a) }
+            task c { dependsOn(b) }
+            task d { dependsOn(b, c) }
+        """
+
+        when:
+        runBuild('run')
+
+        then:
+        task(':included:a').dependencies.empty
+        task(':included:b').dependencies == tasks(':included:a')
+        task(':included:c').dependencies == tasks(':included:b')
+        task(':included:d').dependencies == tasks(':included:b', ':included:c')
+    }
+
+    def "reports task dependencies for tasks in multi-project builds"() {
+        given:
+        settingsFile << """
+            include 'subproject'
+        """
+        buildFile << """
+            project(':subproject') {
+                task a { enabled = false }
+                task b { dependsOn(a) }
+                task c { dependsOn(b) }
+                task d { dependsOn(b, c) }
+            }
+        """
+
+        when:
+        runBuild(':subproject:d')
+
+        then:
+        task(':subproject:a').dependencies.empty
+        task(':subproject:b').dependencies == tasks(':subproject:a')
+        task(':subproject:c').dependencies == tasks(':subproject:b')
+        task(':subproject:d').dependencies == tasks(':subproject:b', ':subproject:c')
     }
 
     @TargetGradleVersion('<5.1')
-    def "returns null for unknown task dependencies when target version does not support it"() {
+    def "throws UnsupportedMethodException for task dependencies when target version does not support it"() {
         when:
-        runBuild('b')
+        runBuild('tasks')
 
         and:
-        task('b').dependencies
+        task(':tasks').dependencies
 
         then:
         def e = thrown(UnsupportedMethodException)
@@ -76,8 +145,12 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    private TaskOperationDescriptor task(String name) {
-        events.operation("Task :$name").descriptor as TaskOperationDescriptor
+    private Set<? extends OperationDescriptor> tasks(String... paths) {
+        paths.collect { task(it) }
+    }
+
+    private TaskOperationDescriptor task(String path) {
+        events.operation("Task $path").descriptor as TaskOperationDescriptor
     }
 
 }
