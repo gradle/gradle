@@ -243,13 +243,31 @@ project(':app') {
         run "resolve", "-PuseOldDependencyVersion"
 
         when:
-        run "resolve", "--info"
+        run "resolve", "-PuseOldDependencyVersion", "--info"
+        def outputLines = output.readLines()
 
         then:
-        output.readLines().any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
-        output.readLines().any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
-        output.readLines().count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
-        output.contains('Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar')
-        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 4
+        outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+
+        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 0
+
+        when:
+        run "resolve", "--info"
+        outputLines = output.readLines()
+
+        then:
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 2
+        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+
+        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
+        outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
+        outputLines.any { it == "Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar" }
+        outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
+        outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar" }
     }
 }
