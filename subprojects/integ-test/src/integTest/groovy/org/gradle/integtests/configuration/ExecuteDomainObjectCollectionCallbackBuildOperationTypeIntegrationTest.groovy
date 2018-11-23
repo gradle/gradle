@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.configuration
 
-import org.gradle.api.internal.DefaultDomainObjectCollection
+
 import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
@@ -124,7 +124,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
         where:
-        callbackName                      | containerName              | containerAccess                               | containerItemCreation
+        callbackName                         | containerName              | containerAccess                               | containerItemCreation
         'all'                                | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
         'withType(Task)'                     | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
         'matching{true}.all'                 | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
