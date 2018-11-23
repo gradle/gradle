@@ -122,7 +122,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         task(':subproject:d').dependencies == tasks(':subproject:b', ':subproject:c')
     }
 
-    @TargetGradleVersion('<5.1')
+    @TargetGradleVersion('>=2.6 <5.1')
     def "throws UnsupportedMethodException for task dependencies when target version does not support it"() {
         when:
         runBuild('tasks')
