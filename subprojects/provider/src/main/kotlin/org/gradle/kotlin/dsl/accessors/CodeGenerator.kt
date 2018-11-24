@@ -70,7 +70,6 @@ data class AccessorScope(
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
 
-
     private
     fun add(accessorSpec: TypedAccessorSpec) =
         targetTypesOf(accessorSpec.name).add(accessorSpec.receiver)
