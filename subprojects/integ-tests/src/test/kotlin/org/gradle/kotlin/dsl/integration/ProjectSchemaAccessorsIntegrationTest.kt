@@ -546,11 +546,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
-                `java-gradle-plugin`
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
@@ -566,7 +565,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             import org.gradle.api.*
 
-            open class MyPlugin : Plugin<Project> {
+            class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     configurations.create("myConfig")
                 }
