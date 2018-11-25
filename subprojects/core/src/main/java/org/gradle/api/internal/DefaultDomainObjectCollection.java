@@ -58,7 +58,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.baseEventRegister = baseEventRegister;
-        this.eventRegister = new BuildOperationActionDecoratingCollectionEventRegistrar<T>(callbackActionDecorator, baseEventRegister);
+        this.eventRegister = new BuildOperationDecoratingCollectionEventRegistrar<T>(callbackActionDecorator, baseEventRegister);
         this.callbackActionDecorator = callbackActionDecorator;
         this.store.onRealize(new Action<T>() {
             @Override
