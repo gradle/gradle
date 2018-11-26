@@ -116,7 +116,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             import org.apache.tools.ant.filters.ReplaceTokens
 
             // Class<T> to KClass<T>
-            property(Long::class)
+            objects.property(Long::class)
 
             // Groovy named arguments to vararg of Pair
             fileTree("dir" to "src", "excludes" to listOf("**/ignore/**", "**/.data/**"))
@@ -142,8 +142,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
-                `java-gradle-plugin`
             }
 
             $repositoriesBlock
@@ -225,11 +223,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             @org.gradle.api.Incubating
             inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: org.gradle.api.Action<in T>): org.gradle.api.tasks.TaskProvider<T> =
                 `register`(`name`, `type`.java, `configurationAction`)
-            """,
-            """
-            @Deprecated("Deprecated Gradle API")
-            inline fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
-                `asType`(`type`.java)
             """,
             """
             inline fun <T : Any> org.gradle.api.plugins.ExtensionContainer.`create`(`name`: String, `type`: kotlin.reflect.KClass<T>, vararg `constructionArguments`: Any): T =

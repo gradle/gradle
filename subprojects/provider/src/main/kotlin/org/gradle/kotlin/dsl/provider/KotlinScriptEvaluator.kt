@@ -44,6 +44,8 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 
+import org.gradle.kotlin.dsl.accessors.pluginAccessorsClassPath
+
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -147,6 +149,11 @@ class StandardKotlinScriptEvaluator(
 
     inner class InterpreterHost : Interpreter.Host {
 
+        override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            (scriptHost.target as? Project)?.let {
+                pluginAccessorsClassPath(it).bin
+            } ?: ClassPath.EMPTY
+
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 
             buildOperationExecutor.call(object : CallableBuildOperation<String> {
@@ -198,7 +205,8 @@ class StandardKotlinScriptEvaluator(
                 DefaultPluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
                 null,
-                scriptHost.targetScope)
+                scriptHost.targetScope
+            )
         }
 
         override fun cachedClassFor(

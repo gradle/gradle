@@ -70,7 +70,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 private
 fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
     replaceLoggerWith(
-        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project)
+        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project.toString(), project.experimentalWarningLink)
         else KotlinCompilerWarningSilencingLogger(logger)
     )
 
@@ -93,11 +93,12 @@ fun KotlinCompile.replaceLoggerWith(logger: Logger) {
 private
 class KotlinCompilerWarningSubstitutingLogger(
     private val delegate: Logger,
-    private val project: Project
+    private val target: String,
+    private val link: String
 ) : Logger by delegate {
 
     override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(project.kotlinDslPluginExperimentalWarning())
+        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
         else delegate.warn(message)
     }
 }
@@ -116,13 +117,8 @@ class KotlinCompilerWarningSilencingLogger(
 }
 
 
-private
-fun Project.kotlinDslPluginExperimentalWarning() =
-    kotlinDslPluginExperimentalWarning(project, experimentalWarningLink)
-
-
 internal
-fun kotlinDslPluginExperimentalWarning(target: Any, link: Any) =
+fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
     "The `kotlin-dsl` plugin applied to $target enables experimental Kotlin compiler features. For more information see $link"
 
 

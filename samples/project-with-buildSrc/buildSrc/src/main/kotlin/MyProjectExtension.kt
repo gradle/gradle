@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.kotlin.dsl.support
-
-import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.model.ObjectFactory
 
 import org.gradle.kotlin.dsl.*
 
 
-/**
- * Adds the Kotlin EAP bintray repository.
- */
-fun RepositoryHandler.kotlinEap() =
-    maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
+open class MyProjectExtension(objects: ObjectFactory) {
+
+    val flag = objects.property<Boolean>()
+}

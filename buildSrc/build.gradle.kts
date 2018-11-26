@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 buildscript {
 
     val pluginsExperiments by extra(
-        "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.14"
+        "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.15"
     )
 
     dependencies {
@@ -16,9 +16,7 @@ buildscript {
 }
 
 plugins {
-    `java-gradle-plugin`
     `kotlin-dsl`
-    `kotlin-dsl-precompiled-script-plugins`
 }
 
 kotlinDslPluginOptions {
@@ -49,7 +47,7 @@ dependencies {
     compile(kotlin("reflect"))
 
     compile("com.gradle.publish:plugin-publish-plugin:0.10.0")
-    compile("org.ow2.asm:asm:6.2")
+    compile("org.ow2.asm:asm:6.2.1")
 
     testCompile("junit:junit:4.12")
     testCompile(gradleTestKit())

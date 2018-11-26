@@ -1,6 +1,8 @@
 import groovy.lang.GroovyObject
 
+import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
+import org.jetbrains.gradle.ext.TaskTriggersConfig
 
 import java.time.LocalDate
 
@@ -14,23 +16,23 @@ buildscript {
 plugins {
     base
     kotlin("jvm") apply false
-    id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "0.4.2"
 }
 
 allprojects {
     group = "org.gradle"
-    version = "1.0-rc-6"
+    version = "1.0.4"
 }
 
-val publishedPluginsVersion by extra { "1.0-rc-5" }
-val futurePluginsVersion = "1.0-rc-6"
+val publishedPluginsVersion by extra { "1.0.4" }
+val futurePluginsVersion = "1.0.5"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.14" }
-val futurePluginsExperimentsVersion = "0.1.15"
+val publishedPluginsExperimentsVersion by extra { "0.1.15" }
+val futurePluginsExperimentsVersion = "0.1.16"
 project(":plugins-experiments") {
     group = "org.gradle.kotlin"
     version = futurePluginsExperimentsVersion
@@ -55,18 +57,24 @@ dependencies {
 allprojects {
     repositories {
         gradlePluginPortal()
+        repositories {
+            maven {
+                name = "kotlinx"
+                url = uri("https://kotlin.bintray.com/kotlinx/")
+            }
+        }
     }
 }
 
 
 // -- Integration testing ----------------------------------------------
-val prepareIntegrationTestFixtures by task<GradleBuild> {
+val prepareIntegrationTestFixtures by tasks.registering(GradleBuild::class) {
     dir = file("fixtures")
 }
 
 val customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
 
-val copyCurrentDistro by task<Copy> {
+val copyCurrentDistro by tasks.registering(Copy::class) {
     description = "Copies the current Gradle distro into '$customInstallationDir'."
 
     from(gradle.gradleHomeDir)
@@ -87,7 +95,7 @@ val copyCurrentDistro by task<Copy> {
     onlyIf { !customInstallationDir.exists() }
 }
 
-val customInstallation by task<Copy> {
+val customInstallation by tasks.registering(Copy::class) {
     description = "Copies latest gradle-kotlin-dsl snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(distribution)
@@ -96,7 +104,7 @@ val customInstallation by task<Copy> {
 
 
 // -- Performance testing ----------------------------------------------
-val benchmark by task<integration.Benchmark> {
+val benchmark by tasks.registering(integration.Benchmark::class) {
     excludingSamplesMatching(
         "android",
         "source-control"
@@ -109,10 +117,17 @@ val benchmark by task<integration.Benchmark> {
 // -- IntelliJ IDEA configuration --------------------------------------
 idea {
     project {
-        (this as ExtensionAware)
+        this as ExtensionAware
         configure<ProjectSettings> {
+            this as ExtensionAware
             doNotDetectFrameworks("android", "web")
-            copyright {
+            configure<TaskTriggersConfig> {
+                // Build the `customInstallation` after the initial import to:
+                // 1. ensure generated code is available to the IDE
+                // 2. allow integration tests to be executed
+                afterSync(customInstallation.get())
+            }
+            configure<CopyrightConfiguration> {
                 useDefault = "ASL2"
                 profiles {
                     create("ASL2") {
@@ -138,8 +153,3 @@ idea {
         }
     }
 }
-
-
-// --- Utility functions -----------------------------------------------
-inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
-    tasks.registering(T::class, configuration)

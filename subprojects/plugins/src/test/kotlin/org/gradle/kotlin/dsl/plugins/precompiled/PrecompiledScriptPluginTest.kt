@@ -1,21 +1,23 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Jar
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
-import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
+import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.kotlin.dsl.fixtures.joinLines
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
@@ -27,8 +29,8 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
-
 import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Test
 
 
@@ -97,7 +99,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withPrecompiledScriptPluginsPlus("java-gradle-plugin")
+        withKotlinDslPlugin()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
             throw IllegalStateException("$expectedMessage")
@@ -110,6 +112,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         @Suppress("unchecked_cast")
         val pluginAdapter =
             loadCompiledKotlinClass("MyProjectScriptPlugin")
+                .getConstructor()
                 .newInstance() as Plugin<Project>
 
         val exception =
@@ -131,7 +134,10 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
         """)
 
-        val tasks = mock<TaskContainer>()
+        val task = mock<Jar>()
+        val tasks = mock<TaskContainer> {
+            on { create(any<String>(), any<Class<Task>>()) } doReturn task
+        }
         val project = mock<Project> {
             on { getTasks() } doReturn tasks
         }
@@ -140,7 +146,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             project,
             "My_project_script_gradle")
 
-        verify(tasks).create("jar", org.gradle.api.tasks.bundling.Jar::class.java)
+        verify(tasks).create("jar", Jar::class.java)
     }
 
     @Test
@@ -188,7 +194,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithPrecompiledScriptPluginsPlus("java-gradle-plugin"))
+                    scriptWithKotlinDslPlugin())
             }
         }
 
@@ -221,7 +227,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         )
     }
 
-    @LeaksFileHandles
     @Test
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
@@ -255,12 +260,10 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 """)
 
-                withFile( "build.gradle.kts", """
+                withFile("build.gradle.kts", """
 
                     plugins {
                         `kotlin-dsl`
-                        `kotlin-dsl-precompiled-script-plugins`
-                        `java-gradle-plugin`
                         `maven-publish`
                     }
 
@@ -326,9 +329,34 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         )
     }
 
+    @Test
+    fun `precompiled script plugins can use Kotlin 1 dot 3 language features`() {
+
+        givenPrecompiledKotlinScript("my-plugin.gradle.kts", """
+
+            // Coroutines are no longer experimental
+            val coroutine = sequence {
+                // Unsigned integer types
+                yield(42UL)
+            }
+
+            when (val value = coroutine.first()) {
+                42UL -> print("42!")
+                else -> throw IllegalStateException()
+            }
+        """)
+
+        assertStandardOutputOf("42!") {
+            instantiatePrecompiledScriptOf(
+                mock<Project>(),
+                "My_plugin_gradle"
+            )
+        }
+    }
+
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withPrecompiledScriptPluginsPlus()
+        withKotlinDslPlugin()
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()
     }
@@ -345,16 +373,14 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             .loadClass(className)
 
     private
-    fun withPrecompiledScriptPluginsPlus(vararg additionalPlugins: String) =
-        withBuildScript(scriptWithPrecompiledScriptPluginsPlus(*additionalPlugins))
+    fun withKotlinDslPlugin() =
+        withBuildScript(scriptWithKotlinDslPlugin())
 
     private
-    fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
+    fun scriptWithKotlinDslPlugin(): String =
         """
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
-                ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
 
             $repositoriesBlock

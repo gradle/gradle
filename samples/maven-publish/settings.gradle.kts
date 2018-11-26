@@ -1,1 +1,2 @@
 rootProject.name = "maven-publish"
+

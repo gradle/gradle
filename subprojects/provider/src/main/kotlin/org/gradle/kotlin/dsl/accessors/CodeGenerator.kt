@@ -19,10 +19,10 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
 
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
-
-import kotlin.coroutines.experimental.buildSequence
 
 
 internal
@@ -32,61 +32,50 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
 
 
 internal
-fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = buildSequence {
-
-    val seen = SeenAccessorSpecs()
-
-    extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->
-        extensionAccessorFor(spec)?.let { extensionAccessor ->
-            yield(extensionAccessor)
-            seen.add(spec)
-        }
-    }
-
-    conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        conventionAccessorFor(spec)?.let {
-            yield(it)
-        }
+fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = sequence {
+    AccessorScope().run {
+        yieldAll(uniqueAccessorsFor(extensions).map(::extensionAccessor))
+        yieldAll(uniqueAccessorsFor(conventions).map(::conventionAccessor))
+        yieldAll(uniqueAccessorsFor(tasks).map(::existingTaskAccessor))
+        yieldAll(uniqueAccessorsFor(containerElements).map(::existingContainerElementAccessor))
     }
 }
 
 
 internal
-fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = buildSequence {
-    configurations.map(::accessorNameSpec).forEach { spec ->
-        configurationAccessorFor(spec)?.let {
-            yield(it)
-        }
-    }
-}
+fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> =
+    configurations
+        .asSequence()
+        .filter(::isLegalAccessorName)
+        .map(::accessorNameSpec)
+        .map(::configurationAccessor)
 
 
-private
-data class SeenAccessorSpecs(
+internal
+data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
 ) {
+    fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
+        uniqueAccessorsFrom(entries.asSequence().mapNotNull(::typedAccessorSpec))
 
-    fun add(accessorSpec: TypedAccessorSpec) =
-        setFor(accessorSpec.name).add(accessorSpec.targetTypeAccess)
-
-    fun hasConflict(accessorSpec: TypedAccessorSpec) =
-        targetTypesByName[accessorSpec.name]?.let { targetTypes ->
-            accessorSpec.targetTypeAccess in targetTypes
-        } ?: false
+    fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
+        accessorSpecs.filter(::add)
 
     private
-    fun setFor(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
+    fun add(accessorSpec: TypedAccessorSpec) =
+        targetTypesOf(accessorSpec.name).add(accessorSpec.receiver)
+
+    private
+    fun targetTypesOf(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
         targetTypesByName.computeIfAbsent(accessorNameSpec) { hashSetOf() }
 }
 
 
-private
-fun extensionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess)
-        }
+internal
+fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
 
@@ -133,13 +122,11 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 }
 
 
-private
-fun conventionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess)
-        }
+internal
+fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
 
@@ -186,108 +173,201 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
 }
 
 
-private
-fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
-    codeForAccessor(name) {
-        """
-            /**
-             * The '$original' configuration.
-             */
-            val ConfigurationContainer.`$kotlinIdentifier`: Configuration
-                get() = getByName("$stringLiteral")
-
-            /**
-             * Adds a dependency to the '$original' configuration.
-             *
-             * @param dependencyNotation notation for the dependency to be added.
-             * @return The dependency.
-             *
-             * @see [DependencyHandler.add]
-             */
-            fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
-                add("$stringLiteral", dependencyNotation)
-
-            /**
-             * Adds a dependency to the '$original' configuration.
-             *
-             * @param dependencyNotation notation for the dependency to be added.
-             * @param dependencyConfiguration expression to use to configure the dependency.
-             * @return The dependency.
-             *
-             * @see [DependencyHandler.add]
-             */
-            inline fun DependencyHandler.`$kotlinIdentifier`(
-                dependencyNotation: String,
-                dependencyConfiguration: ExternalModuleDependency.() -> Unit
-            ): ExternalModuleDependency = add("$stringLiteral", dependencyNotation, dependencyConfiguration)
-
-            /**
-             * Adds a dependency to the '$original' configuration.
-             *
-             * @param group the group of the module to be added as a dependency.
-             * @param name the name of the module to be added as a dependency.
-             * @param version the optional version of the module to be added as a dependency.
-             * @param configuration the optional configuration of the module to be added as a dependency.
-             * @param classifier the optional classifier of the module artifact to be added as a dependency.
-             * @param ext the optional extension of the module artifact to be added as a dependency.
-             * @return The dependency.
-             *
-             * @see [DependencyHandler.add]
-             */
-            fun DependencyHandler.`$kotlinIdentifier`(
-                group: String,
-                name: String,
-                version: String? = null,
-                configuration: String? = null,
-                classifier: String? = null,
-                ext: String? = null
-            ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
-                add("$stringLiteral", it)
-            }
-
-            /**
-             * Adds a dependency to the '$original' configuration.
-             *
-             * @param group the group of the module to be added as a dependency.
-             * @param name the name of the module to be added as a dependency.
-             * @param version the optional version of the module to be added as a dependency.
-             * @param configuration the optional configuration of the module to be added as a dependency.
-             * @param classifier the optional classifier of the module artifact to be added as a dependency.
-             * @param ext the optional extension of the module artifact to be added as a dependency.
-             * @param dependencyConfiguration expression to use to configure the dependency.
-             * @return The dependency.
-             *
-             * @see [DependencyHandler.create]
-             * @see [DependencyHandler.add]
-             */
-            inline fun DependencyHandler.`$kotlinIdentifier`(
-                group: String,
-                name: String,
-                version: String? = null,
-                configuration: String? = null,
-                classifier: String? = null,
-                ext: String? = null,
-                dependencyConfiguration: ExternalModuleDependency.() -> Unit
-            ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
-                add("$stringLiteral", it, dependencyConfiguration)
-            }
-
-            /**
-             * Adds a dependency to the '$original' configuration.
-             *
-             * @param dependency dependency to be added.
-             * @param dependencyConfiguration expression to use to configure the dependency.
-             * @return The dependency.
-             *
-             * @see [DependencyHandler.add]
-             */
-            inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
-                dependency: T,
-                dependencyConfiguration: T.() -> Unit
-            ): T = add("$stringLiteral", dependency, dependencyConfiguration)
-
-        """
+internal
+fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, type)
     }
+}
+
+
+private
+fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][$type] task.
+         */
+        val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
+            get() = named<$type>("$stringLiteral")
+
+    """
+}
+
+
+private
+fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][${typeAccess.type}] task.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        val TaskContainer.`$kotlinIdentifier`: TaskProvider<Task>
+            get() = named("$stringLiteral")
+
+    """
+}
+
+
+internal
+fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type)
+    }
+}
+
+
+private
+fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][$type] element.
+         */
+        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
+            get() = named<$type>("$stringLiteral")
+
+    """
+}
+
+
+private
+fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name: AccessorNameSpec, elementType: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][${elementType.type}] element.
+         *
+         * ${documentInaccessibilityReasons(name, elementType)}
+         */
+        val $containerType.`$kotlinIdentifier`: NamedDomainObjectProvider<Any>
+            get() = named("$stringLiteral")
+
+    """
+}
+
+
+private
+fun configurationAccessor(name: AccessorNameSpec): String = name.run {
+    """
+        /**
+          * Adds a dependency to the '$original' configuration.
+          *
+          * @param dependencyNotation notation for the dependency to be added.
+          * @return The dependency.
+          *
+          * @see [DependencyHandler.add]
+          */
+        fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
+            add("$stringLiteral", dependencyNotation)
+
+        /**
+          * Adds a dependency to the '$original' configuration.
+          *
+          * @param dependencyNotation notation for the dependency to be added.
+          * @param dependencyConfiguration expression to use to configure the dependency.
+          * @return The dependency.
+          *
+          * @see [DependencyHandler.add]
+          */
+        inline fun DependencyHandler.`$kotlinIdentifier`(
+            dependencyNotation: String,
+            dependencyConfiguration: ExternalModuleDependency.() -> Unit
+        ): ExternalModuleDependency = add("$stringLiteral", dependencyNotation, dependencyConfiguration)
+
+        /**
+          * Adds a dependency to the '$original' configuration.
+          *
+          * @param group the group of the module to be added as a dependency.
+          * @param name the name of the module to be added as a dependency.
+          * @param version the optional version of the module to be added as a dependency.
+          * @param configuration the optional configuration of the module to be added as a dependency.
+          * @param classifier the optional classifier of the module artifact to be added as a dependency.
+          * @param ext the optional extension of the module artifact to be added as a dependency.
+          * @return The dependency.
+          *
+          * @see [DependencyHandler.add]
+          */
+        fun DependencyHandler.`$kotlinIdentifier`(
+            group: String,
+            name: String,
+            version: String? = null,
+            configuration: String? = null,
+            classifier: String? = null,
+            ext: String? = null
+        ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+            add("$stringLiteral", it)
+        }
+
+        /**
+          * Adds a dependency to the '$original' configuration.
+          *
+          * @param group the group of the module to be added as a dependency.
+          * @param name the name of the module to be added as a dependency.
+          * @param version the optional version of the module to be added as a dependency.
+          * @param configuration the optional configuration of the module to be added as a dependency.
+          * @param classifier the optional classifier of the module artifact to be added as a dependency.
+          * @param ext the optional extension of the module artifact to be added as a dependency.
+          * @param dependencyConfiguration expression to use to configure the dependency.
+          * @return The dependency.
+          *
+          * @see [DependencyHandler.create]
+          * @see [DependencyHandler.add]
+          */
+        inline fun DependencyHandler.`$kotlinIdentifier`(
+            group: String,
+            name: String,
+            version: String? = null,
+            configuration: String? = null,
+            classifier: String? = null,
+            ext: String? = null,
+            dependencyConfiguration: ExternalModuleDependency.() -> Unit
+        ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+            add("$stringLiteral", it, dependencyConfiguration)
+        }
+
+        /**
+          * Adds a dependency to the '$original' configuration.
+          *
+          * @param dependency dependency to be added.
+          * @param dependencyConfiguration expression to use to configure the dependency.
+          * @return The dependency.
+          *
+          * @see [DependencyHandler.add]
+          */
+        inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
+            dependency: T,
+            dependencyConfiguration: T.() -> Unit
+        ): T = add("$stringLiteral", dependency, dependencyConfiguration)
+
+        /**
+          * Adds a dependency constraint to the '$original' configuration.
+          *
+          * @param constraintNotation the dependency constraint notation
+          *
+          * @return the added dependency constraint
+          *
+          * @see [DependencyConstraintHandler.add]
+          */
+        @Incubating
+        fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
+            add("$stringLiteral", constraintNotation)
+
+        /**
+          * Adds a dependency constraint to the '$original' configuration.
+          *
+          * @param constraintNotation the dependency constraint notation
+          * @param block the block to use to configure the dependency constraint
+          *
+          * @return the added dependency constraint
+          *
+          * @see [DependencyConstraintHandler.add]
+          */
+        @Incubating
+        fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+            add("$stringLiteral", constraintNotation, block)
+
+    """
 }
 
 
@@ -307,15 +387,17 @@ data class AccessorNameSpec(val original: String) {
     val kotlinIdentifier
         get() = original
 
-    val stringLiteral by lazy { stringLiteralFor(original) }
+    val stringLiteral by unsafeLazy {
+        stringLiteralFor(original)
+    }
 }
 
 
-private
+internal
 data class TypedAccessorSpec(
-    val targetTypeAccess: TypeAccessibility.Accessible,
+    val receiver: TypeAccessibility.Accessible,
     val name: AccessorNameSpec,
-    val typeAccess: TypeAccessibility
+    val type: TypeAccessibility
 )
 
 
@@ -334,9 +416,9 @@ fun accessorNameSpec(originalName: String) =
     AccessorNameSpec(originalName)
 
 
-private
+internal
 fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
-    schemaEntry.target.run {
+    schemaEntry.takeIf { isLegalAccessorName(it.name) }?.target?.run {
         when (this) {
             is TypeAccessibility.Accessible ->
                 TypedAccessorSpec(this, accessorNameSpec(schemaEntry.name), schemaEntry.type)
@@ -351,12 +433,6 @@ fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAcces
     "`${name.kotlinIdentifier}` is not accessible in a type safe way because:\n${typeAccess.reasons.joinToString("\n") { reason ->
         "         * - ${reason.explanation}"
     }}"
-
-
-private
-inline fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
-    if (isLegalAccessorName(name.kotlinIdentifier)) code().replaceIndent()
-    else null
 
 
 internal

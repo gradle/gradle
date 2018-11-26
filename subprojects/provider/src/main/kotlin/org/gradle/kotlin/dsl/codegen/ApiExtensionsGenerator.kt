@@ -20,6 +20,7 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.gradle.kotlin.dsl.support.useToRun
 
 import java.io.File
 
@@ -82,14 +83,12 @@ fun Sequence<KotlinExtensionFunction>.groupedByTarget(): Map<ApiType, List<Kotli
 
 
 private
-fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<KotlinExtensionFunction>) =
-    outputFile.bufferedWriter().use {
-        it.apply {
-            write(fileHeaderFor(packageName))
-            write("\n")
-            extensions.forEach {
-                write("\n${it.toKotlinString()}")
-            }
+fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<KotlinExtensionFunction>): Unit =
+    outputFile.bufferedWriter().useToRun {
+        write(fileHeaderFor(packageName))
+        write("\n")
+        extensions.forEach {
+            write("\n${it.toKotlinString()}")
         }
     }
 

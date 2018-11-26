@@ -3,7 +3,7 @@ import build.*
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
-    id("public-kotlin-dsl-module")
+    `public-kotlin-dsl-module`
 }
 
 base {
@@ -16,8 +16,12 @@ dependencies {
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("reflect"))
+    compile(futureKotlin("script-runtime"))
     compile(futureKotlin("compiler-embeddable"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
+        isTransitive = false
+    }
+    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.4") {
         isTransitive = false
     }
 
@@ -25,12 +29,13 @@ dependencies {
     testCompile("com.tngtech.archunit:archunit:0.8.3")
 }
 
-
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-sourceSets["main"].kotlin {
-    srcDir(apiExtensionsOutputDir)
+sourceSets.main {
+    kotlin {
+        srcDir(apiExtensionsOutputDir)
+    }
 }
 
 val publishedPluginsVersion: String by rootProject.extra
@@ -47,11 +52,11 @@ tasks {
         dependsOn(generateKotlinDependencyExtensions)
     }
 
-    "compileKotlin" {
+    compileKotlin {
         dependsOn(generateExtensions)
     }
 
-    "clean"(Delete::class) {
+    clean {
         delete(apiExtensionsOutputDir)
     }
 
@@ -63,18 +68,22 @@ tasks {
         property("kotlin", kotlinVersion)
     }
 
-    "processResources"(ProcessResources::class) {
+    processResources {
         from(writeVersionsManifest)
     }
 
 // -- Testing ----------------------------------------------------------
-// Disable incremental compilation for Java fixture sources
-// Incremental compilation is causing OOMEs with our low build daemon heap settings
-    withType(JavaCompile::class).named("compileTestJava").configure {
+    compileTestJava {
+        // Disable incremental compilation for Java fixture sources
+        // Incremental compilation is causing OOMEs with our low build daemon heap settings
         options.isIncremental = false
+        // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
+        // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
+        // `-proc:none` disables annotation processing and gets rid of the warning.
+        options.compilerArgs.add("-proc:none")
     }
 
-    "test" {
+    test {
         dependsOn(":customInstallation")
     }
 }

@@ -47,7 +47,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withBuildScript("""
 
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 
@@ -102,7 +101,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withBuildScript("""
 
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 

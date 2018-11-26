@@ -29,7 +29,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  * @see [PluginDependenciesSpec]
  */
 @GradleDsl
-class PluginDependenciesSpecScope(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
+class PluginDependenciesSpecScope internal constructor(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
 
 
 /**

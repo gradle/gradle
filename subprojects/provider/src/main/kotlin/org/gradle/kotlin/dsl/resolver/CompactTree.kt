@@ -28,7 +28,7 @@ fun compactStringFor(files: Iterable<java.io.File>) =
 
 internal
 fun compactStringFor(paths: Iterable<String>, separator: Char) =
-    CompactTree.Companion.of(paths.map { it.splitIncluding(separator).toList() }).toString()
+    CompactTree.of(paths.map { it.splitIncluding(separator).toList() }).toString()
 
 
 private
@@ -41,7 +41,7 @@ sealed class CompactTree {
                 .filter { it.isNotEmpty() }
                 .groupBy({ it[0] }, { it.drop(1) })
                 .map { (label, remaining) ->
-                    val subTree = CompactTree.Companion.of(remaining)
+                    val subTree = CompactTree.of(remaining)
                     when (subTree) {
                         is CompactTree.Empty -> CompactTree.Label(label)
                         is CompactTree.Label -> CompactTree.Label(

@@ -16,8 +16,11 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
+
+import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
+import org.gradle.kotlin.dsl.accessors.runtime.conventionPluginByName
+
 import kotlin.reflect.KClass
 
 
@@ -31,9 +34,9 @@ import kotlin.reflect.KClass
  * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
  */
 inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
-    plugins[name]?.let {
+    conventionPluginByName(this, name).let {
         (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
-    } ?: throw IllegalStateException("A convention named '$name' could not be found.")
+    }
 
 
 /**
@@ -98,7 +101,4 @@ inline fun <ConventionType : Any, ReturnType> Any.withConvention(
     conventionType: KClass<ConventionType>,
     function: ConventionType.() -> ReturnType
 ): ReturnType =
-    when (this) {
-        is HasConvention -> convention.getPlugin(conventionType.java).run(function)
-        else -> throw IllegalStateException("Object `$this` doesn't support conventions!")
-    }
+    conventionOf(this).getPlugin(conventionType.java).run(function)

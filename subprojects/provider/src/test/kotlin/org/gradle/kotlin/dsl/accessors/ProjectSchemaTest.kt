@@ -1,15 +1,17 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.reflect.TypeOf
 
 import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.kotlin.dsl.typeOf
+import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
 
-import org.junit.Assert.assertThat
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
@@ -55,18 +57,22 @@ class ProjectSchemaTest : TestWithClassPath() {
         assertThat(spec.stringLiteral, equalTo("foo${'$'}{'${'$'}'}${'$'}{'${'$'}'}bar"))
     }
 
+    interface NonExistingType
+
     @Test
     fun `non existing type is represented as Inaccessible because NonAvailable`() {
 
-        val typeString = "non.existing.Type"
+        val type = SchemaType.of<NonExistingType>()
 
         val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("buildScan" to typeString),
-            ClassPath.EMPTY)
+            schemaWithExtensions("buildScan" to type),
+            ClassPath.EMPTY
+        )
 
         assertThat(
             projectSchema.extension("buildScan").type,
-            equalTo(inaccessible(typeString, nonAvailable(typeString))))
+            equalTo(inaccessible(type, nonAvailable(type.kotlinString)))
+        )
     }
 
     @Test
@@ -74,13 +80,19 @@ class ProjectSchemaTest : TestWithClassPath() {
 
         val typeString = "existing.Type"
 
-        val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("buildScan" to typeString),
-            classPathWithPublicType(typeString))
+        val classPath = classPathWithPublicType(typeString)
+        classLoaderFor(classPath).useToRun {
+            val type = schemaTypeFor(typeString)
+            val projectSchema = availableProjectSchemaFor(
+                schemaWithExtensions("buildScan" to type),
+                classPath
+            )
 
-        assertThat(
-            projectSchema.extension("buildScan").type,
-            equalTo(accessible(typeString)))
+            assertThat(
+                projectSchema.extension("buildScan").type,
+                equalTo(accessible(type))
+            )
+        }
     }
 
     @Test
@@ -88,13 +100,19 @@ class ProjectSchemaTest : TestWithClassPath() {
 
         val typeString = "non.visible.Type"
 
-        val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("buildScan" to typeString),
-            classPathWithPrivateType(typeString))
+        val classPath = classPathWithPrivateType(typeString)
+        classLoaderFor(classPath).useToRun {
+            val type = schemaTypeFor(typeString)
+            val projectSchema = availableProjectSchemaFor(
+                schemaWithExtensions("buildScan" to type),
+                classPath
+            )
 
-        assertThat(
-            projectSchema.extension("buildScan").type,
-            equalTo(inaccessible(typeString, nonPublic(typeString))))
+            assertThat(
+                projectSchema.extension("buildScan").type,
+                equalTo(inaccessible(type, nonPublic(typeString)))
+            )
+        }
     }
 
     @Test
@@ -102,131 +120,105 @@ class ProjectSchemaTest : TestWithClassPath() {
 
         val typeString = "synthetic.Type"
 
-        val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("buildScan" to typeString),
-            classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC))
+        val classPath = classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC)
+        classLoaderFor(classPath).useToRun {
+            val type = schemaTypeFor(typeString)
+            val projectSchema = availableProjectSchemaFor(
+                schemaWithExtensions("buildScan" to type),
+                classPath
+            )
 
-        assertThat(
-            projectSchema.extension("buildScan").type,
-            equalTo(inaccessible(typeString, synthetic(typeString))))
+            assertThat(
+                projectSchema.extension("buildScan").type,
+                equalTo(inaccessible(type, synthetic(typeString)))
+            )
+        }
     }
 
     @Test
     fun `parameterized public type with public component type is represented as Accessible`() {
 
-        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
 
         val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("generic" to genericTypeString),
-            classPathWith(PublicGenericType::class, PublicComponentType::class))
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class, PublicComponentType::class)
+        )
 
         assertThat(
             projectSchema.extension("generic").type,
-            equalTo(accessible(genericTypeString)))
+            equalTo(accessible(genericType))
+        )
     }
 
     @Test
     fun `parameterized public type with non public component type is represented as Inaccessible because of NonPublic component type`() {
 
-        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PrivateComponentType>>())
+        val genericType = SchemaType.of<PublicGenericType<PrivateComponentType>>()
 
         val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("generic" to genericTypeString),
-            classPathWith(PublicGenericType::class, PrivateComponentType::class))
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class, PrivateComponentType::class)
+        )
 
         assertThat(
             projectSchema.extension("generic").type,
-            equalTo(inaccessible(genericTypeString, nonPublic(PrivateComponentType::class.qualifiedName!!))))
+            equalTo(inaccessible(genericType, nonPublic(PrivateComponentType::class.qualifiedName!!)))
+        )
     }
 
     @Test
     fun `parameterized public type with non existing component type is represented as Inaccessible because of NonAvailable component type`() {
 
-        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
 
         val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("generic" to genericTypeString),
-            classPathWith(PublicGenericType::class))
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class)
+        )
 
         assertThat(
             projectSchema.extension("generic").type,
-            equalTo(inaccessible(genericTypeString, nonAvailable(PublicComponentType::class.qualifiedName!!))))
+            equalTo(inaccessible(genericType, nonAvailable(PublicComponentType::class.qualifiedName!!)))
+        )
     }
 
     @Test
     fun `public type from jar is represented as Accessible`() {
 
-        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
 
         val projectSchema = availableProjectSchemaFor(
-            schemaWithExtensions("generic" to genericTypeString),
-            jarClassPathWith(PublicGenericType::class, PublicComponentType::class))
+            schemaWithExtensions("generic" to genericType),
+            jarClassPathWith(PublicGenericType::class, PublicComponentType::class)
+        )
 
         assertThat(
             projectSchema.extension("generic").type,
-            equalTo(accessible(genericTypeString)))
-    }
-
-    @Test
-    fun `#groupedByTarget`() {
-
-        val schema =
-            ProjectSchema(
-                extensions = listOf(
-                    ProjectSchemaEntry("Project", "ext", "Ext"),
-                    ProjectSchemaEntry("Project", "java", "Java"),
-                    ProjectSchemaEntry("Task", "ext", "Ext")
-                ),
-                conventions = listOf(
-                    ProjectSchemaEntry("Project", "base", "Base"),
-                    ProjectSchemaEntry("Task", "meta", "Meta")
-                ),
-                configurations = listOf(
-                    "api",
-                    "implementation"
-                )
-            )
-
-        val groupedSchema =
-            schema.groupedByTarget()
-
-        assertThat(
-            groupedSchema,
-            equalTo(
-                mapOf(
-                    "Project" to ProjectSchema(
-                        extensions = listOf(
-                            ProjectSchemaEntry("Project", "ext", "Ext"),
-                            ProjectSchemaEntry("Project", "java", "Java")
-                        ),
-                        conventions = listOf(
-                            ProjectSchemaEntry("Project", "base", "Base")
-                        ),
-                        configurations = emptyList()
-                    ),
-
-                    "Task" to ProjectSchema(
-                        extensions = listOf(
-                            ProjectSchemaEntry("Task", "ext", "Ext")
-                        ),
-                        conventions = listOf(
-                            ProjectSchemaEntry("Task", "meta", "Meta")
-                        ),
-                        configurations = emptyList()
-                    )
-                )
-            )
+            equalTo(accessible(genericType))
         )
     }
 
     private
-    fun schemaWithExtensions(vararg pairs: Pair<String, String>) =
+    fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) =
         ProjectSchema(
-            extensions = pairs.map { ProjectSchemaEntry(Project::class.java.name!!, it.first, it.second) },
+            extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) },
             conventions = emptyList(),
+            tasks = emptyList(),
+            containerElements = emptyList(),
             configurations = emptyList())
 
     private
     fun <T> ProjectSchema<T>.extension(name: String) =
         extensions.single { it.name == name }
 }
+
+
+internal
+fun ClassLoader.schemaTypeFor(typeString: String): SchemaType =
+    SchemaType(loadTypeOf(typeString))
+
+
+internal
+fun ClassLoader.loadTypeOf(typeString: String) =
+    TypeOf.typeOf<Any?>(loadClass(typeString))

@@ -6,7 +6,7 @@ group 'org.gradle.kotlin.dsl.fixtures'
 
 version '1.0'
 
-uploadArchives {
+tasks.named("uploadArchives").configure {
     repositories {
         ivy { url '../repository' }
     }
@@ -22,6 +22,6 @@ repositories {
 
 defaultTasks 'uploadArchives'
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }

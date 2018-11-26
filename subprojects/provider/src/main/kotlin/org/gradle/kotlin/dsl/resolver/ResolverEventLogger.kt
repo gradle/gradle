@@ -38,9 +38,15 @@ import kotlin.reflect.full.declaredMemberProperties
 
 
 internal
-object ResolverEventLogger {
+interface ResolverEventLogger {
+    fun log(event: ResolverEvent)
+}
 
-    fun log(event: ResolverEvent) {
+
+internal
+object DefaultResolverEventLogger : ResolverEventLogger {
+
+    override fun log(event: ResolverEvent) {
         eventLoop.accept(now() to event)
     }
 
@@ -98,7 +104,7 @@ object ResolverEventLogger {
     private
     fun now() = GregorianCalendar.getInstance().time
 
-    private
+    internal
     fun prettyPrint(e: ResolverEvent): String = e.run {
         when (this) {
             is SubmittedModelRequest ->
@@ -145,6 +151,7 @@ object ResolverEventLogger {
                 "classPath" to compactStringFor(classPath),
                 "sourcePath" to compactStringFor(sourcePath),
                 "implicitImports" to compactStringFor(implicitImports, '.'),
+                "editorReports" to editorReports.toString(),
                 "exceptions" to stringForExceptions(exceptions, indentation)),
             indentation)
     }

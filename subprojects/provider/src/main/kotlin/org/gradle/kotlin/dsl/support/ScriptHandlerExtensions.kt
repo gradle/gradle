@@ -21,5 +21,5 @@ import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 internal
 inline fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
-    ScriptHandlerScope(this).block()
+    ScriptHandlerScope.of(this).block()
 }

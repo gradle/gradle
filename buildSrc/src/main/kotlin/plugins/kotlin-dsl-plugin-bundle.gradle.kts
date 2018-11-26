@@ -46,11 +46,11 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
 
-    tasks.named("test").configure {
+    tasks.named("test") {
         dependsOn(publishPluginsToTestRepository)
     }
 
-    val writeFuturePluginVersions = createWriteFuturePluginVersionsTask()
+    val writeFuturePluginVersions = registerWriteFuturePluginVersionsTask()
 
     afterEvaluate {
 
@@ -72,17 +72,18 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
                     dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
                 }
 
-                writeFuturePluginVersions
-                    .property(plugin.id, version)
+                writeFuturePluginVersions {
+                    property(plugin.id, version)
+                }
             }
         }
     }
 }
 
 
-fun Project.createWriteFuturePluginVersionsTask(): WriteProperties {
+fun Project.registerWriteFuturePluginVersionsTask(): TaskProvider<WriteProperties> {
     val processTestResources = tasks["processTestResources"] as ProcessResources
-    return task<WriteProperties>("writeFuturePluginVersions") {
+    return tasks.register<WriteProperties>("writeFuturePluginVersions") {
         outputFile = processTestResources.futurePluginVersionsFile
         processTestResources.dependsOn(this)
     }

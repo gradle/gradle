@@ -1,11 +1,16 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.util.TextUtil
+
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.fail
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 
 import java.net.URLClassLoader
 
@@ -40,6 +45,37 @@ inline fun withClassLoaderFor(vararg classPath: File, action: ClassLoader.() -> 
     classLoaderFor(*classPath).use(action)
 
 
+inline fun withClassLoaderFor(classPath: ClassPath, action: ClassLoader.() -> Unit) =
+    classLoaderFor(classPath).use(action)
+
+
+fun classLoaderFor(classPath: ClassPath): URLClassLoader =
+    classLoaderFor(*classPath.asFiles.toTypedArray())
+
+
 fun classLoaderFor(vararg classPath: File): URLClassLoader =
     URLClassLoader.newInstance(
         classPath.map { it.toURI().toURL() }.toTypedArray())
+
+
+val File.normalisedPath
+    get() = TextUtil.normaliseFileSeparators(path)
+
+
+fun assertStandardOutputOf(expected: String, action: () -> Unit): Unit =
+    assertThat(
+        standardOutputOf(action),
+        equalToMultiLineString(expected)
+    )
+
+
+fun standardOutputOf(action: () -> Unit): String =
+    ByteArrayOutputStream().also {
+        val out = System.out
+        try {
+            System.setOut(PrintStream(it, true))
+            action()
+        } finally {
+            System.setOut(out)
+        }
+    }.toString("utf8")

@@ -1,7 +1,7 @@
 import build.*
 
 plugins {
-    id("kotlin-library")
+    `kotlin-library`
 }
 
 dependencies {
@@ -10,7 +10,7 @@ dependencies {
 }
 
 tasks {
-    "test" {
+    test {
         dependsOn(":customInstallation")
         inputs.dir("$rootDir/samples")
     }

@@ -43,9 +43,6 @@ class ScriptCache(
     val cacheKeyBuilder: CacheKeyBuilder,
 
     private
-    val recompileScripts: Boolean,
-
-    private
     val hasBuildCacheIntegration: Boolean
 ) {
 
@@ -58,7 +55,6 @@ class ScriptCache(
         val cacheKey = cacheKeyFor(cacheKeySpec)
 
         return cacheRepository.cache(cacheKey)
-            .apply { if (recompileScripts) withValidator { false } }
             .withProperties(cacheProperties)
             .withInitializer {
                 initializeCacheDir(

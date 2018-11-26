@@ -16,36 +16,57 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
 
-import java.io.File
+import org.gradle.kotlin.dsl.typeOf
+
 import java.io.Serializable
 
 
 interface ProjectSchemaProvider {
 
-    fun schemaFor(project: Project): ProjectSchema<TypeOf<*>>
-
-    fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> =
-        root.allprojects.map { it.path to schemaFor(it) }.toMap()
+    fun schemaFor(project: Project): TypedProjectSchema
 }
+
+
+data class SchemaType(val value: TypeOf<*>) {
+
+    companion object {
+        inline fun <reified T> of() = SchemaType(typeOf<T>())
+    }
+
+    val kotlinString = kotlinTypeStringFor(value)
+
+    override fun toString(): String = kotlinString
+}
+
+
+typealias TypedProjectSchema = ProjectSchema<SchemaType>
 
 
 data class ProjectSchema<out T>(
     val extensions: List<ProjectSchemaEntry<T>>,
     val conventions: List<ProjectSchemaEntry<T>>,
+    val tasks: List<ProjectSchemaEntry<T>>,
+    val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<String>
 ) : Serializable {
 
-    fun <U> map(f: (T) -> U) =
-        ProjectSchema(
-            extensions.map { it.map(f) },
-            conventions.map { it.map(f) },
-            configurations.toList())
+    fun <U> map(f: (T) -> U) = ProjectSchema(
+        extensions.map { it.map(f) },
+        conventions.map { it.map(f) },
+        tasks.map { it.map(f) },
+        containerElements.map { it.map(f) },
+        configurations
+    )
+
+    fun isNotEmpty(): Boolean =
+        extensions.isNotEmpty()
+            || conventions.isNotEmpty()
+            || tasks.isNotEmpty()
+            || containerElements.isNotEmpty()
+            || configurations.isNotEmpty()
 }
 
 
@@ -58,43 +79,3 @@ data class ProjectSchemaEntry<out T>(
     fun <U> map(f: (T) -> U) =
         ProjectSchemaEntry(f(target), name, f(type))
 }
-
-
-fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
-    map(::kotlinTypeStringFor)
-
-
-fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
-    JsonOutput.toJson(multiProjectStringSchema)
-
-
-@Suppress("unchecked_cast")
-fun loadMultiProjectSchemaFrom(file: File) =
-    (JsonSlurper().parse(file) as Map<String, Map<String, *>>).mapValues { (_, value) ->
-        ProjectSchema(
-            extensions = loadSchemaEntryListFrom(value["extensions"]),
-            conventions = loadSchemaEntryListFrom(value["conventions"]),
-            configurations = value["configurations"] as? List<String> ?: emptyList())
-    }
-
-
-@Suppress("unchecked_cast")
-private
-fun loadSchemaEntryListFrom(extensions: Any?): List<ProjectSchemaEntry<String>> =
-    when (extensions) {
-        is Map<*, *> -> // <0.17 format
-            (extensions as? Map<String, String>)?.map {
-                ProjectSchemaEntry(
-                    Project::class.java.name,
-                    it.key,
-                    it.value)
-            } ?: emptyList()
-        is List<*> -> // >=0.17 format
-            (extensions as? List<Map<String, String>>)?.map {
-                ProjectSchemaEntry(
-                    it.getValue("target"),
-                    it.getValue("name"),
-                    it.getValue("type"))
-            } ?: emptyList()
-        else -> emptyList()
-    }

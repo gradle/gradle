@@ -31,12 +31,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
 import org.gradle.groovy.scripts.ScriptSource
 
-import org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
-
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
@@ -49,7 +45,8 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
-import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
+import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
+import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -62,11 +59,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
-
-import java.lang.IllegalStateException
 
 import java.util.Arrays.fill
 
@@ -521,7 +514,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
             withClassLoaderFor(outputDir) {
-                val executableProgram = loadClass("Program").newInstance()
+                val executableProgram = loadClass("Program").getDeclaredConstructor().newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
@@ -576,33 +569,4 @@ fun fragment(identifier: String, body: String, prefix: String = ""): ProgramSour
         identifierStart..identifierEnd,
         (identifierEnd + 2)..source.text.lastIndex
     )
-}
-
-
-internal
-fun assertStandardOutputOf(expected: String, action: () -> Unit): Unit =
-    assertThat(
-        standardOutputOf(action),
-        equalToMultiLineString(expected))
-
-
-internal
-fun standardOutputOf(action: () -> Unit): String =
-    ByteArrayOutputStream().also {
-        val out = System.out
-        try {
-            System.setOut(PrintStream(it, true))
-            action()
-        } finally {
-            System.setOut(out)
-        }
-    }.toString("utf8")
-
-
-internal
-val testCompilationClassPath: ClassPath by lazy {
-    DefaultClassPath.of(
-        getClasspathForClass(Unit::class.java),
-        getClasspathForClass(Settings::class.java),
-        getClasspathForClass(KotlinSettingsScript::class.java))
 }

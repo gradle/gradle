@@ -38,9 +38,11 @@ afterEvaluate {
     publishing {
 
         // with a jar named after `base.archivesBaseName`
-        publications.create<MavenPublication>("mavenJava") {
-            artifactId = base.archivesBaseName
-            from(components["java"])
+        publications {
+            create<MavenPublication>("mavenJava") {
+                artifactId = base.archivesBaseName
+                from(components["java"])
+            }
         }
 
         repositories {
@@ -65,10 +67,10 @@ val generatedResourcesDir = file("$buildDir/generate-resources/main")
 val generateClasspathManifest by tasks.registering(GenerateClasspathManifest::class) {
     outputDirectory = generatedResourcesDir
 }
-val main by sourceSets
-main.output.dir(
-    mapOf("builtBy" to generateClasspathManifest),
-    generatedResourcesDir)
+
+sourceSets.named("main") {
+    output.dir(generatedResourcesDir, "builtBy" to generateClasspathManifest)
+}
 
 fun buildTagFor(version: String): String =
     when (version.substringAfterLast('-')) {

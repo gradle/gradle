@@ -38,12 +38,13 @@ jacoco {
 }
 
 tasks {
-    "jacocoTestCoverageVerification"(JacocoCoverageVerification::class) {
+    jacocoTestCoverageVerification {
         violationRules {
             rule { limit { minimum = BigDecimal.valueOf(0.2) } }
         }
-        val check by tasks
-        check.dependsOn(this)
+    }
+    check {
+        dependsOn(jacocoTestCoverageVerification)
     }
 }
 

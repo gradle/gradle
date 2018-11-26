@@ -33,7 +33,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) with custom build logic in `buildSrc`, including a custom task
  - [`precompiled-script-plugin`](./precompiled-script-plugin): demonstrates a Gradle plugin implemented as a precompiled script 
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
- - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
+ - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic, extension properties and extension functions in `buildSrc`
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
  - [`source-control`](./source-control): demonstrates how to use external [source dependencies](https://github.com/gradle/gradle-native/issues/42)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies

@@ -38,24 +38,18 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         lateinit var extensionSourceFile: File
 
-        withFolders {
+        withBuildSrc {
+            "src/main/kotlin" {
 
-            "buildSrc" {
-
-                withPrecompiledPlugins()
-
-                "src/main/kotlin" {
-
-                    extensionSourceFile =
-                        withFile("Extension.kt", """
-                            internal
-                            class Extension
-                        """)
-
-                    withFile("plugin.gradle.kts", """
-                        extensions.add("extension", Extension())
+                extensionSourceFile =
+                    withFile("Extension.kt", """
+                        internal
+                        class Extension
                     """)
-                }
+
+                withFile("plugin.gradle.kts", """
+                    extensions.add("extension", Extension())
+                """)
             }
         }
 
@@ -99,25 +93,19 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of default package type`() {
 
-        withFolders {
+        withBuildSrc {
 
-            "buildSrc" {
+            "src/main/kotlin" {
 
-                withPrecompiledPlugins()
+                withFile("Extension.kt", """
+                    class Extension(private val name: String) : org.gradle.api.Named {
+                        override fun getName() = name
+                    }
+                """)
 
-                "src/main/kotlin" {
-
-                    withFile("Extension.kt", """
-                        class Extension(private val name: String) : org.gradle.api.Named {
-                            override fun getName() = name
-                        }
-                    """)
-
-                    withFile("plugin.gradle.kts", """
-                        extensions.add("extension", Extension("foo"))
-                        extensions.add("beans", container(Extension::class))
-                    """)
-                }
+                withFile("plugin.gradle.kts", """
+                    extensions.add("extension", Extension("foo"))
+                """)
             }
         }
 
@@ -129,9 +117,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("extension: " + typeOf(extension))
             extension { println("extension{} " + typeOf(this)) }
-
-            println("beans: " + typeOf(beans))
-            beans { println("beans{} " + typeOf(beans)) }
         """)
 
         assertThat(
@@ -139,8 +124,41 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             containsMultiLineString("""
                 extension: Extension
                 extension{} Extension
-                beans: org.gradle.api.NamedDomainObjectContainer<Extension>
-                beans{} org.gradle.api.NamedDomainObjectContainer<Extension>
+            """)
+        )
+    }
+
+    @Test
+    fun `can access task of default package type`() {
+
+        withBuildSrc {
+            "src/main/kotlin" {
+
+                withFile("CustomTask.kt", """
+                    open class CustomTask : org.gradle.api.DefaultTask()
+                """)
+
+                withFile("plugin.gradle.kts", """
+                    tasks.register<CustomTask>("customTask")
+                """)
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("task: " + typeOf(tasks.customTask))
+            tasks.customTask { println("task{} " + typeOf(this)) }
+        """)
+
+        assertThat(
+            build("customTask", "-q").output,
+            containsMultiLineString("""
+                task: org.gradle.api.tasks.TaskProvider<CustomTask>
+                task{} CustomTask
             """)
         )
     }
@@ -148,34 +166,27 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of nested type`() {
 
-        withFolders {
+        withBuildSrc {
+            "src/main/kotlin/my" {
 
-            "buildSrc" {
+                withFile("Extension.kt", """
+                    package my
 
-                withPrecompiledPlugins()
-
-                "src/main/kotlin/my" {
-
-                    withFile("Extension.kt", """
-                        package my
-
-                        class Nested {
-                            class Extension(private val name: String) : org.gradle.api.Named {
-                                override fun getName() = name
-                            }
+                    class Nested {
+                        class Extension(private val name: String) : org.gradle.api.Named {
+                            override fun getName() = name
                         }
-                    """)
+                    }
+                """)
 
-                    withFile("plugin.gradle.kts", """
-                        package my
+                withFile("plugin.gradle.kts", """
+                    package my
 
-                        extensions.add("nested", Nested.Extension("foo"))
-                        extensions.add("beans", container(Nested.Extension::class))
-                    """)
-                }
+                    extensions.add("nested", Nested.Extension("foo"))
+                    extensions.add("beans", container(Nested.Extension::class))
+                """)
             }
         }
-
 
         withBuildScript("""
 
@@ -210,40 +221,35 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `multiple generic extension targets`() {
 
-        withFolders {
+        withBuildSrc {
 
-            "buildSrc" {
+            "src/main/kotlin" {
+                withFile("types.kt", """
 
-                withPrecompiledPlugins()
+                    package my
 
-                "src/main/kotlin" {
-                    withFile("types.kt", """
+                    data class NamedString(val name: String, var value: String? = null)
 
-                        package my
+                    data class NamedLong(val name: String, var value: Long? = null)
+                """)
 
-                        data class NamedString(val name: String, var value: String? = null)
+                withFile("plugin.gradle.kts", """
 
-                        data class NamedLong(val name: String, var value: Long? = null)
-                    """)
+                    package my
 
-                    withFile("plugin.gradle.kts", """
+                    val strings = container(NamedString::class) { NamedString(it) }
+                    extensions.add("strings", strings)
 
-                        package my
+                    val longs = container(NamedLong::class) { NamedLong(it) }
+                    extensions.add("longs", longs)
 
-                        val strings = container(NamedString::class) { NamedString(it) }
-                        extensions.add("strings", strings)
-
-                        val longs = container(NamedLong::class) { NamedLong(it) }
-                        extensions.add("longs", longs)
-
-                        tasks.register("printStringsAndLongs") {
-                            doLast {
-                                strings.forEach { println("string: " + it) }
-                                longs.forEach { println("long: " + it) }
-                            }
+                    tasks.register("printStringsAndLongs") {
+                        doLast {
+                            strings.forEach { println("string: " + it) }
+                            longs.forEach { println("long: " + it) }
                         }
-                    """)
-                }
+                    }
+                """)
             }
         }
 
@@ -271,7 +277,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             "buildSrc" {
 
-                withPrecompiledPlugins()
+                withKotlinDslPlugin()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -317,7 +323,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             "buildSrc" {
 
-                withPrecompiledPlugins()
+                withKotlinDslPlugin()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -346,14 +352,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     private
-    fun FoldersDsl.withPrecompiledPlugins() {
+    fun FoldersDsl.withKotlinDslPlugin() {
         withFile("settings.gradle.kts", defaultSettingsScript)
         withFile("build.gradle.kts", """
 
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
-                `java-gradle-plugin`
             }
 
             $repositoriesBlock
@@ -361,11 +365,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can configure deferred configurable extension`() {
+    fun `can configure publishing extension`() {
+
+        withDefaultSettings()
 
         withBuildScript("""
-
-            import org.gradle.api.publish.maven.MavenPublication
 
             plugins {
                 `java-library`
@@ -398,38 +402,41 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
-        withKotlinBuildSrc()
+        withBuildSrc {
+            withFile("src/main/kotlin/my/DocumentationPlugin.kt", """
+                package my
 
-        withFile("buildSrc/src/main/kotlin/my/DocumentationPlugin.kt", """
-            package my
+                import org.gradle.api.*
+                import org.gradle.kotlin.dsl.*
 
-            import org.gradle.api.*
-            import org.gradle.kotlin.dsl.*
+                class DocumentationPlugin : Plugin<Project> {
 
-            class DocumentationPlugin : Plugin<Project> {
-
-                override fun apply(project: Project) {
-                    val books = project.container(Book::class, ::Book)
-                    project.extensions.add("the books", books)
+                    override fun apply(project: Project) {
+                        val books = project.container(Book::class, ::Book)
+                        project.extensions.add("the books", books)
+                    }
                 }
+
+                data class Book(val name: String)
+
+            """)
+            existing("build.gradle.kts").appendText("""
+                gradlePlugin {
+                    plugins {
+                        register("my.documentation") {
+                            id = name
+                            implementationClass = "my.DocumentationPlugin"
+                        }
+                    }
+                }
+            """)
+        }
+
+        withBuildScript("""
+
+            plugins {
+                id("my.documentation")
             }
-
-            data class Book(val name: String)
-
-        """)
-
-        val buildFile = withBuildScript("""
-
-            apply<my.DocumentationPlugin>()
-
-        """)
-
-
-        println(
-            build("kotlinDslAccessorsSnapshot").output)
-
-
-        buildFile.appendText("""
 
             (`the books`) {
                 register("quickStart") {
@@ -447,7 +454,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         """)
         assertThat(
             build("books").output,
-            containsString("quickStart, userGuide"))
+            containsString("quickStart, userGuide")
+        )
     }
 
     @Test
@@ -465,7 +473,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("mainClassName").output,
-            containsString("*App*"))
+            containsString("*App*")
+        )
     }
 
     @Test
@@ -522,7 +531,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 containsString("a/build/classes/java/main"),
                 containsString("b/build/classes/java/main"),
                 not(containsString("logback-core")),
-                not(containsString("commons-io"))))
+                not(containsString("commons-io"))
+            )
+        )
     }
 
     @Test
@@ -533,10 +544,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         val aTasks = build(":a:tasks").output
         assertThat(aTasks, containsString("kotlinDslAccessorsReport"))
-        assertThat(aTasks, not(containsString("kotlinDslAccessorsSnapshot")))
 
         val rootTasks = build(":tasks").output
-        assertThat(rootTasks, allOf(containsString("kotlinDslAccessorsReport"), containsString("kotlinDslAccessorsSnapshot")))
+        assertThat(
+            rootTasks,
+            containsString("kotlinDslAccessorsReport")
+        )
     }
 
     @Test
@@ -548,7 +561,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.8"
+                    classpath "com.gradle:build-scan-plugin:1.16"
                 }
             }
             rootProject {
@@ -581,7 +594,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
-                `java-gradle-plugin`
             }
 
             gradlePlugin {
@@ -634,7 +646,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         withBuildScriptIn("buildSrc", """
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 
@@ -728,7 +739,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         withBuildScriptIn("buildSrc", """
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 
@@ -799,6 +809,125 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
+    }
+
+    @Test
+    fun `accessors to existing configurations`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            configurations {
+                runtimeOnly {
+                    extendsFrom(implementation.get())
+                }
+            }
+
+            configurations.implementation {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                }
+            }
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `accessors to existing tasks`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            tasks.compileJava {
+                options.isWarnings = true
+            }
+
+            tasks {
+                val myCheck by registering {
+                    dependsOn(testClasses)
+                    doLast {
+                        println(testClasses.get().description)
+                    }
+                }
+                test {
+                    dependsOn(myCheck)
+                }
+            }
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `accessors to existing source sets`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            sourceSets {
+                main {
+                    java {
+                        srcDir("src/main/java-too")
+                    }
+                }
+                val integTest by registering {
+                    java.srcDir(file("src/integTest/java"))
+                    resources.srcDir(file("src/integTest/resources"))
+                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
+                    runtimeClasspath += output + compileClasspath
+                }
+            }
+
+            tasks {
+                val integTest by registering(Test::class) {
+                    description = "Runs the integration tests."
+                    group = "verification"
+                    testClassesDirs = sourceSets["integTest"].output.classesDirs
+                    classpath = sourceSets["integTest"].runtimeClasspath
+                    mustRunAfter(project.tasks.test)
+                }
+
+                check { dependsOn(integTest) }
+            }
+
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `accessors to existing elements of extensions that are containers`() {
+
+        withBuildScript("""
+            plugins {
+                distribution
+            }
+
+            distributions {
+                main {
+                    baseName = "the-distro"
+                }
+            }
+        """)
+
+        build("help")
+    }
+
+    private
+    fun withBuildSrc(contents: FoldersDslExpression) {
+        withFolders {
+            "buildSrc" {
+                withKotlinDslPlugin()
+                contents()
+            }
+        }
     }
 
     private

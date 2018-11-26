@@ -92,20 +92,25 @@ inline operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: ()
  * Usage: `val answer by extra(42)`
  */
 operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueExtraPropertyDelegateProvider<T> =
-    InitialValueExtraPropertyDelegateProvider(this, initialValue)
+    InitialValueExtraPropertyDelegateProvider.of(this, initialValue)
 
 
 /**
  * Enables typed access to extra properties with initial value.
  */
-class InitialValueExtraPropertyDelegateProvider<T>(
-    val extra: ExtraPropertiesExtension,
-    val initialValue: T
+class InitialValueExtraPropertyDelegateProvider<T>
+private constructor(
+    private val extra: ExtraPropertiesExtension,
+    private val initialValue: T
 ) {
+    companion object {
+        fun <T> of(extra: ExtraPropertiesExtension, initialValue: T) =
+            InitialValueExtraPropertyDelegateProvider(extra, initialValue)
+    }
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): InitialValueExtraPropertyDelegate<T> {
         extra.set(property.name, initialValue)
-        return InitialValueExtraPropertyDelegate(extra)
+        return InitialValueExtraPropertyDelegate.of(extra)
     }
 }
 
@@ -113,7 +118,14 @@ class InitialValueExtraPropertyDelegateProvider<T>(
 /**
  * Enables typed access to extra properties with initial value.
  */
-class InitialValueExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
+class InitialValueExtraPropertyDelegate<T>
+private constructor(
+    private val extra: ExtraPropertiesExtension
+) {
+    companion object {
+        fun <T> of(extra: ExtraPropertiesExtension) =
+            InitialValueExtraPropertyDelegate<T>(extra)
+    }
 
     operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
         extra.set(property.name, value)

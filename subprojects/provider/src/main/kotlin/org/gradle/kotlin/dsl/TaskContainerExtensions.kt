@@ -16,15 +16,12 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
-import org.gradle.kotlin.dsl.support.illegalElementType
-import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.safeCast
 
 
 /**
@@ -50,7 +47,7 @@ inline operator fun TaskContainer.invoke(
 ): TaskContainer =
 
     apply {
-        configuration(TaskContainerScope(this))
+        configuration(TaskContainerScope.of(this))
     }
 
 
@@ -60,7 +57,7 @@ inline operator fun TaskContainer.invoke(
 operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name)
 )
 
@@ -71,7 +68,7 @@ operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDele
 operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name).apply { configure(action) }
 )
 
@@ -82,8 +79,19 @@ operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, T
 operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name, type)
+)
+
+
+/**
+ * Provides a [TaskProvider] delegate for the task of the given type named after the property after configuring it with the given action.
+ */
+operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate.of(
+    delegateProvider.named(property.name, type).apply { configure(action) }
 )
 
 
@@ -93,7 +101,7 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
 operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name)
 )
 
@@ -104,7 +112,7 @@ operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideD
 operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, action)
 )
 
@@ -115,7 +123,7 @@ operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer
 operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, type.java)
 )
 
@@ -126,7 +134,7 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out Task
 operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, type.java, action)
 )
 
@@ -134,7 +142,15 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
 /**
  * Receiver for the `tasks` block providing an extended set of operators for the configuration of tasks.
  */
-class TaskContainerScope(val container: TaskContainer) : TaskContainer by container {
+class TaskContainerScope
+private constructor(
+    val container: TaskContainer
+) : TaskContainer by container {
+
+    companion object {
+        fun of(container: TaskContainer) =
+            TaskContainerScope(container)
+    }
 
     /**
      * Configures a task by name, without triggering its creation or configuration, failing if there is no such task.
@@ -175,37 +191,62 @@ class TaskContainerScope(val container: TaskContainer) : TaskContainer by contai
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Task> TaskContainer.named(name: String): TaskProvider<T> =
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): TaskProvider<T> =
     named(name, T::class)
 
 
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>): TaskProvider<T> =
-    named(name, type) {}
+@Suppress("unchecked_cast")
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): TaskProvider<T> =
+    (this as TaskCollection<T>).named(name, type.java)
 
 
 /**
  * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
-    uncheckedCast(named(name).also { provider ->
-        provider.configure { obj ->
-            configuration(
-                type.safeCast(obj)
-                    ?: throw illegalElementType(this@named, name, type, obj::class)
-            )
-        }
-    })
+@Suppress("unchecked_cast")
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
+    (this as TaskCollection<T>).named(name, type.java, configuration)
+
+
+/**
+ * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
+ *
+ * @see [TaskCollection.named]
+ * @see [TaskProvider.configure]
+ */
+@Suppress("unchecked_cast")
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    (this as TaskCollection<T>).named(name, T::class.java, configuration)
+
+
+/**
+ * Defines a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider<T> =
+    register(name, T::class.java)
+
+
+/**
+ * Defines and configure a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+inline fun <reified T : Task> TaskContainer.register(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    register(name, T::class.java, configuration)
 
 
 /**

@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout
 import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.attributes.Attribute
 
@@ -104,8 +103,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         metadataSources { sources ->
             sources.artifact()
         }
-        layout("pattern") {
-            val layout = it as IvyPatternRepositoryLayout
+        patternLayout { layout ->
             if (isSnapshot(gradleVersion)) {
                 layout.ivy("/dummy") // avoids a lookup that interferes with version listing
             }

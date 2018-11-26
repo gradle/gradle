@@ -2,7 +2,7 @@ import build.*
 import plugins.*
 
 plugins {
-    id("kotlin-library")
+    `kotlin-library`
 }
 
 dependencies {
@@ -31,8 +31,6 @@ tasks {
     withType<Test>().configureEach {
         dependsOn(testEnvironment)
     }
-
-    val processTestResources by existing(ProcessResources::class)
 
     val writeFuturePluginVersions by registering {
 

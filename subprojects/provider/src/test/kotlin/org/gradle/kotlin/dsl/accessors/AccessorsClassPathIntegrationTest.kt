@@ -17,11 +17,11 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
 
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
@@ -33,19 +33,6 @@ import java.io.File
 
 
 class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
-
-    @Test
-    fun `classpath model includes generated accessors`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        println(
-            build("kotlinDslAccessorsSnapshot").output)
-
-        assertAccessorsInClassPathOf(buildFile)
-    }
 
     @Test
     fun `classpath model includes jit accessors by default`() {
@@ -68,12 +55,14 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             classPathFor(buildFile),
-            not(hasAccessorsJar()))
+            not(hasAccessorsClasses())
+        )
     }
 
     @Test
     fun `the set of jit accessors is a function of the set of applied plugins`() {
 
+        // TODO:accessors - rework this test to ensure it's providing enough coverage
         val s1 = setOfAutomaticAccessorsFor(setOf("application"))
         val s2 = setOfAutomaticAccessorsFor(setOf("java"))
         val s3 = setOfAutomaticAccessorsFor(setOf("application"))
@@ -86,17 +75,28 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
         assertThat(s1, equalTo(s4))      // application ⊇ java
     }
 
+    @Test
+    fun `warning is emitted if a gradle slash project dash schema dot json file is present`() {
+
+        withDefaultSettings()
+        withBuildScript("")
+
+        withFile(projectSchemaResourcePath)
+
+        assertThat(build("help").output, containsString(projectSchemaResourceDiscontinuedWarning))
+    }
+
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
         val buildFile = withBuildScript(script, produceFile = ::newOrExisting)
-        return accessorsJarFor(buildFile)!!.relativeTo(buildFile.parentFile)
+        return accessorsClassFor(buildFile)!!.relativeTo(buildFile.parentFile)
     }
 
     private
     fun assertAccessorsInClassPathOf(buildFile: File) {
         val model = kotlinBuildScriptModelFor(buildFile)
-        assertThat(model.classPath, hasAccessorsJar())
+        assertThat(model.classPath, hasAccessorsClasses())
         assertThat(model.sourcePath, hasAccessorsSource())
     }
 
@@ -104,20 +104,28 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
     fun hasAccessorsSource() =
         hasItem(
             matching<File>({ appendText("accessors source") }) {
-                File(this, "org/gradle/kotlin/dsl/ConfigurationAccessors.kt").isFile
+                resolve(accessorsSourceFilePath).isFile
             })
 
     private
-    fun hasAccessorsJar() =
-        hasItem(fileByName(accessorsJarFileName))
+    fun hasAccessorsClasses() =
+        hasItem(
+            matching<File>({ appendText("accessors classes") }) {
+                resolve(accessorsClassFilePath).isFile
+            }
+        )
 
     private
-    fun accessorsJarFor(buildFile: File) =
-        classPathFor(buildFile)
-            .find { it.isFile && it.name == accessorsJarFileName }
+    fun accessorsClassFor(buildFile: File) =
+        classPathFor(buildFile).find {
+            it.isDirectory && it.resolve(accessorsClassFilePath).isFile
+        }
 
     private
-    val accessorsJarFileName = "gradle-kotlin-dsl-accessors.jar"
+    val accessorsSourceFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessors.kt"
+
+    private
+    val accessorsClassFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessorsKt.class"
 
     private
     fun classPathFor(buildFile: File) =

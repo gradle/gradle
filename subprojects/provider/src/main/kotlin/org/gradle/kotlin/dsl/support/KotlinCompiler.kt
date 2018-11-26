@@ -17,6 +17,10 @@
 package org.gradle.kotlin.dsl.support
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+
+import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
+
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -38,18 +42,14 @@ import org.jetbrains.kotlin.config.AnalysisFlag
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.config.addKotlinSourceRoot
-import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
 
@@ -76,7 +76,7 @@ fun compileKotlinScriptToDirectory(
     messageCollector: LoggingMessageCollector
 ): String =
 
-    withRootDisposable { rootDisposable ->
+    withRootDisposable {
 
         withCompilationExceptionHandler(messageCollector) {
 
@@ -89,7 +89,7 @@ fun compileKotlinScriptToDirectory(
                 addScriptDefinition(scriptDef)
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
-            val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
+            val environment = kotlinCoreEnvironmentFor(configuration).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
 
@@ -108,21 +108,10 @@ object HasImplicitReceiverCompilerPlugin {
         registerExtension(project, samWithReceiverComponentContributor)
     }
 
-    val samWithReceiverComponentContributor =
-        CliSamWithReceiverComponentContributor(
-            listOf("org.gradle.api.HasImplicitReceiver"))
+    val samWithReceiverComponentContributor = CliSamWithReceiverComponentContributor(
+        listOf("org.gradle.api.HasImplicitReceiver")
+    )
 }
-
-
-internal
-fun compileToJar(
-    outputJar: File,
-    sourceFiles: Iterable<File>,
-    logger: Logger,
-    classPath: Iterable<File> = emptyList()
-): Boolean =
-
-    compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
 
 internal
@@ -130,31 +119,19 @@ fun compileToDirectory(
     outputDirectory: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()
-): Boolean =
-
-    compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
-
-
-private
-fun compileTo(
-    outputConfigurationKey: CompilerConfigurationKey<File>,
-    output: File,
-    sourceFiles: Iterable<File>,
-    logger: Logger,
     classPath: Iterable<File>
 ): Boolean {
 
-    withRootDisposable { disposable ->
+    withRootDisposable {
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-                put(outputConfigurationKey, output)
-                setModuleName(output.nameWithoutExtension)
+                put(OUTPUT_DIRECTORY, outputDirectory)
+                setModuleName(outputDirectory.nameWithoutExtension)
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration, disposable)
+            val environment = kotlinCoreEnvironmentFor(configuration)
             return compileBunchOfSources(environment)
         }
     }
@@ -167,7 +144,7 @@ val kotlinStdlibJar: File
 
 
 private
-inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
+inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)
@@ -211,8 +188,8 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
 
 private
 val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_1_2,
-    apiVersion = ApiVersion.KOTLIN_1_2,
+    languageVersion = LanguageVersion.KOTLIN_1_3,
+    apiVersion = ApiVersion.KOTLIN_1_3,
     specificFeatures = mapOf(
         LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
@@ -236,9 +213,9 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition)
 
 
 private
-fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable): KotlinCoreEnvironment {
+fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+    return KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 }
 
 
@@ -270,7 +247,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
 
     private
     fun indentedErrorMessages() =
-        errors.map(::errorMessage).map(::prependIndent)
+        errors.asSequence().map(::errorMessage).map(::prependIndent).toList()
 
     private
     fun errorMessage(error: ScriptCompilationError): String =

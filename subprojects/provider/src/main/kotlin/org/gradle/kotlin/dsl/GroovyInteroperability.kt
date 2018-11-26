@@ -122,6 +122,30 @@ class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
 
 
 /**
+ * Adapts a ternary Kotlin function to a ternary Groovy [Closure].
+ *
+ * @param T the type of the first argument.
+ * @param U the type of the second argument.
+ * @param V the type of the third argument.
+ * @param R the return type.
+ * @param function the function to be adapted.
+ * @param owner optional owner of the Closure.
+ * @param thisObject optional _this Object_ of the Closure.
+ *
+ * @see [Closure]
+ */
+class KotlinClosure3<in T : Any?, in U : Any?, in V : Any?, R : Any>(
+    val function: (T, U, V) -> R?,
+    owner: Any? = null,
+    thisObject: Any? = null
+) : Closure<R?>(owner, thisObject) {
+
+    @Suppress("unused") // to be called dynamically by Groovy
+    fun doCall(t: T, u: U, v: V): R? = function(t, u, v)
+}
+
+
+/**
  * Enables function invocation syntax on [Closure] references.
  */
 operator fun <T> Closure<T>.invoke(): T = call()

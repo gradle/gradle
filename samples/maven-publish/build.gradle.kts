@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.bundling.Jar
 
 plugins {
-    kotlin("jvm") version "1.2.61"
+    kotlin("jvm") version "1.3.10"
     `maven-publish`
 }
 
@@ -18,7 +18,7 @@ dependencies {
 
 val sourcesJar by tasks.registering(Jar::class) {
     classifier = "sources"
-    from(sourceSets["main"].allSource)
+    from(sourceSets.main.get().allSource)
 }
 
 publishing {

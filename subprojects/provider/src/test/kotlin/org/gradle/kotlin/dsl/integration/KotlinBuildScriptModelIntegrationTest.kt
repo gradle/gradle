@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo
@@ -64,6 +65,27 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     @Test
+    fun `can fetch classpath in face of buildSrc test failures`() {
+        withKotlinBuildSrc()
+        existing("buildSrc/build.gradle.kts").let { buildSrcScript ->
+            buildSrcScript.writeText(buildSrcScript.readText() + """
+                dependencies {
+                    testImplementation("junit:junit:4.12")
+                }
+            """)
+        }
+        withFile("buildSrc/src/test/kotlin/FailingTest.kt", """
+            class FailingTest {
+                @org.junit.Test fun test() {
+                    throw Exception("BOOM")
+                }
+            }
+        """)
+
+        assertContainsBuildSrc(canonicalClassPath())
+    }
+
+    @Test
     fun `can fetch buildscript classpath of top level Groovy script`() {
 
         withBuildSrc()
@@ -86,6 +108,29 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         assertContainsBuildSrc(classPath)
 
         assertContainsGradleKotlinDslJars(classPath)
+    }
+
+    @Test
+    fun `can fetch buildscript classpath for sub-project script when parent has errors`() {
+
+        withSettings("""include("sub")""")
+
+        withBuildScript("val p =")
+
+        val jar = withClassJar("libs/jar.jar")
+
+        val subProjectScript =
+            withFile("sub/build.gradle.kts", """
+                buildscript {
+                    dependencies { classpath(files("${jar.normalisedPath}")) }
+                }
+            """)
+
+        assertClassPathFor(
+            subProjectScript,
+            includes = setOf(jar),
+            excludes = setOf()
+        )
     }
 
     @Test
@@ -130,6 +175,23 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch classpath of script plugin`() {
 
+        assertCanFetchClassPathOfScriptPlugin("")
+    }
+
+    @Test
+    fun `can fetch classpath of script plugin with compilation errors`() {
+
+        assertCanFetchClassPathOfScriptPlugin("val p = ")
+    }
+
+    @Test
+    fun `can fetch classpath of script plugin with buildscript block compilation errors`() {
+
+        assertCanFetchClassPathOfScriptPlugin("buildscript { val p = }")
+    }
+
+    private
+    fun assertCanFetchClassPathOfScriptPlugin(scriptPluginCode: String) {
         withBuildSrc()
 
         val buildSrcDependency =
@@ -147,14 +209,16 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val scriptPlugin = withFile("plugin.gradle.kts")
+        val scriptPlugin = withFile("plugin.gradle.kts", scriptPluginCode)
 
         val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
         assertThat(
             scriptPluginClassPath.map { it.name },
             allOf(
                 not(hasItem(rootProjectDependency.name)),
-                hasItem(buildSrcDependency.name)))
+                hasItem(buildSrcDependency.name)
+            )
+        )
         assertContainsBuildSrc(scriptPluginClassPath)
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }

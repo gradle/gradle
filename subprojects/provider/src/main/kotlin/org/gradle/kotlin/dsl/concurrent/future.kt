@@ -21,10 +21,10 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.CoroutineContext
-import kotlin.coroutines.experimental.EmptyCoroutineContext
-import kotlin.coroutines.experimental.startCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 
 /**
@@ -43,16 +43,21 @@ private
 class FutureContinuation<T>(override val context: CoroutineContext) : Future<T>, Continuation<T> {
 
     private
-    var outcome: Either<Throwable, T>? = null
+    var result: Result<T>? = null
 
     private
     val outcomeLatch = CountDownLatch(1)
+
+    override fun resumeWith(result: Result<T>) {
+        this.result = result
+        outcomeLatch.countDown()
+    }
 
     override fun isCancelled(): Boolean = false
 
     override fun cancel(mayInterruptIfRunning: Boolean): Boolean = false
 
-    override fun isDone(): Boolean = outcome != null
+    override fun isDone(): Boolean = result != null
 
     override fun get(): T {
         outcomeLatch.await()
@@ -64,19 +69,5 @@ class FutureContinuation<T>(override val context: CoroutineContext) : Future<T>,
         else throw TimeoutException()
 
     private
-    fun getOrThrow() = outcome!!.fold({ throw it }, { it })
-
-    override fun resume(value: T) {
-        resumeWith(right(value))
-    }
-
-    override fun resumeWithException(exception: Throwable) {
-        resumeWith(left(exception))
-    }
-
-    private
-    fun resumeWith(outcome: Either<Throwable, T>) {
-        this.outcome = outcome
-        outcomeLatch.countDown()
-    }
+    fun getOrThrow() = (result as Result<T>).getOrThrow()
 }

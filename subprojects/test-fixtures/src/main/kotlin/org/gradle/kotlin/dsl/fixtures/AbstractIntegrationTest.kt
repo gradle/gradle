@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -55,7 +56,25 @@ open class AbstractIntegrationTest {
 
     protected
     val projectRoot: File
+        get() = customProjectRoot ?: defaultProjectRoot
+
+    private
+    var customProjectRoot: File? = null
+
+    private
+    val defaultProjectRoot
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
+
+    protected
+    fun <T> withProjectRoot(dir: File, action: () -> T): T {
+        val previousProjectRoot = customProjectRoot
+        try {
+            customProjectRoot = dir
+            return action()
+        } finally {
+            customProjectRoot = previousProjectRoot
+        }
+    }
 
     protected
     fun withDefaultSettings() =
@@ -120,8 +139,10 @@ open class AbstractIntegrationTest {
 
     protected
     fun newFile(fileName: String): File {
-        makeParentFoldersOf(fileName)
-        return File(projectRoot, fileName).canonicalFile.apply { createNewFile() }
+        return canonicalFile(fileName).apply {
+            parentFile.mkdirs()
+            createNewFile()
+        }
     }
 
     protected
@@ -139,23 +160,19 @@ open class AbstractIntegrationTest {
 
     protected
     fun existing(relativePath: String): File =
+        canonicalFile(relativePath)
+
+    private
+    fun canonicalFile(relativePath: String) =
         File(projectRoot, relativePath).canonicalFile
-
-    protected
-    fun makeParentFoldersOf(fileName: String) =
-        parentFileOf(fileName).mkdirs()
-
-    protected
-    fun parentFileOf(fileName: String): File =
-        File(projectRoot, fileName).parentFile
 
     fun build(vararg arguments: String): BuildResult =
         gradleRunnerForArguments(*arguments)
             .build()
 
     protected
-    fun BuildResult.outcomeOf(taskPath: String) =
-        task(taskPath)!!.outcome!!
+    fun BuildResult.outcomeOf(taskPath: String): TaskOutcome? =
+        task(taskPath)?.outcome
 
     protected
     fun buildFailureOutput(vararg arguments: String): String =

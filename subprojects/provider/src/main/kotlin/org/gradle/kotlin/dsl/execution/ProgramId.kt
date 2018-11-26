@@ -21,7 +21,6 @@ import org.gradle.internal.hash.HashCode
 import java.lang.ref.WeakReference
 
 
-internal
 class ProgramId(
     private val templateId: String,
     private val sourceHash: HashCode,

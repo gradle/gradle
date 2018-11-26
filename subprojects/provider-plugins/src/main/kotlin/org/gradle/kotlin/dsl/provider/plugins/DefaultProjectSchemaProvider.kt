@@ -16,51 +16,62 @@
 
 package org.gradle.kotlin.dsl.provider.plugins
 
+import org.gradle.api.NamedDomainObjectCollectionSchema
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 
-    override fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+    override fun schemaFor(project: Project): TypedProjectSchema =
         targetSchemaFor(project, typeOfProject).let { targetSchema ->
             ProjectSchema(
                 targetSchema.extensions,
                 targetSchema.conventions,
-                accessibleConfigurationsOf(project))
+                targetSchema.tasks,
+                targetSchema.containerElements,
+                accessibleConfigurationsOf(project)
+            ).map(::SchemaType)
         }
 }
 
 
 private
-data class ExtensionConventionSchema(
+data class TargetTypedSchema(
     val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val conventions: List<ProjectSchemaEntry<TypeOf<*>>>
+    val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>
 )
 
 
 private
-fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSchema {
+fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
             accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                if (!schema.isDeferredConfigurable) {
-                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
-                }
+                collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
             }
         }
         if (target is Project) {
@@ -68,15 +79,29 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
+            accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
+                tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
+            }
+            // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
+            }
+        }
+        if (target is NamedDomainObjectContainer<*>) {
+            accessibleContainerSchema(target.collectionSchema).forEach { schema ->
+                containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
             }
         }
     }
 
     collectSchemaOf(target, targetType)
 
-    return ExtensionConventionSchema(extensions.distinct(), conventions.distinct())
+    return TargetTypedSchema(
+        extensions,
+        conventions,
+        tasks,
+        containerElements
+    )
 }
 
 
@@ -88,6 +113,11 @@ fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
     plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+
+
+private
+fun accessibleContainerSchema(collectionSchema: NamedDomainObjectCollectionSchema) =
+    collectionSchema.elements.filter { isPublic(it.name) }
 
 
 private
@@ -126,7 +156,15 @@ val typeOfProject = typeOf<Project>()
 
 
 private
+val typeOfConfigurationContainer = typeOf<NamedDomainObjectContainer<Configuration>>()
+
+
+private
 val typeOfSourceSet = typeOf<SourceSet>()
+
+
+private
+val typeOfTaskContainer = typeOf<TaskContainer>()
 
 
 internal

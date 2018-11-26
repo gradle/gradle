@@ -24,10 +24,15 @@ class CodeQualitySampleTest : AbstractSampleTest("code-quality") {
             ":pmdTest",
             ":jdependMain",
             ":jdependTest",
-            ":jacocoTestCoverageVerification")
+            ":jacocoTestCoverageVerification"
+        )
 
         successfulTasks.forEach { taskName ->
-            assertThat(result.outcomeOf(taskName), equalTo(TaskOutcome.SUCCESS))
+            assertThat(
+                "$taskName succeeds",
+                result.outcomeOf(taskName),
+                equalTo(TaskOutcome.SUCCESS)
+            )
         }
     }
 }

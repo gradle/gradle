@@ -24,4 +24,18 @@ class ImplicitImportsTest : AbstractIntegrationTest() {
         // then:
         assertThat(result.output, containsString("*org.gradle.api.tasks.bundling.Jar*"))
     }
+
+    @Test
+    fun `can use kotlin-dsl implicit imports`() {
+
+        withBuildScript("""
+            val a = Callable { "some" }
+            val b = TimeUnit.DAYS
+            val c = File("some")
+            val d = BigDecimal.ONE
+            val e = BigInteger.ONE
+        """)
+
+        build("help")
+    }
 }

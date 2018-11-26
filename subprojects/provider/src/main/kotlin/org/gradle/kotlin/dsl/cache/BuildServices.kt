@@ -38,7 +38,6 @@ object BuildServices {
         return ScriptCache(
             cacheRepository,
             cacheKeyBuilder,
-            startParameters.isRecompileScripts,
             hasBuildCacheIntegration
         )
     }
@@ -47,4 +46,4 @@ object BuildServices {
 
 private
 val isKotlinDslBuildCacheEnabled: Boolean
-    get() = System.getProperty("org.gradle.kotlin.dsl.caching.buildcache", null) == "true"
+    get() = System.getProperty("org.gradle.kotlin.dsl.caching.buildcache", null) != "false"
