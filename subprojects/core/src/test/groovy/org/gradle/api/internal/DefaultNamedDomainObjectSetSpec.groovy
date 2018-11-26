@@ -30,12 +30,13 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
             return bean.name
         }
     };
-    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, DomainObjectCollectionCallbackActionDecorator.NOOP)
+    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator)
     final Bean a = new BeanSub1("a")
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
     final boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     @Override
     List<Bean> iterationOrder(Bean... elements) {

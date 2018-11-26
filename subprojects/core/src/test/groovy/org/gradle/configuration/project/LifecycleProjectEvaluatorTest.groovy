@@ -253,7 +253,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     }
 
     List<TestBuildOperationExecutor.Log.Record> getOperations() {
-        buildOperationExecutor.log.records
+        buildOperationExecutor.log.records.toList()
     }
 
 

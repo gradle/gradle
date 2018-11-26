@@ -26,7 +26,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer, DomainObjectCollectionCallbackActionDecorator.NOOP)
+    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer, callbackActionDecorator)
 
     final DefaultNamedDomainObjectList<String> container = list
     final StringBuffer a = new StringBuffer("a")
@@ -34,6 +34,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     final StringBuffer c = new StringBuffer("c")
     final StringBuilder d = new StringBuilder("d")
     final boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     def "can add element at given index"() {
         given:

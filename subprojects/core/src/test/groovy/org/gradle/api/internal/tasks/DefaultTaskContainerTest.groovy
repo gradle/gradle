@@ -26,7 +26,6 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
@@ -39,8 +38,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.registry.ModelRegistry
@@ -66,9 +63,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getServices() >> Mock(ServiceRegistry)
         getObjects() >> Stub(ObjectFactory)
     }
-    private taskCount = 1;
+    private taskCount = 1
     private accessListener = Mock(ProjectAccessListener)
-    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private container = new DefaultTaskContainerFactory(
         modelRegistry,
         DirectInstantiator.INSTANCE,
@@ -78,8 +74,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         new TaskStatistics(),
         buildOperationExecutor,
         new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
-        DomainObjectCollectionCallbackActionDecorator.NOOP
+        callbackActionDecorator
     ).create()
+
+    final boolean supportsBuildOperations = true
 
     @Override
     final NamedDomainObjectCollection<Task> getContainer() {

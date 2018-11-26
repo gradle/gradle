@@ -21,8 +21,12 @@ import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
 import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.ConfigureUtil
 import org.hamcrest.Matchers
 import org.junit.Assume
@@ -35,6 +39,13 @@ import static org.hamcrest.Matchers.startsWith
 import static org.junit.Assert.assertThat
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
+
+    TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
+    DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext)
+
+    abstract boolean isSupportsBuildOperations()
+
     abstract DomainObjectCollection<T> getContainer()
 
     abstract T getA()
@@ -43,14 +54,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     abstract T getC()
 
-    abstract T getD()
+    abstract <S extends T> S getD()
 
     Class<T> getType() {
         return a.class
     }
 
-    Class<T> getOtherType() {
-        return d.class
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <S extends T> Class<S> getOtherType() {
+        return d.class as Class<S>
     }
 
     List<T> iterationOrder(T... elements) {
@@ -117,6 +129,14 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         and:
         container.size() == 1
         !container.empty
+
+        when:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        then:
+        buildOperationExecutor.log.records.empty
     }
 
     def "elements added using provider of iterable are not realized when added"() {
@@ -1641,6 +1661,167 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         where:
         methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    def "fires build operation when emitting added callback and reestablishes user code context"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        UserCodeApplicationId id1 = null
+        userCodeApplicationContext.apply {
+            id1 = it
+            container.whenObjectAdded {
+                assert userCodeApplicationContext.current() == id1
+            }
+        }
+
+        when:
+        container.add(a)
+
+        then:
+        def callbacks1 = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        callbacks1.size() == 1
+        callbacks1.first().details.applicationId == id1.longValue()
+
+        when:
+        UserCodeApplicationId id2 = null
+        userCodeApplicationContext.apply {
+            id2 = it
+            container.whenObjectAdded {
+                assert userCodeApplicationContext.current() == id2
+            }
+        }
+
+        and:
+        container.add(b)
+
+        then:
+        def callbacks = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        callbacks.size() == 3
+        callbacks[1].details.applicationId == id1.longValue()
+        callbacks[2].details.applicationId == id2.longValue()
+    }
+
+    def "does not fire build operation if callback is filtered out by type"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        userCodeApplicationContext.apply {
+            container.withType(otherType).whenObjectAdded {
+                throw new IllegalStateException()
+            }
+        }
+
+        when:
+        container.add(a)
+
+        then:
+        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+    }
+
+    def "does not fire build operation if callback is filtered out by condition"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        userCodeApplicationContext.apply {
+            container.matching { !it.is(a) }.whenObjectAdded {
+                throw new IllegalStateException()
+            }
+        }
+
+        when:
+        container.add(a)
+
+        then:
+        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+    }
+
+    def "fires build operation for existing elements"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        container.add(a)
+        container.add(b)
+
+        when:
+        UserCodeApplicationId id = null
+        List<UserCodeApplicationId> ids = []
+        userCodeApplicationContext.apply {
+            id = it
+            container.matching { !it.is(a) }.all {
+                ids << userCodeApplicationContext.current()
+            }
+        }
+
+        then:
+        ids.size() == 1
+        ids.first() == id
+        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        ops.size() == 1
+        ops.first().details.applicationId == id.longValue()
+    }
+
+    def "does not fire op if no user code application id"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        when:
+        def ids = []
+        container.all {
+            ids << userCodeApplicationContext.current()
+        }
+        container.add(a)
+
+        then:
+        ids.size() == 1
+        ids.first() == null
+        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+    }
+
+    def "handles nested listener registration"() {
+        given:
+        if (!supportsBuildOperations) {
+            return
+        }
+
+        when:
+        UserCodeApplicationId id1 = null
+        UserCodeApplicationId id2 = null
+        List<UserCodeApplicationId> ids = []
+        userCodeApplicationContext.apply {
+            id1 = it
+            container.all {
+                ids << userCodeApplicationContext.current()
+                if (it.is(a)) {
+                    userCodeApplicationContext.apply {
+                        id2 = it
+                        container.all {
+                            ids << userCodeApplicationContext.current()
+                        }
+                    }
+                }
+            }
+        }
+        container.add(a)
+        container.add(b)
+
+        then:
+        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        ops.size() == 4
+        ops[0].details.applicationId == id1.longValue()
+        ops[1].details.applicationId == id2.longValue()
+        ops[2].details.applicationId == id1.longValue()
+        ops[3].details.applicationId == id2.longValue()
     }
 
     protected Map<String, Closure> getQueryMethods() {

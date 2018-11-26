@@ -18,16 +18,17 @@ package org.gradle.internal.operations;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * A BuildOperationExecutor for tests.
@@ -133,7 +134,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     public static class Log {
-        public final List<Record> records = Collections.synchronizedList(new ArrayList<Record>());
+        public final Deque<Record> records = new LinkedBlockingDeque<Record>();
 
         public List<BuildOperationDescriptor> getDescriptors() {
             return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
@@ -144,43 +145,44 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             });
         }
 
-        private <D, R, T extends BuildOperationType<D, R>> Record mostRecent(Class<T> type) {
+        private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> mostRecent(Class<T> type) {
             Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            ImmutableList<Record> copy = ImmutableList.copyOf(this.records).reverse();
-            for (Record record : copy) {
+            Iterator<Record> iterator = records.descendingIterator();
+            while (iterator.hasNext()) {
+                Record record = iterator.next();
                 Object details = record.descriptor.getDetails();
                 if (detailsType.isInstance(details)) {
-                    return record;
+                    return record.asTyped(type);
                 }
             }
 
             throw new AssertionError("Did not find operation with details of type: " + detailsType.getName());
         }
 
-        public <D, R, T extends BuildOperationType<D, R>> List<Record> all(Class<T> type) {
+        public <D, R, T extends BuildOperationType<D, R>> List<TypedRecord<D, R>> all(final Class<T> type) {
             final Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            return ImmutableList.copyOf(Iterables.filter(records, new Predicate<Record>() {
-                @Override
-                public boolean apply(Record input) {
-                    return detailsType.isInstance(input.descriptor.getDetails());
-                }
-            }));
+            return FluentIterable.from(records)
+                .filter(new Predicate<Record>() {
+                    @Override
+                    public boolean apply(Record input) {
+                        return detailsType.isInstance(input.descriptor.getDetails());
+                    }
+                })
+                .transform(new Function<Record, TypedRecord<D, R>>() {
+                    @Override
+                    public TypedRecord<D, R> apply(Record input) {
+                        return input.asTyped(type);
+                    }
+                })
+                .toList();
         }
 
         public <R, D, T extends BuildOperationType<D, R>> D mostRecentDetails(Class<T> type) {
-            Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            return detailsType.cast(mostRecent(type).descriptor.getDetails());
+            return mostRecent(type).details;
         }
 
         public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {
-            Record record = mostRecent(type);
-            Object result = record.result;
-            Class<R> resultType = BuildOperationTypes.resultType(type);
-            if (resultType.isInstance(result)) {
-                return resultType.cast(result);
-            } else {
-                throw new AssertionError("Expected result type " + resultType.getName() + ", got " + result.getClass().getName());
-            }
+            return mostRecent(type).result;
         }
 
         public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
@@ -202,7 +204,42 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public String toString() {
                 return descriptor.getDisplayName();
             }
+
+            private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
+                if (descriptor.getDetails() == null) {
+                    throw new IllegalStateException("operation has null details");
+                }
+
+                return new TypedRecord<D, R>(
+                    descriptor,
+                    BuildOperationTypes.detailsType(buildOperationType).cast(descriptor.getDetails()),
+                    BuildOperationTypes.resultType(buildOperationType).cast(result),
+                    failure
+                );
+            }
+
         }
+
+        public static class TypedRecord<D, R> {
+
+            public final BuildOperationDescriptor descriptor;
+            public final D details;
+            public final R result;
+            public final Throwable failure;
+
+            private TypedRecord(BuildOperationDescriptor descriptor, D details, R result, Throwable failure) {
+                this.descriptor = descriptor;
+                this.details = details;
+                this.result = result;
+                this.failure = failure;
+            }
+
+            @Override
+            public String toString() {
+                return descriptor.getDisplayName();
+            }
+        }
+
 
         private void run(RunnableBuildOperation buildOperation) {
             Record record = new Record(buildOperation.description().build());
