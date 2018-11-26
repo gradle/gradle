@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
-import javax.annotation.Nullable;
+import java.util.Map;
 
-public interface ValueSanitizer<T> {
-    @Nullable
-    T sanitize(@Nullable T value);
+public interface MapEntryCollector<K, V> {
+
+    void add(K key, V value, Map<K, V> dest);
+
+    void addAll(Iterable<? extends Map.Entry<? extends K, ? extends V>> entries, Map<K, V> dest);
 }

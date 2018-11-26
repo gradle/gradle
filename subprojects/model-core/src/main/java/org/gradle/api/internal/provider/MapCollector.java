@@ -16,9 +16,22 @@
 
 package org.gradle.api.internal.provider;
 
-import javax.annotation.Nullable;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
-public interface ValueSanitizer<T> {
-    @Nullable
-    T sanitize(@Nullable T value);
+import java.util.Collection;
+import java.util.Map;
+
+public interface MapCollector<K, V> {
+
+    boolean present();
+
+    void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
+
+    boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
+
+    void collectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+
+    boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+
+    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 }
