@@ -27,10 +27,12 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
+import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -121,5 +123,10 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
         return new DefaultSetProperty<T>(elementType);
+    }
+
+    @Override
+    public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
+        return new DefaultMapProperty<K, V>(keyType, valueType);
     }
 }
