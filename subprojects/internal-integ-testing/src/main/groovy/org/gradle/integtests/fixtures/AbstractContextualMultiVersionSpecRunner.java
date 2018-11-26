@@ -100,7 +100,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
         }
     }
 
-    private void createExecutionsForContext(CoverageContext coverageContext) {
+    protected void createExecutionsForContext(CoverageContext coverageContext) {
         Set<T> versionsUnderTest = Sets.newHashSet();
         switch(coverageContext) {
             case DEFAULT:

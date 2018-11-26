@@ -40,7 +40,6 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
     protected final List<GradleDistribution> previous = new ArrayList<GradleDistribution>();
-    protected boolean implicitVersion;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
         super(target);

@@ -43,11 +43,14 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
+    protected void createExecutionsForContext(CoverageContext coverageContext) {
+        add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
+        super.createExecutionsForContext(coverageContext)
+    }
+
+    @Override
     protected Collection<ToolingApiExecution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
         def executions = []
-        if (implicitVersion) {
-            executions.add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
-        }
 
         def distribution = versionedTool.distribution
         if (distribution.toolingApiSupported) {
