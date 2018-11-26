@@ -35,20 +35,16 @@ import java.util.regex.Pattern;
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
     private Set<String> includedConfigurations;
     private Set<String> excludedConfigurations;
-    private Set<ContentSpec> specs;
+    private Set<ContentSpec> includeSpecs;
+    private Set<ContentSpec> excludeSpecs;
     private Map<Attribute<Object>, Set<Object>> requiredAttributes;
-    private Mode mode;
     private boolean locked;
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
 
-    private void switchTo(Mode mode) {
+    private void assertMutable() {
         if (locked) {
             throw new IllegalStateException("Cannot mutate content repository descriptor after repository has been used");
-        }
-        if (this.mode != mode) {
-            this.mode = mode;
-            this.specs = Sets.newHashSet();
         }
     }
 
@@ -58,16 +54,19 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             return cachedAction;
         }
         locked = true;
-        if (includedConfigurations == null && excludedConfigurations == null && specs == null && requiredAttributes == null) {
+        if (includedConfigurations == null &&
+                excludedConfigurations == null &&
+                includeSpecs == null &&
+                excludeSpecs == null &&
+                requiredAttributes == null) {
             // no filtering in place
             return null;
         }
-        ImmutableList<SpecMatcher> matchers = createSpecMatchers();
-        cachedAction = new RepositoryFilterAction(matchers);
+        cachedAction = new RepositoryFilterAction(createSpecMatchers(includeSpecs), createSpecMatchers(excludeSpecs));
         return cachedAction;
     }
 
-    private ImmutableList<SpecMatcher> createSpecMatchers() {
+    private static ImmutableList<SpecMatcher> createSpecMatchers(Set<ContentSpec> specs) {
         ImmutableList<SpecMatcher> matchers = null;
         if (specs != null) {
             ImmutableList.Builder<SpecMatcher> builder = ImmutableList.builderWithExpectedSize(specs.size());
@@ -128,8 +127,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     private void addInclude(String group, String moduleName, String version, boolean regex) {
-        switchTo(Mode.include);
-        specs.add(new ContentSpec(regex, group, moduleName, version));
+        assertMutable();
+        if (includeSpecs == null) {
+            includeSpecs = Sets.newHashSet();
+        }
+        includeSpecs.add(new ContentSpec(regex, group, moduleName, version));
     }
 
     @Override
@@ -175,8 +177,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     private void addExclude(String group, String moduleName, String version, boolean regex) {
-        switchTo(Mode.exclude);
-        specs.add(new ContentSpec(regex, group, moduleName, version));
+        assertMutable();
+        if (excludeSpecs == null) {
+            excludeSpecs = Sets.newHashSet();
+        }
+        excludeSpecs.add(new ContentSpec(regex, group, moduleName, version));
     }
 
     @Override
@@ -201,11 +206,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             requiredAttributes = Maps.newHashMap();
         }
         requiredAttributes.put(Cast.uncheckedCast(attribute), ImmutableSet.copyOf(validValues));
-    }
-
-    enum Mode {
-        include,
-        exclude
     }
 
     private static class ContentSpec {
@@ -309,10 +309,12 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     private class RepositoryFilterAction implements Action<ArtifactResolutionDetails> {
-        private final ImmutableList<SpecMatcher> matchers;
+        private final ImmutableList<SpecMatcher> includeMatchers;
+        private final ImmutableList<SpecMatcher> excludeMatchers;
 
-        public RepositoryFilterAction(ImmutableList<SpecMatcher> matchers) {
-            this.matchers = matchers;
+        public RepositoryFilterAction(ImmutableList<SpecMatcher> includeMatchers, ImmutableList<SpecMatcher> excludeMatchers) {
+            this.includeMatchers = includeMatchers;
+            this.excludeMatchers = excludeMatchers;
         }
 
         @Override
@@ -325,7 +327,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 details.notFound();
                 return;
             }
-            if (anyMatcherExcludes(details)) {
+            if (includeMatchers != null && !anyMatch(includeMatchers, details)) {
+                details.notFound();
+                return;
+            }
+            if (excludeMatchers != null && anyMatch(excludeMatchers, details)) {
                 details.notFound();
                 return;
             }
@@ -350,35 +356,15 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             return false;
         }
 
-        private boolean anyMatcherExcludes(ArtifactResolutionDetails details) {
-            if (matchers != null) {
-                if (mode == Mode.exclude) {
-                    // Any exclusion matching triggers rejection
-                    for (SpecMatcher matcher : matchers) {
-                        boolean matches;
-                        if (details.isVersionListing()) {
-                            matches = matcher.matches(details.getModuleId());
-                        } else {
-                            matches = matcher.matches(details.getComponentId());
-                        }
-                        if (matches) {
-                            return true;
-                        }
-                    }
-                    return false;
+        private boolean anyMatch(ImmutableList<SpecMatcher> matchers, ArtifactResolutionDetails details) {
+            for (SpecMatcher matcher : matchers) {
+                boolean matches;
+                if (details.isVersionListing()) {
+                    matches = matcher.matches(details.getModuleId());
                 } else {
-                    // Any inclusion works
-                    for (SpecMatcher matcher : matchers) {
-                        boolean matches;
-                        if (details.isVersionListing()) {
-                            matches = matcher.matches(details.getModuleId());
-                        } else {
-                            matches = matcher.matches(details.getComponentId());
-                        }
-                        if (matches) {
-                            return false;
-                        }
-                    }
+                    matches = matcher.matches(details.getComponentId());
+                }
+                if (matches) {
                     return true;
                 }
             }
@@ -386,3 +372,4 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
     }
 }
+
