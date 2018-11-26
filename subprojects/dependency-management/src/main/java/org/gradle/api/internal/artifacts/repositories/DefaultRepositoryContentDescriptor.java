@@ -188,7 +188,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Override
-    public void excludeConfigurations(String... configurationNames) {
+    public void notForConfigurations(String... configurationNames) {
         if (excludedConfigurations == null) {
             excludedConfigurations = Sets.newHashSet();
         }
@@ -196,7 +196,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Override
-    public <T> void requiresAttribute(Attribute<T> attribute, T... validValues) {
+    public <T> void onlyForAttribute(Attribute<T> attribute, T... validValues) {
         if (requiredAttributes == null) {
             requiredAttributes = Maps.newHashMap();
         }

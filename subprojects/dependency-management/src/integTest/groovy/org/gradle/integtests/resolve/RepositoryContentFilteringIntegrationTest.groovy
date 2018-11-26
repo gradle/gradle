@@ -308,7 +308,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         where:
         notation << [
                 'onlyForConfigurations("other")',
-                'excludeConfigurations("conf")'
+                'notForConfigurations("conf")'
         ]
     }
 
@@ -363,7 +363,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         given:
         repositories {
             maven("""content { 
-                requiresAttribute(colorAttribute, 'red')
+                onlyForAttribute(colorAttribute, 'red')
             }""")
             ivy()
         }
