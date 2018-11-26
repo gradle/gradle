@@ -53,7 +53,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         if (clientSubscriptions.isRequested(OperationType.TEST)) {
             listeners.add(new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions));
         }
-        if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK)) {
+        if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION)) {
             BuildOperationListener buildListener = NO_OP;
             if (clientSubscriptions.isRequested(OperationType.GENERIC)) {
                 buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(progressEventConsumer));
@@ -61,7 +61,10 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
             }
-            listeners.add(new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor));
+            if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK)) {
+                buildListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor);
+            }
+            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor));
         }
         return listeners;
     }

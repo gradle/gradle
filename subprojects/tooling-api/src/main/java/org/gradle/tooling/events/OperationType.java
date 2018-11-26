@@ -46,6 +46,14 @@ public enum OperationType {
      * @since 5.1
      */
     @Incubating
-    WORK_ITEM
+    WORK_ITEM,
+
+    /**
+     * Flag for project configuration operation progress events.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    PROJECT_CONFIGURATION
 
 }

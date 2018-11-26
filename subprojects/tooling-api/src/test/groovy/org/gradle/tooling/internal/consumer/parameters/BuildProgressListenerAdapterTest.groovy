@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import com.google.common.collect.Sets
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
@@ -24,39 +25,28 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildProgressListenerAdapterTest extends Specification {
 
-    def "adapter can subscribe to multiple progress events"() {
+    @Unroll
+    def "adapter can subscribe to progress events of types #operationTypes"() {
+        given:
+        Map<OperationType, List<ProgressListener>> listeners = operationTypes.collectEntries {
+            [(it): [Stub(ProgressListener)]]
+        }
+
         when:
-        def adapter = createAdapter([:])
+        def adapter = createAdapter(listeners)
 
         then:
-        adapter.subscribedOperations == []
+        adapter.subscribedOperations as Set == expectedSubscribedOperations
 
-        when: 'we register a new test listener'
-        adapter = createAdapter([(OperationType.TEST): [Mock(ProgressListener)]])
-
-        then: 'test execution becomes a subscribed operation'
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION] as Set
-
-        when: 'we register a new task listener'
-        adapter = createAdapter([(OperationType.TEST): [Mock(ProgressListener)], (OperationType.TASK): [Mock(ProgressListener)]])
-
-        then: 'task execution becomes a subscribed operation'
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION] as Set
-
-        when: 'we register a new build listener'
-        adapter = createAdapter([(OperationType.TEST): [Mock(ProgressListener)], (OperationType.TASK): [Mock(ProgressListener)], (OperationType.GENERIC): [Mock(ProgressListener)]])
-
-        then: 'build execution becomes a subscribed operation'
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION, InternalBuildProgressListener.BUILD_EXECUTION] as Set
-
-        when: 'we register a new work item listener'
-        adapter = createAdapter([(OperationType.TEST): [Mock(ProgressListener)], (OperationType.TASK): [Mock(ProgressListener)], (OperationType.GENERIC): [Mock(ProgressListener)], (OperationType.WORK_ITEM): [Mock(ProgressListener)]])
-
-        then: 'build execution becomes a subscribed operation'
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION, InternalBuildProgressListener.BUILD_EXECUTION, InternalBuildProgressListener.WORK_ITEM_EXECUTION] as Set
+        where:
+        operationTypes << Sets.powerSet([OperationType.TEST, OperationType.TASK, OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.PROJECT_CONFIGURATION] as Set)
+        expectedSubscribedOperations << Sets.powerSet([InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION,
+                                                       InternalBuildProgressListener.BUILD_EXECUTION, InternalBuildProgressListener.WORK_ITEM_EXECUTION,
+                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
