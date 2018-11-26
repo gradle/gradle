@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
  * then you must look at the version thanks to the {@link #getComponentId()} method. But
  * because there can also be version listings, you must also check for {@link #getModuleId()}.
  * <p></p>
- * A {@link #isVersionListing() convenience method} will make it easier to find out if you
+ * A {@link #isVersionListing() convenience method} makes it easier to find out if you
  * are in the version listing case, or module version case.
  * <p></p>
  * Filtering is done by calling the {@link #notFound()} method: as soon as you know a module

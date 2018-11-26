@@ -365,15 +365,17 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Cannot mutate content repository descriptor after repository has been used"
     }
 
-    def "including resets the exclusions"() {
+    def "can include and exclude at the same time"() {
         def fooMod = DefaultModuleIdentifier.newId('org', 'foo')
+        def barMod = DefaultModuleIdentifier.newId('org', 'bar')
+        def bazMod = DefaultModuleIdentifier.newId('org2', 'baz')
         def details = Mock(ArtifactResolutionDetails)
 
         given:
-        descriptor.excludeGroup("org")
+        descriptor.includeGroup("org")
+        descriptor.excludeModule("org", "bar")
 
         when:
-        descriptor.includeGroup("org")
         def action = descriptor.toContentFilter()
         details.moduleId >> fooMod
         details.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.0')
@@ -381,6 +383,22 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
         then:
         0 * details.notFound()
+
+        when:
+        details.moduleId >> barMod
+        details.componentId >> DefaultModuleComponentIdentifier.newId(barMod, '1.0')
+        action.execute(details)
+
+        then:
+        1 * details.notFound()
+
+        when:
+        details.moduleId >> bazMod
+        details.componentId >> DefaultModuleComponentIdentifier.newId(bazMod, '1.0')
+        action.execute(details)
+
+        then:
+        1 * details.notFound()
     }
 
     def "excluding resets the inclusions"() {

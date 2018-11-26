@@ -19,14 +19,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 
 /**
- * <p>Descriptor of a repository content, used for avoiding reaching to
+ * <p>Descriptor of a repository content, used to avoid reaching to
  * an external repository when not needed.</p>
  *
- * <p>Includes and excludes are mutually exclusive, meaning that:</p>
- * <ul>
- * <li>Any call to an "exclude" method will reset any "include" previously set.</li>
- * <li>Any call to an "include" method will reset any "exclude" previously set.</li>
- * </ul>
+ * <p>Excludes are applied after includes. This means that by default, everything is included and nothing excluded.
+ * If includes are added, then if the module doesn't match any of the includes, it's excluded. Then if it does, but
+ * it also matches one of the excludes, it's also excluded.</p>
  *
  * @since 5.1
  */
