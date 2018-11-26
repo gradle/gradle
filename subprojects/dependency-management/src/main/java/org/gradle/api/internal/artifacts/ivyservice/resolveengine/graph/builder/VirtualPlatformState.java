@@ -31,13 +31,17 @@ import java.util.Set;
 public class VirtualPlatformState {
     private final Comparator<String> vC;
     private final ModuleResolveState platformModule;
+    private final ResolveOptimizations resolveOptimizations;
 
     private final Set<ModuleResolveState> participatingModules = Sets.newHashSet();
     private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
 
-    public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule) {
+    private boolean hasForcedParticipatingModule;
+
+    public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule, ResolveOptimizations resolveOptimizations) {
         this.vC = (o1, o2) -> versionComparator.compare(versionParser.transform(o2), versionParser.transform(o1));
         this.platformModule = platformModule;
+        this.resolveOptimizations = resolveOptimizations;
     }
 
     void participatingModule(ModuleResolveState state) {
@@ -52,6 +56,7 @@ public class VirtualPlatformState {
                     nodeState.resetSelectionState();
                 }
             }
+            hasForcedParticipatingModule |= isParticipatingModuleForced(state);
         }
     }
 
@@ -103,13 +108,24 @@ public class VirtualPlatformState {
     }
 
     boolean isForced() {
-        for (ModuleResolveState participatingModule : participatingModules) {
-            ComponentState selected = participatingModule.getSelected();
-            if (selected != null && selected.getSelectionReason().isForced()) {
-                return true;
-            }
+        return hasForcedParticipatingModule || isSelectedPlatformForced();
+    }
+
+    private boolean isSelectedPlatformForced() {
+        boolean forced = platformModule.getSelected().getSelectionReason().isForced();
+        if (forced) {
+            resolveOptimizations.declareForcedPlatformInUse();
         }
-        return platformModule.getSelected().getSelectionReason().isForced();
+        return forced;
+    }
+
+    private boolean isParticipatingModuleForced(ModuleResolveState participatingModule) {
+        ComponentState selected = participatingModule.getSelected();
+        boolean forced = selected != null && selected.getSelectionReason().isForced();
+        if (forced) {
+            resolveOptimizations.declareForcedPlatformInUse();
+        }
+        return forced;
     }
 
     /**

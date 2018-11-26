@@ -60,6 +60,7 @@ class ModuleResolveState implements CandidateModule {
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    final ResolveOptimizations resolveOptimizations;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private ComponentState selected;
@@ -76,7 +77,8 @@ class ModuleResolveState implements CandidateModule {
                        ImmutableAttributesFactory attributesFactory,
                        Comparator<Version> versionComparator,
                        VersionParser versionParser,
-                       SelectorStateResolver<ComponentState> selectorStateResolver) {
+                       SelectorStateResolver<ComponentState> selectorStateResolver,
+                       ResolveOptimizations resolveOptimizations) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -84,6 +86,7 @@ class ModuleResolveState implements CandidateModule {
         this.attributesFactory = attributesFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.resolveOptimizations = resolveOptimizations;
         this.pendingDependencies = new PendingDependencies();
         this.selectorStateResolver = selectorStateResolver;
     }
@@ -320,7 +323,7 @@ class ModuleResolveState implements CandidateModule {
 
     VirtualPlatformState getPlatformState() {
         if (platformState == null) {
-            platformState = new VirtualPlatformState(versionComparator, versionParser, this);
+            platformState = new VirtualPlatformState(versionComparator, versionParser, this, resolveOptimizations);
         }
         return platformState;
     }
