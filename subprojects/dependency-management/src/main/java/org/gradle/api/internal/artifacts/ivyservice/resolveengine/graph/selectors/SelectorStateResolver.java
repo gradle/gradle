@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -44,12 +45,14 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ComponentStateFactory<T> componentFactory;
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
+    private final ResolveOptimizations resolveOptimizations;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent) {
+    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
         this.rootModuleId = rootComponent.getId().getModule();
+        this.resolveOptimizations = resolveOptimizations;
     }
 
     public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
@@ -68,15 +71,17 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             return candidates.get(0);
         }
 
-        List<T> allowed = candidates
-                .stream()
-                .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
-                .collect(Collectors.toList());
-        if (!allowed.isEmpty()) {
-            if (allowed.size() == 1) {
-                return allowed.get(0);
+        if (resolveOptimizations.mayHaveForcedPlatforms()) {
+            List<T> allowed = candidates
+                    .stream()
+                    .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
+                    .collect(Collectors.toList());
+            if (!allowed.isEmpty()) {
+                if (allowed.size() == 1) {
+                    return allowed.get(0);
+                }
+                candidates = allowed;
             }
-            candidates = allowed;
         }
 
         // Perform conflict resolution

@@ -334,6 +334,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 forced = true;
                 if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
                     softForced = true;
+                    targetModule.resolveOptimizations.declareForcedPlatformInUse();
                 }
                 resolved = false; // when a selector changes from non forced to forced, we must reselect
             }
