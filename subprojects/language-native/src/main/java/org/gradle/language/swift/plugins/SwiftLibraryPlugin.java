@@ -59,7 +59,7 @@ import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.plugins.NativeBasePlugin.setDefaultAndGetTargetMachineValues;
+import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
