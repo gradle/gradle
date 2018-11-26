@@ -476,11 +476,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private class FlushingEventRegister<S extends T> implements CollectionEventRegister<S> {
+    private static class FlushingEventRegister<S> implements CollectionEventRegister<S> {
         private final CollectionFilter<S> filter;
         private final CollectionEventRegister<S> delegate;
 
-        FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
+        FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<? super S> delegate) {
             this.filter = filter;
             this.delegate = Cast.uncheckedCast(delegate);
         }

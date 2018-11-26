@@ -397,7 +397,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
-        final Action<? super T> effectiveAction = getCallbackActionDecorator().decorate(configurationAction);
 
         TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
@@ -409,7 +408,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             public TaskProvider<T> call(BuildOperationContext context) {
                 TaskProvider<T> provider = Cast.uncheckedNonnullCast(
                     getInstantiator().newInstance(
-                        TaskCreatingProvider.class, DefaultTaskContainer.this, identity, effectiveAction, constructorArgs
+                        TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs
                     )
                 );
                 addLaterInternal(provider);

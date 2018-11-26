@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
@@ -80,7 +81,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     final boolean supportsBuildOperations = true
 
     @Override
-    final NamedDomainObjectCollection<Task> getContainer() {
+    final PolymorphicDomainObjectContainer<Task> getContainer() {
         return container
     }
 

@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
 
 class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
@@ -35,7 +36,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     final boolean supportsBuildOperations = false
 
     @Override
-    final NamedDomainObjectContainer<Person> getContainer() {
+    final PolymorphicDomainObjectContainer<Person> getContainer() {
         return container
     }
 

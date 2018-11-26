@@ -879,13 +879,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public void configure(final Action<? super I> action) {
             assertMutable("NamedDomainObjectProvider.configure(Action)");
             Action<? super I> wrappedAction = withMutationDisabled(action);
+            Action<? super I> decoratedAction = getCallbackActionDecorator().decorate(wrappedAction);
+
             if (object != null) {
                 // Already realized, just run the action now
-                wrappedAction.execute(object);
+                decoratedAction.execute(object);
                 return;
             }
             // Collect any container level add actions then add the object specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(decoratedAction);
         }
 
         @Override
