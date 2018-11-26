@@ -16,11 +16,12 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
-
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
+import org.gradle.caching.internal.origin.OriginMetadata
+
+import org.gradle.internal.id.UniqueId
 
 import java.io.File
 import java.io.InputStream
@@ -55,17 +56,25 @@ fun String.withoutPrefix(): String {
 internal
 class LoadDirectory(
     private val directory: File,
-    private val cacheKey: BuildCacheKey
-) : BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
+    private val cacheKey: BuildCacheKey,
+    private val currentBuildInvocationId: UniqueId
+) : BuildCacheLoadCommand<OriginMetadata> {
 
     override fun getKey(): BuildCacheKey = cacheKey
 
-    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>? {
+    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<OriginMetadata>? {
 
         val (metadata, entryCount) = unpack(inputStream, directory)
 
-        return object : BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> {
-            override fun getMetadata() = OriginTaskExecutionMetadata(metadata.buildInvocationId, metadata.executionTimeMillis)
+        return object : BuildCacheLoadCommand.Result<OriginMetadata> {
+
+            override fun getMetadata() = metadata.run {
+                when (buildInvocationId) {
+                    currentBuildInvocationId -> OriginMetadata.fromCurrentBuild(buildInvocationId, executionTimeMillis)
+                    else -> OriginMetadata.fromPreviousBuild(buildInvocationId, executionTimeMillis)
+                }
+            }
+
             override fun getArtifactEntryCount(): Long = entryCount
         }
     }

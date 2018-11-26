@@ -94,7 +94,8 @@ class ScriptCache(
 
         if (cacheController != null) {
             val buildCacheKey = ScriptBuildCacheKey(displayName, cacheKey)
-            val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey))
+            val buildInvocationId = buildInvocationIdOf(scriptTarget)
+            val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey, buildInvocationId))
             if (existing === null) {
 
                 val executionTime = executionTimeMillisOf {
@@ -105,7 +106,7 @@ class ScriptCache(
                     StoreDirectory(
                         cacheDir,
                         buildCacheKey,
-                        PackMetadata(buildInvocationIdOf(scriptTarget), executionTime)
+                        PackMetadata(buildInvocationId, executionTime)
                     )
                 )
             }
