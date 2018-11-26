@@ -367,9 +367,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can configure publishing extension`() {
 
-        withSettings("""
-            enableFeaturePreview("STABLE_PUBLISHING")
-        """)
+        withDefaultSettings()
 
         withBuildScript("""
 

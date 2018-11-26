@@ -6,8 +6,6 @@ pluginManagement {
 
 apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
 
-enableFeaturePreview("STABLE_PUBLISHING")
-
 rootProject.name = "gradle-kotlin-dsl"
 
 include(
