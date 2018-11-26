@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 
 import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
@@ -43,7 +44,9 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
             class XForm extends ArtifactTransform {
                 List<File> transform(File file) {
                     println("Transforming \$file in output directory \$outputDirectory")
-                    return [file]
+                    File outputFile = new File(outputDirectory, file.name + ".xform")
+                    java.nio.file.Files.copy(file.toPath(), outputFile.toPath())
+                    return [outputFile]
                 }
             }
             
@@ -64,7 +67,9 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 }.artifacts
                 inputs.files artifacts.artifactFiles
                 doLast {
-                    artifacts.each { println "Transformed artifact: \$it" }
+                    artifacts.each {
+                        println "Transformed artifact: \$it, location: \${it.file.absolutePath}"
+                    }
                 }
             }
         """
@@ -73,13 +78,12 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
 
-        outputContains("Transformed artifact: buildB-1.0.jar (project :buildB)")
-        outputContains("Transformed artifact: buildC-1.0.jar (project :buildC)")
+        outputContains("Transformed artifact: buildB-1.0.jar.xform (project :buildB), location: ${expectedWorkspaceLocation(buildB)}")
+        outputContains("Transformed artifact: buildC-1.0.jar.xform (project :buildC), location: ${expectedWorkspaceLocation(buildC)}")
         output.count("Transforming") == 2
+    }
 
-        if (ExperimentalIncrementalArtifactTransformationsRunner.incrementalArtifactTransformations) {
-            outputContains("buildB-1.0.jar in output directory " + buildB.file("build/transforms").absolutePath)
-            outputContains("buildC-1.0.jar in output directory " + buildC.file("build/transforms").absolutePath)
-        }
+    private String expectedWorkspaceLocation(TestFile includedBuild) {
+        ExperimentalIncrementalArtifactTransformationsRunner.incrementalArtifactTransformations ? includedBuild.file("build/transforms") : executer.gradleUserHomeDir
     }
 }
