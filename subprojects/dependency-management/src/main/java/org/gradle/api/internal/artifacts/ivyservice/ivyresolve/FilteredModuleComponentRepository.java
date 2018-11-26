@@ -187,6 +187,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         @Override
+        @Nullable
         public ModuleComponentIdentifier getComponentId() {
             return moduleComponentIdentifier;
         }

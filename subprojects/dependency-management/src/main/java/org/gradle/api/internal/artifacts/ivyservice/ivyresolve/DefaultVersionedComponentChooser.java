@@ -41,6 +41,7 @@ import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -251,6 +252,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
 
         @Override
+        @Nullable
         public ModuleComponentIdentifier getComponentId() {
             return resolveState.getId();
         }

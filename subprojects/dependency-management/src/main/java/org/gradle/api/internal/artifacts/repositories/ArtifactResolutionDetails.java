@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 
+import javax.annotation.Nullable;
+
 /**
  * Details about an artifact resolution query. This is used whenever repository
  * content filtering is in place.
@@ -64,6 +66,7 @@ public interface ArtifactResolutionDetails {
      * @return the module version identifier. If it's a version listing, then this will
      * be null.
      */
+    @Nullable
     ModuleComponentIdentifier getComponentId();
 
     /**
