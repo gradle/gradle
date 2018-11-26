@@ -69,7 +69,8 @@ public class TaskReportTask extends AbstractReportTask {
     }
 
     /**
-     * @param group the task group to display
+     * Set a specific task group to be displayed.
+     *
      * @since 5.1
      */
     @Incubating
@@ -79,7 +80,8 @@ public class TaskReportTask extends AbstractReportTask {
     }
 
     /**
-     * @return the task group to display
+     * Get the task group to be displayed.
+     *
      * @since 5.1
      */
     @Incubating
