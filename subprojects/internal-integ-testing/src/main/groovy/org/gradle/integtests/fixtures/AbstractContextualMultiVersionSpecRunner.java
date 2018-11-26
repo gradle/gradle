@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.fixtures;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -35,12 +35,49 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
     protected abstract Collection<T> getAllVersions();
 
     protected Collection<T> getQuickVersions() {
-        return Collections.singleton(getAllVersions().iterator().next());
+        for (T next : getAllVersions()) {
+            if (isAvailable(next)) {
+                return Collections.singleton(next);
+            }
+        }
+        return Collections.emptyList();
     }
 
     protected Collection<T> getPartialVersions() {
-        Iterator<T> iterator = getAllVersions().iterator();
-        return Sets.newHashSet(Iterators.get(iterator, 0), Iterators.getLast(iterator));
+        Collection<T> allVersions = getAllVersions();
+        return Sets.newHashSet(getFirstAvailable(allVersions), getLastAvailable(allVersions));
+    }
+
+    private Collection<T> getAvailableVersions() {
+        Set<T> allAvailable = Sets.newHashSet();
+        CollectionUtils.filter(getAllVersions(), allAvailable, new Spec<T>() {
+            @Override
+            public boolean isSatisfiedBy(T version) {
+                return isAvailable(version);
+            }
+        });
+        return allAvailable;
+    }
+
+    private T getFirstAvailable(Collection<T> versions) {
+        for (T next : versions) {
+            if (isAvailable(next)) {
+                return next;
+            }
+        }
+        return null;
+    }
+
+    private T getLastAvailable(Collection<T> versions) {
+        T lastAvailable = null;
+
+        for (T next : versions) {
+            if (isAvailable(next)) {
+                lastAvailable = next;
+            }
+        }
+
+        return lastAvailable;
     }
 
     protected abstract boolean isAvailable(T version);
@@ -74,7 +111,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
                 versionsUnderTest.addAll(getPartialVersions());
                 break;
             case FULL:
-                versionsUnderTest.addAll(getAllVersions());
+                versionsUnderTest.addAll(getAvailableVersions());
                 break;
             default:
                 throw new IllegalArgumentException();

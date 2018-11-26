@@ -38,9 +38,11 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
         Map<AvailableToolChains.ToolFamily, AvailableToolChains.ToolChainCandidate> availableByFamily = Maps.newEnumMap(AvailableToolChains.ToolFamily.class);
         for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-            AvailableToolChains.ToolChainCandidate current = availableByFamily.get(toolChain.getFamily());
-            if (current == null || current.getVersion().compareTo(toolChain.getVersion()) < 0) {
-                availableByFamily.put(toolChain.getFamily(), toolChain);
+            if (canUseToolChain(toolChain)) {
+                AvailableToolChains.ToolChainCandidate current = availableByFamily.get(toolChain.getFamily());
+                if (current == null || current.getVersion().compareTo(toolChain.getVersion()) < 0) {
+                    availableByFamily.put(toolChain.getFamily(), toolChain);
+                }
             }
         }
 
@@ -53,14 +55,14 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
             @Override
             public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
-                return toolChain.isAvailable() && canUseToolChain(toolChain);
+                return canUseToolChain(toolChain) && canUseToolChain(toolChain);
             }
         });
     }
 
     @Override
     protected boolean isAvailable(AvailableToolChains.ToolChainCandidate version) {
-        return version.isAvailable() && canUseToolChain(version);
+        return version.isAvailable();
     }
 
     @Override

@@ -16,12 +16,9 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
-import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.junit.experimental.categories.Category
-import org.testng.collections.Lists
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     static ToolingApiDistributionResolver resolver
