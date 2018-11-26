@@ -143,7 +143,7 @@ public interface RepositoryContentDescriptor {
      *
      * @param configurationNames the names of the configurations the repository will not be used for
      */
-    void excludeConfigurations(String... configurationNames);
+    void notForConfigurations(String... configurationNames);
 
     /**
      * Declares that this repository will only be searched if the consumer requires a
@@ -152,5 +152,5 @@ public interface RepositoryContentDescriptor {
      * @param validValues the list of accepted values
      * @param <T> the type of the attribute
      */
-    <T> void requiresAttribute(Attribute<T> attribute, T... validValues);
+    <T> void onlyForAttribute(Attribute<T> attribute, T... validValues);
 }
