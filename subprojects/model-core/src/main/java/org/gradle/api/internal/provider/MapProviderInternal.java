@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
-import javax.annotation.Nullable;
+import java.util.Map;
 
-public interface ValueSanitizer<T> {
-    @Nullable
-    T sanitize(@Nullable T value);
+public interface MapProviderInternal<K, V> extends ProviderInternal<Map<K, V>> {
+
+    Class<? extends K> getKeyType();
+
+    Class<? extends V> getValueType();
 }

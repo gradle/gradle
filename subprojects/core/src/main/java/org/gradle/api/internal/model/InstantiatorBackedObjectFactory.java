@@ -22,6 +22,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -56,6 +57,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    @Override
+    public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
         return broken();
     }
 
