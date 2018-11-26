@@ -20,11 +20,19 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public class Dimensions {
     public static String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
             return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    public static String createDimensionSuffix(Optional<? extends Named> dimensionValue, Collection<?> multivalueProperty) {
+        if (dimensionValue.isPresent() && isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.get().getName().toLowerCase());
         }
         return "";
     }

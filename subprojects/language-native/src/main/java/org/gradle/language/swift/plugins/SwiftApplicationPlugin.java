@@ -40,6 +40,7 @@ import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
@@ -50,6 +51,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
+import static org.gradle.language.plugins.NativeBasePlugin.setDefaultAndGetTargetMachineValues;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -65,6 +67,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TargetMachineFactory targetMachineFactory;
 
     /**
      * Injects a {@link FileOperations} instance.
@@ -72,10 +75,11 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public SwiftApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+    public SwiftApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
+        this.targetMachineFactory = targetMachineFactory;
     }
 
     @Override
@@ -95,8 +99,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                application.getTargetMachines().finalizeValue();
-                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
+                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(application.getTargetMachines(), targetMachineFactory);
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }

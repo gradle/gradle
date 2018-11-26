@@ -142,7 +142,7 @@ class DefaultCppComponentTest extends Specification {
 
     static class TestComponent extends DefaultCppComponent {
         TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
-            super(name, fileOperations, objectFactory, targetMachineFactory)
+            super(name, fileOperations, objectFactory)
         }
 
         @Override

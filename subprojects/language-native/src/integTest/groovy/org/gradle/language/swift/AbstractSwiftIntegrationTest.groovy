@@ -117,7 +117,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host().architecture('foo'), machines.host()]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.host()]
             }
         """
 
