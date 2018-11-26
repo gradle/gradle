@@ -25,11 +25,15 @@ public class DefaultTransformationDependency implements TransformationDependency
     private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
     private final ResolvableDependencies resolvableDependencies;
+    private final ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
 
-    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts, ResolvableDependencies resolvableDependencies) {
+    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts,
+                                           ResolvableDependencies resolvableDependencies,
+                                           ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
         this.transformation = transformation;
         this.artifacts = artifacts;
         this.resolvableDependencies = resolvableDependencies;
+        this.extraExecutionGraphDependenciesResolverFactory = extraExecutionGraphDependenciesResolverFactory;
     }
 
     public Transformation getTransformation() {
@@ -42,6 +46,10 @@ public class DefaultTransformationDependency implements TransformationDependency
 
     public ResolvableDependencies getResolvableDependencies() {
         return resolvableDependencies;
+    }
+
+    public ExtraExecutionGraphDependenciesResolverFactory getExtraExecutionGraphDependenciesResolverFactory() {
+        return extraExecutionGraphDependenciesResolverFactory;
     }
 
     @Override

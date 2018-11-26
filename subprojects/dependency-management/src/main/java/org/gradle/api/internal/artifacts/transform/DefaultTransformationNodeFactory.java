@@ -28,41 +28,48 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ResolvableDependencies resolvableDependencies) {
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
         final List<TransformationStep> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
-        CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
-            @Override
-            public boolean visitArtifactSet(ResolvedArtifactSet set) {
-                if (set instanceof CompositeResolvedArtifactSet) {
-                    return true;
-                }
-                if (!(set instanceof BuildableSingleResolvedArtifactSet)) {
-                    throw new IllegalStateException(String.format("Expecting a %s instead of a %s",
-                        BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
-                }
-                BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformationNode transformationNode = getOrCreate(singleArtifactSet, transformationChain, resolvableDependencies);
-                builder.add(transformationNode);
-                return true;
-            }
-        });
+        Function<BuildableSingleResolvedArtifactSet, TransformationNode> nodeCreator = singleArtifact -> {
+            ExecutionGraphDependenciesResolver resolver;
+            resolver = extraExecutionGraphDependenciesResolverFactory.create(singleArtifact.getArtifactId().getComponentIdentifier(), transformation);
+            return getOrCreateInternal(singleArtifact, transformationChain, resolvableDependencies, resolver);
+        };
+        collectTransformNodes(artifactSet, builder, nodeCreator);
         return builder.build();
     }
 
-    private TransformationNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain, ResolvableDependencies resolvableDependencies) {
+    private void collectTransformNodes(ResolvedArtifactSet artifactSet, ImmutableList.Builder<TransformationNode> builder, Function<BuildableSingleResolvedArtifactSet, TransformationNode> nodeCreator) {
+        CompositeResolvedArtifactSet.visitHierarchy(artifactSet, set -> {
+            if (set instanceof CompositeResolvedArtifactSet) {
+                return true;
+            }
+            if (!(set instanceof BuildableSingleResolvedArtifactSet)) {
+                throw new IllegalStateException(String.format("Expecting a %s instead of a %s",
+                    BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
+            }
+            BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
+            TransformationNode transformationNode = nodeCreator.apply(singleArtifactSet);
+            builder.add(transformationNode);
+            return true;
+        });
+    }
+
+    private TransformationNode getOrCreateInternal(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet, resolvableDependencies);
+                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet, resolvableDependencies, executionGraphDependenciesResolver);
             } else {
-                TransformationNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies);
+                TransformationNode previous = getOrCreateInternal(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies, executionGraphDependenciesResolver);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
             transformations.put(key, transformationNode);

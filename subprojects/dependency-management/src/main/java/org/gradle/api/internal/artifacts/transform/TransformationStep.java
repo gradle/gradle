@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,10 @@ public class TransformationStep implements Transformation {
     @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         action.execute(this);
+    }
+
+    public ImmutableAttributes getFromAttributes() {
+        return transformer.getFromAttributes();
     }
 
     @Override
