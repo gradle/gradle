@@ -69,6 +69,7 @@ testFixtures {
     from(":versionControl")
     from(":resourcesHttp")
     from(":baseServices")
+    from(":execution")
 }
 
 testFilesCleanup {

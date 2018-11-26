@@ -29,6 +29,11 @@ import java.util.Optional;
 
 public interface UnitOfWork extends CacheableEntity {
 
+    /**
+     * Executes the work synchronously.
+     *
+     * @return Whether any work has been performed.
+     */
     boolean execute();
 
     Optional<Duration> getTimeout();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
@@ -36,6 +36,7 @@ import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
+
     private final Map<String, AfterPreviousExecutionState> executionHistory = new HashMap<>();
 
     @Nullable
@@ -46,7 +47,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void store(String key, OriginMetadata originMetadata, ImplementationSnapshot implementation, ImmutableList<ImplementationSnapshot> additionalImplementations, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties, boolean successful) {
-        AfterPreviousExecutionState afterPreviousExecutionState = new DefaultAfterPreviousExecutionState(
+        executionHistory.put(key, new DefaultAfterPreviousExecutionState(
             originMetadata,
             implementation,
             additionalImplementations,
@@ -54,14 +55,17 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             prepareForSerialization(inputFileProperties),
             prepareForSerialization(outputFileProperties),
             successful
-        );
-        executionHistory.put(key, afterPreviousExecutionState);
+        ));
     }
-    
+
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
         return copyOfSorted(transformValues(fingerprints, value -> {
             //noinspection ConstantConditions
             return new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes());
         }));
+    }
+
+    public Map<String, AfterPreviousExecutionState> getExecutionHistory() {
+        return executionHistory;
     }
 }
