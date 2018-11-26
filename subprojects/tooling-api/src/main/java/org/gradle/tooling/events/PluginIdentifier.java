@@ -18,26 +18,19 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Identifies a Gradle plugin.
  *
  * @since 5.1
+ * @see BinaryPluginIdentifier
+ * @see ScriptPluginIdentifier
  */
 @Incubating
 public interface PluginIdentifier {
 
     /**
-     * Returns the fully-qualified class name of this plugin.
+     * Returns a human-readable display name for this plugin.
      */
-    @Nullable
-    String getClassName();
-
-    /**
-     * Returns the plugin id of this plugin.
-     */
-    @Nullable
-    String getPluginId();
+    String getDisplayName();
 
 }

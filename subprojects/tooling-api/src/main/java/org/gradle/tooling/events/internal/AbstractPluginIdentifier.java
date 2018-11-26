@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.tooling.events.PluginIdentifier;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 5.1
- */
-public interface InternalPluginIdentifier extends InternalProtocolInterface {
+abstract class AbstractPluginIdentifier implements PluginIdentifier {
 
-    /**
-     * Returns the display name of this plugin.
-     */
-    String getDisplayName();
+    private final String displayName;
 
+    AbstractPluginIdentifier(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
 }

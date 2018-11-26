@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.tooling.events.ScriptPluginIdentifier;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 5.1
- */
-public interface InternalPluginIdentifier extends InternalProtocolInterface {
+import java.net.URI;
 
-    /**
-     * Returns the display name of this plugin.
-     */
-    String getDisplayName();
+public class DefaultScriptPluginIdentifier extends AbstractPluginIdentifier implements ScriptPluginIdentifier {
+
+    private final URI uri;
+
+    public DefaultScriptPluginIdentifier(String displayName, URI uri) {
+        super(displayName);
+        this.uri = uri;
+    }
+
+    @Override
+    public URI getUri() {
+        return uri;
+    }
 
 }

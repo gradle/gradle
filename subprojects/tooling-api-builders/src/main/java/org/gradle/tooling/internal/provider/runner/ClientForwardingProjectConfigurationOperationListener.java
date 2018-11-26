@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.MutableLong;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -27,19 +28,23 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractProjectConfigurationResult;
+import org.gradle.tooling.internal.provider.events.DefaultBinaryPluginIdentifier;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultPluginConfigurationResult;
-import org.gradle.tooling.internal.provider.events.DefaultPluginIdentifier;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationSuccessResult;
+import org.gradle.tooling.internal.provider.events.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
+import java.io.File;
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -77,9 +82,10 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         if (isEnabled() && results.containsKey(buildOperation.getId())) {
             if (buildOperation.getDetails() instanceof ApplyPluginBuildOperationType.Details) {
                 ApplyPluginBuildOperationType.Details details = (ApplyPluginBuildOperationType.Details) buildOperation.getDetails();
-                DefaultPluginIdentifier plugin = new DefaultPluginIdentifier(details.getPluginClass(), details.getPluginId());
-                long duration = finishEvent.getEndTime() - finishEvent.getStartTime();
-                results.get(buildOperation.getId()).add(plugin, duration);
+                incrementDuration(buildOperation, finishEvent, new DefaultBinaryPluginIdentifier(buildOperation.getDisplayName(), details.getPluginClass(), details.getPluginId()));
+            } else if (buildOperation.getDetails() instanceof ApplyScriptPluginBuildOperationType.Details) {
+                ApplyScriptPluginBuildOperationType.Details details = (ApplyScriptPluginBuildOperationType.Details) buildOperation.getDetails();
+                incrementDuration(buildOperation, finishEvent, new DefaultScriptPluginIdentifier(buildOperation.getDisplayName(), toUri(details)));
             }
             results.remove(buildOperation.getId());
         }
@@ -95,6 +101,18 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
     protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ConfigureProjectBuildOperationType.Details details) {
         AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, results.remove(buildOperation.getId()));
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), toProjectConfigurationDescriptor(buildOperation, details), result);
+    }
+
+    private URI toUri(ApplyScriptPluginBuildOperationType.Details details) {
+        if (details.getFile() != null) {
+            return new File(details.getFile()).toURI();
+        }
+        return URI.create(details.getUri());
+    }
+
+    private void incrementDuration(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, InternalPluginIdentifier plugin) {
+        long duration = finishEvent.getEndTime() - finishEvent.getStartTime();
+        results.get(buildOperation.getId()).increment(plugin, duration);
     }
 
     private DefaultProjectConfigurationDescriptor toProjectConfigurationDescriptor(BuildOperationDescriptor buildOperation, ConfigureProjectBuildOperationType.Details details) {
@@ -117,9 +135,9 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
 
     private static class ProjectConfigurationResult {
 
-        private final Map<DefaultPluginIdentifier, MutableLong> durations = new LinkedHashMap<>();
+        private final Map<InternalPluginIdentifier, MutableLong> durations = new LinkedHashMap<>();
 
-        public void add(DefaultPluginIdentifier plugin, long duration) {
+        public void increment(InternalPluginIdentifier plugin, long duration) {
             durations.computeIfAbsent(plugin, key -> new MutableLong()).increment(duration);
         }
 

@@ -14,32 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal;
+package org.gradle.tooling.events;
 
-import org.gradle.tooling.events.PluginIdentifier;
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 
-public class DefaultPluginIdentifier implements PluginIdentifier {
+/**
+ * Identifies a Gradle binary plugin.
+ *
+ * @since 5.1
+ */
+@Incubating
+public interface BinaryPluginIdentifier extends PluginIdentifier {
 
-    private final String className;
-    private final String pluginId;
+    /**
+     * Returns the fully-qualified class name of this plugin.
+     */
+    String getClassName();
 
-    public DefaultPluginIdentifier(String className, String pluginId) {
-        this.className = className;
-        this.pluginId = pluginId;
-    }
-
+    /**
+     * Returns the plugin id of this plugin, if available.
+     */
     @Nullable
-    @Override
-    public String getClassName() {
-        return className;
-    }
-
-    @Nullable
-    @Override
-    public String getPluginId() {
-        return pluginId;
-    }
+    String getPluginId();
 
 }

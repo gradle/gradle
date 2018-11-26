@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.api.Incubating;
+
+import java.net.URI;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Identifies a Gradle script plugin.
  *
  * @since 5.1
  */
-public interface InternalPluginIdentifier extends InternalProtocolInterface {
+@Incubating
+public interface ScriptPluginIdentifier extends PluginIdentifier {
 
     /**
-     * Returns the display name of this plugin.
+     * Returns the URI of this script plugin.
+     *
+     * <p>The URI may point to the local file system or a remote server.
      */
-    String getDisplayName();
+    URI getUri();
 
 }

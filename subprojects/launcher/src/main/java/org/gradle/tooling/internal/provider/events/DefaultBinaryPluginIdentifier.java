@@ -16,19 +16,26 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
-public class DefaultPluginIdentifier implements InternalPluginIdentifier, Serializable {
+public class DefaultBinaryPluginIdentifier implements InternalBinaryPluginIdentifier, Serializable {
 
+    private final String displayName;
     private final String className;
     private final String pluginId;
 
-    public DefaultPluginIdentifier(Class<?> pluginClass, @Nullable String pluginId) {
+    public DefaultBinaryPluginIdentifier(String displayName, Class<?> pluginClass, @Nullable String pluginId) {
+        this.displayName = displayName;
         this.className = pluginClass.getName();
         this.pluginId = pluginId;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override
@@ -49,7 +56,7 @@ public class DefaultPluginIdentifier implements InternalPluginIdentifier, Serial
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultPluginIdentifier that = (DefaultPluginIdentifier) o;
+        DefaultBinaryPluginIdentifier that = (DefaultBinaryPluginIdentifier) o;
         return className.equals(that.className);
     }
 

@@ -37,11 +37,12 @@ import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurat
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationOperationDescriptor;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationStartEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationSuccessResult;
+import org.gradle.tooling.events.internal.DefaultBinaryPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
-import org.gradle.tooling.events.internal.DefaultPluginIdentifier;
+import org.gradle.tooling.events.internal.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
@@ -83,6 +84,7 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
@@ -91,18 +93,20 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
+import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskWithDependenciesDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskWithDependenciesDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
@@ -489,10 +493,24 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private static List<? extends PluginConfigurationResult> toPluginConfigurationResults(List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
         List<PluginConfigurationResult> results = new ArrayList<PluginConfigurationResult>();
         for (InternalPluginConfigurationResult result : pluginConfigurationResults) {
-            PluginIdentifier plugin = new DefaultPluginIdentifier(result.getPlugin().getClassName(), result.getPlugin().getPluginId());
-            results.add(new DefaultPluginConfigurationResult(plugin, result.getDuration()));
+            PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
+            if (plugin != null) {
+                results.add(new DefaultPluginConfigurationResult(plugin, result.getDuration()));
+            }
         }
         return results;
+    }
+
+    private static PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
+        if (pluginIdentifier instanceof InternalBinaryPluginIdentifier) {
+            InternalBinaryPluginIdentifier binaryPlugin = (InternalBinaryPluginIdentifier) pluginIdentifier;
+            return new DefaultBinaryPluginIdentifier(binaryPlugin.getDisplayName(), binaryPlugin.getClassName(), binaryPlugin.getPluginId());
+        } else if (pluginIdentifier instanceof InternalScriptPluginIdentifier) {
+            InternalScriptPluginIdentifier scriptPlugin = (InternalScriptPluginIdentifier) pluginIdentifier;
+            return new DefaultScriptPluginIdentifier(scriptPlugin.getDisplayName(), scriptPlugin.getUri());
+        } else {
+            return null;
+        }
     }
 
     private static OperationResult toResult(InternalOperationResult result) {

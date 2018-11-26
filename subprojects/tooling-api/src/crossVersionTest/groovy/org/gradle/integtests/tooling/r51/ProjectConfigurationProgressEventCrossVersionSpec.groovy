@@ -22,11 +22,15 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ScriptPluginIdentifier
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
 
 import java.time.Duration
+
+import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -131,21 +135,74 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         doesNotContainPluginConfigurationResultsForJavaPlugin(":included:c")
     }
 
-    void containsPluginConfigurationResultsForJavaPlugin(String displayName) {
-        with((ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result) {
-            def javaPluginResult = pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
-            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
-            assert javaPluginResult.duration >= Duration.ZERO
-            def basePluginResult = pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
-            assert basePluginResult.plugin.pluginId == null
-            assert basePluginResult.duration >= Duration.ZERO
+    def "reports plugin configuration results for script plugins"() {
+        given:
+        def escapedRootDir = escapeString(projectDir.absolutePath)
+        file("script.gradle") << """
+            apply plugin: 'java'
+        """
+        file("buildSrc/build.gradle") << """
+            allprojects {
+                apply from: "$escapedRootDir/script.gradle"
+            }
+        """
+        buildFile << """
+            allprojects {
+                apply from: "$escapedRootDir/script.gradle"
+            }
+        """
+        file("included/build.gradle") << """
+            allprojects {
+                apply from: "$escapedRootDir/script.gradle"
+            }
+        """
+
+        when:
+        runBuild("tasks", ["--include-build", "included"], EnumSet.allOf(OperationType))
+
+        then:
+        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
+        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":buildSrc:a")
+        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":", projectDir)
+        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":b")
+        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
+        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":included:c")
+    }
+
+    void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File rootDir) {
+        with(containsPluginConfigurationResultsForJavaPlugin(displayName)) {
+            def scriptPlugin = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
+            assert scriptPlugin.duration >= Duration.ZERO
+            def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(rootDir, "build.gradle").toURI() }
+            assert buildScript.duration >= Duration.ZERO
         }
     }
 
-    void doesNotContainPluginConfigurationResultsForJavaPlugin(String displayName) {
-        with((ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result) {
+    ProjectConfigurationOperationResult containsPluginConfigurationResultsForJavaPlugin(String displayName) {
+        def result = (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
+        with(result) {
+            def javaPluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
+            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
+            assert javaPluginResult.duration >= Duration.ZERO
+            def basePluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
+            assert basePluginResult.plugin.pluginId == null
+            assert basePluginResult.duration >= Duration.ZERO
+        }
+        return result
+    }
+
+    void doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName) {
+        with(doesNotContainPluginConfigurationResultsForJavaPlugin(displayName)) {
+            assert pluginConfigurationResults.findAll { it.plugin instanceof ScriptPluginIdentifier }.empty
+        }
+    }
+
+    ProjectConfigurationOperationResult doesNotContainPluginConfigurationResultsForJavaPlugin(String displayName) {
+        def result = (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
+        with(result) {
             assert pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" } == null
         }
+        return result
     }
 
     private void runBuild(String task, List<String> arguments = [], Set<OperationType> operationTypes) {

@@ -16,18 +16,24 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import javax.annotation.Nullable;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 5.1
  */
-public interface InternalPluginIdentifier extends InternalProtocolInterface {
+public interface InternalBinaryPluginIdentifier extends InternalPluginIdentifier {
 
     /**
-     * Returns the display name of this plugin.
+     * Returns the fully-qualified class name of this plugin.
      */
-    String getDisplayName();
+    String getClassName();
+
+    /**
+     * Returns the plugin id of this plugin, if available.
+     */
+    @Nullable
+    String getPluginId();
 
 }

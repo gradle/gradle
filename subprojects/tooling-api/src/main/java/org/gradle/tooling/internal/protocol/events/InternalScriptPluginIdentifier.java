@@ -16,18 +16,18 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import java.net.URI;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 5.1
  */
-public interface InternalPluginIdentifier extends InternalProtocolInterface {
+public interface InternalScriptPluginIdentifier extends InternalPluginIdentifier {
 
     /**
-     * Returns the display name of this plugin.
+     * Returns the URI of the script file of this plugin.
      */
-    String getDisplayName();
+    URI getUri();
 
 }
