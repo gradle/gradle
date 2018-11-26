@@ -19,19 +19,26 @@ package org.gradle.integtests.fixtures;
 import org.gradle.util.VersionNumber;
 
 public class VersionNumberOnlyTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
+    private final String versionString;
     private final VersionNumber versionNumber;
 
     public VersionNumberOnlyTool(String version) {
-        this(VersionNumber.parse(version));
+        this.versionString = version;
+        this.versionNumber = VersionNumber.parse(version);
     }
 
     public VersionNumberOnlyTool(VersionNumber versionNumber) {
         this.versionNumber = versionNumber;
+        this.versionString = versionNumber.toString();
     }
 
     @Override
     public VersionNumber getVersion() {
         return versionNumber;
+    }
+
+    public String getVersionString() {
+        return versionString;
     }
 
     @Override

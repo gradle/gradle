@@ -46,7 +46,7 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<Ve
 
     @Override
     protected Collection<Execution> createExecutionsFor(VersionNumberOnlyTool versionedTool) {
-        return [new VersionExecution(versionedTool.version.toString())]
+        return [new VersionExecution(versionedTool.getVersionString())]
     }
 
     static List<VersionNumberOnlyTool> versionsFrom(List<String> versions) {
