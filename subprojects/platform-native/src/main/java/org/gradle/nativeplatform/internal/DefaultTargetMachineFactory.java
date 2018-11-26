@@ -23,6 +23,8 @@ import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
+import java.util.Objects;
+
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
     private final ObjectFactory objectFactory;
 
@@ -93,6 +95,24 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         @Override
         public TargetMachine architecture(String architecture) {
             return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, architecture));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TargetMachineImpl that = (TargetMachineImpl) o;
+            return Objects.equals(operatingSystemFamily, that.operatingSystemFamily) &&
+                    Objects.equals(architecture, that.architecture);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(operatingSystemFamily, architecture);
         }
     }
 }

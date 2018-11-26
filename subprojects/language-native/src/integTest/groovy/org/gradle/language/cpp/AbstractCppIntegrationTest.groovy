@@ -110,6 +110,26 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "ignores duplicate target machines"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}, machines.host()${currentHostArchitectureDsl}]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+    }
+
     protected abstract String getDevelopmentBinaryCompileTask()
 
     @Override
