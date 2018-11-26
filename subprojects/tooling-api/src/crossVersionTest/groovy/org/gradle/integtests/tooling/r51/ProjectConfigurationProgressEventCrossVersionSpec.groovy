@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
+
+import java.time.Duration
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -96,6 +99,53 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
         then:
         !events.operations.any { it.projectConfiguration }
+    }
+
+    def "reports plugin configuration results for binary plugins"() {
+        given:
+        file("buildSrc/build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+            }
+        """
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+            }
+        """
+        file("included/build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+            }
+        """
+
+        when:
+        runBuild("tasks", ["--include-build", "included"], EnumSet.allOf(OperationType))
+
+        then:
+        containsPluginConfigurationResultsForJavaPlugin(":buildSrc")
+        doesNotContainPluginConfigurationResultsForJavaPlugin(":buildSrc:a")
+        containsPluginConfigurationResultsForJavaPlugin(":")
+        doesNotContainPluginConfigurationResultsForJavaPlugin(":b")
+        containsPluginConfigurationResultsForJavaPlugin(":included")
+        doesNotContainPluginConfigurationResultsForJavaPlugin(":included:c")
+    }
+
+    void containsPluginConfigurationResultsForJavaPlugin(String displayName) {
+        with((ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result) {
+            def javaPluginResult = pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
+            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
+            assert javaPluginResult.duration >= Duration.ZERO
+            def basePluginResult = pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
+            assert basePluginResult.plugin.pluginId == null
+            assert basePluginResult.duration >= Duration.ZERO
+        }
+    }
+
+    void doesNotContainPluginConfigurationResultsForJavaPlugin(String displayName) {
+        with((ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result) {
+            assert pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" } == null
+        }
     }
 
     private void runBuild(String task, List<String> arguments = [], Set<OperationType> operationTypes) {

@@ -58,6 +58,10 @@ abstract class SubtreeFilteringBuildOperationListener<D> implements BuildOperati
         this.enabled = clientSubscriptions.isRequested(operationType);
     }
 
+    protected boolean isEnabled() {
+        return enabled;
+    }
+
     @Override
     public void graphPopulated(TaskExecutionGraph graph) {
         if (delegate instanceof TaskExecutionGraphListener) {

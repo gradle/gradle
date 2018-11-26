@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration.internal;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult;
-import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 
 import java.util.List;
 
-public class DefaultProjectConfigurationSuccessResult extends DefaultOperationSuccessResult implements ProjectConfigurationSuccessResult {
+public abstract class AbstractProjectConfigurationResult extends AbstractOperationResult implements InternalProjectConfigurationResult {
 
-    private final List<? extends PluginConfigurationResult> pluginConfigurationResults;
+    private final List<? extends InternalPluginConfigurationResult> pluginConfigurationResults;
 
-    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends PluginConfigurationResult> pluginConfigurationResults) {
-        super(startTime, endTime);
+    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
+        super(startTime, endTime, outcomeDescription);
         this.pluginConfigurationResults = pluginConfigurationResults;
     }
 
     @Override
-    public List<? extends PluginConfigurationResult> getPluginConfigurationResults() {
+    public List<? extends InternalPluginConfigurationResult> getPluginConfigurationResults() {
         return pluginConfigurationResults;
     }
 

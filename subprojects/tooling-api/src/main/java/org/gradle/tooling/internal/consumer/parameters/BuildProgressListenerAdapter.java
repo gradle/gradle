@@ -21,14 +21,17 @@ import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.StartEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult;
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginConfigurationResult;
 import org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultPluginConfigurationResult;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFailureResult;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationOperationDescriptor;
@@ -38,6 +41,7 @@ import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+import org.gradle.tooling.events.internal.DefaultPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
@@ -89,6 +93,8 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
@@ -331,7 +337,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private ProjectConfigurationFinishEvent projectConfigurationFinishedEvent(InternalOperationFinishedProgressEvent event) {
         ProjectConfigurationOperationDescriptor descriptor = removeDescriptor(ProjectConfigurationOperationDescriptor.class, event.getDescriptor());
-        return new DefaultProjectConfigurationFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toProjectConfigurationResult(event.getResult()));
+        return new DefaultProjectConfigurationFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toProjectConfigurationResult((InternalProjectConfigurationResult) event.getResult()));
     }
 
     private FinishEvent genericFinishedEvent(InternalOperationFinishedProgressEvent event) {
@@ -470,14 +476,23 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static ProjectConfigurationOperationResult toProjectConfigurationResult(InternalOperationResult result) {
+    private static ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
         if (result instanceof InternalSuccessResult) {
-            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime());
+            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginConfigurationResults(result.getPluginConfigurationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginConfigurationResults(result.getPluginConfigurationResults()));
         } else {
             return null;
         }
+    }
+
+    private static List<? extends PluginConfigurationResult> toPluginConfigurationResults(List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
+        List<PluginConfigurationResult> results = new ArrayList<PluginConfigurationResult>();
+        for (InternalPluginConfigurationResult result : pluginConfigurationResults) {
+            PluginIdentifier plugin = new DefaultPluginIdentifier(result.getPlugin().getClassName(), result.getPlugin().getPluginId());
+            results.add(new DefaultPluginConfigurationResult(plugin, result.getDuration()));
+        }
+        return results;
     }
 
     private static OperationResult toResult(InternalOperationResult result) {
