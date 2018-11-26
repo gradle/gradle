@@ -1007,6 +1007,9 @@ include 'other'
                         module("org:core:2.8.10")
                     }
                 }
+                if (forceNotation.contains("force = true")) {
+                    module("org:databind:2.8.11.1")
+                }
                 if (forceNotation.contains('enforcedPlatform')) {
                     module("org:platform:2.8.11.1:default") {
                         noArtifacts()
@@ -1025,6 +1028,7 @@ include 'other'
         forceNotation << [
                 "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }",
                 "dependencies { conf enforcedPlatform('org:platform:2.8.11.1') }",
+                "dependencies { conf('org:databind:2.8.11.1') { force = true } }",
         ]
     }
 
@@ -1070,6 +1074,9 @@ include 'other'
                         module("org:core:2.6.7")
                     }
                 }
+                if (forceNotation.contains("force = true")) {
+                    module("org:databind:2.6.7.1")
+                }
                 if (forceNotation.contains('enforcedPlatform')) {
                     module("org:platform:2.6.7.1:default") {
                         noArtifacts()
@@ -1088,6 +1095,7 @@ include 'other'
         forceNotation << [
                 "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
                 "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
+                "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
         ]
     }
 
