@@ -28,12 +28,12 @@ import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
-public abstract class DefaultCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
+public abstract class AbstractCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
 
     private final TransformationWorkspaceProvider delegate;
     private final Cache<TransformationIdentity, Try<ImmutableList<File>>> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
-    public DefaultCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
+    public AbstractCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         this.delegate = delegate;
     }
 

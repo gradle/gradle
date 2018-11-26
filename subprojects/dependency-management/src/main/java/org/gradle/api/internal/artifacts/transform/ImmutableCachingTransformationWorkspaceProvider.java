@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-public class ImmutableCachingTransformationWorkspaceProvider extends DefaultCachingTransformationWorkspaceProvider {
+public class ImmutableCachingTransformationWorkspaceProvider extends AbstractCachingTransformationWorkspaceProvider {
     public ImmutableCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         super(delegate);
     }

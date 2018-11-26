@@ -25,12 +25,12 @@ import org.junit.Rule
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class DefaultCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
+class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def executionHistoryStore = Mock(ExecutionHistoryStore)
-    private workspaceProvider = new DefaultCachingTransformationWorkspaceProvider(new TestTransformationWorkspaceProvider(tmpDir.file("transforms"), executionHistoryStore)) {}
+    private workspaceProvider = new AbstractCachingTransformationWorkspaceProvider(new TestTransformationWorkspaceProvider(tmpDir.file("transforms"), executionHistoryStore)) {}
 
     def "locks on transformer identity"() {
         def numberOfCalls = new AtomicInteger()
