@@ -56,7 +56,7 @@ class ClientForwardingWorkItemOperationListener extends SubtreeFilteringBuildOpe
         Object id = buildOperation.getId();
         String className = details.getClassName();
         String displayName = buildOperation.getDisplayName();
-        Object parentId = eventConsumer.findStartedParentId(buildOperation.getParentId());
+        Object parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultWorkItemDescriptor(id, className, displayName, parentId);
     }
 

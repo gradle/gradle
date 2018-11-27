@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 
@@ -35,11 +35,8 @@ class ProgressEventConsumer {
         this.parentTracker = parentTracker;
     }
 
-    Object findStartedParentId(OperationIdentifier id) {
-        if (id == null || startedIds.contains(id)) {
-            return id;
-        }
-        return findStartedParentId(parentTracker.getParent(id));
+    Object findStartedParentId(BuildOperationDescriptor operation) {
+        return parentTracker.findClosestMatchingAncestor(operation.getParentId(), startedIds::contains);
     }
 
     void started(InternalOperationStartedProgressEvent event) {

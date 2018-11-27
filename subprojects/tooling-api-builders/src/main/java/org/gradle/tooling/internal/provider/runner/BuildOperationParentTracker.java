@@ -26,14 +26,31 @@ import org.gradle.internal.operations.OperationStartEvent;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 class BuildOperationParentTracker implements BuildOperationListener {
 
     private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
 
     @Nullable
-    OperationIdentifier getParent(OperationIdentifier id) {
-        return parents.get(id);
+    OperationIdentifier findClosestMatchingAncestor(OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+        if (id == null || predicate.test(id)) {
+            return id;
+        }
+        return findClosestMatchingAncestor(parents.get(id), predicate);
+    }
+
+    @Nullable
+    <T> T findClosestExistingAncestor(OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+        if (id == null) {
+            return null;
+        }
+        T value = lookupFunction.apply(id);
+        if (value != null) {
+            return value;
+        }
+        return findClosestExistingAncestor(parents.get(id), lookupFunction);
     }
 
     @Override

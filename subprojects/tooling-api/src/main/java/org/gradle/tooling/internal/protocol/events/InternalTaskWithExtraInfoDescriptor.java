@@ -23,11 +23,16 @@ import java.util.Set;
  *
  * @since 5.1
  */
-public interface InternalTaskWithDependenciesDescriptor extends InternalTaskDescriptor {
+public interface InternalTaskWithExtraInfoDescriptor extends InternalTaskDescriptor {
+
     /**
      * Returns the dependencies of the task.
-     *
-     * @return The dependencies of the task
      */
     Set<? extends InternalOperationDescriptor> getDependencies();
+
+    /**
+     * Returns the plugin that registered this task.
+     */
+    InternalPluginIdentifier getOriginPlugin();
+
 }
