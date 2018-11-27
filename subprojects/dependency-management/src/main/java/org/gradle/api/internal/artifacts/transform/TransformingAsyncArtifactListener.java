@@ -58,7 +58,14 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
             ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
             : ArtifactTransformDependenciesProvider.EMPTY;
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-        initialSubjectAvailable(artifactId, initialSubject, artifactResults, dependenciesProvider);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
+        artifactResults.put(artifactId, operation);
+        // We expect artifact transformations to be executed in a scheduled way,
+        // so at this point we take the result from the in-memory cache.
+        // Artifact transformations are always executed scheduled via the execution graph when the transformed component is declared as an input.
+        // Using the BuildOperationQueue here to only realize that the result of the transformation is from the in-memory has a performance impact,
+        // so we executing the (no-op) operation in place.
+        operation.run(null);
     }
 
     @Override
@@ -75,12 +82,12 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        initialSubjectAvailable(file, initialSubject, fileResults, ArtifactTransformDependenciesProvider.EMPTY);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, ArtifactTransformDependenciesProvider.EMPTY);
+        fileResults.put(file, operation);
+        // We expect file transformations to be executed in an immediate way,
+        // since they cannot be scheduled early.
+        // To allow file transformations to run in parallel, we use the BuildOperationQueue.
+        actions.add(operation);
     }
 
-    private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
-        results.put(key, operation);
-        operation.run(null);
-    }
 }
