@@ -29,5 +29,8 @@ public interface TransformerInvoker {
      */
     Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject);
 
-    boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies);
+    /**
+     * Returns the result of applying the given transformer to the given file.
+     */
+    boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject);
 }

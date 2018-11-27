@@ -56,7 +56,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
     @Inject
     public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, TargetMachineFactory targetMachineFactory) {
-        super(name, fileOperations, objectFactory, targetMachineFactory);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = fileOperations.configurableFiles();

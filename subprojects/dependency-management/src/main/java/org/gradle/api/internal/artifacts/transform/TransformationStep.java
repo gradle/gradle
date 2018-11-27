@@ -75,7 +75,7 @@ public class TransformationStep implements Transformation {
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
         ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         for (File primaryInput : primaryInputs) {
-            if (!transformerInvoker.hasCachedResult(transformer, primaryInput, dependencies)) {
+            if (!transformerInvoker.hasCachedResult(transformer, primaryInput, dependencies, subjectToTransform)) {
                 return false;
             }
         }

@@ -19,7 +19,6 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -51,7 +50,6 @@ public interface BuildStateRegistry {
     /**
      * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
-    @Nullable
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**

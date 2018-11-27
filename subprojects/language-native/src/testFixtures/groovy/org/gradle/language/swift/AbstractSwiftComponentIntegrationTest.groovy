@@ -20,6 +20,7 @@ import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -204,6 +205,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
         failure.assertHasCause("A target machine needs to be specified")
+    }
+
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
     }
 
     abstract String getDevelopmentBinaryCompileTask()

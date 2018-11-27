@@ -42,7 +42,7 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
 
     @Inject
     public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, TargetMachineFactory targetMachineFactory) {
-        super(name, fileOperations, objectFactory, targetMachineFactory);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(SwiftExecutable.class);
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));

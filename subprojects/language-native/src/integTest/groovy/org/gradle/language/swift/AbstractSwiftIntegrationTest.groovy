@@ -117,7 +117,26 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host().architecture('foo'), machines.host()]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.host()]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "ignores duplicate target machines"() {
+        given:
+        makeSingleProject()
+        settingsFile << "rootProject.name = '${componentUnderTest.projectName}'"
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.os('${currentOsFamilyName}').architecture('foo'), machines.os('${currentOsFamilyName}'), machines.os('${currentOsFamilyName}')]
             }
         """
 

@@ -16,13 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-public interface TransformationIdentity {
-
-    /**
-     * Identity of the transformation.
-     *
-     * Allows to identify an artifact transformation between Gradle invocations.
-     * This allows to determine the previous execution of a transformation.
-     */
-    String getIdentity();
+public interface CachingTransformationWorkspaceProvider extends TransformationWorkspaceProvider {
+    boolean hasCachedResult(TransformationIdentity identity);
 }

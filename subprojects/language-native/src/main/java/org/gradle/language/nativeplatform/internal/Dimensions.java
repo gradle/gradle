@@ -18,8 +18,14 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 public class Dimensions {
     public static String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
@@ -29,7 +35,29 @@ public class Dimensions {
         return "";
     }
 
+    public static String createDimensionSuffix(Optional<? extends Named> dimensionValue, Collection<?> multivalueProperty) {
+        if (dimensionValue.isPresent() && isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.get().getName().toLowerCase());
+        }
+        return "";
+    }
+
     public static boolean isDimensionVisible(Collection<?> multivalueProperty) {
         return multivalueProperty.size() > 1;
+    }
+
+    /**
+     * Used by all native plugins to work around the missing default feature on Property
+     *
+     * See https://github.com/gradle/gradle-native/issues/918
+     *
+     * @since 5.1
+     */
+    public static Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> targetMachines, TargetMachineFactory targetMachineFactory) {
+        if (!targetMachines.isPresent()) {
+            targetMachines.empty().add(((DefaultTargetMachineFactory)targetMachineFactory).host());
+        }
+        targetMachines.finalizeValue();
+        return targetMachines.get();
     }
 }
