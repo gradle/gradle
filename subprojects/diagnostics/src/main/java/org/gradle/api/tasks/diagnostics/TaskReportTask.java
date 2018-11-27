@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.base.Strings;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
@@ -118,8 +119,10 @@ public class TaskReportTask extends AbstractReportTask {
         }
         renderer.completeTasks();
 
-        for (Rule rule : project.getTasks().getRules()) {
-            renderer.addRule(rule);
+        if (Strings.isNullOrEmpty(group)) {
+            for (Rule rule : project.getTasks().getRules()) {
+                renderer.addRule(rule);
+            }
         }
     }
 
