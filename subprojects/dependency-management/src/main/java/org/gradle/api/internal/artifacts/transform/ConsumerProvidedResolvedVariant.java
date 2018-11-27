@@ -48,7 +48,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, artifactResults, fileResults, resolvableDependencies));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, resolvableDependencies));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
