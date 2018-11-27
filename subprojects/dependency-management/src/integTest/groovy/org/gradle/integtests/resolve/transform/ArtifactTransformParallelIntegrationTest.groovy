@@ -145,10 +145,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile project(":lib3")
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files(artifacts.artifactFiles)
+
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ["lib1.jar.txt", "lib2.jar.txt", "lib3.jar.txt"]
                 }
             }
@@ -180,10 +182,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile files(c)
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files(artifacts.artifactFiles)
+
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt']
                 }
             }
@@ -228,10 +232,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile 'test:test3:3.3'
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files(artifacts.artifactFiles)
+
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }
@@ -333,10 +339,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile files(c)
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files(artifacts.artifactFiles)
+
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     println artifacts.artifactFiles.collect { it.name }
                 }
             }
@@ -378,17 +386,20 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     compile project(":lib")
                 }
                 task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files(artifacts.artifactFiles)
+
                     doLast {
-                        def artifacts = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'size') }
-                        }.artifacts
                         println artifacts.artifactFiles.collect { it.name }
                     }
                 }
             }
         """
-        file("lib/lib.jar") << "some content"
-        server.expectConcurrent("lib1.jar", "lib2.jar")
+
+        server.expect("lib2.jar")
+        server.expect("lib1.jar")
 
         when:
         def handle = executer.withArguments("--max-workers=4", "--parallel").withTasks("app1:resolve", "app2:resolve").start()
