@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 
@@ -27,6 +28,7 @@ import java.io.File;
  * @since 5.1
  */
 @Incubating
+@HasInternalProtocol
 public interface ArtifactTransformDependencies {
     /**
      * Returns the dependency artifacts of the artifact being transformed.

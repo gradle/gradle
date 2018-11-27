@@ -16,26 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
-import java.io.File;
-
-public class DefaultArtifactTransformDependencies implements ArtifactTransformDependenciesInternal {
-    private final FileCollection files;
-
-    public DefaultArtifactTransformDependencies(FileCollection files) {
-        this.files = files;
-    }
-
-    @Override
-    public Iterable<File> getFiles() {
-        return files;
-    }
-
-    @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
-        return fingerprinter.fingerprint(files);
-    }
+public interface ArtifactTransformDependenciesInternal extends ArtifactTransformDependencies {
+    CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter);
 }

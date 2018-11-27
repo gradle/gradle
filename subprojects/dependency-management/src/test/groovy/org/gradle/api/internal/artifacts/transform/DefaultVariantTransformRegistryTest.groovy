@@ -21,9 +21,11 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -44,6 +46,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+        getFiles() >> []
+        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
+    }
+    def dependenciesProvider = Stub(ArtifactTransformDependenciesProvider) {
+        forAttributes(_ as ImmutableAttributes) >> dependencies
+    }
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
@@ -79,7 +88,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), Mock(ArtifactTransformDependenciesProvider)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).files
 
         then:
         transformed.size() == 1
@@ -118,7 +127,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), Mock(ArtifactTransformDependenciesProvider)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -153,7 +162,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), Mock(ArtifactTransformDependenciesProvider))
+        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider)
 
         then:
         def failure = result.failure
@@ -190,7 +199,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), Mock(ArtifactTransformDependenciesProvider)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure
 
         then:
         failure instanceof ObjectInstantiationException
@@ -224,7 +233,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), Mock(ArtifactTransformDependenciesProvider)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure
 
         then:
         failure.message == 'broken'
@@ -319,8 +328,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File input) {
-        1 * transformerInvoker.invoke(_ as Transformer, input, _ as TransformationSubject, _ as ArtifactTransformDependenciesProvider)  >> { Transformer transformer, File primaryInput, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider ->
-            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, dependenciesProvider)) }
+        1 * transformerInvoker.invoke(_ as Transformer, input, _ as ArtifactTransformDependenciesInternal, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject ->
+            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, dependencies)) }
         }
     }
 

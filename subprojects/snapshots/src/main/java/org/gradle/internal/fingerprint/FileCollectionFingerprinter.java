@@ -28,4 +28,9 @@ public interface FileCollectionFingerprinter {
      * Creates a fingerprint of the contents of the given collection.
      */
     CurrentFileCollectionFingerprint fingerprint(FileCollection files);
+
+    /**
+     * Returns an empty fingerprint.
+     */
+    CurrentFileCollectionFingerprint empty();
 }

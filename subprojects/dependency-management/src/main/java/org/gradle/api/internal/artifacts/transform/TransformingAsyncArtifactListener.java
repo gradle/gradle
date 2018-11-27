@@ -54,9 +54,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        ArtifactTransformDependenciesProvider dependenciesProvider = transformation.requiresDependencies()
-            ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
-            : ArtifactTransformDependenciesProvider.EMPTY;
+        ArtifactTransformDependenciesProvider dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(transformation, artifactId, resolvableDependencies);
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
         initialSubjectAvailable(artifactId, initialSubject, artifactResults, dependenciesProvider);
     }
@@ -75,7 +73,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        initialSubjectAvailable(file, initialSubject, fileResults, ArtifactTransformDependenciesProvider.EMPTY);
+        initialSubjectAvailable(file, initialSubject, fileResults, DefaultArtifactTransformDependenciesProvider.EMPTY);
     }
 
     private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results, ArtifactTransformDependenciesProvider dependenciesProvider) {

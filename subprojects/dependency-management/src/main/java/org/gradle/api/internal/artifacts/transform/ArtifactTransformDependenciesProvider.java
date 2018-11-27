@@ -16,27 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.io.File;
-import java.util.Collections;
-
 interface ArtifactTransformDependenciesProvider {
-
-    ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
-        @Override
-        public Iterable<File> getFiles() {
-            return Collections.emptySet();
-        }
-    };
-
-    ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
-        @Override
-        public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
-            return EMPTY_DEPENDENCIES;
-        }
-    };
-
-    ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes);
+    ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes);
 }
