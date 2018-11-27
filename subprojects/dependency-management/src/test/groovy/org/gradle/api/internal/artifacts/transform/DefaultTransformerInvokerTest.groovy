@@ -16,416 +16,353 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.artifacts.transform.TransformationException
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.execution.impl.DefaultWorkExecutor
-import org.gradle.internal.execution.impl.steps.Context
-import org.gradle.internal.execution.impl.steps.CreateOutputsStep
-import org.gradle.internal.execution.impl.steps.Step
-import org.gradle.internal.execution.impl.steps.UpToDateResult
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.FileSystemSnapshotter
-import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Ignore
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Path
 
-@UsesNativeServices
-@Ignore("FIXME wolfs - rewrite and replace by better test")
-class DefaultTransformerInvokerTest extends ConcurrentSpec {
-    @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def transformsStoreDirectory = tmpDir.file("output")
-    def snapshotter = Mock(FileSystemSnapshotter)
-    def result = Mock(UpToDateResult)
+import java.util.function.BiFunction
+
+class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
+
+    def workExecutorTestFixture = new WorkExecutorTestFixture()
+
+    def immutableTransformsStoreDirectory = temporaryFolder.file("output")
+    def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
+    
+    def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
+
+    def executionHistoryStore = new TestExecutionHistoryStore()
+    def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
+
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def executeStep = new Step<Context, UpToDateResult>() {
+    def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(new StringInterner(), fileSystemSnapshotter)
+
+    def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> HashCode.fromInt(1234)
+    }
+
+    def projectServiceRegistry = Stub(ServiceRegistry) {
+        get(CachingTransformationWorkspaceProvider) >> new TestTransformationWorkspaceProvider(mutableTransformsStoreDirectory, executionHistoryStore)
+    }
+
+    def childProject = Stub(ProjectInternal) {
+        getServices() >> projectServiceRegistry
+    }
+
+    def projectFinder = Stub(ProjectFinder) {
+        findProject(_, _) >> childProject
+    }
+
+    def dependenciesProvider = ArtifactTransformDependenciesProvider.EMPTY
+
+    def invoker = new DefaultTransformerInvoker(
+        workExecutorTestFixture.workExecutor,
+        fileSystemSnapshotter,
+        artifactTransformListener,
+        transformationWorkspaceProvider,
+        outputFilesFingerprinter,
+        classloaderHasher,
+        projectFinder,
+        true
+    )
+
+    private static class TestTransformer implements Transformer {
+        private final HashCode secondaryInputsHash
+        private final BiFunction<File, File, List<File>> transformationAction
+
+        static TestTransformer create(HashCode secondaryInputsHash = HashCode.fromInt(1234), BiFunction<File, File, List<File>> transformationAction) {
+            return new TestTransformer(secondaryInputsHash, transformationAction)
+        }
+
+        TestTransformer(HashCode secondaryInputsHash, BiFunction<File, File, List<File>> transformationAction) {
+            this.transformationAction = transformationAction
+            this.secondaryInputsHash = secondaryInputsHash
+        }
+
         @Override
-        UpToDateResult execute(Context context) {
-            context.work.execute()
-            return result
+        Class<? extends ArtifactTransform> getImplementationClass() {
+            return ArtifactTransform.class
+        }
+
+        @Override
+        List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependencies) {
+            return transformationAction.apply(primaryInput, outputDir)
+        }
+
+        @Override
+        HashCode getSecondaryInputHash() {
+            return secondaryInputsHash
+        }
+
+        @Override
+        String getDisplayName() {
+            return "Test transformer"
         }
     }
-    def workExecutor = new DefaultWorkExecutor(new CreateOutputsStep(executeStep))
-    def historyRepository = Mock(TransformerExecutionHistoryRepository)
-    DefaultTransformerInvoker transformerInvoker
 
-    def setup() {
-        transformerInvoker = createInvoker()
-    }
-
-    private DefaultTransformerInvoker createInvoker() {
-        new DefaultTransformerInvoker(workExecutor, snapshotter, artifactTransformListener, historyRepository, outputFileCollectionFingerprinter, Mock(ClassLoaderHierarchyHasher))
-    }
-
-    def "reuses result for given inputs and transform"() {
-        def transformerRegistration = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-
-        when:
-        def result = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-
-        then:
-        result*.name == ["a.1"]
-
-        and:
-        1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * snapshotter._
-        0 * transformerRegistration._
-
-        when:
-        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject, dependenciesProvider)
-
-        then:
-        result2 == result
-
-        and:
-        1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        0 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * snapshotter._
-        0 * transformerRegistration._
-    }
-
-    def "does not contain result before transform ran"() {
-        given:
-        def inputFile = tmpDir.file("a")
-        def hash = HashCode.fromInt(123)
-        def transformer = Stub(Transformer) {
-            getSecondaryInputHash() >> hash
+    def "executes transformations in workspace"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        def transformer = TestTransformer.create { input, outputDir ->
+            def outputFile = new File(outputDir, input.name)
+            outputFile.text = input.text + "transformed"
+            return [outputFile]
         }
-        _ * snapshotter.snapshot(_) >> snapshot(hash)
 
-        expect:
-        !transformerInvoker.hasCachedResult(inputFile, transformer)
+        when:
+        def result = invoker.invoke(transformer, primaryInput, dependency(transformationType, primaryInput), dependenciesProvider)
+
+        then:
+        result.get().size() == 1
+        def transformedFile = result.get()[0]
+        transformedFile.parentFile.parentFile == workspaceDirectory(transformationType)
+
+        where:
+        transformationType << TransformationType.values()
     }
 
-    def "contains result after transform ran once"() {
-        given:
-        def transformerRegistration = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-        def hash = HashCode.fromInt(123)
-        def transformer = Stub(Transformer) {
-            getSecondaryInputHash() >> hash
+    def "up-to-date on second run"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        int transformerInvocations = 0
+        def transformer = TestTransformer.create { input, outputDir ->
+            transformerInvocations++
+            def outputFile = new File(outputDir, input.name)
+            outputFile.text = input.text + "transformed"
+            return [outputFile]
         }
-        _ * transformerRegistration.secondaryInputHash >> hash
-        _ * snapshotter.snapshot(_) >> snapshot(hash)
-        _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
 
         when:
-        transformerInvoker.invoke(inputFile, transformerRegistration, subject)
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
 
         then:
-        transformerInvoker.hasCachedResult(inputFile, transformer)
+        transformerInvocations == 1
+        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
+        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+
+        when:
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
+        then:
+        transformerInvocations == 1
+        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
+        1 * artifactTransformListener.afterTransformerInvocation(_, _)
     }
 
-    def "does not contain result if a different transform ran"() {
-        given:
-        def transformerRegistration = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-        def hash = HashCode.fromInt(123)
-        def otherHash = HashCode.fromInt(456)
-        def otherTransformer = Stub(Transformer) {
-            getSecondaryInputHash() >> otherHash
-        }
-        _ * transformerRegistration.secondaryInputHash >> hash
-        _ * snapshotter.snapshot(_) >> snapshot(hash)
-        _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [file] }
-
-        when:
-        transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-
-        then:
-        !transformerInvoker.hasCachedResult(inputFile, otherTransformer)
-    }
-
-    def "reuses result when transform returns its input file"() {
-        def transformerRegistration = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a").createFile()
-
-        when:
-        def result = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-
-        then:
-        result == [inputFile]
-
-        and:
-        1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.transform(inputFile, _) >>  { File file, File dir -> [file] }
-        0 * snapshotter._
-        0 * transformerRegistration._
-
-        when:
-        def result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject, dependenciesProvider)
-
-        then:
-        result2 == result
-
-        and:
-        1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        0 * transformerRegistration._
-        0 * snapshotter._
-        0 * fileAccessTimeJournal._
-    }
-
-    def "applies transform once when requested concurrently by multiple threads"() {
-        def transformerRegistration = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-
-        when:
-        def result1
-        def result2
-        def result3
-        def result4
-        async {
-            start {
-                result1 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
+    def "re-runs transform when previous execution failed"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        def failure = new RuntimeException("broken")
+        int transformerInvocations = 0
+        def transformer = TestTransformer.create { input, outputDir ->
+            transformerInvocations++
+            def outputFile = new File(outputDir, input.name)
+            assert !outputFile.exists()
+            outputFile.text = input.text + "transformed"
+            if (transformerInvocations == 1) {
+                throw failure
             }
-            start {
-                result2 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-            }
-            start {
-                result3 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-            }
-            start {
-                result4 = transformerInvoker.invoke(inputFile, transformerRegistration, subject)
-            }
-        }
-
-        then:
-        result1*.name == ["a.1"]
-        result2 == result1
-        result3 == result1
-        result4 == result1
-
-        and:
-        4 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
-        4 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * transformerRegistration._
-    }
-
-    def "multiple threads can transform files concurrently"() {
-        def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null, ImmutableAttributes.EMPTY) {
-            @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
-                instant.a
-                thread.blockUntil.b
-                instant.a_done
-                [new TestFile(outputDir, primaryInput.getName()).touch()]            }
-        }
-        def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null, ImmutableAttributes.EMPTY) {
-            @Override
-            List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependenciesProvider dependenciesProvider) {
-                instant.b
-                thread.blockUntil.a
-                instant.b_done
-                [new TestFile(outputDir, primaryInput.getName()).touch()]
-            }
+            return [outputFile]
         }
 
         when:
-        async {
-            start {
-                transformerInvoker.invoke(new File("a"), transformerRegistrationA, subject)
-            }
-            start {
-                transformerInvoker.invoke(new File("b"), transformerRegistrationB, subject)
-            }
+        def result = invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
+
+        then:
+        transformerInvocations == 1
+        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
+        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        def wrappedFailure = result.failure.get()
+        wrappedFailure instanceof TransformationException
+        wrappedFailure.cause.cause == failure
+
+        when:
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
+        then:
+        transformerInvocations == 2
+        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
+        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+    }
+
+    def "re-runs transform when output has been modified"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        File outputFile = null
+        int transformerInvocations = 0
+        def transformer = TestTransformer.create { input, outputDir ->
+            transformerInvocations++
+            outputFile = new File(outputDir, input.name)
+            assert !outputFile.exists()
+            outputFile.text = input.text + " transformed"
+            return [outputFile]
         }
 
+        when:
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
         then:
-        instant.a_done > instant.b
-        instant.b_done > instant.a
+        transformerInvocations == 1
+        outputFile?.isFile()
 
-        and:
-        2 * snapshotter.snapshot(_) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
-        2 * fileAccessTimeJournal.setLastAccessTime(_, _)
+        when:
+        outputFile.text = "changed"
+        fileSystemMirror.beforeBuildFinished()
+
+        invoker.invoke(transformer, primaryInput, TransformationSubject.initial(primaryInput), dependenciesProvider)
+        then:
+        transformerInvocations == 2
     }
 
-    def "does not reuse result when transform inputs are different"() {
-        def transform1 = Mock(DefaultTransformer)
-        def transform2 = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-
-        given:
-        _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        transformerInvoker.invoke(inputFile, transform1, subject)
-
-        when:
-        def result = transformerInvoker.invoke(inputFile, transform2, subject)
-
-        then:
-        result*.name == ["a.2"]
-
-        and:
-        1 * transform2.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
-        _ * transform2.secondaryInputHash >> HashCode.fromInt(234)
-        0 * transform1._
-        0 * transform2._
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-
-        when:
-        def result2 = transformerInvoker.invoke(inputFile, transform1, subject, dependenciesProvider)
-        def result3 = transformerInvoker.invoke(inputFile, transform2, subject, dependenciesProvider)
-
-        then:
-        result2*.name == ["a.1"]
-        result3 == result
-
-        and:
-        _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        _ * transform2.secondaryInputHash >> HashCode.fromInt(234)
-        0 * transform1._
-        0 * transform2._
-        0 * fileAccessTimeJournal._
-    }
-
-    def "does not reuse result when transform input files have different content"() {
-        def transform1 = Mock(DefaultTransformer)
-        def transform2 = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-
-        given:
-        _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-
-        transformerInvoker.invoke(inputFile, transform1, subject)
-
-        when:
-        def result = transformerInvoker.invoke(inputFile, transform2, subject)
-
-        then:
-        result*.name == ["a.2"]
-
-        and:
-        1 * transform2.secondaryInputHash >> HashCode.fromInt(345)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform2.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
-        0 * transform1._
-        0 * transform2._
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-
-        when:
-        def result2 = transformerInvoker.invoke(inputFile, transform1, subject, dependenciesProvider)
-        def result3 = transformerInvoker.invoke(inputFile, transform2, subject, dependenciesProvider)
-
-        then:
-        result2*.name == ["a.1"]
-        result3 == result
-
-        and:
-        _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
-        _ * transform2.secondaryInputHash >> HashCode.fromInt(345)
-        2 * snapshotter.snapshot(inputFile) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
-        0 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * transform1._
-        0 * transform2._
-    }
-
-    def "runs transform when previous execution failed and cleans up directory"() {
-        def transform = Mock(DefaultTransformer)
-        def failure = new RuntimeException()
-        def inputFile = tmpDir.file("a")
-
-        when:
-        transformerInvoker.invoke(inputFile, transform, subject)
-
-        then:
-        def e = thrown(RuntimeException)
-        e.is(failure)
-
-        and:
-        1 * transform.secondaryInputHash >> HashCode.fromInt(123)
-        _ * transform.implementationClass >> ArtifactTransform
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.transform(inputFile, _) >>  { File file, File dir ->
-            dir.mkdirs()
-            new File(dir, "delete-me").text = "broken"
-            throw failure
+    def "different workspace for different secondary inputs"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        def workspaces = new HashSet<File>()
+        def transformationAction = { File input, File workspace ->
+            workspaces.add(workspace)
+            def outputFile = new File(workspace, input.name)
+            outputFile.text = input.text + " transformed"
+            return ImmutableList.of(outputFile)
         }
-        0 * transform._
+        def transformer1 = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def transformer2 = TestTransformer.create(HashCode.fromInt(4321), transformationAction)
 
+        def subject = dependency(transformationType, primaryInput)
         when:
-        def result = transformerInvoker.invoke(inputFile, transform, subject, dependenciesProvider)
+        invoker.invoke(transformer1, primaryInput, subject, dependenciesProvider)
+        invoker.invoke(transformer2, primaryInput, subject, dependenciesProvider)
 
         then:
-        result*.name == ["a.1"]
+        workspaces.size() == 2
 
-        and:
-        1 * transform.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.transform(inputFile, _) >>  { File file, File dir ->
-            assert dir.list().length == 0
-            def r = new File(dir, "a.1")
-            r.text = "result"
-            [r]
+        where:
+        transformationType << TransformationType.values()
+    }
+
+    def "different workspace for different primary input paths"() {
+        def primaryInput1 = temporaryFolder.file("input1")
+        primaryInput1.text = "my input"
+        def primaryInput2 = temporaryFolder.file("input2")
+        primaryInput1.text = "my input"
+        def workspaces = new HashSet<File>()
+        def transformationAction = { File input, File workspace ->
+            workspaces.add(workspace)
+            def outputFile = new File(workspace, input.name)
+            outputFile.text = input.text + " transformed"
+            return ImmutableList.of(outputFile)
         }
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * transform._
-    }
-
-    def "runs transform when output has been removed"() {
-        def transform = Mock(DefaultTransformer)
-        def inputFile = tmpDir.file("a")
-
-        given:
-        1 * transform.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-
-        def result = transformerInvoker.invoke(inputFile, transform, subject)
+        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        when:
+        invoker.invoke(transformer, primaryInput1, dependency(transformationType, primaryInput1), dependenciesProvider)
+        then:
+        workspaces.size() == 1
 
         when:
-        def cache = createInvoker()
-        result.first().delete()
-        def result2 = cache.invoke(inputFile, transform, subject, dependenciesProvider)
+        fileSystemMirror.beforeBuildFinished()
+        primaryInput1.text = "changed"
+        invoker.invoke(transformer, primaryInput2, dependency(transformationType, primaryInput2), dependenciesProvider)
 
         then:
-        result2 == result
+        workspaces.size() == 2
 
-        and:
-        1 * transform.secondaryInputHash >> HashCode.fromInt(123)
-        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
-        0 * transform._
+        where:
+        transformationType << TransformationType.values()
     }
 
-    def "stopping the cache cleans up old entries and preserves new ones"() {
-        given:
-        snapshotter.snapshot(_) >> snapshot(HashCode.fromInt(42))
-        def filesDir = transformsStoreDirectory.file(CacheLayout.TRANSFORMS_STORE.getKey())
-        def file1 = filesDir.file("some.jar", "bac62a0ac6ce00ff016f869e695d5522").createFile("1.txt")
-        def file2 = filesDir.file("another.jar", "a89660597ff12d9e0a0397e055e80006").createFile("2.txt")
+    def "different workspace for different immutable primary inputs"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        def workspaces = new HashSet<File>()
+        def transformationAction = { File input, File workspace ->
+            workspaces.add(workspace)
+            def outputFile = new File(workspace, input.name)
+            outputFile.text = input.text + " transformed"
+            return ImmutableList.of(outputFile)
+        }
+        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def subject = immutableDependency(primaryInput)
 
         when:
-        transformerInvoker.stop()
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
+        then:
+        workspaces.size() == 1
+
+        when:
+        fileSystemMirror.beforeBuildFinished()
+        primaryInput.text = "changed"
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
 
         then:
-        1 * fileAccessTimeJournal.getLastAccessTime(file1.parentFile) >> 0
-        1 * fileAccessTimeJournal.getLastAccessTime(file2.parentFile) >> System.currentTimeMillis()
-
-        and:
-        !file1.exists()
-        file2.exists()
+        workspaces.size() == 2
     }
 
-    def snapshot(HashCode hashCode) {
-        return new RegularFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
+    def "same workspace for different mutable primary inputs"() {
+        def primaryInput = temporaryFolder.file("input")
+        primaryInput.text = "my input"
+        def workspaces = new HashSet<File>()
+        def transformationAction = { File input, File workspace ->
+            workspaces.add(workspace)
+            def outputFile = new File(workspace, input.name)
+            outputFile.text = input.text + " transformed"
+            return ImmutableList.of(outputFile)
+        }
+        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def subject = mutableDependency(primaryInput)
+
+        when:
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
+        then:
+        workspaces.size() == 1
+
+        when:
+        fileSystemMirror.beforeBuildFinished()
+        primaryInput.text = "changed"
+        invoker.invoke(transformer, primaryInput, subject, dependenciesProvider)
+
+        then:
+        workspaces.size() == 1
     }
+
+    enum TransformationType {
+        MUTABLE, IMMUTABLE
+    }
+
+    private static dependency(TransformationType type, File file) {
+        return type == TransformationType.MUTABLE ? mutableDependency(file) : immutableDependency(file)
+    }
+
+    private workspaceDirectory(TransformationType type) {
+        return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
+    }
+
+    private static TransformationSubject immutableDependency(File file) {
+        return TransformationSubject.initial(file)
+    }
+
+    private static TransformationSubject mutableDependency(File file) {
+        def artifactIdentifier = new ComponentFileArtifactIdentifier(
+            new DefaultProjectComponentIdentifier(
+                DefaultBuildIdentifier.ROOT,
+                Path.path(":child"),
+                Path.path(":child"),
+                "child"
+            ), file.getName())
+        return TransformationSubject.initial(artifactIdentifier,
+        file)
+    }
+
 }

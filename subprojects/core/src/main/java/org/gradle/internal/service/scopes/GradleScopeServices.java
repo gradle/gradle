@@ -65,6 +65,7 @@ import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -93,6 +94,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 
@@ -152,17 +154,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
     }
 
-    ProjectFinder createProjectFinder(final GradleInternal gradle) {
-        return new ProjectFinder() {
-            public ProjectInternal getProject(String path) {
-                return gradle.getRootProject().project(path);
-            }
-
+    ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry, final GradleInternal gradle) {
+        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
             @Override
-            public ProjectInternal findProject(String path) {
-                return gradle.getRootProject().findProject(path);
+            public ProjectInternal get() {
+                return gradle.getRootProject();
             }
-        };
+        });
     }
 
     TaskNodeFactory createTaskNodeFactory(GradleInternal gradle, IncludedBuildTaskGraph includedBuildTaskGraph) {

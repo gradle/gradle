@@ -24,31 +24,32 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProvider, Closeable {
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+@NotThreadSafe
+public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
+    private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
-    private final ProducerGuard<TransformationIdentity> producing = ProducerGuard.adaptive();
 
-    public GradleUserHomeWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+    public ImmutableTransformationWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
         filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        this.executionHistoryStore = executionHistoryStore;
         cache = cacheRepository
             .cache(transformsStoreDirectory)
             .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
@@ -66,17 +67,21 @@ public class GradleUserHomeWorkspaceProvider implements TransformerWorkspaceProv
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, BiFunction<String, File, Try<ImmutableList<File>>> useWorkspace) {
-        return producing.guardByKey(identity, () -> {
-            String identityString = identity.getIdentity();
-            File workspace = new File(filesOutputDirectory, identity.getInitialSubjectFileName() + "/" + identityString);
-            fileAccessTracker.markAccessed(workspace);
-            return useWorkspace.apply(identityString, workspace);
-        });
+    public ExecutionHistoryStore getExecutionHistoryStore() {
+        return executionHistoryStore;
     }
 
     @Override
-    public void close() throws IOException {
+    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+        String workspacePath = identity.getIdentity();
+        TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
+        fileAccessTracker.markAccessed(workspace.getResultsFile());
+        fileAccessTracker.markAccessed(workspace.getOutputDirectory());
+        return workspaceAction.useWorkspace(workspacePath, workspace);
+    }
+
+    @Override
+    public void close() {
         cache.close();
     }
 }

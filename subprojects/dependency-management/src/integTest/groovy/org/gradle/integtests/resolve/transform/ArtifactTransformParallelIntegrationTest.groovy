@@ -17,9 +17,14 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import org.junit.runner.RunWith
 
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -30,21 +35,35 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         settingsFile << """
             rootProject.name = 'root'
         """
+        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
+            def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                
-            dependencies {
-                registerTransform {
-                    from.attribute(artifactType, "jar")
-                    to.attribute(artifactType, "size")
-                    artifactTransform(SynchronizedTransform)
+
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
                 }
+                configurations {
+                    compile {
+                        attributes.attribute usage, 'api'
+                    }
+                }
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(SynchronizedTransform)
+                    }
+                }
+                configurations {
+                    compile
+                }            
             }
-            configurations {
-                compile
-            }
-            
+
             class SynchronizedTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     ${server.callFromBuildUsingExpression("input.name")}
@@ -100,6 +119,50 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
         outputContains("Transforming test2-2.3.jar to test2-2.3.jar.txt")
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
+    }
+
+    def "transformations are applied in parallel for project artifacts"() {
+        given:
+        settingsFile << """
+            include "lib1", "lib2", "lib3"
+        """
+
+        buildFile << """            
+            configure([project(":lib1"), project(":lib2"), project(":lib3")]) {
+
+                task jar(type: Jar) {
+                    archiveName = "\${project.name}.jar"
+                    destinationDir = buildDir
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+
+            dependencies {
+                compile project(":lib1")
+                compile project(":lib2")
+                compile project(":lib3")
+            }
+            task resolve {
+                doLast {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    assert artifacts.artifactFiles.collect { it.name } == ["lib1.jar.txt", "lib2.jar.txt", "lib3.jar.txt"]
+                }
+            }
+        """
+
+        server.expectConcurrent("lib1.jar", "lib2.jar", "lib3.jar")
+
+        when:
+        succeeds ":resolve"
+
+        then:
+        outputContains("Transforming lib1.jar to lib1.jar.txt")
+        outputContains("Transforming lib2.jar to lib2.jar.txt")
+        outputContains("Transforming lib3.jar to lib3.jar.txt")
     }
 
     def "transformations are applied in parallel for each file dependency artifact"() {
@@ -287,5 +350,49 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         then:
         failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
         failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
+    }
+
+    def "only one transformer execution per workspace"() {
+
+        settingsFile << """
+            include "lib", "app1", "app2"
+        """
+
+        buildFile << """            
+            project(":lib") {
+                dependencies {
+                    compile files("lib1.jar")
+                }
+
+                task jar2(type: Jar) {
+                    archiveName = 'lib2.jar'
+                    destinationDir = buildDir
+                }
+                artifacts {
+                    compile jar2
+                }
+            }
+
+            configure([project("app1"), project("app2")]) {
+                dependencies {
+                    compile project(":lib")
+                }
+                task resolve {
+                    doLast {
+                        def artifacts = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        println artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+        """
+        file("lib/lib.jar") << "some content"
+        server.expectConcurrent("lib1.jar", "lib2.jar")
+
+        when:
+        def handle = executer.withArguments("--max-workers=4", "--parallel").withTasks("app1:resolve", "app2:resolve").start()
+        then:
+        handle.waitForExit()
     }
 }

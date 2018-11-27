@@ -73,7 +73,7 @@ public class TransformationStep implements Transformation {
             return true;
         }
         for (File file : subject.getFiles()) {
-            if (!transformerInvoker.hasCachedResult(file, transformer)) {
+            if (!transformerInvoker.hasCachedResult(file, transformer, subject)) {
                 return false;
             }
         }

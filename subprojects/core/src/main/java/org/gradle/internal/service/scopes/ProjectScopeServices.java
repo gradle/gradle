@@ -70,6 +70,7 @@ import org.gradle.configuration.project.DefaultProjectConfigurationActionContain
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -97,6 +98,7 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
  * Contains the services for a given project.
@@ -200,17 +202,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
     }
 
-    protected ProjectFinder createProjectFinder() {
-        return new ProjectFinder() {
-            public ProjectInternal getProject(String path) {
-                return project.project(path);
-            }
-
+    protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {
+        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
             @Override
-            public ProjectInternal findProject(String path) {
-                return project.findProject(path);
+            public ProjectInternal get() {
+                return project;
             }
-        };
+        });
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
