@@ -69,6 +69,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     ${server.callFromBuildUsingExpression("input.name")}
                     if (input.name.startsWith("bad")) {
                         throw new RuntimeException("Transform Failure: " + input.name)
+                    }        
+                    if (!input.exists()) {
+                        throw new IllegalStateException("Input file \${input} does not exist")
                     }
                     def output = new File(outputDirectory, input.name + ".txt")
                     println "Transforming \${input.name} to \${output.name}"
@@ -397,6 +400,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 }
             }
         """
+        file("lib/lib1.jar") << "some content"
 
         server.expect("lib2.jar")
         server.expect("lib1.jar")
@@ -404,6 +408,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         when:
         def handle = executer.withArguments("--max-workers=4", "--parallel").withTasks("app1:resolve", "app2:resolve").start()
         then:
-        handle.waitForExit()
+        handle.waitForFinish()
     }
 }
