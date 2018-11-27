@@ -24,7 +24,6 @@ import java.io.File;
 
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependenciesInternal {
     private final FileCollection files;
-    private CurrentFileCollectionFingerprint fingerprint;
 
     public DefaultArtifactTransformDependencies(FileCollection files) {
         this.files = files;
@@ -37,9 +36,6 @@ public class DefaultArtifactTransformDependencies implements ArtifactTransformDe
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
-        if (fingerprint == null) {
-            fingerprint = fingerprinter.fingerprint(files);
-        }
-        return fingerprint;
+        return fingerprinter.fingerprint(files);
     }
 }
