@@ -48,7 +48,6 @@ public abstract class TransformationNode extends Node {
     private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
-    protected ArtifactTransformDependenciesProvider dependenciesProvider;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous) {
         return new ChainedTransformationNode(current, previous);
@@ -63,6 +62,8 @@ public abstract class TransformationNode extends Node {
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
+
+    protected abstract ArtifactTransformDependenciesProvider getDependenciesProvider();
 
     @Override
     public String toString() {
@@ -81,13 +82,6 @@ public abstract class TransformationNode extends Node {
         return Collections.emptySet();
     }
 
-
-    private ArtifactTransformDependenciesProvider getDependenciesProvider() {
-        if (dependenciesProvider == null) {
-            throw new IllegalStateException("Transformation hasn't been executed yet");
-        }
-        return dependenciesProvider;
-    }
 
     @Override
     public void prepareForExecution() {
@@ -118,6 +112,7 @@ public abstract class TransformationNode extends Node {
     private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
         private final ResolvableDependencies resolvableDependencies;
+        private ArtifactTransformDependenciesProvider dependenciesProvider;
 
         public InitialTransformationNode(
             TransformationStep transformationStep,
@@ -143,6 +138,15 @@ public abstract class TransformationNode extends Node {
                 processHardSuccessor.execute(dependency);
             }
         }
+
+        @Override
+        protected ArtifactTransformDependenciesProvider getDependenciesProvider() {
+            if (dependenciesProvider == null) {
+                throw new IllegalStateException("Initial transformation hasn't been executed yet");
+            }
+            return dependenciesProvider;
+        }
+
 
         private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
             return dependencyResolver.resolveDependenciesFor(null, artifactSet);
@@ -209,6 +213,11 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
+        protected ArtifactTransformDependenciesProvider getDependenciesProvider() {
+            return previousTransformationNode.getDependenciesProvider();
+        }
+
+        @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             addDependencySuccessor(previousTransformationNode);
             processHardSuccessor.execute(previousTransformationNode);
@@ -220,7 +229,12 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public void run(BuildOperationContext context) {
-                this.transformedSubject = transformationStep.transform(previousTransformationNode.getTransformedSubject(), previousTransformationNode.getDependenciesProvider());
+                TransformationSubject transformedSubject = previousTransformationNode.getTransformedSubject();
+                if (transformedSubject.getFailure() != null) {
+                    this.transformedSubject = transformedSubject;
+                    return;
+                }
+                this.transformedSubject = transformationStep.transform(transformedSubject, getDependenciesProvider());
             }
 
             @Override
