@@ -34,7 +34,7 @@ public interface Transformation extends Describable {
     TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider);
 
     /**
-     * Whether the transformation requires dependencies of transformed artifact to be injected.
+     * Whether the transformation requires dependencies of the transformed artifact to be injected.
      */
     boolean requiresDependencies();
 

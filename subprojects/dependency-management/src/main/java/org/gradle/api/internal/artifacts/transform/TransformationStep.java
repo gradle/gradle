@@ -34,12 +34,10 @@ public class TransformationStep implements Transformation {
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
-    private final boolean requiresDependencies;
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, boolean requiresDependencies) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
-        this.requiresDependencies = requiresDependencies;
     }
 
     @Override
@@ -50,9 +48,11 @@ public class TransformationStep implements Transformation {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
+        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File file : subjectToTransform.getFiles()) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, file, subjectToTransform, dependenciesProvider);
+        for (File primaryInput : primaryInputs) {
+            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
 
             if (result.getFailure().isPresent()) {
                 return subjectToTransform.transformationFailed(result.getFailure().get());
@@ -64,7 +64,7 @@ public class TransformationStep implements Transformation {
 
     @Override
     public boolean requiresDependencies() {
-        return requiresDependencies;
+        return transformer.requiresDependencies();
     }
 
     @Override

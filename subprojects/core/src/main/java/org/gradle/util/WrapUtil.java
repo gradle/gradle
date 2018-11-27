@@ -37,7 +37,6 @@ import java.util.TreeSet;
 
 /**
  * Common methods to wrap objects in generic collections.
- *
  */
 public class WrapUtil {
     /**

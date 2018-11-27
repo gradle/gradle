@@ -18,14 +18,24 @@ package org.gradle.api.internal.collections
 import org.gradle.api.Action
 import spock.lang.Specification
 
-class BroadcastingCollectionEventRegisterSpec extends Specification {
+class DefaultCollectionEventRegisterSpec extends Specification {
 
     def r = register()
     def added = []
     def removed = []
 
+    def executed = []
+
     protected CollectionEventRegister<CharSequence> register() {
-        new BroadcastingCollectionEventRegister<>(CharSequence)
+        new DefaultCollectionEventRegister<>(CharSequence, { callback ->
+            new Action<CharSequence>() {
+                @Override
+                void execute(CharSequence charSequence) {
+                    executed << charSequence
+                    callback.execute(charSequence)
+                }
+            }
+        })
     }
 
     def "actions do nothing when none registered"() {

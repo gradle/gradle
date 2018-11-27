@@ -54,9 +54,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        ArtifactTransformDependenciesProvider dependenciesProvider = transformation.requiresDependencies()
-            ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
-            : ArtifactTransformDependenciesProvider.EMPTY;
+        ArtifactTransformDependenciesProvider dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(transformation, artifactId, resolvableDependencies);
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
         TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
         artifactResults.put(artifactId, operation);
@@ -82,7 +80,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, ArtifactTransformDependenciesProvider.EMPTY);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, DefaultArtifactTransformDependenciesProvider.EMPTY);
         fileResults.put(file, operation);
         // We expect file transformations to be executed in an immediate way,
         // since they cannot be scheduled early.

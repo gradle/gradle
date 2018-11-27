@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.ConfigureByMapAction;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -46,8 +47,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     private final BaseRepositoryFactory repositoryFactory;
 
-    public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator) {
-        super(instantiator);
+    public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+        super(instantiator, decorator);
         this.repositoryFactory = repositoryFactory;
     }
 

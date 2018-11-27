@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.Action;
 
-interface ArtifactTransformDependenciesProvider {
-    ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes);
+import javax.annotation.Nullable;
+
+public interface CollectionCallbackActionDecorator {
+
+    String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
+
+    @Nullable
+    <T> Action<T> decorate(@Nullable Action<T> action);
+
+    CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
+        @Override
+        public <T> Action<T> decorate(@Nullable Action<T> action) {
+            return action;
+        }
+    };
 }

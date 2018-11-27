@@ -22,6 +22,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
@@ -55,6 +56,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Instantiator instantiator;
     private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
+    private final CollectionCallbackActionDecorator callbackDecorator;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
@@ -63,13 +65,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
-        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, callbackDecorator);
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.callbackDecorator = callbackDecorator;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -210,7 +213,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
-            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class);
+            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, callbackDecorator);
             idMappings.put(pluginId, pluginsForId);
             for (PluginImplementation<?> plugin : plugins.values()) {
                 if (plugin.isAlsoKnownAs(pluginId)) {
