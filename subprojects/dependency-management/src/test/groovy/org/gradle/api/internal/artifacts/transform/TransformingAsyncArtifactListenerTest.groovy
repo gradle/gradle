@@ -23,9 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
-import spock.lang.Ignore
 
-@Ignore
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
@@ -38,16 +36,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         getArtifactFile() >> artifactFile
     }
 
-    def "runs transforms in parallel if no cached result is available"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject, _ as ArtifactTransformDependenciesProvider) >> false
-
-        when:
-        listener.artifactAvailable(artifact)
-
-        then:
-        1 * operationQueue.add(_ as BuildOperation)
-
+    def "adds file transformations to the build operation queue"() {
         when:
         listener.fileAvailable(file)
 
@@ -55,20 +44,11 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         1 * operationQueue.add(_ as BuildOperation)
     }
 
-    def "runs transforms immediately if the result is already cached"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject, _ as ArtifactTransformDependenciesProvider) >> true
-
+    def "runs artifact transformations immediately"() {
         when:
         listener.artifactAvailable(artifact)
 
         then:
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ArtifactTransformDependenciesProvider)
-
-        when:
-        listener.fileAvailable(file)
-
-        then:
-        1 * transformation.transform({ it.files == [file] }, _ as ArtifactTransformDependenciesProvider)
     }
 }
