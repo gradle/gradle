@@ -11,7 +11,7 @@ System_Ext(gradle, "Gradle Build Tool") {
     System(gradleKotlinDsl, "Kotlin DSL")
 }
 
-System_Ext(ide, "IDE", "IntelliJ IDEA or Android Studio")
+System_Ext(ide, "IntelliJ IDE", "IDEA or Android Studio with the Kotlin plugin enabled")
 
 System_Ext(kotlinTools, "Kotlin Toolchain", "kotlinc, Gradle plugin etc...")
 
@@ -22,8 +22,10 @@ Rel(gradleKotlinDsl, kotlinTools, "Uses")
 Rel(gradleKotlinDsl, buildCache, "Uses")
 
 Rel(dev, ide, "Uses", "GUI")
-Rel(ide, gradle, "Uses", "Tooling API")
+Rel_U(ide, gradle, "Uses", "Tooling API")
+Rel(ide, gradleKotlinDsl, "Uses")
 Rel(ide, kotlinTools, "Uses")
+
 Rel_Neighbor(kotlinTools, buildCache, "Uses")
 
 @enduml

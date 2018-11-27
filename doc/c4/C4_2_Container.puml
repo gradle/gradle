@@ -16,23 +16,25 @@ System_Boundary(gradleBuildTool, "Gradle") {
         Container(provider, "Kotlin DSL Provider", "The core of the Gradle Kotlin DSL")
         Container(tapiBuilder, "IDE ToolingAPI Models", "Calculates script dependencies and error reporting for editors")
         Container(plugin, "`kotlin-dsl` Plugin", "Gradle Plugin to develop Kotlin-based projects that contribute build logic")
+        Container(resolver, "Kotlin DSL Script Dependencies Resolver", "Loaded from IntelliJ Project Gradle version")
 
-        Rel_Neighbor(tapiBuilder, provider, "Uses")
+        Rel_U(tapiBuilder, provider, "Uses")
         Rel_Neighbor(plugin, provider, "Uses")
+        Rel_Neighbor(resolver, tapiBuilder, "Uses", "TAPI")
     }
 
     Rel(gradle, provider, "Uses", "Script compilation")
     Rel(gradle, plugin, "Uses", "e.g. in `buildSrc`")
 }
 
-System_Boundary(ide, "IDE") {
+System_Boundary(ide, "IntelliJ IDE") {
 
     System_Ext(editor, ".gradle.kts script editor", "In IntelliJ IDEA or Android Studio")
+    System_Ext(ideKotlin, "IntelliJ Kotlin Plugin", "for IDEA or Android Studio")
 
-    Container(resolver, "Kotlin DSL Script Dependencies Resolver", "Loaded from IntelliJ Project Gradle version")
-
-    Rel_Neighbor(editor, resolver, "Uses", "Embedded")
+    Rel_Neighbor(editor, ideKotlin, "Uses")
 }
+
 
 System_Boundary(kotlinTools, "Kotlin Toolchain") {
 
@@ -49,12 +51,15 @@ Rel(dev, editor, "Uses", "GUI")
 
 Rel(provider, kotlinc, "Uses", "Embedded")
 Rel(plugin, kgp, "Applies")
-Rel(resolver, tapiBuilder, "Uses", "TAPI")
 
-Rel(ide, kotlinc, "Uses")
+Rel(ideKotlin, kotlinc, "Uses")
+Rel(ideKotlin, resolver, "Loads", "Embedded")
 
 Rel(provider, buildCache, "Uses")
 Rel(plugin, buildCache, "Uses")
-Rel_Neighbor(kgp, buildCache, "Uses")
+Rel(kgp, buildCache, "Uses")
+
+Lay_D(ide, gradle)
+Lay_D(ide, kotlinTools)
 
 @enduml
