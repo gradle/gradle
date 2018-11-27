@@ -52,7 +52,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         then:
         result.assertRawOutputContains(successMessage)
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+s\\n?
 2 actionable tasks: 2 executed
 .*"""
 
@@ -62,7 +62,7 @@ BUILD SUCCESSFUL in \\d+s
         then:
         result.assertRawOutputContains(successMessage)
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+s\\n?
 2 actionable tasks: 1 executed, 1 up-to-date
 .*"""
     }

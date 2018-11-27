@@ -24,6 +24,16 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent;
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor;
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult;
+import org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent;
+import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFailureResult;
+import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFinishEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationOperationDescriptor;
+import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationStartEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
@@ -78,6 +88,7 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
@@ -114,6 +125,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
@@ -122,6 +134,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         taskProgressListeners.addAll(listeners.getOrDefault(OperationType.TASK, noListeners));
         buildOperationProgressListeners.addAll(listeners.getOrDefault(OperationType.GENERIC, noListeners));
         workItemProgressListeners.addAll(listeners.getOrDefault(OperationType.WORK_ITEM, noListeners));
+        projectConfigurationProgressListeners.addAll(listeners.getOrDefault(OperationType.PROJECT_CONFIGURATION, noListeners));
     }
 
     @Override
@@ -139,6 +152,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!workItemProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.WORK_ITEM_EXECUTION);
         }
+        if (!projectConfigurationProgressListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION);
+        }
         return operations;
     }
 
@@ -152,18 +168,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastProgressEvent((ProgressEvent) event);
         } else if (event instanceof InternalTestProgressEvent) {
             // Special case for events defined prior to InternalProgressEvent
-            InternalTestProgressEvent progressEvent = (InternalTestProgressEvent) event;
-            broadcastTestProgressEvent(progressEvent);
+            broadcastTestProgressEvent((InternalTestProgressEvent) event);
         } else if (event instanceof InternalProgressEvent) {
-            InternalProgressEvent progressEvent = (InternalProgressEvent) event;
-            if (progressEvent.getDescriptor() instanceof InternalTaskDescriptor) {
-                broadcastTaskProgressEvent(progressEvent);
-            } else if (progressEvent.getDescriptor() instanceof InternalWorkItemDescriptor) {
-                broadcastWorkItemProgressEvent(progressEvent);
-            } else {
-                // Everything else treat as a generic operation
-                broadcastProgressEvent(progressEvent);
-            }
+            broadcastInternalProgressEvent((InternalProgressEvent) event);
         }
     }
 
@@ -174,6 +181,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             taskProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof WorkItemProgressEvent) {
             workItemProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof ProjectConfigurationProgressEvent) {
+            projectConfigurationProgressListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);
@@ -187,22 +196,43 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private void broadcastTaskProgressEvent(InternalProgressEvent event) {
-        TaskProgressEvent taskProgressEvent = toTaskProgressEvent(event);
+    private void broadcastInternalProgressEvent(InternalProgressEvent progressEvent) {
+        InternalOperationDescriptor descriptor = progressEvent.getDescriptor();
+        if (descriptor instanceof InternalTaskDescriptor) {
+            broadcastTaskProgressEvent(progressEvent, (InternalTaskDescriptor) descriptor);
+        } else if (descriptor instanceof InternalWorkItemDescriptor) {
+            broadcastWorkItemProgressEvent(progressEvent, (InternalWorkItemDescriptor) descriptor);
+        } else if (descriptor instanceof InternalProjectConfigurationDescriptor) {
+            broadcastProjectConfigurationProgressEvent(progressEvent, (InternalProjectConfigurationDescriptor) descriptor);
+        } else {
+            // Everything else treat as a generic operation
+            broadcastGenericProgressEvent(progressEvent);
+        }
+    }
+
+    private void broadcastTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
+        TaskProgressEvent taskProgressEvent = toTaskProgressEvent(event, descriptor);
         if (taskProgressEvent != null) {
             taskProgressListeners.getSource().statusChanged(taskProgressEvent);
         }
     }
 
-    private void broadcastWorkItemProgressEvent(InternalProgressEvent event) {
-        WorkItemProgressEvent workItemProgressEvent = toWorkItemProgressEvent(event);
+    private void broadcastWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
+        WorkItemProgressEvent workItemProgressEvent = toWorkItemProgressEvent(event, descriptor);
         if (workItemProgressEvent != null) {
             workItemProgressListeners.getSource().statusChanged(workItemProgressEvent);
         }
     }
 
-    private void broadcastProgressEvent(InternalProgressEvent event) {
-        ProgressEvent progressEvent = toProgressEvent(event);
+    private void broadcastProjectConfigurationProgressEvent(InternalProgressEvent event, InternalProjectConfigurationDescriptor descriptor) {
+        ProjectConfigurationProgressEvent projectConfigurationProgressEvent = toProjectConfigurationProgressEvent(event, descriptor);
+        if (projectConfigurationProgressEvent != null) {
+            projectConfigurationProgressListeners.getSource().statusChanged(projectConfigurationProgressEvent);
+        }
+    }
+
+    private void broadcastGenericProgressEvent(InternalProgressEvent event) {
+        ProgressEvent progressEvent = toGenericProgressEvent(event);
         if (progressEvent != null) {
             buildOperationProgressListeners.getSource().statusChanged(progressEvent);
         }
@@ -218,9 +248,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event) {
+    private TaskProgressEvent toTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
-            return taskStartedEvent((InternalOperationStartedProgressEvent) event);
+            return taskStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
             return taskFinishedEvent((InternalOperationFinishedProgressEvent) event);
         } else {
@@ -228,9 +258,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private WorkItemProgressEvent toWorkItemProgressEvent(InternalProgressEvent event) {
+    private WorkItemProgressEvent toWorkItemProgressEvent(InternalProgressEvent event, InternalWorkItemDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
-            return workItemStartedEvent((InternalOperationStartedProgressEvent) event);
+            return workItemStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
             return workItemFinishedEvent((InternalOperationFinishedProgressEvent) event);
         } else {
@@ -238,11 +268,21 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private ProgressEvent toProgressEvent(InternalProgressEvent event) {
+    private ProjectConfigurationProgressEvent toProjectConfigurationProgressEvent(InternalProgressEvent event, InternalProjectConfigurationDescriptor descriptor) {
         if (event instanceof InternalOperationStartedProgressEvent) {
-            return startedEvent((InternalOperationStartedProgressEvent) event);
+            return projectConfigurationStartedEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
-            return finishedEvent((InternalOperationFinishedProgressEvent) event);
+            return projectConfigurationFinishedEvent((InternalOperationFinishedProgressEvent) event);
+        } else {
+            return null;
+        }
+    }
+
+    private ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
+        if (event instanceof InternalOperationStartedProgressEvent) {
+            return genericStartedEvent((InternalOperationStartedProgressEvent) event);
+        } else if (event instanceof InternalOperationFinishedProgressEvent) {
+            return genericFinishedEvent((InternalOperationFinishedProgressEvent) event);
         } else {
             return null;
         }
@@ -253,17 +293,22 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestStartEvent(event.getEventTime(), event.getDisplayName(), testDescriptor);
     }
 
-    private TaskStartEvent taskStartedEvent(InternalOperationStartedProgressEvent event) {
-        TaskOperationDescriptor descriptor = addDescriptor(event.getDescriptor(), toTaskDescriptor((InternalTaskDescriptor) event.getDescriptor()));
-        return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    private TaskStartEvent taskStartedEvent(InternalOperationStartedProgressEvent event, InternalTaskDescriptor descriptor) {
+        TaskOperationDescriptor taskDescriptor = addDescriptor(event.getDescriptor(), toTaskDescriptor(descriptor));
+        return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), taskDescriptor);
     }
 
-    private WorkItemStartEvent workItemStartedEvent(InternalOperationStartedProgressEvent event) {
-        WorkItemOperationDescriptor descriptor = addDescriptor(event.getDescriptor(), toWorkItemDescriptor((InternalWorkItemDescriptor) event.getDescriptor()));
-        return new DefaultWorkItemStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    private WorkItemStartEvent workItemStartedEvent(InternalOperationStartedProgressEvent event, InternalWorkItemDescriptor descriptor) {
+        WorkItemOperationDescriptor workItemDescriptor = addDescriptor(event.getDescriptor(), toWorkItemDescriptor(descriptor));
+        return new DefaultWorkItemStartEvent(event.getEventTime(), event.getDisplayName(), workItemDescriptor);
     }
 
-    private StartEvent startedEvent(InternalOperationStartedProgressEvent event) {
+    private ProjectConfigurationStartEvent projectConfigurationStartedEvent(InternalOperationStartedProgressEvent event, InternalProjectConfigurationDescriptor descriptor) {
+        ProjectConfigurationOperationDescriptor projectConfigurationDescriptor = addDescriptor(event.getDescriptor(), toProjectConfigurationDescriptor(descriptor));
+        return new DefaultProjectConfigurationStartEvent(event.getEventTime(), event.getDisplayName(), projectConfigurationDescriptor);
+    }
+
+    private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {
         OperationDescriptor descriptor = addDescriptor(event.getDescriptor(), toDescriptor(event.getDescriptor()));
         return new DefaultStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
     }
@@ -284,7 +329,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultWorkItemFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toWorkItemResult(event.getResult()));
     }
 
-    private FinishEvent finishedEvent(InternalOperationFinishedProgressEvent event) {
+    private ProjectConfigurationFinishEvent projectConfigurationFinishedEvent(InternalOperationFinishedProgressEvent event) {
+        ProjectConfigurationOperationDescriptor descriptor = removeDescriptor(ProjectConfigurationOperationDescriptor.class, event.getDescriptor());
+        return new DefaultProjectConfigurationFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toProjectConfigurationResult(event.getResult()));
+    }
+
+    private FinishEvent genericFinishedEvent(InternalOperationFinishedProgressEvent event) {
         OperationDescriptor descriptor = removeDescriptor(OperationDescriptor.class, event.getDescriptor());
         return new DefaultFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toResult(event.getResult()));
     }
@@ -354,6 +404,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultWorkItemOperationDescriptor(descriptor, parent);
     }
 
+    private ProjectConfigurationOperationDescriptor toProjectConfigurationDescriptor(InternalProjectConfigurationDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        return new DefaultProjectConfigurationOperationDescriptor(descriptor, parent);
+    }
+
     private OperationDescriptor toDescriptor(InternalOperationDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         return new DefaultOperationDescriptor(descriptor, parent);
@@ -410,6 +465,16 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
             return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static ProjectConfigurationOperationResult toProjectConfigurationResult(InternalOperationResult result) {
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalFailureResult) {
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         } else {
             return null;
         }

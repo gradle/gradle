@@ -28,7 +28,7 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
-class WorkItemProgressEventCrossVersionTest extends ToolingApiSpecification {
+class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def fixture = new WorkerExecutorFixture(temporaryFolder)
 

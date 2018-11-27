@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -30,7 +31,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host()${currentHostArchitectureDsl}]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}]
             }
         """
 
@@ -82,6 +83,10 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     protected String getCurrentHostArchitectureDsl() {
         return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
+    }
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
     }
 
     protected abstract SourceElement getComponentUnderTest()

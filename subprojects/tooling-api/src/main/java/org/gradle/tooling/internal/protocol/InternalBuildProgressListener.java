@@ -43,6 +43,11 @@ public interface InternalBuildProgressListener {
     String WORK_ITEM_EXECUTION = "WORK_ITEM_EXECUTION";
 
     /**
+     * The constant for the project configuration operations.
+     */
+    String PROJECT_CONFIGURATION_EXECUTION = "PROJECT_CONFIGURATION_EXECUTION";
+
+    /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
      *
      * The event types implemented in Gradle 2.4 are:

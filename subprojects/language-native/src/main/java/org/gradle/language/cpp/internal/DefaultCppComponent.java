@@ -33,11 +33,9 @@ import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.TargetMachineFactory;
 
 import javax.inject.Inject;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
@@ -52,7 +50,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final SetProperty<TargetMachine> targetMachines;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
@@ -62,8 +60,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
-        targetMachines = objectFactory.setProperty(TargetMachine.class).empty();
-        targetMachines.set(Collections.singleton(targetMachineFactory.host()));
+        targetMachines = objectFactory.setProperty(TargetMachine.class);
     }
 
     @Override

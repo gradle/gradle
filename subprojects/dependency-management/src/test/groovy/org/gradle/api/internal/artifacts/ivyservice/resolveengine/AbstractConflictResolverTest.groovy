@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
@@ -115,7 +116,6 @@ abstract class AbstractConflictResolverTest extends Specification {
 
         }
 
-
         @Override
         String getVersion() {
             id.version
@@ -126,6 +126,15 @@ abstract class AbstractConflictResolverTest extends Specification {
         @Override
         void selectedBy(ResolvableSelectorState selectorState) {
 
+        }
+
+        @Override
+        Set<VirtualPlatformState> getPlatformOwners() {
+            Collections.emptySet()
+        }
+
+        @Override
+        VirtualPlatformState getPlatformState() {
         }
     }
 }

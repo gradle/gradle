@@ -60,7 +60,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
             }
         """
 
@@ -101,7 +101,27 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "ignores duplicate target machines"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}, machines.host()${currentHostArchitectureDsl}]
             }
         """
 
