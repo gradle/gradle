@@ -19,19 +19,23 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.internal.InjectUtil;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.util.List;
 
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
+    private final boolean requiresDependencies;
     private final Isolatable<Object[]> parameters;
     private final InstantiatorFactory instantiatorFactory;
     private final HashCode inputsHash;
@@ -39,10 +43,25 @@ public class DefaultTransformer implements Transformer {
 
     public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
+        this.requiresDependencies = hasDependenciesAmongConstructorParameters(implementationClass);
         this.parameters = parameters;
         this.instantiatorFactory = instantiatorFactory;
         this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;
+    }
+
+    private static boolean hasDependenciesAmongConstructorParameters(Class<? extends ArtifactTransform> implementation) {
+        Constructor<?> constructor = InjectUtil.selectConstructor(implementation);
+        for (Class<?> parameterType : constructor.getParameterTypes()) {
+            if (ArtifactTransformDependencies.class.equals(parameterType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean requiresDependencies() {
+        return requiresDependencies;
     }
 
     @Override
@@ -83,9 +102,15 @@ public class DefaultTransformer implements Transformer {
     }
 
     private ArtifactTransform newTransformer(ArtifactTransformDependencies artifactTransformDependencies) {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        registry.add(ArtifactTransformDependencies.class, artifactTransformDependencies);
-        return instantiatorFactory.inject(registry).newInstance(implementationClass, parameters.isolate());
+        Instantiator instantiator;
+        if (requiresDependencies) {
+            DefaultServiceRegistry registry = new DefaultServiceRegistry();
+            registry.add(ArtifactTransformDependencies.class, artifactTransformDependencies);
+            instantiator = instantiatorFactory.inject(registry);
+        } else {
+            instantiator = instantiatorFactory.inject();
+        }
+        return instantiator.newInstance(implementationClass, parameters.isolate());
     }
 
     @Override

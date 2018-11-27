@@ -35,12 +35,10 @@ public class TransformationStep implements Transformation {
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
-    private final boolean requiresDependencies;
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, boolean requiresDependencies) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
-        this.requiresDependencies = requiresDependencies;
     }
 
     @Override
@@ -67,7 +65,7 @@ public class TransformationStep implements Transformation {
 
     @Override
     public boolean requiresDependencies() {
-        return requiresDependencies;
+        return transformer.requiresDependencies();
     }
 
     @Override

@@ -35,6 +35,11 @@ public interface Transformer extends Describable {
 
     ImmutableAttributes getFromAttributes();
 
+    /**
+     * Whether the transformer requires dependencies of the transformed artifact to be injected.
+     */
+    boolean requiresDependencies();
+
     List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**
