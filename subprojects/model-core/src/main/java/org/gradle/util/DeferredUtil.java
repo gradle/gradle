@@ -25,24 +25,38 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DeferredUtil {
+
     /**
-     * Successively unpacks a path that may be deferred by a Callable or Factory
-     * until it's resolved to null or something other than a Callable or Factory.
+     * Successively unpacks a deferred value until it is resolved to null or something other than Callable
+     * then unpacks the remaining Provider or Factory.
      */
     @Nullable
-    public static Object unpack(@Nullable Object path) {
-        Object current = path;
-        while (current != null) {
-            if (current instanceof Callable) {
-                current = uncheckedCall((Callable) current);
-            } else if (current instanceof Provider) {
-                return ((Provider<?>) current).get();
-            } else if (current instanceof Factory) {
-                return ((Factory) current).create();
-            } else {
-                return current;
-            }
+    public static Object unpack(@Nullable Object deferred) {
+        if (deferred == null) {
+            return null;
         }
-        return null;
+        Object value = unpackCallables(deferred);
+        if (value instanceof Provider) {
+            return ((Provider<?>) value).get();
+        }
+        if (value instanceof Factory) {
+            return ((Factory<?>) value).create();
+        }
+        return value;
+    }
+
+    public static boolean isDeferred(Object value) {
+        return value instanceof Callable
+            || value instanceof Provider
+            || value instanceof Factory;
+    }
+
+    @Nullable
+    private static Object unpackCallables(Object deferred) {
+        Object current = deferred;
+        while (current instanceof Callable) {
+            current = uncheckedCall((Callable<?>) current);
+        }
+        return current;
     }
 }

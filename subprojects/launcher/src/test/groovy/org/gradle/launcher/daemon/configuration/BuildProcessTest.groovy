@@ -113,13 +113,13 @@ class BuildProcessTest extends Specification {
         given:
         def currentJvmOptions = new JvmOptions(fileResolver)
         currentJvmOptions.maxHeapSize = "64m"
-        def emptyRequest = buildParameters([])
+        def defaultRequest = buildParameters(null as Iterable)
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
-        !buildProcess.configureForBuild(emptyRequest)
+        !buildProcess.configureForBuild(defaultRequest)
     }
 
     def "current and requested build vm match if no arguments are requested even if the daemon defaults are applied"() {

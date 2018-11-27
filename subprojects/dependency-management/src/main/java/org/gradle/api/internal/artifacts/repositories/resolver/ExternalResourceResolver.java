@@ -479,7 +479,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                 } else {
                     result.resolved(artifactResource.getFile());
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 result.failed(new ArtifactResolveException(artifact.getId(), e));
             }
         }

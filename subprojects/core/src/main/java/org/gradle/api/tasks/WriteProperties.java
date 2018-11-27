@@ -23,6 +23,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
+import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -105,11 +106,11 @@ public class WriteProperties extends DefaultTask {
      */
     public void property(final String name, final Object value) {
         checkForNullValue(name, value);
-        if (value instanceof Callable) {
+        if (DeferredUtil.isDeferred(value)) {
             deferredProperties.put(name, new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    Object futureValue = ((Callable) value).call();
+                    Object futureValue = DeferredUtil.unpack(value);
                     checkForNullValue(name, futureValue);
                     return String.valueOf(futureValue);
                 }

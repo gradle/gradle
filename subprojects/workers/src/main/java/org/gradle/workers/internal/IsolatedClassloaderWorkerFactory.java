@@ -34,11 +34,8 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.util.GUtil;
@@ -65,23 +62,13 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker() {
+        return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, buildOperationExecutor.getCurrentOperation());
-            }
-
-            @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
                     @Override
-                    public DefaultWorkResult call(BuildOperationContext context) {
+                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         return executeInWorkerClassLoader(spec, forkOptions);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
                     }
                 });
             }

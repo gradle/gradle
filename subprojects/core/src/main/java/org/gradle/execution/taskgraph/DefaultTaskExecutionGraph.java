@@ -28,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -366,6 +367,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             was necessary, therefore the minimal change solution was implemented.
          */
         return executionPlan.getFilteredTasks();
+    }
+
+    @Override
+    public ProjectInternal getRootProject() {
+        return gradleInternal.getRootProject();
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

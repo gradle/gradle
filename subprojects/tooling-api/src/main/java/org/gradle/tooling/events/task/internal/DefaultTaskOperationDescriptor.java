@@ -20,6 +20,9 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
+import org.gradle.tooling.model.internal.Exceptions;
+
+import java.util.Set;
 
 /**
  * Implementation of the {@code TaskOperationDescriptor} interface.
@@ -27,15 +30,25 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 public final class DefaultTaskOperationDescriptor extends DefaultOperationDescriptor implements TaskOperationDescriptor {
 
     private final String taskPath;
+    private final Set<OperationDescriptor> dependencies;
 
-    public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, String taskPath, OperationDescriptor parent) {
+    public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath, Set<OperationDescriptor> dependencies) {
         super(descriptor, parent);
         this.taskPath = taskPath;
+        this.dependencies = dependencies;
     }
 
     @Override
     public String getTaskPath() {
         return taskPath;
+    }
+
+    @Override
+    public Set<? extends OperationDescriptor> getDependencies() {
+        if (dependencies == null) {
+            throw Exceptions.unsupportedMethod(TaskOperationDescriptor.class.getSimpleName() + ".getDependencies()");
+        }
+        return dependencies;
     }
 
 }

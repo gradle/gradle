@@ -546,6 +546,11 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         failures == [failure]
     }
 
+    def "returns root project"() {
+        expect:
+        taskGraph.rootProject == project
+    }
+
     def newTask(String name) {
         def mock = Mock(TaskInternal, name: name)
         _ * mock.name >> name

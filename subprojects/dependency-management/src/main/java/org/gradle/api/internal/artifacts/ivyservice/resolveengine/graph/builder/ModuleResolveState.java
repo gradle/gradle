@@ -31,6 +31,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 
@@ -58,6 +60,7 @@ class ModuleResolveState implements CandidateModule {
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    final ResolveOptimizations resolveOptimizations;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private ComponentState selected;
@@ -65,6 +68,7 @@ class ModuleResolveState implements CandidateModule {
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
+    private Set<VirtualPlatformState> platformOwners;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -73,7 +77,8 @@ class ModuleResolveState implements CandidateModule {
                        ImmutableAttributesFactory attributesFactory,
                        Comparator<Version> versionComparator,
                        VersionParser versionParser,
-                       SelectorStateResolver<ComponentState> selectorStateResolver) {
+                       SelectorStateResolver<ComponentState> selectorStateResolver,
+                       ResolveOptimizations resolveOptimizations) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -81,12 +86,24 @@ class ModuleResolveState implements CandidateModule {
         this.attributesFactory = attributesFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.resolveOptimizations = resolveOptimizations;
         this.pendingDependencies = new PendingDependencies();
         this.selectorStateResolver = selectorStateResolver;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
         this.selectorStateResolver = selectorStateResolver;
+    }
+
+    void registerPlatformOwner(VirtualPlatformState owner) {
+        if (platformOwners == null) {
+            platformOwners = Sets.newHashSetWithExpectedSize(1);
+        }
+        platformOwners.add(owner);
+    }
+
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return platformOwners == null ? Collections.emptySet() : platformOwners;
     }
 
     @Override
@@ -306,7 +323,7 @@ class ModuleResolveState implements CandidateModule {
 
     VirtualPlatformState getPlatformState() {
         if (platformState == null) {
-            platformState = new VirtualPlatformState(versionComparator, versionParser, this);
+            platformState = new VirtualPlatformState(versionComparator, versionParser, this, resolveOptimizations);
         }
         return platformState;
     }
@@ -353,17 +370,6 @@ class ModuleResolveState implements CandidateModule {
         return false;
     }
 
-    boolean hasCompetingForceSelectors() {
-        if (selectors.size() > 1) {
-            for (SelectorState selector : selectors) {
-                if (selector.isForce() && !selector.getRequested().matchesStrictly(selected.getComponentId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadata() == null) {
@@ -371,5 +377,23 @@ class ModuleResolveState implements CandidateModule {
                 componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
+    }
+
+    String maybeFindForcedPlatformVersion() {
+        ComponentState selected = getSelected();
+        for (NodeState node : selected.getNodes()) {
+            if (node.isSelected()) {
+                for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                    DependencyMetadata dependencyMetadata = incomingEdge.getDependencyMetadata();
+                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata) && dependencyMetadata instanceof ForcingDependencyMetadata) {
+                        if (((ForcingDependencyMetadata) dependencyMetadata).isForce()) {
+                            return selected.getVersion();
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

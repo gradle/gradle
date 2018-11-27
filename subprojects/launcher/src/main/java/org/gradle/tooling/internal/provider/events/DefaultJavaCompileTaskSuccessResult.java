@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult implements InternalJavaCompileTaskSuccessResult {
+public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult implements InternalJavaCompileTaskOperationResult {
 
     private final List<InternalAnnotationProcessorResult> annotationProcessorResults;
 

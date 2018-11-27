@@ -19,12 +19,10 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publication.maven.internal.action.MavenInstallAction;
-import org.gradle.internal.Factory;
-import org.gradle.internal.logging.LoggingManagerInternal;
 
 public class MavenLocalPublisher extends AbstractMavenPublisher {
-    public MavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(loggingManagerFactory, mavenRepositoryLocator);
+    public MavenLocalPublisher(LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        super(mavenRepositoryLocator);
     }
 
     @Override

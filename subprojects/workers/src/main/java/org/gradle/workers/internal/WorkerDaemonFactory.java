@@ -17,10 +17,7 @@
 package org.gradle.workers.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.workers.IsolationMode;
 
@@ -39,37 +36,28 @@ public class WorkerDaemonFactory implements WorkerFactory {
 
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker() {
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-                WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
-                if (client == null) {
-                    client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
-                }
-
+        return new AbstractWorker(buildOperationExecutor) {
+            @Override
+            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+                final WorkerDaemonClient client = reserveClient();
                 try {
-                    return executeInClient(client, spec, parentBuildOperation);
+                    return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
+                        @Override
+                        public DefaultWorkResult execute(ActionExecutionSpec spec) {
+                            return client.execute(spec);
+                        }
+                    });
                 } finally {
                     clientsManager.release(client);
                 }
             }
 
-            @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, buildOperationExecutor.getCurrentOperation());
-            }
-
-            private DefaultWorkResult executeInClient(final WorkerDaemonClient client, final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                    @Override
-                    public DefaultWorkResult call(BuildOperationContext context) {
-                        return client.execute(spec);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                    }
-                });
+            private WorkerDaemonClient reserveClient() {
+                WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
+                if (client == null) {
+                    client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
+                }
+                return client;
             }
         };
     }

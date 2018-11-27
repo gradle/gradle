@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -257,8 +258,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
     }
 
-    def "generates events for worker actions"() {
-        given:
+    @TargetGradleVersion('>=3.5 <5.1')
+    def "generates events for worker actions (pre 5.1)"() {
+        expect:
+        runBuildWithWorkerAction() != null
+    }
+
+    @ToolingApiVersion('>=5.1')
+    def "generates events for worker actions (post 5.1)"() {
+        expect:
+        runBuildWithWorkerAction() != null
+    }
+
+    private ProgressEvents.Operation runBuildWithWorkerAction() {
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
             import org.gradle.workers.*
@@ -277,7 +289,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             }
         """.stripIndent()
 
-        when:
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
@@ -287,10 +298,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                     .run()
         }
 
-        then:
         events.assertIsABuild()
-
-        and:
         events.operation('Task :runInWorker').descendant('My Worker Action')
     }
 

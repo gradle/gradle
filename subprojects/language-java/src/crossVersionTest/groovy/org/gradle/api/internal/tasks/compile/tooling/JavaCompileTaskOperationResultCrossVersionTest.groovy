@@ -23,14 +23,15 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSuccessResult
-import org.gradle.tooling.events.task.java.JavaCompileTaskSuccessResult
+import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
 
 import java.time.Duration
 
-import static org.gradle.tooling.events.task.java.JavaCompileTaskSuccessResult.AnnotationProcessorResult.Type.ISOLATING
+import static org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.ISOLATING
 
 @ToolingApiVersion('>=5.1')
-class JavaCompileTaskSuccessResultCrossVersionTest extends ToolingApiSpecification {
+@TargetGradleVersion('>=4.6')
+class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 
     void setup() {
         settingsFile << """
@@ -63,8 +64,8 @@ class JavaCompileTaskSuccessResultCrossVersionTest extends ToolingApiSpecificati
         then:
         def operation = events.operation("Task :compileJava")
         operation.task
-        operation.result instanceof JavaCompileTaskSuccessResult
-        with((JavaCompileTaskSuccessResult) operation.result) {
+        operation.result instanceof JavaCompileTaskOperationResult
+        with((JavaCompileTaskOperationResult) operation.result) {
             annotationProcessorResults.size() == 1
             with(annotationProcessorResults.first()) {
                 className == 'HelperProcessor'
@@ -76,11 +77,11 @@ class JavaCompileTaskSuccessResultCrossVersionTest extends ToolingApiSpecificati
         and:
         def processorOperation = events.operation("Task :processor:compileJava")
         processorOperation.task
-        processorOperation.result instanceof JavaCompileTaskSuccessResult
-        ((JavaCompileTaskSuccessResult) processorOperation.result).annotationProcessorResults.empty
+        processorOperation.result instanceof JavaCompileTaskOperationResult
+        ((JavaCompileTaskOperationResult) processorOperation.result).annotationProcessorResults.empty
     }
 
-    @TargetGradleVersion("<5.1")
+    @TargetGradleVersion(">=4.6 <5.1")
     def "reports regular success result for older Gradle versions"() {
         when:
         def events = runBuild("compileJava")
@@ -89,7 +90,7 @@ class JavaCompileTaskSuccessResultCrossVersionTest extends ToolingApiSpecificati
         def operation = events.operation("Task :compileJava")
         operation.task
         operation.result instanceof TaskSuccessResult
-        !(operation.result instanceof JavaCompileTaskSuccessResult)
+        !(operation.result instanceof JavaCompileTaskOperationResult)
     }
 
     private ProgressEvents runBuild(task) {

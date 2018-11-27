@@ -17,19 +17,21 @@
 package org.gradle.tooling.events.task.java;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.task.TaskSuccessResult;
+import org.gradle.tooling.events.task.TaskOperationResult;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 
 /**
- * Describes the successful result of a {@code JavaCompile} task.
+ * Describes the result of a {@code JavaCompile} task.
+ *
+ * <p>Currently, this result is only reported for successful tasks.
  *
  * @since 5.1
  */
 @Incubating
-public interface JavaCompileTaskSuccessResult extends TaskSuccessResult {
+public interface JavaCompileTaskOperationResult extends TaskOperationResult {
 
     /**
      * Returns results of used annotation processors, if available.

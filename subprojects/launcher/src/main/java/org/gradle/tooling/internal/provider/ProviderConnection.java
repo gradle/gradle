@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
@@ -42,6 +44,7 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
@@ -70,9 +73,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -304,31 +311,58 @@ public class ProviderConnection {
         }
     }
 
-    private static final class ProgressListenerConfiguration {
+    @VisibleForTesting
+    static final class ProgressListenerConfiguration {
+
+        private static final Map<String, OperationType> OPERATION_TYPE_MAPPING = ImmutableMap.<String, OperationType>builderWithExpectedSize(OperationType.values().length)
+            .put(InternalBuildProgressListener.TEST_EXECUTION, OperationType.TEST)
+            .put(InternalBuildProgressListener.TASK_EXECUTION, OperationType.TASK)
+            .put(InternalBuildProgressListener.WORK_ITEM_EXECUTION, OperationType.WORK_ITEM)
+            .put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION)
+            .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
+            .build();
+
         private final BuildClientSubscriptions clientSubscriptions;
         private final FailsafeBuildProgressListenerAdapter failsafeWrapper;
         private final BuildEventConsumer buildEventConsumer;
 
-        public ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
+        ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer, FailsafeBuildProgressListenerAdapter failsafeWrapper) {
             this.clientSubscriptions = clientSubscriptions;
             this.buildEventConsumer = buildEventConsumer;
             this.failsafeWrapper = failsafeWrapper;
         }
 
-        private static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
+        @VisibleForTesting
+        BuildClientSubscriptions getClientSubscriptions() {
+            return clientSubscriptions;
+        }
+
+        @VisibleForTesting
+        static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
-            boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-            boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
-            boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-            BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+            Set<OperationType> operationTypes = toOperationTypes(buildProgressListener);
+            BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter wrapper = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
-            BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+            BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
                 // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode
                 // Need to apply some synchronization when in embedded mode
                 buildEventConsumer = new SynchronizedConsumer(buildEventConsumer);
             }
             return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, wrapper);
+        }
+
+        private static Set<OperationType> toOperationTypes(InternalBuildProgressListener buildProgressListener) {
+            if (buildProgressListener != null) {
+                Set<OperationType> operationTypes = EnumSet.noneOf(OperationType.class);
+                for (String operation : buildProgressListener.getSubscribedOperations()) {
+                    if (OPERATION_TYPE_MAPPING.containsKey(operation)) {
+                        operationTypes.add(OPERATION_TYPE_MAPPING.get(operation));
+                    }
+                }
+                return operationTypes;
+            }
+            return emptySet();
         }
 
         private static class SynchronizedConsumer implements BuildEventConsumer {

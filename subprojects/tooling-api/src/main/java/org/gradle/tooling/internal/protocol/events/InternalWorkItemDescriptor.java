@@ -16,34 +16,14 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
-import javax.annotation.Nullable;
-import java.time.Duration;
-import java.util.List;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 5.1
  */
-public interface InternalJavaCompileTaskSuccessResult extends InternalTaskSuccessResult {
-
-    @Nullable
-    List<InternalAnnotationProcessorResult> getAnnotationProcessorResults();
-
-    interface InternalAnnotationProcessorResult extends InternalProtocolInterface {
-
-        String TYPE_ISOLATING = "ISOLATING";
-        String TYPE_AGGREGATING = "AGGREGATING";
-        String TYPE_UNKNOWN = "UNKNOWN";
-
-        String getClassName();
-
-        String getType();
-
-        Duration getDuration();
-
-    }
-
+public interface InternalWorkItemDescriptor extends InternalOperationDescriptor {
+    /**
+     * Returns the fully-qualified class name of work item's action.
+     */
+    String getClassName();
 }
