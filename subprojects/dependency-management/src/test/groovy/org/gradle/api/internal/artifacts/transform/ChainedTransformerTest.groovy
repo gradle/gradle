@@ -33,7 +33,6 @@ class ChainedTransformerTest extends Specification {
 
     class CachingTransformation implements Transformation {
 
-
         @Override
         TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
             return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "cached")))
@@ -43,7 +42,6 @@ class ChainedTransformerTest extends Specification {
         boolean requiresDependencies() {
             return false
         }
-
 
         @Override
         String getDisplayName() {
@@ -66,7 +64,6 @@ class ChainedTransformerTest extends Specification {
         boolean requiresDependencies() {
             return false
         }
-
 
         @Override
         String getDisplayName() {

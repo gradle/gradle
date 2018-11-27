@@ -89,5 +89,4 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         // To allow file transformations to run in parallel, we use the BuildOperationQueue.
         actions.add(operation);
     }
-
 }
