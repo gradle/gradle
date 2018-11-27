@@ -37,26 +37,26 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T>, HasPublicType {
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
-        super(type, instantiator, namer, domainObjectCollectioncallbackActionDecorator);
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
     }
 
     /**
-     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
+     * TODO: remove when all implementations ported to use a CollectionCallbackActionDecorator
      * */
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, DomainObjectCollectionCallbackActionDecorator.NOOP);
+        this(type, instantiator, namer, CollectionCallbackActionDecorator.NOOP);
     }
 
     /**
-     * TODO: remove when all implementations ported to use a DomainObjectCollectionCallbackActionDecorator
+     * TODO: remove when all implementations ported to use a CollectionCallbackActionDecorator
      * */
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, DomainObjectCollectionCallbackActionDecorator.NOOP);
+        this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
     }
 
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
     }
 
@@ -126,7 +126,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     protected NamedDomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
         assertCanAdd(name);
         NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), getCallbackActionDecorator().decorate(configurationAction))
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), getEventRegister().getDecorator().decorate(configurationAction))
         );
         addLater(provider);
         return provider;

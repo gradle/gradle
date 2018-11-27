@@ -38,7 +38,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -98,7 +98,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
-    def domainObjectCollectioncallbackActionDecorator = Mock(DomainObjectCollectionCallbackActionDecorator)
+    def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {

@@ -17,8 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DefaultDomainObjectCollectionCallbackActionDecorator;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -116,8 +116,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return buildOperationNotificationBridge.getValve();
     }
 
-    DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-        return services.get(DomainObjectCollectionCallbackActionDecorator.class);
+    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+        return services.get(CollectionCallbackActionDecorator.class);
     }
 
     @Override
@@ -174,8 +174,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
 
-        DomainObjectCollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return Boolean.getBoolean(DomainObjectCollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE) ? new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext) : DomainObjectCollectionCallbackActionDecorator.NOOP;
+        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return Boolean.getBoolean(CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE) ? new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext) : CollectionCallbackActionDecorator.NOOP;
         }
     }
 }

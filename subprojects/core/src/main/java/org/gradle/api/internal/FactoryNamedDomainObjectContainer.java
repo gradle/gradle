@@ -101,7 +101,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
 
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), getCallbackActionDecorator(), crossProjectConfiguratorMutationGuard);
+        return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), crossProjectConfiguratorMutationGuard);
     }
 
     @Override

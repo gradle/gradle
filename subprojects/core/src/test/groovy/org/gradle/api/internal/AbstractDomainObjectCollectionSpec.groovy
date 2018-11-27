@@ -42,7 +42,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
-    DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = new DefaultDomainObjectCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext)
+    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()
 
@@ -73,6 +73,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     void containerAllowsExternalProviders() {
         Assume.assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
+    }
+
+    void containerSupportsBuildOperations() {
+        Assume.assumeTrue("the container doesn't support build operations", isSupportsBuildOperations())
     }
 
     Class<? extends DomainObjectCollection<T>> getContainerPublicType() {
@@ -129,14 +133,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         and:
         container.size() == 1
         !container.empty
-
-        when:
-        if (!supportsBuildOperations) {
-            return
-        }
-
-        then:
-        buildOperationExecutor.log.records.empty
     }
 
     def "elements added using provider of iterable are not realized when added"() {
@@ -1665,9 +1661,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "fires build operation when emitting added callback and reestablishes user code context"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         UserCodeApplicationId id1 = null
         userCodeApplicationContext.apply {
@@ -1706,9 +1700,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "does not fire build operation if callback is filtered out by type"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         userCodeApplicationContext.apply {
             container.withType(otherType).whenObjectAdded {
@@ -1725,9 +1717,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "does not fire build operation if callback is filtered out by condition"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         userCodeApplicationContext.apply {
             container.matching { !it.is(a) }.whenObjectAdded {
@@ -1744,9 +1734,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "fires build operation for existing elements"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         container.add(a)
         container.add(b)
@@ -1771,9 +1759,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "does not fire op if no user code application id"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         when:
         def ids = []
@@ -1790,9 +1776,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "handles nested listener registration"() {
         given:
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         when:
         UserCodeApplicationId id1 = null

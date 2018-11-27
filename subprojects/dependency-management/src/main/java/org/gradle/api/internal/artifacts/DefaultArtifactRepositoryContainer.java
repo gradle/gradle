@@ -23,8 +23,8 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.Actions;
@@ -41,7 +41,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
     };
 
-    public DefaultArtifactRepositoryContainer(Instantiator instantiator, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultArtifactRepositoryContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
         whenObjectAdded(new InternalAction<ArtifactRepository>() {
             public void execute(ArtifactRepository artifactRepository) {

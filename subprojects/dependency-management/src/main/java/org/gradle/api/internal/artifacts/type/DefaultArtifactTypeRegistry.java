@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.type;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -35,10 +35,10 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final Instantiator instantiator;
     private final ImmutableAttributesFactory attributesFactory;
-    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
+    private CollectionCallbackActionDecorator callbackActionDecorator;
     private ArtifactTypeContainer artifactTypeDefinitions;
 
-    public DefaultArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.callbackActionDecorator = callbackActionDecorator;

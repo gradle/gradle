@@ -42,13 +42,13 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
 
     private final DefaultDomainObjectSet<T> backingSet;
-    private final DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
+    private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
-        return create(type, DomainObjectCollectionCallbackActionDecorator.NOOP, collections);
+        return create(type, CollectionCallbackActionDecorator.NOOP, collections);
     }
 
-    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
+    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
         DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
@@ -57,7 +57,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         return out;
     }
 
-    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(backingSet);
         this.backingSet = backingSet;
         this.callbackActionDecorator = callbackActionDecorator;

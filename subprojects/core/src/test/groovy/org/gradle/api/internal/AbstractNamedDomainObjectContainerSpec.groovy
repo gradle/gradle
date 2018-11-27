@@ -83,9 +83,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
     }
 
     def "deferred configuration methods emit operations"() {
-        if (!supportsBuildOperations) {
-            return
-        }
+        containerSupportsBuildOperations()
 
         when:
         setupContainerDefaults()

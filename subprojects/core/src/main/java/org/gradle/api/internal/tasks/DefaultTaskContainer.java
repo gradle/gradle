@@ -29,7 +29,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
@@ -103,8 +103,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 TaskStatistics statistics,
                                 BuildOperationExecutor buildOperationExecutor,
                                 CrossProjectConfigurator crossProjectConfigurator,
-                                DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
-        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), domainObjectCollectioncallbackActionDecorator);
+                                CollectionCallbackActionDecorator callbackDecorator) {
+        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), callbackDecorator);
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;

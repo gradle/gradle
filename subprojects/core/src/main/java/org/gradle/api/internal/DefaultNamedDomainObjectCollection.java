@@ -79,7 +79,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Set<String> applyingRulesFor = new HashSet<String>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -93,16 +93,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
-        super(type, store, eventRegister, callbackActionDecorator);
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
+        super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = index;
     }
 
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, DomainObjectCollectionCallbackActionDecorator callbackActionDecorator) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer, callbackActionDecorator);
+    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer);
     }
 
     @Override
@@ -236,7 +236,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      * Creates a filtered version of this collection.
      */
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer, getCallbackActionDecorator());
+        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
     }
 
     public String getDisplayName() {
@@ -879,7 +879,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public void configure(final Action<? super I> action) {
             assertMutable("NamedDomainObjectProvider.configure(Action)");
             Action<? super I> wrappedAction = withMutationDisabled(action);
-            Action<? super I> decoratedAction = getCallbackActionDecorator().decorate(wrappedAction);
+            Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
 
             if (object != null) {
                 // Already realized, just run the action now

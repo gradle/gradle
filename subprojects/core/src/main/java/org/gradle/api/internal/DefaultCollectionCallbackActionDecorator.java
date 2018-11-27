@@ -27,11 +27,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
 
-public class DefaultDomainObjectCollectionCallbackActionDecorator implements DomainObjectCollectionCallbackActionDecorator {
+public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultDomainObjectCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }

@@ -15,19 +15,17 @@
  */
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-/**
- * @param T filtered type
- */
-public class CollectionFilter<T> implements Spec<T> {
+public class CollectionFilter<T> implements Spec<Object> {
 
     private Class<? extends T> type;
     private Spec<? super T> spec;
 
     public CollectionFilter(Class<T> type) {
-        this(type, Specs.<T>satisfyAll());
+        this(type, Specs.satisfyAll());
     }
 
     public CollectionFilter(Class<? extends T> type, Spec<? super T> spec) {
@@ -52,7 +50,19 @@ public class CollectionFilter<T> implements Spec<T> {
         }
     }
 
-    public boolean isSatisfiedBy(T element) {
+    public Action<Object> filtered(final Action<? super T> action) {
+        return new Action<Object>() {
+            @Override
+            public void execute(Object o) {
+                T t = filter(o);
+                if (t != null) {
+                    action.execute(t);
+                }
+            }
+        };
+    }
+
+    public boolean isSatisfiedBy(Object element) {
         return filter(element) != null;
     }
 

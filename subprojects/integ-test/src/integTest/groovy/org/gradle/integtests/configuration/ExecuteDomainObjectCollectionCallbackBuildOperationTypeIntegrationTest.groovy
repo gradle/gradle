@@ -17,7 +17,7 @@
 package org.gradle.integtests.configuration
 
 
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
@@ -37,7 +37,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
     def setup() {
         executer.beforeExecute {
-            withArgument("-D${DomainObjectCollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
+            withArgument("-D${CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
         }
     }
 

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -60,7 +60,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator = Mock()
+    private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()

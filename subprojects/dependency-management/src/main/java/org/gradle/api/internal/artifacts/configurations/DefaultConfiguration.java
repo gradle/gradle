@@ -51,10 +51,10 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -210,7 +210,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ProjectStateRegistry projectStateRegistry;
 
     private final DisplayName displayName;
-    private DomainObjectCollectionCallbackActionDecorator callbackActionDecorator;
+    private CollectionCallbackActionDecorator callbackActionDecorator;
     private UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
@@ -231,10 +231,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
                                 ProjectStateRegistry projectStateRegistry,
                                 DocumentationRegistry documentationRegistry,
-                                DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator,
+                                CollectionCallbackActionDecorator callbackDecorator,
                                 UserCodeApplicationContext userCodeApplicationContext
     ) {
-        this.callbackActionDecorator = domainObjectCollectioncallbackActionDecorator;
+        this.callbackActionDecorator = callbackDecorator;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
@@ -262,15 +262,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
-        this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class, domainObjectCollectioncallbackActionDecorator);
+        this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class, callbackDecorator);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
-        this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class, domainObjectCollectioncallbackActionDecorator);
+        this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class, callbackDecorator);
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
-        this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class, domainObjectCollectioncallbackActionDecorator);
+        this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class, callbackDecorator);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);

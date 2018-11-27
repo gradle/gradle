@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -280,8 +280,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 objectFactory);
         }
 
-        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator) {
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, domainObjectCollectioncallbackActionDecorator);
+        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
@@ -293,7 +293,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     DocumentationRegistry documentationRegistry,
-                                                                    DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator,
+                                                                    CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
@@ -316,7 +316,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 dependencyLockingProvider,
                 projectStateRegistry,
                 documentationRegistry,
-                domainObjectCollectioncallbackActionDecorator,
+                callbackDecorator,
                 userCodeApplicationContext
             );
         }
@@ -329,7 +329,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return null;
         }
 
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, DomainObjectCollectionCallbackActionDecorator decorator) {
+        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator decorator) {
             return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator);
         }
 
@@ -480,8 +480,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public RepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = services.get(Instantiator.class);
             BaseRepositoryFactory baseRepositoryFactory = services.get(BaseRepositoryFactory.class);
-            DomainObjectCollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator = services.get(DomainObjectCollectionCallbackActionDecorator.class);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, domainObjectCollectioncallbackActionDecorator);
+            CollectionCallbackActionDecorator callbackDecorator = services.get(CollectionCallbackActionDecorator.class);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
         public ArtifactPublisher createArtifactPublisher() {

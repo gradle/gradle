@@ -20,14 +20,14 @@ import org.gradle.api.Action;
 
 import javax.annotation.Nullable;
 
-public interface DomainObjectCollectionCallbackActionDecorator {
+public interface CollectionCallbackActionDecorator {
 
     String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
 
     @Nullable
     <T> Action<T> decorate(@Nullable Action<T> action);
 
-    DomainObjectCollectionCallbackActionDecorator NOOP = new DomainObjectCollectionCallbackActionDecorator() {
+    CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
         @Override
         public <T> Action<T> decorate(@Nullable Action<T> action) {
             return action;

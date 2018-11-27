@@ -21,7 +21,7 @@ import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DomainObjectCollectionCallbackActionDecorator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -125,7 +125,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         parent.get(CrossProjectConfigurator) >> Mock(CrossProjectConfigurator)
         parent.get(ProjectStateRegistry) >> Mock(ProjectStateRegistry)
-        parent.get(DomainObjectCollectionCallbackActionDecorator) >> Mock(DomainObjectCollectionCallbackActionDecorator)
+        parent.get(CollectionCallbackActionDecorator) >> Mock(CollectionCallbackActionDecorator)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 
