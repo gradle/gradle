@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.impl.steps.UpToDateResult
@@ -36,8 +34,9 @@ import spock.lang.Specification
 
 class TransformerInvokerTest extends Specification {
 
-    def dependencies = Stub(ArtifactTransformDependencies) {
-        getFiles() >> ImmutableFileCollection.of()
+    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+        getFiles() >> []
+        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
     def transformer = Mock(Transformer)
     def sourceSubject = Mock(TransformationSubject)

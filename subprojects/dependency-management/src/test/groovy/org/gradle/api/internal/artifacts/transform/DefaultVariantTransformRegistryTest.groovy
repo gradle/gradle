@@ -18,15 +18,14 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -47,8 +46,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def dependencies = Stub(ArtifactTransformDependencies) {
-        getFiles() >> ImmutableFileCollection.of()
+    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+        getFiles() >> []
+        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
     def dependenciesProvider = Stub(ArtifactTransformDependenciesProvider) {
         forAttributes(_ as ImmutableAttributes) >> dependencies
@@ -328,7 +328,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     private void runTransformer(File input) {
-        1 * transformerInvoker.invoke(_ as Transformer, input, _ as ArtifactTransformDependencies, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject ->
+        1 * transformerInvoker.invoke(_ as Transformer, input, _ as ArtifactTransformDependenciesInternal, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject ->
             return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, dependencies)) }
         }
     }

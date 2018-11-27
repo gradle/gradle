@@ -35,4 +35,9 @@ public abstract class AbstractPathOnlyFileCollectionFingerprinter extends Abstra
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         return super.fingerprint(files, fingerprintingStrategy);
     }
+
+    @Override
+    public CurrentFileCollectionFingerprint empty() {
+        return fingerprintingStrategy.getEmptyFingerprint();
+    }
 }

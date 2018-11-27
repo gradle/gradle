@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
+        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File primaryInput : primaryInputs) {
             Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
@@ -74,7 +73,7 @@ public class TransformationStep implements Transformation {
             return true;
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependencies dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
+        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
         for (File primaryInput : primaryInputs) {
             if (!transformerInvoker.hasCachedResult(transformer, primaryInput, dependencies)) {
                 return false;

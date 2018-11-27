@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -56,7 +55,6 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -96,14 +94,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies) {
-        CurrentFileCollectionFingerprint dependenciesFingerprint = getDependenciesFingerprint(dependencies);
+    public boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies) {
+        CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         return historyRepository.hasCachedResult(getImmutableTransformationIdentity(primaryInput, transformer, dependenciesFingerprint));
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
-        CurrentFileCollectionFingerprint dependenciesFingerprint = getDependenciesFingerprint(dependencies);
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject) {
+        CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         TransformationIdentity identity = getImmutableTransformationIdentity(primaryInput, transformer, dependenciesFingerprint);
         return historyRepository.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
@@ -125,10 +123,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return execution.getResult(outcome);
             });
         }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
-    }
-
-    private CurrentFileCollectionFingerprint getDependenciesFingerprint(ArtifactTransformDependencies dependencies) {
-        return dependencyFingerprinter.fingerprint((FileCollection) dependencies.getFiles());
     }
 
     private Exception wrapInTransformInvocationException(Class<? extends ArtifactTransform> transformerType, File primaryInput, Throwable originalFailure) {
@@ -171,7 +165,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File resultsFile;
         private final String identityString;
         private final TransformerExecutionHistoryRepository historyRepository;
-        private final ArtifactTransformDependencies dependencies;
+        private final ArtifactTransformDependenciesInternal dependencies;
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final OutputFileCollectionFingerprinter outputFingerprinter;
@@ -184,8 +178,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             TransformerExecutionHistoryRepository historyRepository,
             File primaryInput,
             CurrentFileCollectionFingerprint primaryInputFingerprint,
-            ArtifactTransformDependencies dependencies,
-            @Nullable CurrentFileCollectionFingerprint dependenciesFingerprint,
+            ArtifactTransformDependenciesInternal dependencies,
+            CurrentFileCollectionFingerprint dependenciesFingerprint,
             OutputFileCollectionFingerprinter outputFingerprinter
         ) {
             this.implementationSnapshot = implementationSnapshot;
@@ -206,13 +200,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createInputFileFingerprints(
             CurrentFileCollectionFingerprint primaryInputFingerprint,
-            @Nullable CurrentFileCollectionFingerprint dependenciesFingerprint
+            CurrentFileCollectionFingerprint dependenciesFingerprint
         ) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             builder.put(PRIMARY_INPUT_PROPERTY_NAME, primaryInputFingerprint);
-            if (dependenciesFingerprint != null) {
-                builder.put(DEPENDENCIES_PROPERTY_NAME, dependenciesFingerprint);
-            }
+            builder.put(DEPENDENCIES_PROPERTY_NAME, dependenciesFingerprint);
             return builder.build();
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -24,27 +25,33 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
+import java.io.File;
 import java.util.Set;
 
 class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
-    private static final ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
+    private static final ArtifactTransformDependenciesInternal EMPTY_DEPENDENCIES = new ArtifactTransformDependenciesInternal() {
         @Override
-        public FileCollection getFiles() {
-            return ImmutableFileCollection.of();
+        public Iterable<File> getFiles() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
+            return fingerprinter.empty();
         }
     };
 
     static final ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
         @Override
-        public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
+        public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
             return EMPTY_DEPENDENCIES;
         }
     };
@@ -64,7 +71,7 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
     }
 
     @Override
-    public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
+    public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
         ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
         Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
         for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {

@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
-interface ArtifactTransformDependenciesProvider {
-    ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes);
+public interface ArtifactTransformDependenciesInternal extends ArtifactTransformDependencies {
+    CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter);
 }
