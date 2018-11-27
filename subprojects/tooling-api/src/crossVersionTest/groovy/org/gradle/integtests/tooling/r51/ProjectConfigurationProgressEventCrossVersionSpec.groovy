@@ -233,6 +233,22 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         result.plugin.uri == scriptUri
     }
 
+    def "ignores non-project plugins"() {
+        given:
+        file("build.gradle") << """
+            apply(plugin: MyPlugin, to: gradle)
+            class MyPlugin implements Plugin<Gradle> {
+                void apply(Gradle gradle) {}
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        getPluginConfigurationOperationResult(":").getPluginConfigurationResults().findAll { it.plugin.displayName.contains("MyPlugin") }.empty
+    }
+
     void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
         with(containsPluginConfigurationResultsForJavaPlugin(displayName)) {
             def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }

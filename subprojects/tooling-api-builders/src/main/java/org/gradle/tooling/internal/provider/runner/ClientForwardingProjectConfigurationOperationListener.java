@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
@@ -65,6 +66,8 @@ import static java.util.stream.Collectors.toCollection;
  * @since 2.5
  */
 class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilteringBuildOperationListener<ConfigureProjectBuildOperationType.Details> {
+
+    private static final String PROJECT_TARGET_TYPE = "project";
 
     private final Map<OperationIdentifier, ProjectConfigurationResult> results = new ConcurrentHashMap<>();
 
@@ -86,10 +89,10 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         if (isEnabled() && results.containsKey(buildOperation.getId())) {
             if (buildOperation.getDetails() instanceof ApplyPluginBuildOperationType.Details) {
                 ApplyPluginBuildOperationType.Details details = (ApplyPluginBuildOperationType.Details) buildOperation.getDetails();
-                incrementDuration(buildOperation, details.getApplicationId(), finishEvent, toBinaryPluginIdentifier(details));
+                incrementDuration(buildOperation, details.getTargetType(), details.getApplicationId(), finishEvent, () -> toBinaryPluginIdentifier(details));
             } else if (buildOperation.getDetails() instanceof ApplyScriptPluginBuildOperationType.Details) {
                 ApplyScriptPluginBuildOperationType.Details details = (ApplyScriptPluginBuildOperationType.Details) buildOperation.getDetails();
-                incrementDuration(buildOperation, details.getApplicationId(), finishEvent, toScriptPluginIdentifier(details));
+                incrementDuration(buildOperation, details.getTargetType(), details.getApplicationId(), finishEvent, () -> toScriptPluginIdentifier(details));
             }
             results.remove(buildOperation.getId());
         }
@@ -128,9 +131,12 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         return null;
     }
 
-    private void incrementDuration(BuildOperationDescriptor buildOperation, long applicationId, OperationFinishEvent finishEvent, InternalPluginIdentifier plugin) {
-        if (plugin != null) {
-            results.get(buildOperation.getId()).increment(plugin, applicationId, finishEvent.getEndTime() - finishEvent.getStartTime());
+    private void incrementDuration(BuildOperationDescriptor buildOperation, String targetType, long applicationId, OperationFinishEvent finishEvent, Supplier<? extends InternalPluginIdentifier> pluginSupplier) {
+        if (PROJECT_TARGET_TYPE.equals(targetType)) {
+            InternalPluginIdentifier plugin = pluginSupplier.get();
+            if (plugin != null) {
+                results.get(buildOperation.getId()).increment(plugin, applicationId, finishEvent.getEndTime() - finishEvent.getStartTime());
+            }
         }
     }
 
