@@ -17,10 +17,11 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
-import org.gradle.configuration.internal.TestUserCodeApplicationContext
+import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -36,7 +37,7 @@ class DefaultPluginContainerTest extends Specification {
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def target = Mock(PluginTarget)
     def instantiator = DirectInstantiator.INSTANCE
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext())
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP)
 
     @Subject
     def container = pluginManager.pluginContainer

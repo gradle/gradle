@@ -51,6 +51,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     @Unroll
     "gracefully succeeds without capturing scan with unsupported version #version"() {
         when:
+
         usePluginVersion version
 
         and:

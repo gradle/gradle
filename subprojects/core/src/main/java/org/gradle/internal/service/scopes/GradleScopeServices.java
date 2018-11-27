@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.Action;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -224,9 +225,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator) {
         PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator);
     }
 
     FileContentCacheFactory createFileContentCacheFactory(FileContentCacheFactory globalCacheFactory, ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle, WellKnownFileLocations wellKnownFileLocations) {

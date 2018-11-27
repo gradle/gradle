@@ -40,21 +40,27 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
+
     private final DefaultDomainObjectSet<T> backingSet;
+    private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
-        //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>());
-        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
+        return create(type, CollectionCallbackActionDecorator.NOOP, collections);
+    }
+
+    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }
         return out;
     }
 
-    CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet) {
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(backingSet);
-        this.backingSet = backingSet; //TODO SF try avoiding keeping this state here
+        this.backingSet = backingSet;
+        this.callbackActionDecorator = callbackActionDecorator;
     }
 
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
@@ -94,7 +100,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited(collection);
-            collection.all(new Action<T>() {
+            collection.all(new InternalAction<T>() {
                 @Override
                 public void execute(T t) {
                     backingSet.getEventRegister().fireObjectAdded(t);
@@ -139,9 +145,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public void all(Action<? super T> action) {
         //calling overloaded method with extra behavior:
         whenObjectAdded(action);
-
         for (T t : this) {
-            action.execute(t);
+            callbackActionDecorator.decorate(action).execute(t);
         }
     }
 

@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
 import javax.annotation.Nullable;
 
-/**
- * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
- */
-public interface UserCodeApplicationContext {
+public interface CollectionCallbackActionDecorator {
 
-    void apply(Action<? super UserCodeApplicationId> action);
-
-    void reapply(UserCodeApplicationId id, Runnable runnable);
-
-    <T> Action<T> decorateWithCurrent(Action<T> action);
+    String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
 
     @Nullable
-    UserCodeApplicationId current();
+    <T> Action<T> decorate(@Nullable Action<T> action);
+
+    CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
+        @Override
+        public <T> Action<T> decorate(@Nullable Action<T> action) {
+            return action;
+        }
+    };
 }

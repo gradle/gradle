@@ -38,6 +38,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -59,6 +60,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
 import org.gradle.internal.event.ListenerBroadcast
@@ -96,6 +98,8 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
+    def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
+    def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -104,6 +108,8 @@ class DefaultConfigurationSpec extends Specification {
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * projectState.withMutableState(_) >> { args -> args[0].create() }
+        _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
     }
 
     void defaultValues() {
@@ -1752,7 +1758,8 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry))
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry),
+            domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext)
     }
 
     private DefaultPublishArtifact artifact(String name) {

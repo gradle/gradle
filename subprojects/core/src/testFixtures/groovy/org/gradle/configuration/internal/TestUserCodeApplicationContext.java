@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal
+package org.gradle.configuration.internal;
 
-import org.gradle.api.Action
+public class TestUserCodeApplicationContext extends DefaultUserCodeApplicationContext {
 
-class TestUserCodeApplicationContext implements UserCodeApplicationContext {
-
-    private static final DELEGATE = new DefaultUserCodeApplicationContext()
-
-    @Override
-    void apply(Action<? super UserCodeApplicationId> action) {
-        DELEGATE.apply(action)
+    public UserCodeApplicationId push() {
+        return super.push();
     }
+
+    public void pop() {
+        super.pop();
+    }
+
 }

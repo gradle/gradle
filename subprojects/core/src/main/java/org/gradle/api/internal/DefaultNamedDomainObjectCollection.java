@@ -79,8 +79,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Set<String> applyingRulesFor = new HashSet<String>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store);
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
@@ -487,7 +487,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownDomainObjectException(String.format("%s with name '%s' not found.", getTypeDisplayName(),
-                name));
+            name));
     }
 
     protected String getTypeDisplayName() {
@@ -826,8 +826,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
+
         public ExistingNamedDomainObjectProvider(String name, Class type) {
-           super(name, type);
+            super(name, type);
         }
 
         public void configure(Action<? super I> action) {
@@ -878,13 +879,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public void configure(final Action<? super I> action) {
             assertMutable("NamedDomainObjectProvider.configure(Action)");
             Action<? super I> wrappedAction = withMutationDisabled(action);
+            Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
+
             if (object != null) {
                 // Already realized, just run the action now
-                wrappedAction.execute(object);
+                decoratedAction.execute(object);
                 return;
             }
             // Collect any container level add actions then add the object specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(decoratedAction);
         }
 
         @Override

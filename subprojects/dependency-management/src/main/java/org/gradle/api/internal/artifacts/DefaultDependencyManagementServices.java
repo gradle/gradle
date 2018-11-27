@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -90,6 +91,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
@@ -292,8 +294,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 objectFactory);
         }
 
-        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator);
+        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
@@ -304,7 +306,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
-                                                                    DocumentationRegistry documentationRegistry) {
+                                                                    DocumentationRegistry documentationRegistry,
+                                                                    CollectionCallbackActionDecorator callbackDecorator,
+                                                                    UserCodeApplicationContext userCodeApplicationContext) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -325,7 +329,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 componentSelectorConverter,
                 dependencyLockingProvider,
                 projectStateRegistry,
-                documentationRegistry
+                documentationRegistry,
+                callbackDecorator,
+                userCodeApplicationContext
             );
         }
 
@@ -337,8 +343,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return null;
         }
 
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory) {
-            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory);
+        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator decorator) {
+            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator);
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
@@ -488,7 +494,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public RepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = services.get(Instantiator.class);
             BaseRepositoryFactory baseRepositoryFactory = services.get(BaseRepositoryFactory.class);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator);
+            CollectionCallbackActionDecorator callbackDecorator = services.get(CollectionCallbackActionDecorator.class);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
         public ArtifactPublisher createArtifactPublisher() {

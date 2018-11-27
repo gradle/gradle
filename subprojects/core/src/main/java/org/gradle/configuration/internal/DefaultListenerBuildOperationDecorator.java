@@ -16,7 +16,6 @@
 
 package org.gradle.configuration.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.apache.commons.lang.ClassUtils;
@@ -44,30 +43,24 @@ import static org.gradle.configuration.internal.ExecuteListenerBuildOperationTyp
 public class DefaultListenerBuildOperationDecorator implements ListenerBuildOperationDecorator {
 
     private static final ImmutableSet<Class<?>> SUPPORTED_INTERFACES = ImmutableSet.of(
-            BuildListener.class,
-            ProjectEvaluationListener.class,
-            TaskExecutionGraphListener.class
+        BuildListener.class,
+        ProjectEvaluationListener.class,
+        TaskExecutionGraphListener.class
     );
 
     // we don't decorate everything in BuildListener, just projectsLoaded/projectsEvaluated
     private static final ImmutableSet<String> UNDECORATED_METHOD_NAMES = ImmutableSet.of(
-            "buildStarted",
-            "settingsEvaluated",
-            "buildFinished"
+        "buildStarted",
+        "settingsEvaluated",
+        "buildFinished"
     );
 
-
     private final BuildOperationExecutor buildOperationExecutor;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
-    @VisibleForTesting
-    final DefaultUserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext();
-
-    public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
+    public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
-    }
-
-    public UserCodeApplicationContext getUserCodeApplicationContext() {
-        return userCodeApplicationContext;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
@@ -121,7 +114,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         private final UserCodeApplicationId applicationId;
         private final String registrationPoint;
 
-        protected Operation(UserCodeApplicationId applicationId, String registrationPoint) {
+        Operation(UserCodeApplicationId applicationId, String registrationPoint) {
             this.applicationId = applicationId;
             this.registrationPoint = registrationPoint;
         }
@@ -129,8 +122,8 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                    .displayName("Execute " + registrationPoint + " listener")
-                    .details(new DetailsImpl(applicationId, registrationPoint));
+                .displayName("Execute " + registrationPoint + " listener")
+                .details(new DetailsImpl(applicationId, registrationPoint));
         }
     }
 
