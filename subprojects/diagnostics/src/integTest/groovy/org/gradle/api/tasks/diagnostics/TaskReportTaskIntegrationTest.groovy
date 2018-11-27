@@ -24,7 +24,6 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
     private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
-    private final static String[] TASKS_GROUP_REPORT_TASK = TASKS_REPORT_TASK + ['--group=build-setup'] as String[]
     private final static String GROUP = 'Hello world'
 
     @Unroll
@@ -175,9 +174,9 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    def "renders only tasks in help group running [tasks --group=build-setup]"() {
+    def "renders only tasks in help group running [tasks --group=\"build setup\"]"() {
         when:
-        succeeds tasks
+        succeeds "tasks", "--group=build setup"
 
         then:
         output.contains("""
@@ -189,9 +188,6 @@ wrapper - Generates Gradle wrapper files.""")
 Help tasks
 ----------
 """)
-
-        where:
-        tasks << [TASKS_GROUP_REPORT_TASK]
     }
 
     def "renders tasks in a multi-project build running [tasks]"() {

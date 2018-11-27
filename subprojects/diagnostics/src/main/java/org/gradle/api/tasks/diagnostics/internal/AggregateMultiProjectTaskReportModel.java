@@ -67,10 +67,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         if (Strings.isNullOrEmpty(group)) {
             return detail;
         } else {
-            group = group.toLowerCase();
-            return this.group == null
-                || group.equals(this.group)
-                || group.equals(this.group.replace("-", " "));
+            return this.group == null || group.toLowerCase().equals(this.group);
         }
     }
 
