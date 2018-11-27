@@ -27,9 +27,9 @@ public class DefaultBinaryPluginIdentifier implements InternalBinaryPluginIdenti
     private final String className;
     private final String pluginId;
 
-    public DefaultBinaryPluginIdentifier(String displayName, Class<?> pluginClass, @Nullable String pluginId) {
+    public DefaultBinaryPluginIdentifier(String displayName, String className, @Nullable String pluginId) {
         this.displayName = displayName;
-        this.className = pluginClass.getName();
+        this.className = className;
         this.pluginId = pluginId;
     }
 

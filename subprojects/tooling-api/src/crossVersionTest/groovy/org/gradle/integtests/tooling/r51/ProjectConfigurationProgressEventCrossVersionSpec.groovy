@@ -21,12 +21,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ScriptPluginIdentifier
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
+import org.junit.Rule
 
 import java.time.Duration
 
@@ -38,13 +40,17 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     ProgressEvents events = ProgressEvents.create()
 
-    void setup() {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
         file("buildSrc/settings.gradle") << """
             include 'a'
         """
         settingsFile << """
             rootProject.name = 'root'
             include 'b'
+            includeBuild 'included'
         """
         file("included/settings.gradle") << """
             include 'c'
@@ -53,7 +59,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "reports successful project configuration progress events"() {
         when:
-        runBuild("tasks", ["--include-build", "included"], EnumSet.allOf(OperationType))
+        runBuild("tasks")
 
         then:
         containsSuccessfulProjectConfigurationOperation(":buildSrc", file("buildSrc"), ":")
@@ -82,7 +88,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         """
 
         when:
-        runBuild("tasks", EnumSet.allOf(OperationType))
+        runBuild("tasks")
 
         then:
         thrown(BuildException)
@@ -124,7 +130,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         """
 
         when:
-        runBuild("tasks", ["--include-build", "included"], EnumSet.allOf(OperationType))
+        runBuild("tasks")
 
         then:
         containsPluginConfigurationResultsForJavaPlugin(":buildSrc")
@@ -158,7 +164,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         """
 
         when:
-        runBuild("tasks", ["--include-build", "included"], EnumSet.allOf(OperationType))
+        runBuild("tasks")
 
         then:
         containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
@@ -169,23 +175,85 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":included:c")
     }
 
-    void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File rootDir) {
+    def "reports plugin configuration results for subprojects"() {
+        given:
+        file("script.gradle") << """
+            apply plugin: 'java'
+        """
+        file("b/build.gradle") << """
+            apply from: "\$rootDir/script.gradle"
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":b", file("b"))
+    }
+
+    def "reports plugin configuration results in reliable order"() {
+        given:
+        file("script.gradle") << """
+            apply plugin: 'java'
+        """
+        file("build.gradle") << """
+            apply from: "script.gradle"
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        def plugins = getPluginConfigurationOperationResult(":").getPluginConfigurationResults().collect { it.plugin.displayName }
+        plugins == [
+            "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
+            "build.gradle", "script.gradle",
+            "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin", "org.gradle.api.plugins.BasePlugin",
+            "org.gradle.language.base.plugins.LifecycleBasePlugin", "org.gradle.api.plugins.ReportingBasePlugin"
+        ]
+    }
+
+    def "reports plugin configuration results for remote script plugins"() {
+        given:
+        server.start()
+        def scriptUri = server.uri("script.gradle")
+        server.expect(server.get("script.gradle").send("""
+            apply plugin: 'java'
+        """))
+        file("build.gradle") << """
+            apply from: '$scriptUri'
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        def result = getPluginConfigurationOperationResult(":").getPluginConfigurationResults().find { it.plugin.displayName == "script.gradle" }
+        result.plugin instanceof ScriptPluginIdentifier
+        result.plugin.uri == scriptUri
+    }
+
+    void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
         with(containsPluginConfigurationResultsForJavaPlugin(displayName)) {
-            def scriptPlugin = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
-            assert scriptPlugin.duration >= Duration.ZERO
-            def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(rootDir, "build.gradle").toURI() }
+            def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }
             assert buildScript.duration >= Duration.ZERO
+            assert buildScript.plugin.displayName == "build.gradle"
+            def scriptPlugin = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
+            assert scriptPlugin.plugin.displayName == "script.gradle"
+            assert scriptPlugin.duration >= Duration.ZERO
         }
     }
 
     ProjectConfigurationOperationResult containsPluginConfigurationResultsForJavaPlugin(String displayName) {
-        def result = (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
+        def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
             def javaPluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
             assert javaPluginResult.plugin.pluginId == "org.gradle.java"
+            assert javaPluginResult.plugin.displayName == "org.gradle.java"
             assert javaPluginResult.duration >= Duration.ZERO
             def basePluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
             assert basePluginResult.plugin.pluginId == null
+            assert basePluginResult.plugin.displayName == "org.gradle.api.plugins.BasePlugin"
             assert basePluginResult.duration >= Duration.ZERO
         }
         return result
@@ -198,18 +266,21 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     }
 
     ProjectConfigurationOperationResult doesNotContainPluginConfigurationResultsForJavaPlugin(String displayName) {
-        def result = (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
+        def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
             assert pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" } == null
         }
         return result
     }
 
-    private void runBuild(String task, List<String> arguments = [], Set<OperationType> operationTypes) {
+    def getPluginConfigurationOperationResult(String displayName) {
+        (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
+    }
+
+    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
         withConnection {
             newBuild()
                 .forTasks(task)
-                .withArguments(arguments)
                 .addProgressListener(events, operationTypes)
                 .run()
         }
