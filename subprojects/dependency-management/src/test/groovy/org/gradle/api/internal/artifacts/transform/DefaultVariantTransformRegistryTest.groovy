@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -45,6 +47,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    def dependencies = Stub(ArtifactTransformDependencies) {
+        getFiles() >> ImmutableFileCollection.of()
+    }
+    def dependenciesProvider = Stub(ArtifactTransformDependenciesProvider) {
+        forAttributes(_ as ImmutableAttributes) >> dependencies
+    }
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
@@ -80,7 +88,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), DefaultArtifactTransformDependenciesProvider.EMPTY).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).files
 
         then:
         transformed.size() == 1
@@ -119,7 +127,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), DefaultArtifactTransformDependenciesProvider.EMPTY).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -154,7 +162,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), DefaultArtifactTransformDependenciesProvider.EMPTY)
+        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider)
 
         then:
         def failure = result.failure
@@ -191,7 +199,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), DefaultArtifactTransformDependenciesProvider.EMPTY).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure
 
         then:
         failure instanceof ObjectInstantiationException
@@ -225,7 +233,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), DefaultArtifactTransformDependenciesProvider.EMPTY).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure
 
         then:
         failure.message == 'broken'

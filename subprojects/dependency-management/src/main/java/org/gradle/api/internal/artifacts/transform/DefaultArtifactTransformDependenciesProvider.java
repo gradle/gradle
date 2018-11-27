@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -36,14 +35,13 @@ import java.util.Set;
 
 class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
-    @VisibleForTesting
-    static final ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
+    private static final ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
         @Override
         public FileCollection getFiles() {
             return ImmutableFileCollection.of();
         }
     };
-    @VisibleForTesting
+
     static final ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
         @Override
         public ArtifactTransformDependencies forAttributes(ImmutableAttributes attributes) {
