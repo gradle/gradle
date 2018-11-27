@@ -109,7 +109,7 @@ public class ExecutionServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    WorkExecutor<UpToDateResult> createWorkExecutor(
+    public WorkExecutor<UpToDateResult> createWorkExecutor(
         BuildCacheController buildCacheController,
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildInvocationScopeId buildInvocationScopeId,

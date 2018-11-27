@@ -20,9 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerExecutionHistoryRepository;
-import org.gradle.api.internal.artifacts.transform.GradleUserHomeWorkspaceProvider;
-import org.gradle.api.internal.artifacts.transform.TransformerExecutionHistoryRepository;
+import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheRepository;
@@ -54,12 +53,12 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner);
     }
 
-    GradleUserHomeWorkspaceProvider createTransformerWorkspaceProvider(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
-        return new GradleUserHomeWorkspaceProvider(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal);
+    ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
+        return new ImmutableTransformationWorkspaceProvider(artifactCacheMetadata.getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal, executionHistoryStore);
     }
 
-    TransformerExecutionHistoryRepository createTransformerExecutionHistoryRepository(GradleUserHomeWorkspaceProvider transformerWorkspaceProvider, ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
-        DefaultTransformerExecutionHistoryRepository executionHistoryRepository = new DefaultTransformerExecutionHistoryRepository(transformerWorkspaceProvider, executionHistoryStore);
+    ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager) {
+        ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider = new ImmutableCachingTransformationWorkspaceProvider(immutableTransformationWorkspaceProvider);
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
             public void afterStart() {
@@ -67,9 +66,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
             @Override
             public void beforeComplete() {
-                executionHistoryRepository.clearInMemoryCache();
+                cachingWorkspaceProvider.clearInMemoryCache();
             }
         });
-        return executionHistoryRepository;
+        return cachingWorkspaceProvider;
     }
 }
