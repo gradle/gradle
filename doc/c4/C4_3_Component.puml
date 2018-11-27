@@ -121,10 +121,10 @@ Rel(gradleKotlinDslApi, kotlinc, "Uses", "Embedded")
 Rel(ideKotlin, scriptResolver, "Loads", "Embedded")
 Rel(ideKotlin, kotlinc, "Uses")
 
-Rel(kgp, buildCache, "Uses")
+Rel_Neighbor(kgp, buildCache, "Uses")
 Rel(providerExecution, buildCache, "Uses")
-Rel(pluginPlugin, buildCache, "Uses")
 
-Lay_L(tapiModelBuilders, resolver)
+Lay_D(gradle, gradleKotlinDsl)
+Lay_D(ide, gradleBuildTool)
 
 @enduml

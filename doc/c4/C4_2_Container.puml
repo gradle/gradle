@@ -56,10 +56,6 @@ Rel(ideKotlin, kotlinc, "Uses")
 Rel(ideKotlin, resolver, "Loads", "Embedded")
 
 Rel(provider, buildCache, "Uses")
-Rel(plugin, buildCache, "Uses")
 Rel(kgp, buildCache, "Uses")
-
-Lay_D(ide, gradle)
-Lay_D(ide, kotlinTools)
 
 @enduml
