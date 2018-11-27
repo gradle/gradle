@@ -39,7 +39,6 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
     final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
-    protected final List<GradleDistribution> previous = new ArrayList<GradleDistribution>();
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
         super(target);
@@ -107,10 +106,6 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
                     + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
                     + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
         }
-    }
-
-    public List<GradleDistribution> getPrevious() {
-        return previous;
     }
 
     private static class IgnoredVersion extends Execution {
