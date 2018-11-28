@@ -19,6 +19,9 @@ package org.gradle.tooling.events.task.internal;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.task.TaskSuccessResult;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 /**
  * Implementation of the {@code TaskSuccessResult} interface.
  */
@@ -26,11 +29,13 @@ public class DefaultTaskSuccessResult extends DefaultOperationSuccessResult impl
 
     private final boolean upToDate;
     private final boolean fromCache;
+    private final TaskExecutionDetails taskExecutionDetails;
 
-    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache) {
+    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, TaskExecutionDetails taskExecutionDetails) {
         super(startTime, endTime);
         this.upToDate = upToDate;
         this.fromCache = fromCache;
+        this.taskExecutionDetails = taskExecutionDetails;
     }
 
     @Override
@@ -42,4 +47,16 @@ public class DefaultTaskSuccessResult extends DefaultOperationSuccessResult impl
     public boolean isFromCache() {
         return fromCache;
     }
+
+    @Override
+    public boolean isIncremental() {
+        return taskExecutionDetails.isIncremental();
+    }
+
+    @Override
+    @Nullable
+    public List<String> getExecutionReasons() {
+        return taskExecutionDetails.getExecutionReasons();
+    }
+
 }

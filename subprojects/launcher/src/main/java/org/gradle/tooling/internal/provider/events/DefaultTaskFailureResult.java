@@ -23,8 +23,8 @@ import java.util.List;
 public class DefaultTaskFailureResult extends AbstractTaskResult implements InternalTaskFailureResult {
     private final List<DefaultFailure> failures;
 
-    public DefaultTaskFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failed");
+    public DefaultTaskFailureResult(long startTime, long endTime, List<DefaultFailure> failures, boolean incremental, List<String> executionReasons) {
+        super(startTime, endTime, "failed", incremental, executionReasons);
         this.failures = failures;
     }
 

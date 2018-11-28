@@ -32,6 +32,7 @@ public class TaskStateInternal implements TaskState {
     private RuntimeException failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
+    private boolean incremental = false;
 
     public boolean getDidWork() {
         return didWork;
@@ -138,5 +139,13 @@ public class TaskStateInternal implements TaskState {
 
     public void setActionable(boolean actionable) {
         this.actionable = actionable;
+    }
+
+    public boolean isIncremental() {
+        return incremental;
+    }
+
+    public void setIncremental(boolean incremental) {
+        this.incremental = incremental;
     }
 }

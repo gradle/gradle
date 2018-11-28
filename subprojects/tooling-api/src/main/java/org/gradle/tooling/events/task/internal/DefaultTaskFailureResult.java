@@ -20,6 +20,7 @@ import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.task.TaskFailureResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -27,8 +28,22 @@ import java.util.List;
  */
 public final class DefaultTaskFailureResult extends DefaultOperationFailureResult implements TaskFailureResult {
 
-    public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
+    private final TaskExecutionDetails taskExecutionDetails;
+
+    public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures, TaskExecutionDetails taskExecutionDetails) {
         super(startTime, endTime, failures);
+        this.taskExecutionDetails = taskExecutionDetails;
+    }
+
+    @Override
+    public boolean isIncremental() {
+        return taskExecutionDetails.isIncremental();
+    }
+
+    @Override
+    @Nullable
+    public List<String> getExecutionReasons() {
+        return taskExecutionDetails.getExecutionReasons();
     }
 
 }
