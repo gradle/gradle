@@ -16,13 +16,11 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -68,7 +66,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64), ":${taskNameToAssembleDevelopmentBinary}"
+        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
     }
 
     // TODO Move this to AbstractSwiftComponentIntegrationTest when xcode test works properly with architecture
@@ -123,7 +121,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
@@ -142,10 +140,10 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
+    protected abstract List<String> getTasksToAssembleDevelopmentBinary(String variant = "")
 
     @Override
     SourceElement getSwift3Component() {
@@ -171,13 +169,6 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return getTasksToAssembleDevelopmentBinary()
     }
-
-    protected String getVariantSuffix(String architecture) {
-        String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
-        return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
-    }
-
-    protected abstract List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 
     protected abstract SourceElement getComponentUnderTest()
 }

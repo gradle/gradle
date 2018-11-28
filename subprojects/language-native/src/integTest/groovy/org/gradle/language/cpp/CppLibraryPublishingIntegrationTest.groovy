@@ -772,15 +772,15 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         then:
         assertMainModuleIsPublished('some.group', 'deck', '1.2', targetMachines, ["some.group:card:1.2"])
-        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName }, ["some.group:shuffle:1.2", "some.group:card:1.2"])
+        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines, ["some.group:shuffle:1.2", "some.group:card:1.2"])
 
         and:
         assertMainModuleIsPublished('some.group', 'card', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines)
 
         and:
         assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         def consumer = file("consumer").createDir()
@@ -947,9 +947,9 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, String buildType, Map<String, String> targetMachine) {
-        def library = sharedLibrary("${module}/build/lib/main/${buildType}/${targetMachine.os.toLowerCase()}/${targetMachine.architecture}/${module}")
-        return buildType == 'release' ? library.strippedRuntimeFile : library.file
+    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
+        def library = sharedLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+        return variantContext.buildType.name == 'release' ? library.strippedRuntimeFile : library.file
     }
 
     @Override

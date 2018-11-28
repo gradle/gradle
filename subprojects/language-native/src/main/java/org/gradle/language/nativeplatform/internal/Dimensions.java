@@ -29,8 +29,12 @@ import java.util.Set;
 
 public class Dimensions {
     public static String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
+        return createDimensionSuffix(dimensionValue.getName(), multivalueProperty);
+    }
+
+    public static String createDimensionSuffix(String dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+            return StringUtils.capitalize(dimensionValue.toLowerCase());
         }
         return "";
     }
