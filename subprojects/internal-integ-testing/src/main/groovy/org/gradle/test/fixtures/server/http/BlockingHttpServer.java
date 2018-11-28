@@ -64,7 +64,7 @@ public class BlockingHttpServer extends ExternalResource {
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
-        handler = new ChainingHttpHandler(lock, COUNTER, new MustBeRunning());
+        handler = new ChainingHttpHandler(lock, timeoutMs, COUNTER, new MustBeRunning());
         context = server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
@@ -313,7 +313,7 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     public void stop() {
-        handler.assertComplete();
+        handler.waitForCompletion();
         running = false;
         // Stop is very slow, clean it up later
         EXECUTOR_SERVICE.execute(new Runnable() {
