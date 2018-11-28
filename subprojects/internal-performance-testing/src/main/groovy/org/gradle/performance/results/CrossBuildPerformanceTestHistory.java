@@ -44,7 +44,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
 
     @Override
     public String getId() {
-        return name.replaceAll("\\s+", "-");
+        return name.replaceAll("\\s+", "-").replaceAll("/", "-");
     }
 
     public String getDisplayName() {
