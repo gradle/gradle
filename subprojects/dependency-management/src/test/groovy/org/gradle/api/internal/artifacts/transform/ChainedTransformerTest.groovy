@@ -23,30 +23,6 @@ import spock.lang.Specification
 class ChainedTransformerTest extends Specification {
     private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
 
-    def "is cached if all parts are cached"() {
-        given:
-        def chain = new TransformationChain(new CachingTransformation(), new CachingTransformation())
-
-        expect:
-        chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
-    }
-
-    def "is not cached if first part is not cached"() {
-        given:
-        def chain = new TransformationChain(new NonCachingTransformation(), new CachingTransformation())
-
-        expect:
-        !chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
-    }
-
-    def "is not cached if second part is not cached"() {
-        given:
-        def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
-
-        expect:
-        !chain.hasCachedResult(initialSubject, Mock(ArtifactTransformDependenciesProvider))
-    }
-
     def "applies second transform on the result of the first"() {
         given:
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
@@ -57,7 +33,6 @@ class ChainedTransformerTest extends Specification {
 
     class CachingTransformation implements Transformation {
 
-
         @Override
         TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
             return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "cached")))
@@ -66,11 +41,6 @@ class ChainedTransformerTest extends Specification {
         @Override
         boolean requiresDependencies() {
             return false
-        }
-
-        @Override
-        boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
-            return true
         }
 
         @Override
@@ -92,11 +62,6 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         boolean requiresDependencies() {
-            return false
-        }
-
-        @Override
-        boolean hasCachedResult(TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
             return false
         }
 

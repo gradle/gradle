@@ -108,14 +108,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean hasCachedResult(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject) {
-        CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
-        ProjectInternal producerProject = determineProducerProject(subject);
-        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        return determineWorkspaceProvider(producerProject).hasCachedResult(getTransformationIdentity(producerProject, snapshot, transformer, dependenciesFingerprint));
-    }
-
-    @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject) {
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);

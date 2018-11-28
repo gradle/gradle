@@ -21,9 +21,9 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import javax.annotation.Nullable;
 
 class TransformationOperation implements RunnableBuildOperation {
     private final Transformation transformation;

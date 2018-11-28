@@ -68,21 +68,6 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        if (subjectToTransform.getFailure() != null) {
-            return true;
-        }
-        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
-        for (File primaryInput : primaryInputs) {
-            if (!transformerInvoker.hasCachedResult(transformer, primaryInput, dependencies, subjectToTransform)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
     public String getDisplayName() {
         return transformer.getDisplayName();
     }
