@@ -423,7 +423,7 @@ public class AvailableToolChains {
         @Override
         public boolean matches(String criteria) {
             // Implement this if you need to specify individual toolchains via "org.gradle.integtest.versions"
-            return false;
+            throw new UnsupportedOperationException();
         }
     }
 
