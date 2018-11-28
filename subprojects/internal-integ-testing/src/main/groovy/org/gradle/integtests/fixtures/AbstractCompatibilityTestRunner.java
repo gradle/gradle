@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,6 +43,13 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     protected AbstractCompatibilityTestRunner(Class<?> target) {
         super(target);
         validateTestName(target);
+
+        // This is necessary because for the Tooling Api compatibility runner, NativeServices
+        // can get initialized in a different classloader, which then makes it broken and unusable
+        // in the test class (because the native shared library is loaded from another classloader).
+        // By initializing it here, we ensure that it is loaded from the classloader the test class
+        // also uses.
+        NativeServicesTestFixture.initialize();
     }
 
     @Override
