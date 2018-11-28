@@ -53,10 +53,18 @@ public class FormatSupport {
     }
 
     public static Number getConfidencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
+        if (baseline.isEmpty() || current.isEmpty()) {
+            // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
+            return new BigDecimal(0);
+        }
         return new BigDecimal(100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
+        if (baseline.isEmpty() || current.isEmpty()) {
+            // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
+            return new BigDecimal(0);
+        }
         return new BigDecimal(100.0 * getDifferenceRatio(baseline.getTotalTime(), current.getTotalTime()).doubleValue()).setScale(2, RoundingMode.HALF_UP);
     }
 
