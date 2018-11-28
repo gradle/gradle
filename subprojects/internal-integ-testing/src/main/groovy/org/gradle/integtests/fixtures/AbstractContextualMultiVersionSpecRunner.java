@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.VersionNumber;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -167,7 +166,6 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
     }
 
     public interface VersionedTool {
-        VersionNumber getVersion();
         boolean matches(String criteria);
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 public class GradleDistributionTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
     private final GradleDistribution distribution;
@@ -31,11 +30,6 @@ public class GradleDistributionTool implements AbstractContextualMultiVersionSpe
     public GradleDistributionTool(GradleDistribution distribution, String ignored) {
         this.distribution = distribution;
         this.ignored = ignored;
-    }
-
-    @Override
-    public VersionNumber getVersion() {
-        return VersionNumber.parse(distribution.getVersion().getVersion());
     }
 
     @Override

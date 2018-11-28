@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
-class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<VersionNumberOnlyTool> {
+class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<DefaultVersionedTool> {
     def versions
     def coverage
 
@@ -29,7 +29,7 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<Ve
     }
 
     @Override
-    protected Collection<VersionNumberOnlyTool> getAllVersions() {
+    protected Collection<DefaultVersionedTool> getAllVersions() {
         if (versions != null) {
             return versionsFrom(versions.value() as List)
         } else if (coverage != null) {
@@ -40,17 +40,17 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<Ve
     }
 
     @Override
-    protected boolean isAvailable(VersionNumberOnlyTool version) {
+    protected boolean isAvailable(DefaultVersionedTool version) {
         return true
     }
 
     @Override
-    protected Collection<Execution> createExecutionsFor(VersionNumberOnlyTool versionedTool) {
-        return [new VersionExecution(versionedTool.getVersionString())]
+    protected Collection<Execution> createExecutionsFor(DefaultVersionedTool versionedTool) {
+        return [new VersionExecution(versionedTool.version)]
     }
 
-    static List<VersionNumberOnlyTool> versionsFrom(List<String> versions) {
-        versions.collect { new VersionNumberOnlyTool(it) }
+    static List<DefaultVersionedTool> versionsFrom(List<Object> versions) {
+        return versions.collect { new DefaultVersionedTool(it) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {
