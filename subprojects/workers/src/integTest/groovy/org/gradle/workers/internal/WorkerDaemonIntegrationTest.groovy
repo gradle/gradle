@@ -28,7 +28,7 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.notNullValue
 
-@IntegrationTestTimeout(90)
+@IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     def "uses the worker home directory as working directory for worker execution"() {
