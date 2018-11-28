@@ -14,43 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration;
-
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationResult;
-import org.gradle.tooling.events.PluginIdentifier;
+package org.gradle.tooling.internal.protocol.events;
 
 import java.time.Duration;
 import java.util.List;
 
 /**
- * Describes the result of running a project configuration operation.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 5.1
  */
-@Incubating
-public interface ProjectConfigurationOperationResult extends OperationResult {
+public interface InternalProjectConfigurationResult extends InternalOperationResult {
 
     /**
      * Returns the results of plugins applied as part of the configuration of this project.
-     *
-     * <p>This may include plugins applied to other projects that are part of the current build,
-     * e.g. when using {@code subprojects {}} blocks in the build script of the root project.
      */
-    List<? extends PluginConfigurationResult> getPluginConfigurationResults();
+    List<? extends InternalPluginConfigurationResult> getPluginConfigurationResults();
 
     /**
-     * Describes the result of configuring a plugin.
-     *
      * @since 5.1
      */
-    @Incubating
-    interface PluginConfigurationResult {
+    interface InternalPluginConfigurationResult {
 
         /**
          * Returns the identifier of this plugin.
          */
-        PluginIdentifier getPlugin();
+        InternalPluginIdentifier getPlugin();
 
         /**
          * Returns the total configuration time of this plugin.

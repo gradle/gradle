@@ -16,20 +16,28 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.testing.internal.util.Specification
+import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.ScriptPluginIdentifier
+import org.gradle.tooling.events.configuration.ProjectConfigurationFailureResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
-import org.gradle.tooling.events.configuration.ProjectConfigurationFailureResult
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
+import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult
+import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult
-import spock.lang.Specification
+
+import java.time.Duration
 
 class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends Specification {
 
@@ -98,9 +106,23 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
         _ * startEvent.getDisplayName() >> 'Project configuration started'
         _ * startEvent.getDescriptor() >> projectConfigurationDescriptor
 
-        def projectConfigurationResult = Mock(InternalSuccessResult)
+        def binaryPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
+        _ * binaryPluginConfigurationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
+            getClassName() >> 'com.acme.SomePlugin'
+            getPluginId() >> 'com.acme.some'
+        }
+        _ * binaryPluginConfigurationResult.getDuration() >> Duration.ofMillis(23)
+
+        def scriptPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
+        _ * scriptPluginConfigurationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
+            getUri() >> new File(rootDir, "build.gradle").toURI()
+        }
+        _ * scriptPluginConfigurationResult.getDuration() >> Duration.ofMillis(42)
+
+        def projectConfigurationResult = Mock(InternalProjectConfigurationResult, additionalInterfaces: [InternalSuccessResult])
         _ * projectConfigurationResult.getStartTime() >> 1
         _ * projectConfigurationResult.getEndTime() >> 2
+        _ * projectConfigurationResult.getPluginConfigurationResults() >> [binaryPluginConfigurationResult, scriptPluginConfigurationResult]
 
         def succeededEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * succeededEvent.getEventTime() >> 999
@@ -122,6 +144,16 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
             assert event.result instanceof ProjectConfigurationSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
+            with((ProjectConfigurationSuccessResult) event.result) {
+                assert pluginConfigurationResults.size() == 2
+                assert pluginConfigurationResults[0].plugin instanceof BinaryPluginIdentifier
+                assert pluginConfigurationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assert pluginConfigurationResults[0].plugin.pluginId == 'com.acme.some'
+                assert pluginConfigurationResults[0].duration == Duration.ofMillis(23)
+                assert pluginConfigurationResults[1].plugin instanceof ScriptPluginIdentifier
+                assert pluginConfigurationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assert pluginConfigurationResults[1].duration == Duration.ofMillis(42)
+            }
         }
     }
 
@@ -144,10 +176,24 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
         _ * startEvent.getDisplayName() >> 'Project configuration started'
         _ * startEvent.getDescriptor() >> projectConfigurationDescriptor
 
-        def projectConfigurationResult = Mock(InternalFailureResult)
+        def binaryPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
+        _ * binaryPluginConfigurationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
+            getClassName() >> 'com.acme.SomePlugin'
+            getPluginId() >> 'com.acme.some'
+        }
+        _ * binaryPluginConfigurationResult.getDuration() >> Duration.ofMillis(23)
+
+        def scriptPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
+        _ * scriptPluginConfigurationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
+            getUri() >> new File(rootDir, "build.gradle").toURI()
+        }
+        _ * scriptPluginConfigurationResult.getDuration() >> Duration.ofMillis(42)
+
+        def projectConfigurationResult = Mock(InternalProjectConfigurationResult, additionalInterfaces: [InternalFailureResult])
         _ * projectConfigurationResult.getStartTime() >> 1
         _ * projectConfigurationResult.getEndTime() >> 2
         _ * projectConfigurationResult.getFailures() >> [Stub(InternalFailure)]
+        _ * projectConfigurationResult.getPluginConfigurationResults() >> [binaryPluginConfigurationResult, scriptPluginConfigurationResult]
 
         def failedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * failedEvent.getEventTime() >> 999
@@ -169,6 +215,16 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
+            with((ProjectConfigurationFailureResult) event.result) {
+                assert pluginConfigurationResults.size() == 2
+                assert pluginConfigurationResults[0].plugin instanceof BinaryPluginIdentifier
+                assert pluginConfigurationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assert pluginConfigurationResults[0].plugin.pluginId == 'com.acme.some'
+                assert pluginConfigurationResults[0].duration == Duration.ofMillis(23)
+                assert pluginConfigurationResults[1].plugin instanceof ScriptPluginIdentifier
+                assert pluginConfigurationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assert pluginConfigurationResults[1].duration == Duration.ofMillis(42)
+            }
         }
     }
 
