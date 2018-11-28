@@ -134,14 +134,16 @@ class DistributionTestingPlugin : Plugin<Project> {
         if (project.hasProperty("testVersions")) {
             systemProperties[integTestVersionsSysProp] = project.property("testVersions")
         } else {
-            if (project.findProperty("testPartialVersions") == true) {
-                systemProperties[integTestVersionsSysProp] = "partial"
-            }
-            if (project.findProperty("testAllVersions") == true) {
-                systemProperties[integTestVersionsSysProp] = "all"
-            }
             if (integTestVersionsSysProp !in systemProperties) {
-                systemProperties[integTestVersionsSysProp] = "default"
+                if (project.findProperty("testPartialVersions") == true) {
+                    systemProperties[integTestVersionsSysProp] = "partial"
+                }
+                if (project.findProperty("testAllVersions") == true) {
+                    systemProperties[integTestVersionsSysProp] = "all"
+                }
+                if (integTestVersionsSysProp !in systemProperties) {
+                    systemProperties[integTestVersionsSysProp] = "default"
+                }
             }
         }
     }
