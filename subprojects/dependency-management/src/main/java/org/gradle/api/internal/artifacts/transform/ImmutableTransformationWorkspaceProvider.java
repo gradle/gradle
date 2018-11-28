@@ -73,11 +73,13 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
 
     @Override
     public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        String workspacePath = identity.getIdentity();
-        TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
-        fileAccessTracker.markAccessed(workspace.getResultsFile());
-        fileAccessTracker.markAccessed(workspace.getOutputDirectory());
-        return workspaceAction.useWorkspace(workspacePath, workspace);
+        return cache.withFileLock(() -> {
+            String workspacePath = identity.getIdentity();
+            TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
+            fileAccessTracker.markAccessed(workspace.getResultsFile());
+            fileAccessTracker.markAccessed(workspace.getOutputDirectory());
+            return workspaceAction.useWorkspace(workspacePath, workspace);
+        });
     }
 
     @Override
