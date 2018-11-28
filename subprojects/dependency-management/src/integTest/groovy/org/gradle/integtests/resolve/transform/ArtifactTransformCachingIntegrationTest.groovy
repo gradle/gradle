@@ -732,7 +732,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     @RequiredFeatures(@RequiredFeature(feature = ExperimentalIncrementalArtifactTransformationsRunner.INCREMENTAL_ARTIFACT_TRANSFORMATIONS, value = "true"))
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
-        buildFile << declareAttributes() << withJarTasks() << """
+        buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
             project(':util') {
                 dependencies {
                     compile project(':lib')
@@ -747,35 +747,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
             import java.nio.file.Files
 
-            class Duplicator extends ArtifactTransform {
-        
-                @Override
-                List<File> transform(File input) {
-                    def output1 = new File(outputDirectory, "1/" + input.name)
-                    def output2 = new File(outputDirectory, "2/" + input.name)
-                    println("Transforming \${input.name} to \${input.name}")
-                    output1.parentFile.mkdirs()
-                    output2.parentFile.mkdirs()
-                    Files.copy(input.toPath(), output1.toPath())
-                    Files.copy(input.toPath(), output2.toPath())
-                    println "Transformed \$input.name to 1/\$output1.name into \$outputDirectory"
-                    println "Transformed \$input.name to 2/\$output2.name into \$outputDirectory"
-                    return [output1, output2]
-                }
-            }
-
-
             allprojects {
                 dependencies {
                     registerTransform {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
-                        artifactTransform(Duplicator)
+                        artifactTransform(Duplicator) { params(2, false) }
                     }
                     registerTransform {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
-                        artifactTransform(Duplicator)
+                        artifactTransform(Duplicator) { params(2, false) }
                     }
                 }
                 task resolve {
@@ -801,10 +783,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
 
         output.count("Transforming") == 6
+        projectOutputDirs("lib1.jar", "0/lib1.jar").size() == 3
         projectOutputDirs("lib1.jar", "1/lib1.jar").size() == 3
-        projectOutputDirs("lib1.jar", "2/lib1.jar").size() == 3
+        projectOutputDirs("lib2.jar", "0/lib2.jar").size() == 3
         projectOutputDirs("lib2.jar", "1/lib2.jar").size() == 3
-        projectOutputDirs("lib2.jar", "2/lib2.jar").size() == 3
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -813,6 +795,249 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [lib1.jar, lib1.jar, lib1.jar, lib1.jar, lib2.jar, lib2.jar, lib2.jar, lib2.jar]") == 2
         output.count("Transformed") == 0
     }
+
+    def "long transformation chain works"() {
+        given:
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << duplicatorTransform << """
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator)  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(Duplicator)  { params(3, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "yellow")
+                        to.attribute(artifactType, "orange")
+                        artifactTransform(Duplicator)  { params(1, true) }
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'orange') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                        println "ids: " + artifacts.collect { it.id.displayName }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    }
+                }                
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [${(1..3).collectMany { (["lib${it}.jar00"] * 3) + (["lib${it}.jar10"] * 3) }.join(", ")}]") == 2
+    }
+
+    @Unroll
+    def "failure in transformation chain propagates (position in chain: #failingTransform"() {
+        given:
+
+        Closure<String> possiblyFailingTransform = { index ->
+            index == failingTransform ? "FailingDuplicator" : "Duplicator"
+        }
+        buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << duplicatorTransform << """
+            class FailingDuplicator extends Duplicator {
+                
+                @javax.inject.Inject
+                FailingDuplicator(int numberOfOutputFiles, boolean differentOutputFileNames) {
+                    super(numberOfOutputFiles, differentOutputFileNames) 
+                }                                                       
+
+                @Override
+                List<File> transform(File input) {
+                    throw new RuntimeException("broken")
+                }                
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(${possiblyFailingTransform(1)}) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(${possiblyFailingTransform(2)})  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(${possiblyFailingTransform(3)})  { params(3, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "yellow")
+                        to.attribute(artifactType, "orange")
+                        artifactTransform(${possiblyFailingTransform(4)})  { params(1, true) }
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'orange') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                        println "ids: " + artifacts.collect { it.id.displayName }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    }
+                }                
+            }
+        """
+
+        when:
+        fails ":app:resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertResolutionFailure(":app:compile")
+
+        where:
+        failingTransform << (1..4)
+    }
+
+    @Unroll
+    def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
+        given:
+        def module = mavenHttpRepo.module("test", "test", "1.3").publish()
+
+        buildFile << declareAttributes() << duplicatorTransform << """
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+            
+            project(':lib') {
+                dependencies {
+                    compile "test:test:1.3"      
+                }
+            }
+
+            allprojects {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                
+                if ($scheduled) {
+                    configurations.all {
+                        // force scheduled transformation of binary artifact
+                        resolutionStrategy.dependencySubstitution.all { }
+                    }
+                }
+            
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        artifactTransform(Duplicator) { params(2, true) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(Duplicator)  { params(1, false) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "blue")
+                        to.attribute(artifactType, "yellow")
+                        artifactTransform(Duplicator)  { params(3, false) }
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'yellow') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                        println "ids: " + artifacts.collect { it.id.displayName }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    }
+                }                
+            }
+        """
+
+        when:
+        module.pom.expectGet()
+        module.artifact.expectGetBroken()
+        fails ":app:resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertResolutionFailure(":app:compile")
+        failure.hasErrorOutput("Received status code 500 from server: broken")
+
+        where:
+        scheduled << [true, false]
+    }
+
+    String duplicatorTransform = """
+            import java.nio.file.Files
+
+            class Duplicator extends ArtifactTransform {
+            
+                final int numberOfOutputFiles
+                final boolean differentOutputFileNames                                            
+                           
+                @javax.inject.Inject
+                Duplicator(int numberOfOutputFiles, boolean differentOutputFileNames) {
+                    this.numberOfOutputFiles = numberOfOutputFiles
+                    this.differentOutputFileNames = differentOutputFileNames                      
+                } 
+        
+                @Override
+                List<File> transform(File input) {
+                    def result = []
+                    println("Transforming \${input.name}")
+                    for (int i = 0; i < numberOfOutputFiles; i++) {
+                        def suffix = differentOutputFileNames ? i : ""
+                        def output = new File(outputDirectory, "\$i/" + input.name + suffix)
+                        output.parentFile.mkdirs()
+                        Files.copy(input.toPath(), output.toPath())
+                        println "Transformed \${input.name} to \$i/\${output.name} into \$outputDirectory"
+                        result.add(output)
+                    }
+                    return result
+                }
+            }
+    """
 
     @Unroll
     def "transform is rerun when output is #action between builds"() {
