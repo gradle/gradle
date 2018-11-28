@@ -22,7 +22,7 @@ When used for the compilation of scripts of a Gradle build, the Kotlin DSL Provi
 
 When used for the compilation of Kotlin source sets, e.g. in `buildSrc`, the `kotlin-dsl` plugin provide Kotlin DSL features to source sets and compiles Kotlin code using the Kotlin Gradle Plugin.
 
-When used for build script edition, a Kotlin DSL enabled IDE editor loads the Kotlin DSL support from its configured Gradle version and uses it to resolve script dependencies. The Kotlin DSL Script Dependencies Resolver uses the Gradle Tooling API to build the script dependencies model that enables the IDE editor features.
+When used for build script editing, a Kotlin DSL enabled IDE editor loads the Kotlin DSL support from its configured Gradle version and uses it to resolve script dependencies. The Kotlin DSL Script Dependencies Resolver uses the Gradle Tooling API to build the script dependencies model that enables the IDE editor features.
 
 image::images/C4_2_Container.svg[]
 
