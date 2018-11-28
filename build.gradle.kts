@@ -53,7 +53,7 @@ buildTypes {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll",
-            "architectureTest:test")
+            "architectureTest:test", "toolingApi:toolingApiShadedJar")
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
