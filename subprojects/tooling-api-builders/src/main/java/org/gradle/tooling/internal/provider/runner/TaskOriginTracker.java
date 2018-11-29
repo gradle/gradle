@@ -59,7 +59,7 @@ class TaskOriginTracker implements BuildOperationListener {
 
     private void storeOrigin(BuildOperationDescriptor buildOperation, long taskId) {
         origins.computeIfAbsent(taskId, key -> {
-            PluginApplication pluginApplication = pluginApplicationTracker.findCurrentPluginApplication(buildOperation.getParentId());
+            PluginApplication pluginApplication = pluginApplicationTracker.findRunningPluginApplication(buildOperation.getParentId());
             return pluginApplication == null ? null : pluginApplication.getPlugin();
         });
     }

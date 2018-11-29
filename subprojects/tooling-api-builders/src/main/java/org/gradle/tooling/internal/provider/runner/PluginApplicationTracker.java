@@ -39,13 +39,14 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 class PluginApplicationTracker implements BuildOperationListener {
 
     private static final String PROJECT_TARGET_TYPE = "project";
 
-    private final Map<OperationIdentifier, PluginApplication> currentPluginApplications = new ConcurrentHashMap<>();
+    private final Map<OperationIdentifier, PluginApplication> runningPluginApplications = new ConcurrentHashMap<>();
     private final Map<Long, PluginApplication> pluginApplicationRegistry = new ConcurrentHashMap<>();
     private final BuildOperationParentTracker parentTracker;
 
@@ -54,13 +55,20 @@ class PluginApplicationTracker implements BuildOperationListener {
     }
 
     @Nullable
-    public PluginApplication getPluginApplication(OperationIdentifier id) {
-        return currentPluginApplications.get(id);
+    public PluginApplication getRunningPluginApplication(OperationIdentifier id) {
+        return runningPluginApplications.get(id);
+    }
+
+    public boolean hasRunningPluginApplication(OperationIdentifier id, Predicate<? super PluginApplication> predicate) {
+        return parentTracker.findClosestMatchingAncestor(id, parent -> {
+            PluginApplication pluginApplication = runningPluginApplications.get(parent);
+            return pluginApplication != null && predicate.test(pluginApplication);
+        }) != null;
     }
 
     @Nullable
-    public PluginApplication findCurrentPluginApplication(OperationIdentifier id) {
-        return parentTracker.findClosestExistingAncestor(id, currentPluginApplications::get);
+    public PluginApplication findRunningPluginApplication(OperationIdentifier id) {
+        return parentTracker.findClosestExistingAncestor(id, runningPluginApplications::get);
     }
 
     @Override
@@ -99,7 +107,7 @@ class PluginApplicationTracker implements BuildOperationListener {
     }
 
     private void track(BuildOperationDescriptor buildOperation, PluginApplication pluginApplication) {
-        currentPluginApplications.put(buildOperation.getId(), pluginApplication);
+        runningPluginApplications.put(buildOperation.getId(), pluginApplication);
     }
 
     @Override
@@ -108,7 +116,7 @@ class PluginApplicationTracker implements BuildOperationListener {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        currentPluginApplications.remove(buildOperation.getId());
+        runningPluginApplications.remove(buildOperation.getId());
     }
 
     private InternalBinaryPluginIdentifier toBinaryPluginIdentifier(ApplyPluginBuildOperationType.Details details) {
