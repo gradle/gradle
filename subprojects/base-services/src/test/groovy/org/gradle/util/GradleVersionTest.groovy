@@ -47,6 +47,11 @@ class GradleVersionTest extends Specification {
         version.baseVersion
     }
 
+    def 'can parse commitId from commit version'() {
+        expect:
+        GradleVersion.version('5.1-commit-123abc').commitId == '123abc'
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-1892")
     def "build time should always print in UTC"() {
         expect:
@@ -106,12 +111,16 @@ class GradleVersionTest extends Specification {
                 '1.2.1']
     }
 
+    void canCompareTwoVersions(String a, String b) {
+        assert GradleVersion.version(a) > GradleVersion.version(b)
+        assert GradleVersion.version(b) < GradleVersion.version(a)
+        assert GradleVersion.version(a) == GradleVersion.version(a)
+        assert GradleVersion.version(b) == GradleVersion.version(b)
+    }
+
     def canCompareMajorVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a      | b
@@ -123,10 +132,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                   | b
@@ -139,10 +145,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersionAndMajorVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a       | b
@@ -152,10 +155,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePreviewsMilestonesAndRCVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                 | b
@@ -170,10 +170,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePatchVersion() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                  | b
@@ -185,10 +182,7 @@ class GradleVersionTest extends Specification {
 
     def canCompareSnapshotVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                         | b
@@ -202,6 +196,21 @@ class GradleVersionTest extends Specification {
         '0.9'                     | '0.9-20101220100000'
         '0.9'                     | '0.9-SNAPSHOT'
         '0.9'                     | '0.9-snapshot-1'
+    }
+
+    def canCompareCommitVersions() {
+        expect:
+        canCompareTwoVersions(a, b)
+
+        where:
+        a                       | b
+        '5.1'                   | '5.1-commit-123456789'
+        '5.1'                   | '5.1-commit-bcda90482104'
+        '5.1-commit-1234'       | '5.0'
+        '5.1-commit-1234abcdef' | '4.10.2'
+        '5.1-commit-1234'       | '5.0-commit-1234'
+        '5.0-commit-222'        | '5.0-commit-111'
+        '5.0-commit-f1efb03'    | '5.0-commit-f1efb02'
     }
 
     def "can get version base"() {

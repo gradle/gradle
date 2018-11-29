@@ -36,6 +36,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
     private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
+    private static final int STAGE_PREVIEW = 2;
+    private static final int STAGE_RC = 3;
 
     private final String version;
     private final int majorPart;
@@ -103,7 +105,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     private GradleVersion(String version, String buildTime, String commitId) {
         this.version = version;
-        this.commitId = commitId;
         this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
@@ -113,42 +114,60 @@ public class GradleVersion implements Comparable<GradleVersion> {
         versionPart = matcher.group(1);
         majorPart = Integer.parseInt(matcher.group(2), 10);
 
-        if (matcher.group(4) != null) {
-            int stageNumber;
-            if (matcher.group(5).equals("milestone")) {
-                stageNumber = STAGE_MILESTONE;
-            } else if (matcher.group(5).equals("preview")) {
-                stageNumber = 2;
-            } else if (matcher.group(5).equals("rc")) {
-                stageNumber = 3;
-            } else {
-                stageNumber = 1;
-            }
-            String stageString = matcher.group(6);
-            stage = Stage.from(stageNumber, stageString);
-        } else {
-            stage = null;
-        }
+        this.commitId = parseOrSetCommitId(commitId, matcher);
+        this.stage = parseStage(matcher);
+        this.snapshot = parseSnapshot(matcher);
+    }
 
-        if ("snapshot".equals(matcher.group(5)) || "commit".equals(matcher.group(5))) {
-            snapshot = 0L;
+    private Long parseSnapshot(Matcher matcher) {
+        if ("snapshot".equals(matcher.group(5)) || isCommitVersion(matcher)) {
+            return 0L;
         } else if (matcher.group(8) == null) {
-            snapshot = null;
+            return null;
         } else if ("SNAPSHOT".equals(matcher.group(8))) {
-            snapshot = 0L;
+            return 0L;
         } else {
             try {
                 if (matcher.group(9) != null) {
-                    snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
+                    return new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
                 } else {
                     SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
                     format.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    snapshot = format.parse(matcher.group(8)).getTime();
+                    return format.parse(matcher.group(8)).getTime();
                 }
             } catch (ParseException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    private Stage parseStage(Matcher matcher) {
+        if (matcher.group(4) == null || isCommitVersion(matcher)) {
+            return null;
+        } else if (isStage("milestone", matcher)) {
+            return Stage.from(STAGE_MILESTONE, matcher.group(6));
+        } else if (isStage("preview", matcher)) {
+            return Stage.from(STAGE_PREVIEW, matcher.group(6));
+        } else if (isStage("rc", matcher)) {
+            return Stage.from(STAGE_RC, matcher.group(6));
+        } else {
+            return Stage.from(1, matcher.group(6));
+        }
+    }
+
+    private boolean isCommitVersion(Matcher matcher) {
+        return "commit".equals(matcher.group(5));
+    }
+
+    private boolean isStage(String stage, Matcher matcher) {
+        return stage.equals(matcher.group(5));
+    }
+
+    private String parseOrSetCommitId(String commitId, Matcher matcher) {
+        if ("commit".equals(matcher.group(5))) {
+            return matcher.group(6);
+        }
+        return commitId;
     }
 
     @Override
@@ -228,17 +247,14 @@ public class GradleVersion implements Comparable<GradleVersion> {
             return -1;
         }
 
-        if (snapshot != null && gradleVersion.snapshot != null) {
-            return snapshot.compareTo(gradleVersion.snapshot);
-        }
-        if (snapshot == null && gradleVersion.snapshot != null) {
-            return 1;
-        }
-        if (snapshot != null && gradleVersion.snapshot == null) {
-            return -1;
-        }
+        Long thisSnapshot = snapshot == null ? Long.MAX_VALUE : snapshot;
+        Long theirSnapshot = gradleVersion.snapshot == null ? Long.MAX_VALUE : gradleVersion.snapshot;
 
-        return 0;
+        if (thisSnapshot == theirSnapshot) {
+            return version.compareTo(gradleVersion.version);
+        } else {
+            return thisSnapshot.compareTo(theirSnapshot);
+        }
     }
 
     @Override
