@@ -21,11 +21,18 @@
 
     function renderGraphs(allDataJson, charts) {
         charts.forEach(function(chart) {
-            renderGraph(allDataJson[chart.field], allDataJson.executionLabels, chart.label, chart.unit, chart.chartId)
+            renderGraph(
+                allDataJson[chart.field],
+                allDataJson.executionLabels,
+                chart.label,
+                chart.unit,
+                chart.chartId,
+                chart.renderBackground ? allDataJson.background : []
+            )
         })
     }
 
-    function renderGraph(data, executionLabels, label, unit, chartId) {
+    function renderGraph(data, executionLabels, label, unit, chartId, background) {
         if(!data) {
             return
         }
@@ -44,7 +51,7 @@
                         return '<a href="#" class="chart-legend" onClick="performanceTests.togglePlot(\''+chartId+'\', \''+label+'\'); return false;">'+label+'</a>';
                     }
             },
-            grid: { hoverable: true, clickable: true },
+            grid: { hoverable: true, clickable: true, markings: background },
             xaxis: { tickFormatter:
                     function(index, value) {
                         if (index === parseInt(index, 10)) { // portable way to check if sth is an integer

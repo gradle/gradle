@@ -79,6 +79,10 @@ class TestDataGeneratorTest extends ResultSpecification {
                     data: [[1, 68.27]]
                 ],
             ],
+            background: [
+                [xaxis: [from: 0, to: 1], color: "#ff0000"],
+                [xaxis: [from: 1, to: 2], color: "#00ff00"]
+            ]
         ]
     }
 
