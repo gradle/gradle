@@ -79,7 +79,9 @@ public class FormatSupport {
         Amount<Duration> current = currentVersion.getMedian();
         Amount<Duration> diff = current.minus(base);
 
-        return String.format("%s (%.2f%%)", diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
+        String sign = diff.getValue().doubleValue() > 0 ? "+" : "";
+
+        return String.format("%s%s (%.2f%%)", sign, diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
     }
 
     public static String getFormattedConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
