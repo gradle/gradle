@@ -32,6 +32,11 @@ import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
 
+    def setup() {
+        // by setting this to >1, we assert that an authentication error is NOT going to cause retries
+        maxHttpRetries = 3
+    }
+
     @Unroll
     def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
         given:
