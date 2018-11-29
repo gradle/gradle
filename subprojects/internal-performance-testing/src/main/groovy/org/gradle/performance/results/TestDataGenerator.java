@@ -184,9 +184,9 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private String color;
 
         private BackgroundColor(List<Number> xy) {
-            int index = xy.get(0).intValue();
+            double index = xy.get(0).doubleValue();
             double differencePercentage = xy.get(1).doubleValue();
-            xaxis = ImmutableMap.of("from", index, "to", index + 1);
+            xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
             if (differencePercentage > 2) {
                 color = RED;
             } else if (differencePercentage > 0) {

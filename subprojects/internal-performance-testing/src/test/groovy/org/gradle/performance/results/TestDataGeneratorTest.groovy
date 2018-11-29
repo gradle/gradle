@@ -80,8 +80,8 @@ class TestDataGeneratorTest extends ResultSpecification {
                 ],
             ],
             background: [
-                [xaxis: [from: 0, to: 1], color: "#ff0000"],
-                [xaxis: [from: 1, to: 2], color: "#00ff00"]
+                [xaxis: [from: -0.5, to: 0.5], color: "#ff0000"],
+                [xaxis: [from: 0.5, to: 1.5], color: "#00ff00"]
             ]
         ]
     }
