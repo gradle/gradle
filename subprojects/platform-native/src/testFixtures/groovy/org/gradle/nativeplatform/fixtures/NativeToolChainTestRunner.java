@@ -16,30 +16,58 @@
 
 package org.gradle.nativeplatform.fixtures;
 
-import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
+import com.google.common.collect.Maps;
+import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
+import org.gradle.util.CollectionUtils;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
-    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.native.toolChains";
+public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
 
-    public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
-        super(target, "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default")));
+    public NativeToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
+        super(target);
     }
 
     @Override
-    protected void createExecutions() {
+    protected Collection<AvailableToolChains.ToolChainCandidate> getPartialVersions() {
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-
+        Map<AvailableToolChains.ToolFamily, AvailableToolChains.ToolChainCandidate> availableByFamily = Maps.newEnumMap(AvailableToolChains.ToolFamily.class);
         for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-            if (!toolChain.isAvailable()) {
-                //throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
-                continue;
-            }
             if (canUseToolChain(toolChain)) {
-                add(new ToolChainExecution(toolChain));
+                AvailableToolChains.ToolChainCandidate current = availableByFamily.get(toolChain.getFamily());
+                if (current == null || current.getVersion().compareTo(toolChain.getVersion()) < 0) {
+                    availableByFamily.put(toolChain.getFamily(), toolChain);
+                }
             }
         }
+
+        return availableByFamily.values();
+    }
+
+    @Override
+    protected Collection<AvailableToolChains.ToolChainCandidate> getAllVersions() {
+        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
+        return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
+            @Override
+            public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
+                return canUseToolChain(toolChain);
+            }
+        });
+    }
+
+    @Override
+    protected boolean isAvailable(AvailableToolChains.ToolChainCandidate version) {
+        return version.isAvailable();
+    }
+
+    @Override
+    protected Collection<Execution> createExecutionsFor(AvailableToolChains.ToolChainCandidate versionedTool) {
+        return Collections.singleton(new ToolChainExecution(versionedTool));
     }
 
     // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc).
@@ -55,11 +83,12 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     //
     // In the future... we want to go back to old tests and annotate them with tool chains requirements.
     private boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
-        if (toolChain.meets(ToolChainRequirement.SWIFTC)) {
-            RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
-            return toolChainRequirement!=null;
+        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+        if (toolChainRequirement != null) {
+            return toolChain.meets(toolChainRequirement.value());
         }
-        return true;
+        // Swift tests will always have a toolchain requirement for swiftc
+        return !toolChain.meets(ToolChainRequirement.SWIFTC);
     }
 
     private static class ToolChainExecution extends Execution {

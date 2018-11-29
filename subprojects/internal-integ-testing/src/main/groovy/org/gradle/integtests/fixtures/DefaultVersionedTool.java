@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures;
 
-import org.junit.experimental.categories.Category
-import org.junit.runner.RunWith
-import org.gradle.util.VersionNumber
+public class DefaultVersionedTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
+    private final Object version;
 
-@RunWith(MultiVersionSpecRunner)
-@Category(ContextualMultiVersionTest.class)
-abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
-    static def version
+    public DefaultVersionedTool(Object version) {
+        this.version = version;
+    }
 
-    static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version.toString())
+    public Object getVersion() {
+        return version;
+    }
+
+    @Override
+    public boolean matches(String criteria) {
+        return version.equals(criteria);
     }
 }

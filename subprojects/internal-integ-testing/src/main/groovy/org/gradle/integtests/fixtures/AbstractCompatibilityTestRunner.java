@@ -22,78 +22,84 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GradleVersion;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.sort;
 
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
  */
-public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
-
-    private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
+public abstract class AbstractCompatibilityTestRunner extends AbstractContextualMultiVersionSpecRunner<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
+    final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
-    protected final List<GradleDistribution> previous;
-    protected final boolean implicitVersion;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
-        this(target, System.getProperty(VERSIONS_SYSPROP_NAME, "latest"));
-    }
-
-    private AbstractCompatibilityTestRunner(Class<?> target, String versionStr) {
         super(target);
         validateTestName(target);
 
-        previous = new ArrayList<GradleDistribution>();
-        final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
-        if (versionStr.equals("latest")) {
-            implicitVersion = true;
-            addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentRelease());
-        } else if (versionStr.equals("all")) {
-            implicitVersion = true;
-            List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);
-            for (GradleDistribution previousVersion : previousVersionsToTest) {
-                addVersionIfCompatibleWithJvmAndOs(previousVersion);
-            }
-        } else if (versionStr.matches("^\\d.*$")) {
-            implicitVersion = false;
-            String[] versions = versionStr.split(",");
-            List<GradleVersion> gradleVersions = CollectionUtils.sort(collect(Arrays.asList(versions), new Transformer<GradleVersion, String>() {
-                public GradleVersion transform(String versionString) {
-                    return GradleVersion.version(versionString);
-                }
-            }), Collections.reverseOrder());
+        // This is necessary because for the Tooling Api compatibility runner, NativeServices
+        // can get initialized in a different classloader, which then makes it broken and unusable
+        // in the test class (because the native shared library is loaded from another classloader).
+        // By initializing it here, we ensure that it is loaded from the classloader the test class
+        // also uses.
+        NativeServicesTestFixture.initialize();
+    }
 
-            for (GradleVersion gradleVersion : gradleVersions) {
-                GradleDistribution distribution = releasedVersions.getDistribution(gradleVersion);
-                if (distribution == null) {
-                    throw new RuntimeException("Gradle version '" + gradleVersion.getVersion() + "' is not a valid testable released version");
-                }
-                addVersionIfCompatibleWithJvmAndOs(distribution);
+    @Override
+    protected Collection<GradleDistributionTool> getQuickVersions() {
+        return Collections.singleton(versionedToolFrom(releasedVersions.getMostRecentRelease()));
+    }
+
+    @Override
+    protected Collection<GradleDistributionTool> getAllVersions() {
+        List<GradleDistribution> allSupportedVersions = choosePreviousVersionsToTest(releasedVersions);
+        List<GradleDistribution> sortedDistributions = sort(allSupportedVersions, new Comparator<GradleDistribution>() {
+            public int compare(GradleDistribution dist1, GradleDistribution dist2) {
+                return dist1.getVersion().compareTo(dist2.getVersion());
             }
+        });
+        return CollectionUtils.collect(sortedDistributions, new Transformer<GradleDistributionTool, GradleDistribution>() {
+            @Override
+            public GradleDistributionTool transform(GradleDistribution distribution) {
+                return versionedToolFrom(distribution);
+            }
+        });
+    }
+
+    @Override
+    protected boolean isAvailable(GradleDistributionTool version) {
+        return true;
+    }
+
+    @Override
+    protected Collection<Execution> createExecutionsFor(GradleDistributionTool versionedTool) {
+        if (versionedTool.getIgnored() != null) {
+            return Collections.singleton(new IgnoredVersion(versionedTool.getDistribution(), versionedTool.getIgnored()));
         } else {
-            throw new RuntimeException("Invalid value for " + VERSIONS_SYSPROP_NAME + " system property: " + versionStr + "(valid values: 'all', 'latest' or comma separated list of versions)");
+            return createDistributionExecutionsFor(versionedTool);
         }
     }
 
-    private void addVersionIfCompatibleWithJvmAndOs(GradleDistribution previousVersion) {
-        if (!previousVersion.worksWith(Jvm.current())) {
-            add(new IgnoredVersion(previousVersion, "does not work with current JVM"));
-        } else if (!previousVersion.worksWith(OperatingSystem.current())) {
-            add(new IgnoredVersion(previousVersion, "does not work with current OS"));
+    private GradleDistributionTool versionedToolFrom(GradleDistribution distribution) {
+        if (!distribution.worksWith(Jvm.current())) {
+            return new GradleDistributionTool(distribution, "does not work with current JVM");
+        } else if (!distribution.worksWith(OperatingSystem.current())) {
+            return new GradleDistributionTool(distribution, "does not work with current OS");
         } else {
-            this.previous.add(previousVersion);
+            return new GradleDistributionTool(distribution);
         }
     }
 
     protected abstract List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions);
+
+    protected abstract Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool);
 
     /**
      * Makes sure the test adhers to the naming convention.
@@ -107,10 +113,6 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
                     + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
                     + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
         }
-    }
-
-    public List<GradleDistribution> getPrevious() {
-        return previous;
     }
 
     private static class IgnoredVersion extends Execution {

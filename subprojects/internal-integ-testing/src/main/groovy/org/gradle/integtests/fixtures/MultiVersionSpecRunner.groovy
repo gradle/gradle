@@ -15,52 +15,42 @@
  */
 
 package org.gradle.integtests.fixtures
-
 /**
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
-class MultiVersionSpecRunner extends AbstractMultiTestRunner {
-
-    private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions"
-    public static final String MULTI_VERSION_SYS_PROP = "org.gradle.integtest.multiversion"
+class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<DefaultVersionedTool> {
+    def versions
+    def coverage
 
     MultiVersionSpecRunner(Class<?> target) {
         super(target)
+        versions = target.getAnnotation(TargetVersions)
+        coverage = target.getAnnotation(TargetCoverage)
     }
 
     @Override
-    protected void createExecutions() {
-        boolean enableAllVersions = "all".equals(System.getProperty(MULTI_VERSION_SYS_PROP, "default"))
-        def selectionCriteria = System.getProperty(VERSIONS_SYSPROP_NAME, "latest").split(",") as List
-        def versions = target.getAnnotation(TargetVersions)
-        def coverage = target.getAnnotation(TargetCoverage)
-        def versionUnderTest
-
+    protected Collection<DefaultVersionedTool> getAllVersions() {
         if (versions != null) {
-            versionUnderTest = selectVersions(enableAllVersions, versions.value() as List, selectionCriteria)
+            return versionsFrom(versions.value() as List)
         } else if (coverage != null) {
-            def coverageTargets = coverage.value().newInstance(target, target).call()
-            versionUnderTest = selectVersions(enableAllVersions, coverageTargets as List, selectionCriteria)
+            return versionsFrom(coverage.value().newInstance(target, target).call() as List)
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
-        versionUnderTest.each { add(new VersionExecution(it)) }
     }
 
-    private static List<String> selectVersions(boolean enableAllVersions, List<String> possibleVersions, List<String> selectionCriteria) {
-        final List result
-        if (enableAllVersions) {
-            result = possibleVersions
-        } else {
-            if (selectionCriteria.size() == 1 && selectionCriteria[0] == "latest") {
-                result = [ possibleVersions.last() ]
-            } else {
-                result = possibleVersions.findAll {
-                    it.toString() in selectionCriteria
-                }
-            }
-        }
-        return result.toUnique()
+    @Override
+    protected boolean isAvailable(DefaultVersionedTool version) {
+        return true
+    }
+
+    @Override
+    protected Collection<Execution> createExecutionsFor(DefaultVersionedTool versionedTool) {
+        return [new VersionExecution(versionedTool.version)]
+    }
+
+    static List<DefaultVersionedTool> versionsFrom(List<Object> versions) {
+        return versions.collect { new DefaultVersionedTool(it) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {

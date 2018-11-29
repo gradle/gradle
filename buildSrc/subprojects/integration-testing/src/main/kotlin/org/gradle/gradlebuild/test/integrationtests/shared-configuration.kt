@@ -65,7 +65,14 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     // For all of the other executers, add an executer specific task
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
-        createTestTask(taskName, executer, sourceSet, testType, Action {})
+        createTestTask(taskName, executer, sourceSet, testType, Action {
+            if (testType == TestType.CROSSVERSION) {
+                // the main crossVersion test tasks always only check the latest version,
+                // for true multi-version testing, we set up a test task per Gradle version,
+                // (see CrossVersionTestsPlugin).
+                systemProperties["org.gradle.integtest.versions"] = "default"
+            }
+        })
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
     val testTask = createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {})
