@@ -55,7 +55,7 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
             @Override
             public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
-                return canUseToolChain(toolChain) && canUseToolChain(toolChain);
+                return canUseToolChain(toolChain);
             }
         });
     }
