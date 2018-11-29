@@ -11,6 +11,7 @@ We would like to thank the following community contributors to this release of G
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Olivier Voortman](https://github.com/blop),
 [Alex Saveau](https://github.com/SUPERCILEX)
+[Till Krullmann](https://github.com/tkrullmann)
 
 ## Use plugins from included build using the `plugins { }` block 
 
@@ -27,6 +28,12 @@ This stricter validation can now be enabled for all tasks via [`validateTaskProp
 Instead of listing all available tasks, [`gradle tasks` can now show only the tasks](userguide/command_line_interface.html#sec:listing_tasks) belonging to a particular group. This makes it easier to find tasks in builds with many available tasks.
 
 This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
+
+## Improvements for plugin authors
+
+### Conveniences for properties of type Map
+
+This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model.
 
 ## Promoted features
 
@@ -110,6 +117,7 @@ We would like to thank the following community members for making contributions 
  - [Olivier Voortman](https://github.com/blop) - Do not use a timestamp of 0 for tar file entries (gradle/gradle#7577).
  - [John Bennewitz](https://github.com/b-john) - Allow C++ binary to relocate on Linux (gradle/gradle#6176)
  - [Alex Saveau](https://github.com/SUPERCILEX) - Add option to display tasks from a specific group only (gradle/gradle#7788) 
+ - [Till Krullmann](https://github.com/tkrullmann) - Add `MapProperty` (gradle/gradle#6863)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
