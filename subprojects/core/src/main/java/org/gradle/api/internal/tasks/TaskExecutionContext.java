@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
@@ -74,4 +75,13 @@ public interface TaskExecutionContext {
     boolean isTaskCachingEnabled();
 
     void setTaskCachingEnabled(boolean enabled);
+
+    /**
+     * Returns if this task was executed incrementally.
+     *
+     * @see IncrementalTaskInputs#isIncremental()
+     */
+    boolean isTaskExecutedIncrementally();
+
+    void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
 }

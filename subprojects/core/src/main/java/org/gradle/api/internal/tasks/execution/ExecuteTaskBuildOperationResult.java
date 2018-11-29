@@ -84,4 +84,9 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
         return ctx.getUpToDateMessages();
     }
 
+    @Override
+    public boolean isIncremental() {
+        return ctx.isTaskExecutedIncrementally();
+    }
+
 }

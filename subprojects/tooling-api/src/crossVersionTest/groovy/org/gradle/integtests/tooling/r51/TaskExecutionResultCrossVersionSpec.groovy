@@ -141,7 +141,38 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         runBuild('incrementalTask')
 
         then:
-        taskSuccessResult(':incrementalTask').incremental
+        with(taskSuccessResult(':incrementalTask')) {
+            !incremental
+            executionReasons[0].contains("No history")
+        }
+
+        when:
+        file('src/a').touch()
+        file('src/b').touch()
+
+        and:
+        runBuild('incrementalTask')
+
+        then:
+        with(taskSuccessResult(':incrementalTask')) {
+            incremental
+            executionReasons[0].contains("a has been added")
+            executionReasons[1].contains("b has been added")
+        }
+
+        when:
+        file('src/a').text = "changed content"
+        file('src/b').delete()
+
+        and:
+        runBuild('incrementalTask')
+
+        then:
+        with(taskSuccessResult(':incrementalTask')) {
+            incremental
+            executionReasons[0].contains("a has changed")
+            executionReasons[1].contains("b has been removed")
+        }
     }
 
     @TargetGradleVersion('>=2.6 <5.1')

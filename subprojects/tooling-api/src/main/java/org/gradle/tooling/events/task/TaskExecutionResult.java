@@ -31,9 +31,9 @@ import java.util.List;
 public interface TaskExecutionResult extends TaskOperationResult {
 
     /**
-     * Returns whether this task was incremental.
+     * Returns whether this task was executed incrementally.
      *
-     * @return {@code true} if this task was incremental
+     * @return {@code true} if this task was executed incrementally
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
      */
     boolean isIncremental();

@@ -36,6 +36,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private Long executionTime;
 
     private final Timer executionTimer;
+    private boolean taskExecutedIncrementally;
 
     public DefaultTaskExecutionContext() {
         this.executionTimer = Time.startTimer();
@@ -118,5 +119,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskCachingEnabled(boolean taskCachingEnabled) {
         this.taskCachingEnabled = taskCachingEnabled;
+    }
+
+    @Override
+    public boolean isTaskExecutedIncrementally() {
+        return taskExecutedIncrementally;
+    }
+
+    @Override
+    public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
+        this.taskExecutedIncrementally = taskExecutedIncrementally;
     }
 }
