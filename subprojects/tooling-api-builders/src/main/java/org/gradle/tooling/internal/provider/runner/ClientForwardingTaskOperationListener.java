@@ -30,6 +30,7 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
@@ -63,10 +64,13 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final Map<Path, TaskExecutionGraph> taskExecutionGraphs = new HashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
+    private final TaskOriginTracker taskOriginTracker;
 
-    ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate, OperationResultPostProcessor operationResultPostProcessor) {
+    ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
+        this.taskOriginTracker = taskOriginTracker;
     }
 
     @Override
@@ -93,8 +97,9 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
             String taskIdentityPath = buildOperation.getName();
             String displayName = buildOperation.getDisplayName();
             String taskPath = task.getIdentityPath().toString();
-            Object parentId = eventConsumer.findStartedParentId(buildOperation.getParentId());
-            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, computeTaskDependencies(task));
+            Object parentId = eventConsumer.findStartedParentId(buildOperation);
+            InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
+            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, computeTaskDependencies(task), originPlugin);
         });
     }
 

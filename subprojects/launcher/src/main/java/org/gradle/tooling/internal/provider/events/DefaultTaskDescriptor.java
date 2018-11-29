@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskWithDependenciesDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
 
 import java.io.Serializable;
 import java.util.Set;
 
-public class DefaultTaskDescriptor implements Serializable, InternalTaskWithDependenciesDescriptor {
+public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtraInfoDescriptor {
 
     private final Object id;
     private final String taskIdentityPath;
@@ -29,14 +30,16 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithDepe
     private final String taskPath;
     private final Object parentId;
     private final Set<DefaultTaskDescriptor> dependencies;
+    private final InternalPluginIdentifier originPlugin;
 
-    public DefaultTaskDescriptor(Object id, String taskIdentityPath, String taskPath, String displayName, Object parentId, Set<DefaultTaskDescriptor> dependencies) {
+    public DefaultTaskDescriptor(Object id, String taskIdentityPath, String taskPath, String displayName, Object parentId, Set<DefaultTaskDescriptor> dependencies, InternalPluginIdentifier originPlugin) {
         this.id = id;
         this.taskIdentityPath = taskIdentityPath;
         this.displayName = displayName;
         this.taskPath = taskPath;
         this.dependencies = dependencies;
         this.parentId = parentId;
+        this.originPlugin = originPlugin;
     }
 
     @Override
@@ -67,6 +70,11 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithDepe
     @Override
     public Set<DefaultTaskDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public InternalPluginIdentifier getOriginPlugin() {
+        return originPlugin;
     }
 
 }
