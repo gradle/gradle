@@ -139,6 +139,7 @@ public interface ObjectFactory {
      * @param <K> the type of key.
      * @param <V> the type of value.
      * @return the property. Never returns null.
+     * @since 5.1
      */
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
