@@ -84,9 +84,13 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
-    def "fails single application dependency resolution if #protocol connection exceeds timeout"() {
+    def "fails single application dependency resolution if #protocol connection exceeds timeout (retries = #maxRetries)"() {
+        maxHttpRetries = maxRetries
+
         given:
-        blockingForProtocol(protocol, moduleA.pom)
+        maxHttpRetries.times {
+            blockingForProtocol(protocol, moduleA.pom)
+        }
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
             ${customConfigDependencyAssignment(moduleA)}
@@ -101,7 +105,11 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        protocol << ['http', 'https']
+        protocol | maxRetries
+        'http'   | 1
+        'https'  | 1
+        'http'   | 2
+        'https'  | 2
     }
 
     @Unroll

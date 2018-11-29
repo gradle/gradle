@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.conn.HttpHostConnectException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -34,6 +36,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -43,7 +46,10 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ErroringResolveResult;
+import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
+import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -138,56 +144,56 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.listModuleVersions(dependency, result),
-                () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> {
-                    ModuleComponentSelector selector = dependency.getSelector();
-                    String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
-                    return new ModuleVersionResolveException(selector, message, throwable);
-                });
+                    () -> delegate.listModuleVersions(dependency, result),
+                    () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> {
+                        ModuleComponentSelector selector = dependency.getSelector();
+                        String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                        return new ModuleVersionResolveException(selector, message, throwable);
+                    });
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
+                    () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                    () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
             );
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveArtifactsWithType(component, artifactType, result),
-                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(component.getId(), throwable)
+                    () -> delegate.resolveArtifactsWithType(component, artifactType, result),
+                    () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(component.getId(), throwable)
             );
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.resolveArtifacts(component, result),
-                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(component.getId(), throwable));
+                    () -> delegate.resolveArtifacts(component, result),
+                    () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(component.getId(), throwable));
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             performOperationWithRetries(result,
-                () -> {
-                    delegate.resolveArtifact(artifact, moduleSource, result);
-                    if (result.hasResult()) {
-                        ArtifactResolveException failure = result.getFailure();
-                        if (!(failure instanceof ArtifactNotFoundException)) {
-                            return failure;
+                    () -> {
+                        delegate.resolveArtifact(artifact, moduleSource, result);
+                        if (result.hasResult()) {
+                            ArtifactResolveException failure = result.getFailure();
+                            if (!(failure instanceof ArtifactNotFoundException)) {
+                                return failure;
+                            }
                         }
-                    }
-                    return null;
-                },
-                () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
-                throwable -> new ArtifactResolveException(artifact.getId(), throwable));
+                        return null;
+                    },
+                    () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    throwable -> new ArtifactResolveException(artifact.getId(), throwable));
         }
 
         private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
@@ -244,7 +250,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                if (retries == maxTentativesCount) {
+                boolean doNotRetry = !isLikelyTransientNetworkingIssue(failure);
+                if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
                         repositoryBlacklister.blacklistRepository(repositoryId, unexpectedFailure);
                     }
@@ -260,6 +267,42 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     }
                 }
             }
+        }
+
+        /**
+         * Determines if an error should cause a retry. We will currently retry:
+         * <ul>
+         * <li>on a network timeout</li>
+         * <li>on a server error (return code 5xx)</li>
+         * <li>on rate limiting</li>
+         * </ul>
+         */
+        private static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
+            if (failure instanceof SocketTimeoutException || failure instanceof HttpHostConnectException) {
+                return true;
+            }
+            if (failure instanceof DefaultMultiCauseException) {
+                List<? extends Throwable> causes = ((DefaultMultiCauseException) failure).getCauses();
+                for (Throwable cause : causes) {
+                    if (isLikelyTransientNetworkingIssue(cause)) {
+                        return true;
+                    }
+                }
+            }
+            if (failure instanceof HttpErrorStatusCodeException) {
+                HttpErrorStatusCodeException httpError = (HttpErrorStatusCodeException) failure;
+                return httpError.isServerError() || isTransientClientError(httpError.getStatusCode());
+            }
+            Throwable cause = failure.getCause();
+            if (cause != null && cause != failure) {
+                return isLikelyTransientNetworkingIssue(cause);
+            }
+            return false;
+        }
+
+        private static boolean isTransientClientError(int statusCode) {
+            return statusCode == HttpStatus.SC_REQUEST_TIMEOUT ||
+                    statusCode == 429; // Too many requests (not available through HttpStatus.XXX)
         }
 
         @Override
