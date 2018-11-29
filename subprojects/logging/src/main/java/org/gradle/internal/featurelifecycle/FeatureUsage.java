@@ -65,6 +65,7 @@ public abstract class FeatureUsage {
 
     private static List<StackTraceElement> calculateStack(Class<?> calledFrom, Exception traceRoot) {
         StackTraceElement[] originalStack = traceRoot.getStackTrace();
+        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
@@ -80,28 +81,22 @@ public abstract class FeatureUsage {
                 }
             }
         }
-
-        caller = skipSystemStackElements(originalStack, caller);
-        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         for (; caller < originalStack.length; caller++) {
-            result.add(originalStack[caller]);
+            StackTraceElement stackTraceElement = originalStack[caller];
+            if (!isSystemStackFrame(stackTraceElement.getClassName())) {
+                result.add(stackTraceElement);
+            }
         }
         return result;
     }
 
-    private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
-        for (; caller < stackTrace.length; caller++) {
-            String currentClassName = stackTrace[caller].getClassName();
-            if (!currentClassName.startsWith("org.codehaus.groovy.")
-                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
-                && !currentClassName.startsWith("groovy.")
-                && !currentClassName.startsWith("java.")
-                && !currentClassName.startsWith("jdk.internal.")
-                ) {
-                break;
-            }
-        }
-        return caller;
+    private static boolean isSystemStackFrame(String className) {
+        return className.startsWith("jdk.internal.") ||
+            className.startsWith("sun.") ||
+            className.startsWith("com.sun.") ||
+            className.startsWith("org.codehaus.groovy.") ||
+            className.startsWith("org.gradle.internal.metaobject.") ||
+            className.startsWith("org.gradle.kotlin.dsl.execution.");
     }
 
     public String formattedMessage() {
