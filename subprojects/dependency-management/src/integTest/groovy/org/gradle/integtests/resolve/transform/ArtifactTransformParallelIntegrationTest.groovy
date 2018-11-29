@@ -420,16 +420,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
     def "only one process can run immutable transforms at the same time"() {
         given:
-        def buildA = new BuildTestFile(file("buildA"), "buildA")
-        def buildB = new BuildTestFile(file("buildB"), "buildB")
-        def toBeTransformed = file("lib.jar")
-        toBeTransformed.text = '1234'
-
-        [buildA, buildB].each { build ->
+        List<BuildTestFile> builds = (1..3).collect { idx ->
+            def build = new BuildTestFile(file("build${idx}"), "build${idx}")
             setupBuild(build)
             build.with {
-                def a = file(build.rootProjectName + ".jar")
-                a.text = '1234'
+                def toBeTransformed = file(build.rootProjectName + ".jar")
+                toBeTransformed.text = '1234'
                 buildFile << """
                     dependencies {
                         compile files(name + ".jar")
@@ -447,21 +443,25 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     }
                 """
             }
+            return build
         }
+        def buildNames = builds*.rootProjectName
 
         expect:
-        server.expectConcurrent("resolveStarted_buildA", "resolveStarted_buildB")
-        def transformations = server.expectConcurrentAndBlock(1, "buildA.jar", "buildB.jar")
-        def buildAHandle = executer.inDirectory(buildA).withTasks("resolve").start()
-        def buildBHandle = executer.inDirectory(buildB).withTasks("resolve").start()
+        server.expectConcurrent(buildNames.collect { "resolveStarted_" + it })
+        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + ".jar" } as String[])
+        def buildHandles = builds.collect {
+            executer.inDirectory(it).withTasks("resolve").start()
+        }
 
-        transformations.waitForAllPendingCalls()
-        Thread.sleep(1000)
-        transformations.release(1)
-        transformations.waitForAllPendingCalls()
-        transformations.release(1)
+        for (build in builds) {
+            transformations.waitForAllPendingCalls()
+            Thread.sleep(1000)
+            transformations.release(1)
+        }
 
-        buildAHandle.waitForFinish()
-        buildBHandle.waitForFinish()
+        buildHandles.each {
+            it.waitForFinish()
+        }
     }
 }
