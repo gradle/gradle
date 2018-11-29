@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.Action
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
@@ -72,6 +73,7 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(ToolingApiVersion)
         sharedSpec.allowClass(TeeOutputStream)
         sharedSpec.allowClass(ClassLoaderFixture)
+        sharedSpec.allowClass(CollectionCallbackActionDecorator) // TODO remove this class when the CALLBACK_EXECUTION_BUILD_OPS_TOGGLE feature toggle is removed
         classpathConfigurer.execute(sharedSpec)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader, sharedSpec)
 

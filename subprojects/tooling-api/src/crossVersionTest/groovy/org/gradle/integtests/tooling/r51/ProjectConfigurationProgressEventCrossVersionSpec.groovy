@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.r51
 
+import org.gradle.api.Action
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -23,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ScriptPluginIdentifier
@@ -249,6 +252,67 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         getPluginConfigurationOperationResult(":").getPluginConfigurationResults().findAll { it.plugin.displayName.contains("MyPlugin") }.empty
     }
 
+    def "includes execution time of project evaluation listener callbacks"() {
+        given:
+        def sleepMillis = 250
+        file("build.gradle") << """
+            apply plugin: MyPlugin
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.afterEvaluate {
+                        long start = System.currentTimeMillis()
+                        while (System.currentTimeMillis() - start < $sleepMillis) {
+                            Thread.sleep($sleepMillis)
+                        } 
+                    }
+                }
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
+        result.duration >= Duration.ofMillis(sleepMillis)
+    }
+
+    def "includes execution time of configuration callbacks"() {
+        given:
+        def sleepMillis = 250
+        file("build.gradle") << """
+            apply plugin: MyPlugin
+            
+            configurations {
+                foo
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.configurations.all {
+                        if (name == 'foo') {
+                            long start = System.currentTimeMillis()
+                            while (System.currentTimeMillis() - start < $sleepMillis) {
+                                Thread.sleep($sleepMillis)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        runBuild("tasks", EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
+            it.withArguments("-D${CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
+        }
+
+        then:
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
+        result.duration >= Duration.ofMillis(sleepMillis)
+    }
+
     void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
         with(containsPluginConfigurationResultsForJavaPlugin(displayName)) {
             def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }
@@ -293,12 +357,13 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
     }
 
-    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
+    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION), Action<BuildLauncher> config = {}) {
         withConnection {
-            newBuild()
+            def launcher = newBuild()
                 .forTasks(task)
                 .addProgressListener(events, operationTypes)
-                .run()
+            config.execute(launcher)
+            launcher.run()
         }
     }
 
