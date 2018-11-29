@@ -40,11 +40,6 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-").replaceAll("/", "-");
-    }
-
-    @Override
     public String getDisplayName() {
         return name;
     }

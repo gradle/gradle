@@ -42,11 +42,6 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         return newestFirst;
     }
 
-    @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-").replaceAll("/", "-");
-    }
-
     public String getDisplayName() {
         return name;
     }
