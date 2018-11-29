@@ -215,6 +215,12 @@ By default, this report shows only those tasks which have been assigned to a tas
 $ gradle tasks --all
 ----
 
+If you need to be more precise, you can display only the tasks from a specific group using the `--group` option.
+
+----
+$ gradle tasks --group="build setup"
+----
+
 [[sec:show_task_details]]
 === Show task usage details
 
