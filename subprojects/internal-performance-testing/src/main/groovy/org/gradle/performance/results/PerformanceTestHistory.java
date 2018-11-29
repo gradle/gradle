@@ -25,7 +25,13 @@ public interface PerformanceTestHistory {
     /**
      * A unique id for this performance test, must be stable over time.
      */
-    String getId();
+    default String getId() {
+        return convertToId(getDisplayName());
+    }
+
+    static String convertToId(String displayName) {
+        return displayName.replaceAll("\\s+", "-").replaceAll("/", "-");
+    }
 
     /**
      * A human consumable display name for this performance test.
