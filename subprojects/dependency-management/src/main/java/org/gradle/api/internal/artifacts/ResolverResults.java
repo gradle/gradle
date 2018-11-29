@@ -47,11 +47,6 @@ public interface ResolverResults {
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void graphResolved(VisitedArtifactSet visitedArtifacts);
-
-    /**
-     * Marks the dependency graph resolution as successful, with the given result.
-     */
     void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactSet visitedArtifacts);
 
     void failed(ResolveException failure);
