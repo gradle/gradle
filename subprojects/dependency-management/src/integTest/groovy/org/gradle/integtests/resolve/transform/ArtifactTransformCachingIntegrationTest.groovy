@@ -52,6 +52,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'app'
         """
         configureIncrementalArtifactTransformations(settingsFile)
+        buildFile << resolveTask
     }
 
     def "transform is applied to each file once per build"() {
@@ -141,19 +142,15 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         attributes.attribute color, 'blue'
                     }
                 }
-                task resolveRed {
-                    def red = configurations.compile.incoming.artifactView {
+                task resolveRed(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(color, 'red') }
                     }.artifacts
-
-                    inputs.files red.artifactFiles
                 }
-                task resolveYellow {
-                    def yellow = configurations.compile.incoming.artifactView {
+                task resolveYellow(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(color, 'yellow') }
                     }.artifacts
-
-                    inputs.files yellow.artifactFiles
                 }
             }
 
@@ -272,25 +269,20 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "ids 1: " + size.collect { it.id }
-                        println "components 1: " + size.collect { it.id.componentIdentifier }
-                        println "files 2: " + hash.collect { it.file.name }
-                        println "ids 2: " + hash.collect { it.id }
-                        println "components 2: " + hash.collect { it.id.componentIdentifier }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveHash, resolveSize)
                 }
             }
             
@@ -385,21 +377,21 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                    
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "files 2: " + hash.collect { it.file.name }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveSize, resolveHash)
                 }
             }
             
@@ -470,17 +462,19 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         }
                     }
                 }
-                task resolve {
-                    def values = configurations.compile.incoming.artifactView {
+                task resolve1(type: Resolve) {
+                    identifier = "1"
+                }
+                task resolve2(type: Resolve) {
+                    identifier = "2"
+                }
+                configure([resolve1, resolve2]) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'value') }
                     }.artifacts
-
-                    inputs.files(values.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + values.collect { it.file.name }
-                        println "files 2: " + values.collect { it.file.name }
-                    }
+                }
+                task resolve {
+                    dependsOn(resolve1, resolve2)
                 }
             }
             
@@ -573,25 +567,20 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(Hasher) { params('hash') }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolveSize(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-                    def hash = configurations.compile.incoming.artifactView {
+                    identifier = "1"
+                }
+                task resolveHash(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'hash') }
                     }.artifacts
-
-                    inputs.files(size.artifactFiles)
-                    inputs.files(hash.artifactFiles)
-
-                    doLast {
-                        println "files 1: " + size.collect { it.file.name }
-                        println "ids 1: " + size.collect { it.id }
-                        println "components 1: " + size.collect { it.id.componentIdentifier }
-                        println "files 2: " + hash.collect { it.file.name }
-                        println "ids 2: " + hash.collect { it.id }
-                        println "components 2: " + hash.collect { it.id.componentIdentifier }
-                    }
+                    identifier = "2"
+                }
+                task resolve {
+                    dependsOn(resolveSize, resolveHash)
                 }
             }
             
@@ -760,18 +749,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(Duplicator) { params(2, false) }
                     }
                 }
-                task resolve {
-                    def blue = configurations.compile.incoming.artifactView {
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'blue') }
                     }.artifacts
-
-                    inputs.files blue.artifactFiles
-
-                    doLast {
-                        println "files: " + blue.artifactFiles.collect { it.name }
-                        println "ids: " + blue.collect { it.id.displayName }
-                        println "components: " + blue.collect { it.id.componentIdentifier }
-                    }
                 }                
             }
         """
@@ -834,17 +815,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(Duplicator)  { params(1, true) }
                     }
                 }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'orange') }
                     }.artifacts
-                    inputs.files artifacts.artifactFiles
-
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                        println "ids: " + artifacts.collect { it.id.displayName }
-                        println "components: " + artifacts.collect { it.id.componentIdentifier }
-                    }
                 }                
             }
         """
@@ -906,17 +880,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(${possiblyFailingTransform(4)})  { params(1, true) }
                     }
                 }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'orange') }
                     }.artifacts
-                    inputs.files artifacts.artifactFiles
-
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                        println "ids: " + artifacts.collect { it.id.displayName }
-                        println "components: " + artifacts.collect { it.id.componentIdentifier }
-                    }
                 }                
             }
         """
@@ -979,17 +946,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(Duplicator)  { params(3, false) }
                     }
                 }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'yellow') }
                     }.artifacts
-                    inputs.files artifacts.artifactFiles
-
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                        println "ids: " + artifacts.collect { it.id.displayName }
-                        println "components: " + artifacts.collect { it.id.componentIdentifier }
-                    }
                 }                
             }
         """
@@ -1134,7 +1094,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'") << withClassesSizeTransform()
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'") << withClassesSizeTransform()
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1422,7 +1382,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then: 'transforming build starts artifact transform'
         transformBarrier.waitForAllPendingCalls()
-        def cachedTransform
+        def cachedTransform = null
         poll { // there's a delay in receiving the output
             cachedTransform = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") {
                 transformingBuild.standardOutput
@@ -1443,6 +1403,32 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then: 'transforming build finishes successfully'
         transformingBuild.waitForFinish()
+    }
+
+    String getResolveTask() {
+        """
+            class Resolve extends DefaultTask {   
+                @Internal
+                final Property<ArtifactCollection> artifacts = project.objects.property(ArtifactCollection)
+                @Console
+                final Property<String> identifier = project.objects.property(String)
+                                                                                
+                @Optional
+                @InputFiles                              
+                FileCollection getArtifactFiles() {
+                    return artifacts.get().artifactFiles
+                }               
+
+                @TaskAction
+                void run() {
+                    ArtifactCollection artifacts = this.artifacts.get()
+                    String postfix = identifier.map { it -> " " + it }.getOrElse("")
+                    println "files\${postfix}: " + artifacts.artifactFiles.collect { it.name }
+                    println "ids\${postfix}: " + artifacts.collect { it.id.displayName }
+                    println "components\${postfix}: " + artifacts.collect { it.id.componentIdentifier }                    
+                }
+            }
+        """
     }
 
     def multiProjectWithJarSizeTransform(Map options = [:]) {
@@ -1490,18 +1476,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         artifactTransform(FileSizer) { params(paramValue) }
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
-
-                    inputs.files size.artifactFiles
-
-                    doLast {
-                        println "files: " + size.artifactFiles.collect { it.name }
-                        println "ids: " + size.collect { it.id.displayName }
-                        println "components: " + size.collect { it.id.componentIdentifier }
-                    }
                 }
             }
     
