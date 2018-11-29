@@ -134,7 +134,7 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
     Provider<Set<K>> keySet();
 
     /**
-     * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(K, V)} will fail.
+     * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.
      *
      * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>
      *
