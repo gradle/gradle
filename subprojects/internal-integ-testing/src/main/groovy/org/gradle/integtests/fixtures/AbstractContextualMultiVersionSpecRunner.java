@@ -44,7 +44,16 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
 
     protected Collection<T> getPartialVersions() {
         Collection<T> allVersions = getAllVersions();
-        return Sets.newHashSet(getFirstAvailable(allVersions), getLastAvailable(allVersions));
+        Set<T> partialVersions = Sets.newHashSet();
+        T firstAvailable = getFirstAvailable(allVersions);
+        if (firstAvailable != null) {
+            partialVersions.add(firstAvailable);
+        }
+        T lastAvailable = getLastAvailable(allVersions);
+        if (lastAvailable != null) {
+            partialVersions.add(lastAvailable);
+        }
+        return partialVersions;
     }
 
     private Collection<T> getAvailableVersions() {
