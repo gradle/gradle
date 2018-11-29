@@ -1,3 +1,5 @@
+import org.gradle.api.internal.FeaturePreviews
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -167,6 +169,17 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    }
+}
+
+val ignoredFeatures = setOf(
+    // we don't want to publish Gradle metadata to public repositories until the format is stable.
+    FeaturePreviews.Feature.GRADLE_METADATA
+)
+
+FeaturePreviews.Feature.values().forEach { feature ->
+    if (feature.isActive && !ignoredFeatures.contains(feature)) {
+        enableFeaturePreview(feature.name)
     }
 }
 
