@@ -229,7 +229,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             cancel(workerBuildId)
         }
         def scheduledChangeId = findLastChangeIdInJson(response)
-        if (lastChangeId && scheduledChangeId != lastChangeId) {
+        if (lastChangeId && lastChangeId != scheduledChangeId) {
             throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: $response")
         }
         scheduledBuilds.put(workerBuildId, scenario)
@@ -246,7 +246,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private String findLastChangeIdInJson(Map responseJson) {
-        responseJson.lastChanges.change[0].id
+        responseJson?.lastChanges?.change?.get(0)?.id
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
