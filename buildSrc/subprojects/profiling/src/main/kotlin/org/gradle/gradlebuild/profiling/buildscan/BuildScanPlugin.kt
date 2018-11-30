@@ -76,7 +76,7 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.monitorUnexpectedCacheMisses() {
         gradle.taskGraph.afterTask {
-            if (!state.skipped && !currentBuildContainsCompileAll() && this.isMonitored()) {
+            if (!state.skipped && !isExcludedBuild() && this.isMonitored()) {
                 buildScan.tag("CACHE_MISS")
             }
         }
@@ -87,7 +87,11 @@ open class BuildScanPlugin : Plugin<Project> {
         this is AbstractCompile || this is ClasspathManifest
 
     private
-    fun Project.currentBuildContainsCompileAll() = gradle.startParameter.taskNames.contains("compileAll")
+    fun Project.isExcludedBuild() =
+        // Two expected cache-miss:
+        // 1. compileAll is seed build
+        // 2. Gradleexception is building on Java 8
+        gradle.startParameter.taskNames.contains("compileAll") || "Gradle_Check_Gradleception" == System.getenv("BUILD_TYPE_ID")
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {
