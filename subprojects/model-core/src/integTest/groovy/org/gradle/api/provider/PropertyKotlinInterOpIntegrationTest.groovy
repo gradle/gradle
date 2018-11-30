@@ -35,6 +35,9 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
         pluginDir.file("src/main/kotlin/SomeTask.kt") << """
             import ${DefaultTask.name}
             import ${Property.name}
+            import ${ListProperty.name}
+            import ${SetProperty.name}
+            import ${MapProperty.name}
             import ${ObjectFactory.name}
             import ${TaskAction.name}
             import ${Inject.name}
@@ -42,11 +45,17 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
             open class SomeTask @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
                 val flag = objectFactory.property(Boolean::class.java)
                 val message = objectFactory.property(String::class.java)
+                val list = objectFactory.listProperty(Int::class.java)
+                val set = objectFactory.setProperty(Int::class.java)
+                val map = objectFactory.mapProperty(Int::class.java, Boolean::class.java)
                 
                 @TaskAction
                 fun run() {
                     println("flag = " + flag.get())
                     println("message = " + message.get())
+                    println("list = " + list.get())
+                    println("set = " + set.get())
+                    println("map = " + map.get())
                 }
             }
         """
@@ -63,6 +72,9 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask::class.java) { 
                         flag.set(true)
                         message.set("some value")
+                        list.set(listOf(1, 2))
+                        set.set(listOf(1, 2))
+                        map.set(mapOf(1 to true, 2 to false))
                     }
                 }
             }
@@ -80,6 +92,9 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask::class.java) { 
                         flag.set(project.provider { true })
                         message.set(project.provider { "some value" })
+                        list.set(project.provider { listOf(1, 2) })
+                        set.set(project.provider { listOf(1, 2) })
+                        map.set(project.provider { mapOf(1 to true, 2 to false) })
                     }
                 }
             }
@@ -97,7 +112,10 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask::class.java) { 
                         val provider = project.provider { "some value" }
                         flag.set(provider.map { s -> !s.isEmpty() })
-                        message.set(provider. map { s -> s })
+                        message.set(provider.map { s -> s })
+                        list.set(provider.map { s -> listOf(1, 2) })
+                        set.set(provider.map { s -> listOf(1, 2) })
+                        map.set(provider.map { s -> mapOf(1 to true, 2 to false) })
                     }
                 }
             }

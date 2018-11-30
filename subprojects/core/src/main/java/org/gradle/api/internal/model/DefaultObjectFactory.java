@@ -117,16 +117,32 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        if (elementType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+        }
         return new DefaultListProperty<T>(elementType);
     }
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        if (elementType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+        }
         return new DefaultSetProperty<T>(elementType);
     }
 
     @Override
     public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
+        if (keyType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(mapProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(keyType), valueType));
+        }
+        if (valueType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+        }
         return new DefaultMapProperty<K, V>(keyType, valueType);
     }
 }
