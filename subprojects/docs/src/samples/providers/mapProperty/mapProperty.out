@@ -1,0 +1,9 @@
+
+> Task :generate
+a = 1
+b = 2
+c = 3
+d = 4
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
