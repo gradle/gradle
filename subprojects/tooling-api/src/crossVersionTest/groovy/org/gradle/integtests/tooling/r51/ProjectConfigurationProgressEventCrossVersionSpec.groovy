@@ -278,7 +278,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         result.duration >= Duration.ofMillis(sleepMillis)
     }
 
-    def "includes execution time of configuration callbacks"() {
+    def "includes execution time of container callbacks"() {
         given:
         def sleepMillis = 250
         file("build.gradle") << """
@@ -311,6 +311,42 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
         result.duration >= Duration.ofMillis(sleepMillis)
+    }
+
+    def "only counts execution time of container callbacks once"() {
+        given:
+        def sleepDurationMillis = 500
+        file("build.gradle") << """
+            configurations {
+                foo
+            }
+
+            apply plugin: MyPlugin
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.configurations.all {
+                        if (name == 'foo') {
+                            long start = System.currentTimeMillis()
+                            while (System.currentTimeMillis() - start < $sleepDurationMillis) {
+                                Thread.sleep(${sleepDurationMillis / 2})
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        runBuild("tasks", EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
+            it.withArguments("-D${CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
+        }
+
+        then:
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
+        result.duration >= Duration.ofMillis(sleepDurationMillis)
+        result.duration < Duration.ofMillis(2 * sleepDurationMillis)
     }
 
     void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {

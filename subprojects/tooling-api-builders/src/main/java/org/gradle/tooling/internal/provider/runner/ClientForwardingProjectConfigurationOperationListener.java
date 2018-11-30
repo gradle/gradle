@@ -71,14 +71,18 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         super.finished(buildOperation, finishEvent);
         if (isEnabled()) {
-            PluginApplication pluginApplication = pluginApplicationTracker.getPluginApplication(buildOperation.getId());
+            PluginApplication pluginApplication = pluginApplicationTracker.getRunningPluginApplication(buildOperation.getId());
             if (pluginApplication != null) {
                 ProjectConfigurationResult result = parentTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get);
-                if (result != null) {
+                if (result != null && hasNoEnclosingRunningPluginApplicationForSamePlugin(buildOperation, pluginApplication.getPlugin())) {
                     result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
                 }
             }
         }
+    }
+
+    private boolean hasNoEnclosingRunningPluginApplicationForSamePlugin(BuildOperationDescriptor buildOperation, InternalPluginIdentifier plugin) {
+        return !pluginApplicationTracker.hasRunningPluginApplication(buildOperation.getParentId(), pluginApplication -> pluginApplication.getPlugin().equals(plugin));
     }
 
     @Override
