@@ -16,10 +16,15 @@
 package org.gradle.language.cpp.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.language.cpp.CppSourceCompatibility;
 import org.gradle.language.cpp.tasks.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+
+import javax.inject.Inject;
 
 /**
  * Compiles C++ source files into object files.
@@ -27,9 +32,19 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 @Incubating
 @CacheableTask
 public class CppCompile extends AbstractNativeSourceCompileTask {
+    private final Property<CppSourceCompatibility> srcCompatibility;
+
+    @Inject
+    public CppCompile(ObjectFactory objectFactory) {
+        srcCompatibility = objectFactory.property(CppSourceCompatibility.class);
+    }
+
+    Property<CppSourceCompatibility> getSourceCompatibility() {
+        return srcCompatibility;
+    }
+
     @Override
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultCppCompileSpec();
     }
-
 }

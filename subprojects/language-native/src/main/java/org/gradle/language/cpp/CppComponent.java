@@ -107,4 +107,11 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      * @since 5.1
      */
     SetProperty<TargetMachine> getTargetMachines();
+
+    /**
+     * Returns the C++ standard for this component.
+     *
+     * @since 5.1
+     */
+    Property<CppSourceCompatibility> getSourceCompatibility();
 }

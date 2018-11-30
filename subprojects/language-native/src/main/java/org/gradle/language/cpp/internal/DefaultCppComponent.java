@@ -28,6 +28,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppSourceCompatibility;
 import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
@@ -48,6 +49,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
     private final SetProperty<TargetMachine> targetMachines;
+    private final Property<CppSourceCompatibility> srcCompatibility;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -61,6 +63,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
         targetMachines = objectFactory.setProperty(TargetMachine.class);
+        srcCompatibility = objectFactory.property(CppSourceCompatibility.class);
     }
 
     @Override
@@ -127,5 +130,10 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public SetProperty<TargetMachine> getTargetMachines() {
         return targetMachines;
+    }
+
+    @Override
+    public Property<CppSourceCompatibility> getSourceCompatibility() {
+        return srcCompatibility;
     }
 }
