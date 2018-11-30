@@ -60,6 +60,19 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
     }
 
+    def "generated wrapper files are reproducible"() {
+
+        when:
+        executer.inDirectory(file("first")).withTasks("wrapper").run()
+        executer.inDirectory(file("second")).withTasks("wrapper").run()
+
+        then:
+        file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
+        file("first/gradle/wrapper/gradle-wrapper.properties").md5Hash == file("second/gradle/wrapper/gradle-wrapper.properties").md5Hash
+        file("first/gradlew").md5Hash == file("second/gradlew").md5Hash
+        file("first/gradlew.bat").md5Hash == file("second/gradlew.bat").md5Hash
+    }
+
     def "generated wrapper does not change unnecessarily"() {
         def wrapperJar = file("gradle/wrapper/gradle-wrapper.jar")
         def wrapperProperties = file("gradle/wrapper/gradle-wrapper.properties")
