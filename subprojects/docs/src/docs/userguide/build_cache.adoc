@@ -210,7 +210,7 @@ When possible, it is better to use delegation instead of creating a subclass.
 That is the case for the built in `JavaExec`, `Exec`, `Copy` and `Sync` tasks, which have a method on `Project` to do the actual work.
 
 If you're a modern JavaScript developer, you know that bundling can be quite long, and is worth caching.
-To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html] annotation.
+To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask] annotation.
 
 This is sufficient to make the task cacheable on your own machine.
 However, input files are identified by default by their absolute path.
