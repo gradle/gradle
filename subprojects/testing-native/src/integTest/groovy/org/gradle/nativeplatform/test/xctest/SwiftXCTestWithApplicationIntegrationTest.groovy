@@ -48,4 +48,9 @@ class SwiftXCTestWithApplicationIntegrationTest extends AbstractSwiftXCTestWithC
             apply plugin: 'swift-application'
         """
     }
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return "application"
+    }
 }
