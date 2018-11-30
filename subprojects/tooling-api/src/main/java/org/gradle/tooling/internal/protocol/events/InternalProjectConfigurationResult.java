@@ -29,12 +29,12 @@ public interface InternalProjectConfigurationResult extends InternalOperationRes
     /**
      * Returns the results of plugins applied as part of the configuration of this project.
      */
-    List<? extends InternalPluginConfigurationResult> getPluginConfigurationResults();
+    List<? extends InternalPluginApplicationResult> getPluginApplicationResults();
 
     /**
      * @since 5.1
      */
-    interface InternalPluginConfigurationResult {
+    interface InternalPluginApplicationResult {
 
         /**
          * Returns the identifier of this plugin.
@@ -44,7 +44,7 @@ public interface InternalProjectConfigurationResult extends InternalOperationRes
         /**
          * Returns the total configuration time of this plugin.
          */
-        Duration getDuration();
+        Duration getTotalConfigurationTime();
 
     }
 

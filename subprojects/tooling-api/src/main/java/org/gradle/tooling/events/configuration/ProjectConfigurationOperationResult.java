@@ -36,16 +36,19 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
      *
      * <p>This may include plugins applied to other projects that are part of the current build,
      * e.g. when using {@code subprojects {}} blocks in the build script of the root project.
+     *
+     * <p>If a plugin is applied more than once, this list will only contain a single result
+     * that describes the summary of all its applications.
      */
-    List<? extends PluginConfigurationResult> getPluginConfigurationResults();
+    List<? extends PluginApplicationResult> getPluginApplicationResults();
 
     /**
-     * Describes the result of configuring a plugin.
+     * Describes the result of applying a plugin.
      *
      * @since 5.1
      */
     @Incubating
-    interface PluginConfigurationResult {
+    interface PluginApplicationResult {
 
         /**
          * Returns the identifier of this plugin.
@@ -55,7 +58,7 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
         /**
          * Returns the total configuration time of this plugin.
          */
-        Duration getDuration();
+        Duration getTotalConfigurationTime();
 
     }
 

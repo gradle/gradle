@@ -33,7 +33,7 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult
-import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult
 
@@ -106,23 +106,23 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
         _ * startEvent.getDisplayName() >> 'Project configuration started'
         _ * startEvent.getDescriptor() >> projectConfigurationDescriptor
 
-        def binaryPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
-        _ * binaryPluginConfigurationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
+        def binaryPluginApplicationResult = Stub(InternalPluginApplicationResult)
+        _ * binaryPluginApplicationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
             getClassName() >> 'com.acme.SomePlugin'
             getPluginId() >> 'com.acme.some'
         }
-        _ * binaryPluginConfigurationResult.getDuration() >> Duration.ofMillis(23)
+        _ * binaryPluginApplicationResult.getTotalConfigurationTime() >> Duration.ofMillis(23)
 
-        def scriptPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
-        _ * scriptPluginConfigurationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
+        def scriptPluginApplicationResult = Stub(InternalPluginApplicationResult)
+        _ * scriptPluginApplicationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
             getUri() >> new File(rootDir, "build.gradle").toURI()
         }
-        _ * scriptPluginConfigurationResult.getDuration() >> Duration.ofMillis(42)
+        _ * scriptPluginApplicationResult.getTotalConfigurationTime() >> Duration.ofMillis(42)
 
         def projectConfigurationResult = Mock(InternalProjectConfigurationResult, additionalInterfaces: [InternalSuccessResult])
         _ * projectConfigurationResult.getStartTime() >> 1
         _ * projectConfigurationResult.getEndTime() >> 2
-        _ * projectConfigurationResult.getPluginConfigurationResults() >> [binaryPluginConfigurationResult, scriptPluginConfigurationResult]
+        _ * projectConfigurationResult.getPluginApplicationResults() >> [binaryPluginApplicationResult, scriptPluginApplicationResult]
 
         def succeededEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * succeededEvent.getEventTime() >> 999
@@ -145,14 +145,14 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             with((ProjectConfigurationSuccessResult) event.result) {
-                assert pluginConfigurationResults.size() == 2
-                assert pluginConfigurationResults[0].plugin instanceof BinaryPluginIdentifier
-                assert pluginConfigurationResults[0].plugin.className == 'com.acme.SomePlugin'
-                assert pluginConfigurationResults[0].plugin.pluginId == 'com.acme.some'
-                assert pluginConfigurationResults[0].duration == Duration.ofMillis(23)
-                assert pluginConfigurationResults[1].plugin instanceof ScriptPluginIdentifier
-                assert pluginConfigurationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
-                assert pluginConfigurationResults[1].duration == Duration.ofMillis(42)
+                assert pluginApplicationResults.size() == 2
+                assert pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
+                assert pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assert pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
+                assert pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
+                assert pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
+                assert pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assert pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
             }
         }
     }
@@ -176,24 +176,24 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
         _ * startEvent.getDisplayName() >> 'Project configuration started'
         _ * startEvent.getDescriptor() >> projectConfigurationDescriptor
 
-        def binaryPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
-        _ * binaryPluginConfigurationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
+        def binaryPluginApplicationResult = Stub(InternalPluginApplicationResult)
+        _ * binaryPluginApplicationResult.getPlugin() >> Stub(InternalBinaryPluginIdentifier) {
             getClassName() >> 'com.acme.SomePlugin'
             getPluginId() >> 'com.acme.some'
         }
-        _ * binaryPluginConfigurationResult.getDuration() >> Duration.ofMillis(23)
+        _ * binaryPluginApplicationResult.getTotalConfigurationTime() >> Duration.ofMillis(23)
 
-        def scriptPluginConfigurationResult = Stub(InternalPluginConfigurationResult)
-        _ * scriptPluginConfigurationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
+        def scriptPluginApplicationResult = Stub(InternalPluginApplicationResult)
+        _ * scriptPluginApplicationResult.getPlugin() >> Stub(InternalScriptPluginIdentifier) {
             getUri() >> new File(rootDir, "build.gradle").toURI()
         }
-        _ * scriptPluginConfigurationResult.getDuration() >> Duration.ofMillis(42)
+        _ * scriptPluginApplicationResult.getTotalConfigurationTime() >> Duration.ofMillis(42)
 
         def projectConfigurationResult = Mock(InternalProjectConfigurationResult, additionalInterfaces: [InternalFailureResult])
         _ * projectConfigurationResult.getStartTime() >> 1
         _ * projectConfigurationResult.getEndTime() >> 2
         _ * projectConfigurationResult.getFailures() >> [Stub(InternalFailure)]
-        _ * projectConfigurationResult.getPluginConfigurationResults() >> [binaryPluginConfigurationResult, scriptPluginConfigurationResult]
+        _ * projectConfigurationResult.getPluginApplicationResults() >> [binaryPluginApplicationResult, scriptPluginApplicationResult]
 
         def failedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * failedEvent.getEventTime() >> 999
@@ -216,14 +216,14 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
             with((ProjectConfigurationFailureResult) event.result) {
-                assert pluginConfigurationResults.size() == 2
-                assert pluginConfigurationResults[0].plugin instanceof BinaryPluginIdentifier
-                assert pluginConfigurationResults[0].plugin.className == 'com.acme.SomePlugin'
-                assert pluginConfigurationResults[0].plugin.pluginId == 'com.acme.some'
-                assert pluginConfigurationResults[0].duration == Duration.ofMillis(23)
-                assert pluginConfigurationResults[1].plugin instanceof ScriptPluginIdentifier
-                assert pluginConfigurationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
-                assert pluginConfigurationResults[1].duration == Duration.ofMillis(42)
+                assert pluginApplicationResults.size() == 2
+                assert pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
+                assert pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assert pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
+                assert pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
+                assert pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
+                assert pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assert pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
             }
         }
     }

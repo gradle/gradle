@@ -24,8 +24,8 @@ public class DefaultProjectConfigurationFailureResult extends AbstractProjectCon
 
     private final List<DefaultFailure> failures;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<DefaultFailure> failures, List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
-        super(startTime, endTime, "failed", pluginConfigurationResults);
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<DefaultFailure> failures, List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
+        super(startTime, endTime, "failed", pluginApplicationResults);
         this.failures = failures;
     }
 

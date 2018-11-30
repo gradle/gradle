@@ -22,16 +22,16 @@ import java.util.List;
 
 public abstract class AbstractProjectConfigurationResult extends AbstractOperationResult implements InternalProjectConfigurationResult {
 
-    private final List<? extends InternalPluginConfigurationResult> pluginConfigurationResults;
+    private final List<? extends InternalPluginApplicationResult> pluginApplicationResults;
 
-    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
+    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
         super(startTime, endTime, outcomeDescription);
-        this.pluginConfigurationResults = pluginConfigurationResults;
+        this.pluginApplicationResults = pluginApplicationResults;
     }
 
     @Override
-    public List<? extends InternalPluginConfigurationResult> getPluginConfigurationResults() {
-        return pluginConfigurationResults;
+    public List<? extends InternalPluginApplicationResult> getPluginApplicationResults() {
+        return pluginApplicationResults;
     }
 
 }

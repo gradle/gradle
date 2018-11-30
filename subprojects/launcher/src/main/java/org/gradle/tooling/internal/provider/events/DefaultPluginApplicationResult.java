@@ -17,19 +17,19 @@
 package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 
 import java.io.Serializable;
 import java.time.Duration;
 
-public class DefaultPluginConfigurationResult implements InternalPluginConfigurationResult, Serializable {
+public class DefaultPluginApplicationResult implements InternalPluginApplicationResult, Serializable {
 
     private final InternalPluginIdentifier plugin;
-    private final Duration duration;
+    private final Duration totalConfigurationTime;
 
-    public DefaultPluginConfigurationResult(InternalPluginIdentifier plugin, Duration duration) {
+    public DefaultPluginApplicationResult(InternalPluginIdentifier plugin, Duration totalConfigurationTime) {
         this.plugin = plugin;
-        this.duration = duration;
+        this.totalConfigurationTime = totalConfigurationTime;
     }
 
     @Override
@@ -38,8 +38,8 @@ public class DefaultPluginConfigurationResult implements InternalPluginConfigura
     }
 
     @Override
-    public Duration getDuration() {
-        return duration;
+    public Duration getTotalConfigurationTime() {
+        return totalConfigurationTime;
     }
 
 }
