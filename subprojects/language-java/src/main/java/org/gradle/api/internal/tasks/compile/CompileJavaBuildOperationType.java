@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.NotUsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * @since 5.1
  */
+@NotUsedByScanPlugin("used to report annotation processor execution times to TAPI progress listeners")
 public class CompileJavaBuildOperationType implements BuildOperationType<CompileJavaBuildOperationType.Details, CompileJavaBuildOperationType.Result> {
 
     public interface Details {
