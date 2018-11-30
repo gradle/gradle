@@ -26,13 +26,13 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractProjectConfigurationResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultPluginConfigurationResult;
+import org.gradle.tooling.internal.provider.events.DefaultPluginApplicationResult;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationSuccessResult;
@@ -108,40 +108,40 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
-        List<InternalPluginConfigurationResult> pluginConfigurationResults = configResult.toInternalPluginConfigurationResults();
+        List<InternalPluginApplicationResult> pluginApplicationResults = configResult.toInternalPluginApplicationResults();
         if (failure != null) {
-            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginConfigurationResults);
+            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults);
         }
-        return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginConfigurationResults);
+        return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginApplicationResults);
     }
 
     private static class ProjectConfigurationResult {
 
-        private final Map<InternalPluginIdentifier, PluginConfigurationResult> pluginResults = new ConcurrentHashMap<>();
+        private final Map<InternalPluginIdentifier, PluginApplicationResult> pluginApplicationResults = new ConcurrentHashMap<>();
 
         void increment(PluginApplication pluginApplication, long duration) {
             InternalPluginIdentifier plugin = pluginApplication.getPlugin();
-            pluginResults
-                .computeIfAbsent(plugin, key -> new PluginConfigurationResult(plugin, pluginApplication.getApplicationId()))
+            pluginApplicationResults
+                .computeIfAbsent(plugin, key -> new PluginApplicationResult(plugin, pluginApplication.getApplicationId()))
                 .increment(duration);
         }
 
-        List<InternalPluginConfigurationResult> toInternalPluginConfigurationResults() {
-            return pluginResults.values().stream()
-                .sorted(comparing(PluginConfigurationResult::getFirstApplicationId))
-                .map(PluginConfigurationResult::toInternalPluginConfigurationResult)
+        List<InternalPluginApplicationResult> toInternalPluginApplicationResults() {
+            return pluginApplicationResults.values().stream()
+                .sorted(comparing(PluginApplicationResult::getFirstApplicationId))
+                .map(PluginApplicationResult::toInternalPluginApplicationResult)
                 .collect(toCollection(ArrayList::new));
         }
 
     }
 
-    private static class PluginConfigurationResult {
+    private static class PluginApplicationResult {
 
         private AtomicLong duration = new AtomicLong();
         private final InternalPluginIdentifier plugin;
         private final long firstApplicationId;
 
-        PluginConfigurationResult(InternalPluginIdentifier plugin, long firstApplicationId) {
+        PluginApplicationResult(InternalPluginIdentifier plugin, long firstApplicationId) {
             this.plugin = plugin;
             this.firstApplicationId = firstApplicationId;
         }
@@ -154,8 +154,8 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
             this.duration.addAndGet(duration);
         }
 
-        InternalPluginConfigurationResult toInternalPluginConfigurationResult() {
-            return new DefaultPluginConfigurationResult(plugin, Duration.ofMillis(duration.get()));
+        InternalPluginApplicationResult toInternalPluginApplicationResult() {
+            return new DefaultPluginApplicationResult(plugin, Duration.ofMillis(duration.get()));
         }
 
     }

@@ -17,18 +17,18 @@
 package org.gradle.tooling.events.configuration.internal;
 
 import org.gradle.tooling.events.PluginIdentifier;
-import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginConfigurationResult;
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginApplicationResult;
 
 import java.time.Duration;
 
-public class DefaultPluginConfigurationResult implements PluginConfigurationResult {
+public class DefaultPluginApplicationResult implements PluginApplicationResult {
 
     private final PluginIdentifier plugin;
-    private final Duration duration;
+    private final Duration totalConfigurationTime;
 
-    public DefaultPluginConfigurationResult(PluginIdentifier plugin, Duration duration) {
+    public DefaultPluginApplicationResult(PluginIdentifier plugin, Duration totalConfigurationTime) {
         this.plugin = plugin;
-        this.duration = duration;
+        this.totalConfigurationTime = totalConfigurationTime;
     }
 
     @Override
@@ -37,8 +37,8 @@ public class DefaultPluginConfigurationResult implements PluginConfigurationResu
     }
 
     @Override
-    public Duration getDuration() {
-        return duration;
+    public Duration getTotalConfigurationTime() {
+        return totalConfigurationTime;
     }
 
 }

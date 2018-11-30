@@ -136,12 +136,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        containsPluginConfigurationResultsForJavaPlugin(":buildSrc")
-        doesNotContainPluginConfigurationResultsForJavaPlugin(":buildSrc:a")
-        containsPluginConfigurationResultsForJavaPlugin(":")
-        doesNotContainPluginConfigurationResultsForJavaPlugin(":b")
-        containsPluginConfigurationResultsForJavaPlugin(":included")
-        doesNotContainPluginConfigurationResultsForJavaPlugin(":included:c")
+        containsPluginApplicationResultsForJavaPlugin(":buildSrc")
+        doesNotContainPluginApplicationResultsForJavaPlugin(":buildSrc:a")
+        containsPluginApplicationResultsForJavaPlugin(":")
+        doesNotContainPluginApplicationResultsForJavaPlugin(":b")
+        containsPluginApplicationResultsForJavaPlugin(":included")
+        doesNotContainPluginApplicationResultsForJavaPlugin(":included:c")
     }
 
     def "reports plugin configuration results for script plugins"() {
@@ -170,12 +170,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
-        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":buildSrc:a")
-        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":", projectDir)
-        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":b")
-        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
-        doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(":included:c")
+        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
+        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc:a")
+        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":", projectDir)
+        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":b")
+        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
+        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":included:c")
     }
 
     def "reports plugin configuration results for subprojects"() {
@@ -191,7 +191,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(":b", file("b"))
+        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":b", file("b"))
     }
 
     def "reports plugin configuration results in reliable order"() {
@@ -207,7 +207,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        def plugins = getPluginConfigurationOperationResult(":").getPluginConfigurationResults().collect { it.plugin.displayName }
+        def plugins = getPluginConfigurationOperationResult(":").getPluginApplicationResults().collect { it.plugin.displayName }
         plugins == [
             "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
             "build.gradle", "script.gradle",
@@ -231,7 +231,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        def result = getPluginConfigurationOperationResult(":").getPluginConfigurationResults().find { it.plugin.displayName == "script.gradle" }
+        def result = getPluginConfigurationOperationResult(":").getPluginApplicationResults().find { it.plugin.displayName == "script.gradle" }
         result.plugin instanceof ScriptPluginIdentifier
         result.plugin.uri == scriptUri
     }
@@ -249,7 +249,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        getPluginConfigurationOperationResult(":").getPluginConfigurationResults().findAll { it.plugin.displayName.contains("MyPlugin") }.empty
+        getPluginConfigurationOperationResult(":").getPluginApplicationResults().findAll { it.plugin.displayName.contains("MyPlugin") }.empty
     }
 
     def "includes execution time of project evaluation listener callbacks"() {
@@ -273,9 +273,9 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.duration >= Duration.ofMillis(sleepMillis)
+        result.totalConfigurationTime >= Duration.ofMillis(sleepMillis)
     }
 
     def "includes execution time of container callbacks"() {
@@ -308,9 +308,9 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         }
 
         then:
-        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.duration >= Duration.ofMillis(sleepMillis)
+        result.totalConfigurationTime >= Duration.ofMillis(sleepMillis)
     }
 
     def "only counts execution time of container callbacks once"() {
@@ -343,48 +343,48 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         }
 
         then:
-        def pluginResults = getPluginConfigurationOperationResult(":").getPluginConfigurationResults()
+        def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.duration >= Duration.ofMillis(sleepDurationMillis)
-        result.duration < Duration.ofMillis(2 * sleepDurationMillis)
+        result.totalConfigurationTime >= Duration.ofMillis(sleepDurationMillis)
+        result.totalConfigurationTime < Duration.ofMillis(2 * sleepDurationMillis)
     }
 
-    void containsPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
-        with(containsPluginConfigurationResultsForJavaPlugin(displayName)) {
-            def buildScript = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }
-            assert buildScript.duration >= Duration.ZERO
+    void containsPluginApplicationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
+        with(containsPluginApplicationResultsForJavaPlugin(displayName)) {
+            def buildScript = pluginApplicationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }
+            assert buildScript.totalConfigurationTime >= Duration.ZERO
             assert buildScript.plugin.displayName == "build.gradle"
-            def scriptPlugin = pluginConfigurationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
+            def scriptPlugin = pluginApplicationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
             assert scriptPlugin.plugin.displayName == "script.gradle"
-            assert scriptPlugin.duration >= Duration.ZERO
+            assert scriptPlugin.totalConfigurationTime >= Duration.ZERO
         }
     }
 
-    ProjectConfigurationOperationResult containsPluginConfigurationResultsForJavaPlugin(String displayName) {
+    ProjectConfigurationOperationResult containsPluginApplicationResultsForJavaPlugin(String displayName) {
         def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
-            def javaPluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
+            def javaPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
             assert javaPluginResult.plugin.pluginId == "org.gradle.java"
             assert javaPluginResult.plugin.displayName == "org.gradle.java"
-            assert javaPluginResult.duration >= Duration.ZERO
-            def basePluginResult = pluginConfigurationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
+            assert javaPluginResult.totalConfigurationTime >= Duration.ZERO
+            def basePluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
             assert basePluginResult.plugin.pluginId == null
             assert basePluginResult.plugin.displayName == "org.gradle.api.plugins.BasePlugin"
-            assert basePluginResult.duration >= Duration.ZERO
+            assert basePluginResult.totalConfigurationTime >= Duration.ZERO
         }
         return result
     }
 
-    void doesNotContainPluginConfigurationResultsForJavaPluginAndScriptPlugins(String displayName) {
-        with(doesNotContainPluginConfigurationResultsForJavaPlugin(displayName)) {
-            assert pluginConfigurationResults.findAll { it.plugin instanceof ScriptPluginIdentifier }.empty
+    void doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(String displayName) {
+        with(doesNotContainPluginApplicationResultsForJavaPlugin(displayName)) {
+            assert pluginApplicationResults.findAll { it.plugin instanceof ScriptPluginIdentifier }.empty
         }
     }
 
-    ProjectConfigurationOperationResult doesNotContainPluginConfigurationResultsForJavaPlugin(String displayName) {
+    ProjectConfigurationOperationResult doesNotContainPluginApplicationResultsForJavaPlugin(String displayName) {
         def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
-            assert pluginConfigurationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" } == null
+            assert pluginApplicationResults.find { it.plugin.className == "org.gradle.api.plugins.JavaPlugin" } == null
         }
         return result
     }
