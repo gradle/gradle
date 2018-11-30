@@ -15,13 +15,13 @@
     <build-runners>
       <runner id="RUNNER_9" name="Promote" type="gradle-runner">
         <parameters>
-          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
+          <param name="teamcity.tool.jacoco" value="%teamcity.tool.jacoco.DEFAULT%" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -PconfirmationCode=%confirmationCode% &quot;-PgitUserName=%gitUserName%&quot; &quot;-PgitUserEmail=%gitUserEmail%&quot; -Igradle/buildScanInit.gradle -Djava7Home=%linux.jdk.for.gradle.compile% -Djava9Home=%linux.java9.oracle.64bit%" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean promoteStartReleaseCycle" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean :promote-projects:gradle:updateMasterBranch" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
