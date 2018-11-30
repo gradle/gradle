@@ -36,6 +36,13 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 import java.util.Set;
 
+/**
+ * Companion object of a {@link TransformationNode} that knows how to compute the artifacts of the dependencies
+ * of the artifact undergoing transformation by producing an {@link ArtifactTransformDependenciesInternal}.
+ *
+ * The implementation is not thread-safe, designed to work with a single {@link Transformation}
+ * and thus should not be shared beyond the members of a chain.
+ */
 class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
     private static final ArtifactTransformDependenciesInternal EMPTY_DEPENDENCIES = new ArtifactTransformDependenciesInternal() {
@@ -59,6 +66,7 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
 
     private final ComponentArtifactIdentifier artifactId;
     private final ResolvableDependencies resolvableDependencies;
+    private ImmutableSet<ComponentIdentifier> dependenciesIdentifiers;
 
     DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
         this.artifactId = artifactId;
@@ -74,15 +82,11 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
     @Override
     public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
         return DeprecationLogger.whileDisabled(() -> {
-            // Temporarily ignore deprecation warning while triggering the artifact resolution
+            // Temporarily ignore deprecation warning while triggering the configuration and artifact resolution
             // This is unsafe as some other thread may be using the projects state.
             // Should instead replace this with a node that resolves the configuration and on which each transform node depends
-            Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
-            ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
-            for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
-                if (component.getId().equals(artifactId.getComponentIdentifier())) {
-                    getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
-                }
+            if (dependenciesIdentifiers == null) {
+                dependenciesIdentifiers = initializeDependencyIdentifiers();
             }
             FileCollection files = resolvableDependencies.artifactView(conf -> {
                 conf.componentFilter(element -> {
@@ -104,6 +108,18 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
 
             return new DefaultArtifactTransformDependencies(files);
         });
+    }
+
+    private ImmutableSet<ComponentIdentifier> initializeDependencyIdentifiers() {
+        ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
+        Set<ComponentIdentifier> result = Sets.newHashSet();
+        for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
+            if (component.getId().equals(artifactId.getComponentIdentifier())) {
+                getDependenciesIdentifiers(result, component.getDependencies());
+                break;
+            }
+        }
+        return ImmutableSet.copyOf(result);
     }
 
     private static void getDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Set<? extends DependencyResult> dependencies) {
