@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -47,11 +48,13 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toCollection;
 
 /**
@@ -87,8 +90,8 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     @Override
     protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ExecuteTaskBuildOperationDetails details) {
         TaskInternal task = details.getTask();
-        AbstractTaskResult result = operationResultPostProcessor.process(toTaskResult(task, finishEvent), buildOperation.getId());
-        return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), result);
+        AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), buildOperation.getId());
+        return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), taskResult);
     }
 
     private DefaultTaskDescriptor toTaskDescriptor(BuildOperationDescriptor buildOperation, TaskInternal task) {
@@ -103,21 +106,24 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
         });
     }
 
-    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent result) {
+    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent finishEvent) {
         TaskStateInternal state = task.getState();
-        long startTime = result.getStartTime();
-        long endTime = result.getEndTime();
+        long startTime = finishEvent.getStartTime();
+        long endTime = finishEvent.getEndTime();
+        ExecuteTaskBuildOperationType.Result result = (ExecuteTaskBuildOperationType.Result) finishEvent.getResult();
+        boolean incremental = result != null && result.isIncremental();
 
         if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage());
+            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList());
         } else if (state.getSkipped()) {
-            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage());
+            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental);
         } else {
-            Throwable failure = result.getFailure();
+            List<String> executionReasons = result != null ? result.getUpToDateMessages() : null;
+            Throwable failure = finishEvent.getFailure();
             if (failure == null) {
-                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS");
+                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
             } else {
-                return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
             }
         }
     }

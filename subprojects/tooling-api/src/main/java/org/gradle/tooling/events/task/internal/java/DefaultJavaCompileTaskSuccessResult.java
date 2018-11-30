@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.task.internal.java;
 
 import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
+import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult;
 
 import javax.annotation.Nullable;
@@ -26,8 +27,8 @@ public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResul
 
     private final List<AnnotationProcessorResult> annotationProcessorResults;
 
-    public DefaultJavaCompileTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, List<AnnotationProcessorResult> annotationProcessorResults) {
-        super(startTime, endTime, upToDate, fromCache);
+    public DefaultJavaCompileTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, TaskExecutionDetails taskExecutionDetails, List<AnnotationProcessorResult> annotationProcessorResults) {
+        super(startTime, endTime, upToDate, fromCache, taskExecutionDetails);
         this.annotationProcessorResults = annotationProcessorResults;
     }
 

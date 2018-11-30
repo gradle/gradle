@@ -63,6 +63,22 @@
            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()",
            "acceptation": "Replacing existing properties with Provider API",
            "changes": []
+       },
+       {
+           "type": "org.gradle.tooling.events.task.TaskFailureResult",
+           "member": "Class org.gradle.tooling.events.task.TaskFailureResult",
+           "acceptation": "Adding methods to both TaskFailureResult and TaskSuccessResult via a new common super-interface",
+           "changes": [
+               "org.gradle.tooling.events.task.TaskExecutionResult"
+           ]
+       },
+       {
+           "type": "org.gradle.tooling.events.task.TaskSuccessResult",
+           "member": "Class org.gradle.tooling.events.task.TaskSuccessResult",
+           "acceptation": "Adding methods to both TaskFailureResult and TaskSuccessResult via a new common super-interface",
+           "changes": [
+               "org.gradle.tooling.events.task.TaskExecutionResult"
+           ]
        }
    ]
 }

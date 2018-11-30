@@ -55,6 +55,7 @@ import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
 import org.gradle.tooling.events.task.internal.DefaultTaskSkippedResult;
 import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
+import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
 import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
@@ -86,6 +87,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -452,24 +454,35 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static TaskOperationResult toTaskResult(InternalTaskResult result) {
-        boolean fromCache = false;
-        if (result instanceof InternalTaskCachedResult) {
-            fromCache = ((InternalTaskCachedResult)result).isFromCache();
-        }
-
         if (result instanceof InternalTaskSuccessResult) {
+            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
             if (result instanceof InternalJavaCompileTaskOperationResult) {
                 List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
-                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache, annotationProcessorResults);
+                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
             }
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache);
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
         } else if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toTaskExecutionDetails(result));
         } else {
             return null;
         }
+    }
+
+    private static boolean isFromCache(InternalTaskResult result) {
+        if (result instanceof InternalTaskCachedResult) {
+            return ((InternalTaskCachedResult)result).isFromCache();
+        }
+        return false;
+    }
+
+    private static TaskExecutionDetails toTaskExecutionDetails(InternalTaskResult result) {
+        if (result instanceof InternalIncrementalTaskResult) {
+            InternalIncrementalTaskResult taskResult = (InternalIncrementalTaskResult) result;
+            return TaskExecutionDetails.of(taskResult.isIncremental(), taskResult.getExecutionReasons());
+        }
+        return TaskExecutionDetails.unsupported();
     }
 
     private static WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {

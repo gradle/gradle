@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.NotUsedByScanPlugin;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -118,6 +120,14 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          */
         @Nullable
         List<String> getUpToDateMessages();
+
+        /**
+         * Returns if this task was executed incrementally.
+         *
+         * @see IncrementalTaskInputs#isIncremental()
+         */
+        @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
+        boolean isIncremental();
 
     }
 

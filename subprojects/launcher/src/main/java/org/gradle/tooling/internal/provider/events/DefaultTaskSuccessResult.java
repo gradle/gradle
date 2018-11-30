@@ -16,15 +16,19 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 
-public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult, InternalTaskCachedResult {
+import java.util.List;
+
+public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult, InternalTaskCachedResult, InternalIncrementalTaskResult {
+
     private final boolean upToDate;
     private final boolean fromCache;
 
-    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, String outcomeDescription) {
-        super(startTime, endTime, outcomeDescription);
+    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, String outcomeDescription, boolean incremental, List<String> executionReasons) {
+        super(startTime, endTime, outcomeDescription, incremental, executionReasons);
         this.upToDate = upToDate;
         this.fromCache = fromCache;
     }
@@ -38,4 +42,5 @@ public class DefaultTaskSuccessResult extends AbstractTaskResult implements Inte
     public boolean isFromCache() {
         return fromCache;
     }
+
 }

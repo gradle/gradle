@@ -23,5 +23,5 @@ import org.gradle.tooling.events.FailureResult;
  *
  * @since 2.5
  */
-public interface TaskFailureResult extends TaskOperationResult, FailureResult {
+public interface TaskFailureResult extends TaskExecutionResult, FailureResult {
 }
