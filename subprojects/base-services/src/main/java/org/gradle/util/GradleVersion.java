@@ -36,6 +36,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
     private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
+    private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;
     private static final int STAGE_RC = 3;
 
@@ -114,7 +115,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         versionPart = matcher.group(1);
         majorPart = Integer.parseInt(matcher.group(2), 10);
 
-        this.commitId = parseOrSetCommitId(commitId, matcher);
+        this.commitId = setOrParseCommitId(commitId, matcher);
         this.stage = parseStage(matcher);
         this.snapshot = parseSnapshot(matcher);
     }
@@ -151,7 +152,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         } else if (isStage("rc", matcher)) {
             return Stage.from(STAGE_RC, matcher.group(6));
         } else {
-            return Stage.from(1, matcher.group(6));
+            return Stage.from(STAGE_UNKNOWN, matcher.group(6));
         }
     }
 
@@ -163,11 +164,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return stage.equals(matcher.group(5));
     }
 
-    private String parseOrSetCommitId(String commitId, Matcher matcher) {
-        if ("commit".equals(matcher.group(5))) {
+    private String setOrParseCommitId(String commitId, Matcher matcher) {
+        if (commitId != null || !isCommitVersion(matcher)) {
+            return commitId;
+        } else {
             return matcher.group(6);
         }
-        return commitId;
     }
 
     @Override
@@ -250,7 +252,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         Long thisSnapshot = snapshot == null ? Long.MAX_VALUE : snapshot;
         Long theirSnapshot = gradleVersion.snapshot == null ? Long.MAX_VALUE : gradleVersion.snapshot;
 
-        if (thisSnapshot == theirSnapshot) {
+        if (thisSnapshot.equals(theirSnapshot)) {
             return version.compareTo(gradleVersion.version);
         } else {
             return thisSnapshot.compareTo(theirSnapshot);
