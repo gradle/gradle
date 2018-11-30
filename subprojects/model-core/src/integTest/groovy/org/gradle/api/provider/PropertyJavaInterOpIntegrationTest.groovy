@@ -37,6 +37,9 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
         pluginDir.file("src/main/java/SomeTask.java") << """
             import ${DefaultTask.name};
             import ${Property.name};
+            import ${ListProperty.name};
+            import ${SetProperty.name};
+            import ${MapProperty.name};
             import ${ObjectFactory.name};
             import ${TaskAction.name};
             import ${Inject.name};
@@ -44,11 +47,17 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
             public class SomeTask extends DefaultTask {
                 private final Property<Boolean> flag;
                 private final Property<String> message;
+                private final ListProperty<Integer> list;
+                private final SetProperty<Integer> set;
+                private final MapProperty<Integer, Boolean> map;
                 
                 @Inject
                 public SomeTask(ObjectFactory objectFactory) {
                     flag = objectFactory.property(Boolean.class);
                     message = objectFactory.property(String.class);
+                    list = objectFactory.listProperty(Integer.class);
+                    set = objectFactory.setProperty(Integer.class);
+                    map = objectFactory.mapProperty(Integer.class, Boolean.class);
                 }
                 
                 public Property<Boolean> getFlag() {
@@ -59,10 +68,25 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
                     return message;
                 }
                 
+                public ListProperty<Integer> getList() {
+                    return list;
+                }
+                
+                public SetProperty<Integer> getSet() {
+                    return set;
+                }
+                
+                public MapProperty<Integer, Boolean> getMap() {
+                    return map;
+                }
+                
                 @TaskAction
                 public void run() {
                     System.out.println("flag = " + flag.get());
                     System.out.println("message = " + message.get());
+                    System.out.println("list = " + list.get());
+                    System.out.println("set = " + set.get());
+                    System.out.println("map = " + map.get());
                 }
             }
         """
@@ -73,12 +97,21 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
         pluginDir.file("src/main/java/SomePlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
+            import ${Arrays.name};
+            import ${Map.name};
+            import ${LinkedHashMap.name};
 
             public class SomePlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getTasks().register("someTask", SomeTask.class, t -> {
                         t.getFlag().set(true);
                         t.getMessage().set("some value");
+                        t.getList().set(Arrays.asList(1, 2));
+                        t.getSet().set(Arrays.asList(1, 2));
+                        Map<Integer, Boolean> map = new LinkedHashMap<>();
+                        map.put(1, true);
+                        map.put(2, false);
+                        t.getMap().set(map);
                     });
                 }
             }
@@ -90,12 +123,23 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
         pluginDir.file("src/main/java/SomePlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
+            import ${Arrays.name};
+            import ${Map.name};
+            import ${LinkedHashMap.name};
 
             public class SomePlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getTasks().register("someTask", SomeTask.class, t -> {
                         t.getFlag().set(project.provider(() -> true));
                         t.getMessage().set(project.provider(() -> "some value"));
+                        t.getList().set(project.provider(() -> Arrays.asList(1, 2)));
+                        t.getSet().set(project.provider(() -> Arrays.asList(1, 2)));
+                        t.getMap().set(project.provider(() -> {
+                            Map<Integer, Boolean> map = new LinkedHashMap<>();
+                            map.put(1, true);
+                            map.put(2, false);
+                            return map;
+                        }));
                     });
                 }
             }
@@ -108,6 +152,9 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
             import ${Project.name};
             import ${Plugin.name};
             import ${Provider.name};
+            import ${Arrays.name};
+            import ${Map.name};
+            import ${LinkedHashMap.name};
 
             public class SomePlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -115,6 +162,14 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
                         Provider<String> provider = project.provider(() -> "some value"); 
                         t.getFlag().set(provider.map(s -> !s.isEmpty()));
                         t.getMessage().set(provider.map(s -> s));
+                        t.getList().set(provider.map(s -> Arrays.asList(1, 2)));
+                        t.getSet().set(provider.map(s -> Arrays.asList(1, 2)));
+                        t.getMap().set(provider.map(s -> {
+                            Map<Integer, Boolean> map = new LinkedHashMap<>();
+                            map.put(1, true);
+                            map.put(2, false);
+                            return map;
+                        }));
                     });
                 }
             }
