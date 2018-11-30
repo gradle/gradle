@@ -9,7 +9,8 @@ We would like to thank the following community contributors to this release of G
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Dan Sănduleac](https://github.com/dansanduleac),
-[Olivier Voortman](https://github.com/blop)
+[Olivier Voortman](https://github.com/blop),
+[Alex Saveau](https://github.com/SUPERCILEX)
 
 ## Use plugins from included build using the `plugins { }` block 
 
@@ -20,6 +21,12 @@ The `plugins { }` block in build scripts can now be used to refer to plugins def
 Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
 For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
 This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
+
+## Filter tasks with `--group`
+
+Instead of listing all available tasks, [`gradle tasks` can now show only the tasks](userguide/command_line_interface.html#sec:listing_tasks) belonging to a particular group. This makes it easier to find tasks in builds with many available tasks.
+
+This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
 
 ## Promoted features
 
@@ -102,6 +109,7 @@ We would like to thank the following community members for making contributions 
  - [Dan Sănduleac](https://github.com/dansanduleac) - Don't share dependency resolution listeners list when copying configuration (gradle/gradle#6996)
  - [Olivier Voortman](https://github.com/blop) - Do not use a timestamp of 0 for tar file entries (gradle/gradle#7577).
  - [John Bennewitz](https://github.com/b-john) - Allow C++ binary to relocate on Linux (gradle/gradle#6176)
+ - [Alex Saveau](https://github.com/SUPERCILEX) - Add option to display tasks from a specific group only (gradle/gradle#7788) 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
