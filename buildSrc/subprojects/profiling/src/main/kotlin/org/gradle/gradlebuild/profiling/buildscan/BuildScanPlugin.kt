@@ -18,9 +18,12 @@ package org.gradle.gradlebuild.profiling.buildscan
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -67,13 +70,29 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
+        monitorUnexpectedCacheMisses()
     }
+
+    private
+    fun Project.monitorUnexpectedCacheMisses() {
+        gradle.taskGraph.afterTask {
+            if (!state.skipped && !currentBuildContainsCompileAll() && this.isMonitored()) {
+                buildScan.tag("CACHE_MISS")
+            }
+        }
+    }
+
+    private
+    fun Task.isMonitored() =
+        this is AbstractCompile || this is ClasspathManifest
+
+    private
+    fun Project.currentBuildContainsCompileAll() = gradle.startParameter.taskNames.contains("compileAll")
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {
         gradle.taskGraph.afterTask {
             if (state.failure != null) {
-
                 if (this is Checkstyle && reports.xml.destination.exists()) {
                     val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
                     val errors = checkstyle.getElementsByTag("file").flatMap { file ->
