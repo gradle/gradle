@@ -66,11 +66,11 @@ open class BuildScanPlugin : Plugin<Project> {
 
         if (isCiServer && !isTravis) {
             extractAllReportsFromCI()
+            monitorUnexpectedCacheMisses()
         }
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
-        monitorUnexpectedCacheMisses()
     }
 
     private
