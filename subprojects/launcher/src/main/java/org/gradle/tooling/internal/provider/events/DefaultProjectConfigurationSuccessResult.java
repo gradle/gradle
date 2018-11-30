@@ -21,7 +21,7 @@ import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import java.util.List;
 
 public class DefaultProjectConfigurationSuccessResult extends AbstractProjectConfigurationResult implements InternalSuccessResult {
-    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
-        super(startTime, endTime, "succeeded", pluginConfigurationResults);
+    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
+        super(startTime, endTime, "succeeded", pluginApplicationResults);
     }
 }

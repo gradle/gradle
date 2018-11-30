@@ -24,16 +24,16 @@ import java.util.List;
 
 public class DefaultProjectConfigurationFailureResult extends DefaultOperationFailureResult implements ProjectConfigurationFailureResult {
 
-    private final List<? extends PluginConfigurationResult> pluginConfigurationResults;
+    private final List<? extends PluginApplicationResult> pluginApplicationResults;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginConfigurationResult> pluginConfigurationResults) {
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults) {
         super(startTime, endTime, failures);
-        this.pluginConfigurationResults = pluginConfigurationResults;
+        this.pluginApplicationResults = pluginApplicationResults;
     }
 
     @Override
-    public List<? extends PluginConfigurationResult> getPluginConfigurationResults() {
-        return pluginConfigurationResults;
+    public List<? extends PluginApplicationResult> getPluginApplicationResults() {
+        return pluginApplicationResults;
     }
 
 }

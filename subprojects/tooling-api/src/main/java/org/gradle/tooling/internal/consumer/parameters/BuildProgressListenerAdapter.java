@@ -28,10 +28,10 @@ import org.gradle.tooling.events.StartEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult;
-import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginConfigurationResult;
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult.PluginApplicationResult;
 import org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent;
-import org.gradle.tooling.events.configuration.internal.DefaultPluginConfigurationResult;
+import org.gradle.tooling.events.configuration.internal.DefaultPluginApplicationResult;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFailureResult;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationOperationDescriptor;
@@ -99,7 +99,7 @@ import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
-import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginConfigurationResult;
+import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
@@ -497,20 +497,20 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
         if (result instanceof InternalSuccessResult) {
-            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginConfigurationResults(result.getPluginConfigurationResults()));
+            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginConfigurationResults(result.getPluginConfigurationResults()));
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else {
             return null;
         }
     }
 
-    private static List<? extends PluginConfigurationResult> toPluginConfigurationResults(List<? extends InternalPluginConfigurationResult> pluginConfigurationResults) {
-        List<PluginConfigurationResult> results = new ArrayList<PluginConfigurationResult>();
-        for (InternalPluginConfigurationResult result : pluginConfigurationResults) {
+    private static List<? extends PluginApplicationResult> toPluginApplicationResults(List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
+        List<PluginApplicationResult> results = new ArrayList<PluginApplicationResult>();
+        for (InternalPluginApplicationResult result : pluginApplicationResults) {
             PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
             if (plugin != null) {
-                results.add(new DefaultPluginConfigurationResult(plugin, result.getDuration()));
+                results.add(new DefaultPluginApplicationResult(plugin, result.getTotalConfigurationTime()));
             }
         }
         return results;
