@@ -73,8 +73,8 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
         this.resolvableDependencies = resolvableDependencies;
     }
 
-    public static ArtifactTransformDependenciesProvider create(Transformation transformation, ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
-        return transformation.requiresDependencies()
+    public static ArtifactTransformDependenciesProvider create(boolean requiresDependencies, ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+        return requiresDependencies
             ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
             : EMPTY;
     }

@@ -53,8 +53,8 @@ public abstract class TransformationNode extends Node {
         return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new InitialTransformationNode(initial, artifact, resolvableDependencies, executionGraphDependenciesResolver);
+    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, boolean requiresDependencies) {
+        return new InitialTransformationNode(initial, artifact, resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -121,14 +121,16 @@ public abstract class TransformationNode extends Node {
     private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
         private final ExecutionGraphDependenciesResolver executionGraphDependenciesResolver;
+        private final boolean requiresDependencies;
         private final ResolvableDependencies resolvableDependencies;
         private ArtifactTransformDependenciesProvider dependenciesProvider;
 
-        public InitialTransformationNode(TransformationStep transformationStep, BuildableSingleResolvedArtifactSet artifactSet, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        public InitialTransformationNode(TransformationStep transformationStep, BuildableSingleResolvedArtifactSet artifactSet, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, boolean requiresDependencies) {
             super(transformationStep);
             this.artifactSet = artifactSet;
             this.resolvableDependencies = resolvableDependencies;
             this.executionGraphDependenciesResolver = executionGraphDependenciesResolver;
+            this.requiresDependencies = requiresDependencies;
         }
 
         @Override
@@ -194,7 +196,7 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(transformationStep, artifact.getId(), resolvableDependencies);
+                dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(requiresDependencies, artifact.getId(), resolvableDependencies);
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);

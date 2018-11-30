@@ -40,7 +40,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         Function<BuildableSingleResolvedArtifactSet, TransformationNode> nodeCreator = singleArtifact -> {
             ExecutionGraphDependenciesResolver resolver;
             resolver = extraExecutionGraphDependenciesResolverFactory.create(singleArtifact.getArtifactId().getComponentIdentifier(), transformation);
-            return getOrCreateInternal(singleArtifact, transformationChain, resolvableDependencies, resolver);
+            return getOrCreateInternal(singleArtifact, transformationChain, resolvableDependencies, resolver, transformation.requiresDependencies());
         };
         collectTransformNodes(artifactSet, builder, nodeCreator);
         return builder.build();
@@ -62,14 +62,14 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         });
     }
 
-    private TransformationNode getOrCreateInternal(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+    private TransformationNode getOrCreateInternal(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, boolean requiresDependencies) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet, resolvableDependencies, executionGraphDependenciesResolver);
+                transformationNode = TransformationNode.initial(transformationChain.get(0), singleArtifactSet, resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
             } else {
-                TransformationNode previous = getOrCreateInternal(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies, executionGraphDependenciesResolver);
+                TransformationNode previous = getOrCreateInternal(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
             transformations.put(key, transformationNode);
