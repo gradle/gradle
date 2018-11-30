@@ -16,6 +16,7 @@
 
 package org.gradle.testing;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Input;
@@ -35,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.gradle.process.CommandLineArgumentProvider;
 
@@ -85,12 +88,15 @@ public class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getScenarios() {
         return scenarios;
     }
 
-    @Optional @Input
+    @Optional
+    @Input
     public Property<String> getDeterminedBaselines() {
         return determinedBaselines;
     }
@@ -110,7 +116,9 @@ public class PerformanceTest extends DistributionTest {
         this.warmups = warmups;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getWarmups() {
         return warmups;
     }
@@ -120,7 +128,9 @@ public class PerformanceTest extends DistributionTest {
         this.runs = runs;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getRuns() {
         return runs;
     }
@@ -130,7 +140,9 @@ public class PerformanceTest extends DistributionTest {
         this.checks = checks;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getChecks() {
         return checks;
     }
@@ -140,7 +152,9 @@ public class PerformanceTest extends DistributionTest {
         this.channel = channel;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getChannel() {
         return channel;
     }
@@ -149,7 +163,9 @@ public class PerformanceTest extends DistributionTest {
         this.resultStoreClass = resultStoreClass;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getResultStoreClass() {
         return resultStoreClass;
     }
@@ -189,12 +205,14 @@ public class PerformanceTest extends DistributionTest {
         }
 
         private void addJava9HomeSystemProperty(List<String> result) {
-            Object java9Home = getProject().findProperty("java9Home");
-            if (java9Home != null) {
-                addSystemPropertyIfExist(result, "java9Home", java9Home.toString());
-            } else {
-                addSystemPropertyIfExist(result, "java9Home", System.getProperty("java9Home"));
-            }
+            String java9Home = Stream.of(
+                getProject().findProperty("java9Home"),
+                System.getProperty("java9Home"),
+                System.getenv("java9Home"),
+                JavaVersion.current().isJava9Compatible() ? System.getProperty("java.home") : null
+            ).filter(Objects::nonNull).findFirst().map(Object::toString).orElse(null);
+
+            addSystemPropertyIfExist(result, "java9Home", java9Home);
         }
 
         private void addExecutionParameters(List<String> result) {
