@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -53,8 +52,8 @@ public abstract class TransformationNode extends Node {
         return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, boolean requiresDependencies) {
-        return new InitialTransformationNode(initial, artifact, resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
+    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new InitialTransformationNode(initial, artifact, dependenciesProvider, executionGraphDependenciesResolver);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -121,16 +120,13 @@ public abstract class TransformationNode extends Node {
     private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
         private final ExecutionGraphDependenciesResolver executionGraphDependenciesResolver;
-        private final boolean requiresDependencies;
-        private final ResolvableDependencies resolvableDependencies;
-        private ArtifactTransformDependenciesProvider dependenciesProvider;
+        private final ArtifactTransformDependenciesProvider dependenciesProvider;
 
-        public InitialTransformationNode(TransformationStep transformationStep, BuildableSingleResolvedArtifactSet artifactSet, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, boolean requiresDependencies) {
+        public InitialTransformationNode(TransformationStep transformationStep, BuildableSingleResolvedArtifactSet artifactSet, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
             super(transformationStep);
             this.artifactSet = artifactSet;
-            this.resolvableDependencies = resolvableDependencies;
             this.executionGraphDependenciesResolver = executionGraphDependenciesResolver;
-            this.requiresDependencies = requiresDependencies;
+            this.dependenciesProvider = dependenciesProvider;
         }
 
         @Override
@@ -147,9 +143,6 @@ public abstract class TransformationNode extends Node {
 
         @Override
         protected ArtifactTransformDependenciesProvider getDependenciesProvider() {
-            if (dependenciesProvider == null) {
-                throw new IllegalStateException("Initial transformation hasn't been executed yet");
-            }
             return dependenciesProvider;
         }
 
@@ -196,7 +189,6 @@ public abstract class TransformationNode extends Node {
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(requiresDependencies, artifact.getId(), resolvableDependencies);
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);

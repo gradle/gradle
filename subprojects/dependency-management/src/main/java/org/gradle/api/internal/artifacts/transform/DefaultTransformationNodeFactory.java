@@ -67,7 +67,8 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0), singleArtifactSet, resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
+                ArtifactTransformDependenciesProvider dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(requiresDependencies, singleArtifactSet.getArtifactId(), resolvableDependencies);
+                transformationNode = TransformationNode.initial(transformationChain.get(0), singleArtifactSet, dependenciesProvider, executionGraphDependenciesResolver);
             } else {
                 TransformationNode previous = getOrCreateInternal(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies, executionGraphDependenciesResolver, requiresDependencies);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);

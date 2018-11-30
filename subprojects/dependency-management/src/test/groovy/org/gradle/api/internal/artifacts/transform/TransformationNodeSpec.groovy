@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.execution.plan.Node
@@ -38,7 +37,7 @@ class TransformationNodeSpec extends Specification {
     def "initial node with empty extra resolver only adds dependency on artifact node"() {
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), ExecutionGraphDependenciesResolver.EMPTY_RESOLVER, false)
+        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), ExecutionGraphDependenciesResolver.EMPTY_RESOLVER)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -53,7 +52,7 @@ class TransformationNodeSpec extends Specification {
         def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), graphDependenciesResolver, false)
+        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -71,7 +70,7 @@ class TransformationNodeSpec extends Specification {
         def extraNode = new TestNode()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), graphDependenciesResolver, false)
+        def node = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -86,7 +85,7 @@ class TransformationNodeSpec extends Specification {
     }
 
     def "chained node with empty extra resolver only adds dependency on previous step"() {
-        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), ExecutionGraphDependenciesResolver.EMPTY_RESOLVER, false)
+        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), ExecutionGraphDependenciesResolver.EMPTY_RESOLVER)
 
         given:
         def node = TransformationNode.chained(Mock(TransformationStep), initialNode)
@@ -101,7 +100,7 @@ class TransformationNodeSpec extends Specification {
 
     def "chained node with non empty extra resolver only adds dependency on previous step when extra provides none"() {
         def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), graphDependenciesResolver, false)
+        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
         def chainedStep = Mock(TransformationStep)
 
         given:
@@ -119,7 +118,7 @@ class TransformationNodeSpec extends Specification {
 
     def "chained node with non empty extra resolver only adds dependency on all nodes when extra provides one"() {
         def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ResolvableDependencies), graphDependenciesResolver, false)
+        def initialNode = TransformationNode.initial(transformationStep, artifactSet, Mock(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
         def chainedStep = Mock(TransformationStep)
         def extraNode = new TestNode()
 
