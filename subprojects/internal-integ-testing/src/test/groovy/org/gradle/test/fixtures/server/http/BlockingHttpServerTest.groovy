@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.Matchers
 import org.junit.Rule
-import spock.lang.Ignore
 
 class BlockingHttpServerTest extends ConcurrentSpec {
     @Rule
@@ -148,7 +147,6 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/1660")
     def "can verify that user agent matches particular criteria"() {
         def criteria = Matchers.equalTo("some-agent")
 
