@@ -27,6 +27,8 @@ dependencies {
     runtimeOnly(library("jcl_to_slf4j"))
 
     testImplementation(project(":internalTesting"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
