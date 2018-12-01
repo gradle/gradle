@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -62,8 +61,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.verbose = compileOptions.isVerbose();
         this.warnings = compileOptions.isWarnings();
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
-        DirectoryProperty headerOutputDirectory = compileOptions.getHeaderOutputDirectory();
-        this.headerOutputDirectory = headerOutputDirectory.isPresent() ? headerOutputDirectory.get().getAsFile() : null;
+        this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
     }
 
     @Nullable
