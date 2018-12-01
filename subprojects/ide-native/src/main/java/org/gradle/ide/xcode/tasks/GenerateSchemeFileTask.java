@@ -93,7 +93,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
-        action.setBuildConfiguration(BUILD_DEBUG);
+        action.setBuildConfiguration(xcodeProject.getTargets().iterator().next().getDefaultConfigurationName().get());
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
             if (xcodeTarget.isRunnable()) {

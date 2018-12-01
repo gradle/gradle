@@ -23,6 +23,7 @@ import com.dd.plist.NSString
 import com.dd.plist.PropertyListParser
 import com.google.common.base.MoreObjects
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
+import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask
 import org.gradle.test.fixtures.file.TestFile
 
 class ProjectFile {
@@ -220,20 +221,55 @@ class ProjectFile {
             return getProperty("productReference")
         }
 
+        void assertProductNameEquals(String expectedProductName) {
+            assert this.productName == expectedProductName
+            assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        }
+
+        ProductType getProductType() {
+            return ProductType.values().find { it.identifier == getProperty("productType")}
+        }
+
         void assertIsTool() {
             assertIs(ProductType.TOOL)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsDynamicLibrary() {
             assertIs(ProductType.DYNAMIC_LIBRARY)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsStaticLibrary() {
             assertIs(ProductType.STATIC_LIBRARY)
+            this.buildConfigurationList.buildConfigurations.each { ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings) }
         }
 
         void assertIsUnitTest() {
-            assert isUnitTest()
+            assertIs(ProductType.UNIT_TEST)
+            this.buildConfigurationList.buildConfigurations.each {
+                if (it.name.startsWith("__GradleTestRunner_")) {
+                    ProjectFile.PBXTarget.assertUnitTestBuildSettings(it.buildSettings)
+                } else {
+                    ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(it.buildSettings)
+                }
+            }
+        }
+
+        private static void assertNotUnitTestBuildSettings(Map<String, String> buildSettings) {
+            assert buildSettings.OTHER_CFLAGS == null
+            assert buildSettings.OTHER_LDFLAGS == null
+            assert buildSettings.OTHER_SWIFT_FLAGS == null
+            assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == null
+            assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == null
+        }
+
+        private static void assertUnitTestBuildSettings(Map<String, String> buildSettings) {
+            assert buildSettings.OTHER_CFLAGS == "-help"
+            assert buildSettings.OTHER_LDFLAGS == "-help"
+            assert buildSettings.OTHER_SWIFT_FLAGS == "-help"
+            assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == "NO"
+            assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == "\$(PRODUCT_NAME).h"
         }
 
         void assertIs(ProductType productType) {
@@ -245,7 +281,7 @@ class ProjectFile {
         }
 
         boolean is(ProductType productType) {
-            return getProperty("productType") == productType.identifier
+            return getProductType() == productType
         }
 
         @Override
@@ -253,7 +289,30 @@ class ProjectFile {
             MoreObjects.toStringHelper(this)
                 .add('name', getName())
                 .add('productName', getProductName())
+                .add('productType', getProductType())
                 .toString()
+        }
+
+        void assertSupportedArchitectures(String... architectures) {
+            String expectedValidArchitectures = architectures.collect { GenerateXcodeProjectFileTask.toXcodeArchitecture(it) }.join(" ")
+            assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.VALID_ARCHS == expectedValidArchitectures }
+        }
+
+        void assertIsIndexerFor(PBXTarget target) {
+            assert this.name == "[INDEXING ONLY] ${target.name}"
+            this.assertProductNameEquals(target.productName)
+            assertIs(target.getProductType())
+            int expectedBuildConfigurationsCount = target.buildConfigurationList.buildConfigurations.size()
+            if (target.isUnitTest()) {
+                expectedBuildConfigurationsCount--
+            }
+            assert this.buildConfigurationList.buildConfigurations.size() == expectedBuildConfigurationsCount
+            this.buildConfigurationList.buildConfigurations.eachWithIndex { buildConfiguration, idx ->
+                assert buildConfiguration.name == target.buildConfigurationList.buildConfigurations[idx].name
+                assert buildConfiguration.buildSettings.ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.ARCHS
+                assert buildConfiguration.buildSettings.VALID_ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.VALID_ARCHS
+                ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(buildConfiguration.buildSettings)
+            }
         }
     }
 
