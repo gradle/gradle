@@ -18,9 +18,12 @@ package org.gradle.gradlebuild.profiling.buildscan
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -63,6 +66,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
         if (isCiServer && !isTravis) {
             extractAllReportsFromCI()
+            monitorUnexpectedCacheMisses()
         }
 
         extractCheckstyleAndCodenarcData()
@@ -70,10 +74,29 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
+    fun Project.monitorUnexpectedCacheMisses() {
+        gradle.taskGraph.afterTask {
+            if (!state.skipped && !isExcludedBuild() && this.isMonitoredForCacheMiss()) {
+                buildScan.tag("CACHE_MISS")
+            }
+        }
+    }
+
+    private
+    fun Task.isMonitoredForCacheMiss() =
+        this is AbstractCompile || this is ClasspathManifest
+
+    private
+    fun Project.isExcludedBuild() =
+        // Two expected cache-miss:
+        // 1. compileAll is seed build
+        // 2. Gradleception which re-builds Gradle with a new Gradle version
+        gradle.startParameter.taskNames.contains("compileAll") || "Gradle_Check_Gradleception" == System.getenv("BUILD_TYPE_ID")
+
+    private
     fun Project.extractCheckstyleAndCodenarcData() {
         gradle.taskGraph.afterTask {
             if (state.failure != null) {
-
                 if (this is Checkstyle && reports.xml.destination.exists()) {
                     val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
                     val errors = checkstyle.getElementsByTag("file").flatMap { file ->

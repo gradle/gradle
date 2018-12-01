@@ -4,6 +4,7 @@ dependencies {
     implementation("com.gradle:build-scan-plugin:2.0.2")
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
+    implementation(project(":plugins"))
 }
 
 gradlePlugin {
