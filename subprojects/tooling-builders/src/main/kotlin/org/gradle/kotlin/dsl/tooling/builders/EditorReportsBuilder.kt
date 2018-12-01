@@ -16,26 +16,34 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.internal.exceptions.LocationAwareException
+
+import org.gradle.kotlin.dsl.resolver.EditorMessages
 import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 
-import org.gradle.kotlin.dsl.resolver.EditorMessages
-
-import org.gradle.internal.exceptions.LocationAwareException
-
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.Serializable
 
 
 internal
-fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>, locationAwareHints: Boolean): List<EditorReport> =
+fun buildEditorReportsFor(
+    scriptFile: File?,
+    exceptions: List<Exception>,
+    locationAwareHints: Boolean
+): List<EditorReport> =
     if (scriptFile == null || exceptions.isEmpty()) emptyList()
     else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence(), locationAwareHints)
 
 
 private
-fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>, locationAwareHints: Boolean): List<EditorReport> {
+fun inferEditorReportsFrom(
+    scriptFile: File,
+    exceptions: Sequence<Exception>,
+    locationAwareHints: Boolean
+): List<EditorReport> {
 
     val locatedExceptions =
         exceptions.findLocationAwareExceptions()
@@ -166,24 +174,28 @@ fun File.readLinesRange() =
 
 
 private
-fun File.countLines(): Long {
+fun File.countLines(): Long =
     inputStream().buffered().use { input ->
-
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        val newLine = '\n'.toByte()
-
-        var count = 0L
-        var noNewLineBeforeEOF = false
-        var readCount = input.read(buffer)
-
-        while (readCount != -1) {
-            for (idx in 0 until readCount) {
-                if (buffer[idx] == newLine) count++
-            }
-            noNewLineBeforeEOF = buffer[readCount - 1] != newLine
-            readCount = input.read(buffer)
-        }
-        if (noNewLineBeforeEOF) count++
-        return count
+        input.countLines()
     }
+
+
+private
+fun BufferedInputStream.countLines(): Long {
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    val newLine = '\n'.toByte()
+
+    var count = 0L
+    var noNewLineBeforeEOF = false
+    var readCount = read(buffer)
+
+    while (readCount != -1) {
+        for (idx in 0 until readCount) {
+            if (buffer[idx] == newLine) count++
+        }
+        noNewLineBeforeEOF = buffer[readCount - 1] != newLine
+        readCount = read(buffer)
+    }
+    if (noNewLineBeforeEOF) count++
+    return count
 }
