@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
     DefaultPropertyState<String> property() {
@@ -26,12 +25,17 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
     }
 
     @Override
-    PropertyInternal<String> propertyWithNoValue() {
+    DefaultPropertyState<String> propertyWithNoValue() {
         return property()
     }
 
     @Override
-    Provider<String> providerWithValue(String value) {
+    DefaultPropertyState<String> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
+    DefaultPropertyState<String> providerWithValue(String value) {
         def p = property()
         p.set(value)
         return p

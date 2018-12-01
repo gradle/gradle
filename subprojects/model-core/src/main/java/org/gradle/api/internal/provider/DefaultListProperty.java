@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +36,18 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     @Override
     public ListProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> convention(Iterable<? extends T> elements) {
+        super.convention(elements);
+        return this;
+    }
+
+    @Override
+    public ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        super.convention(provider);
         return this;
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
-import org.gradle.api.provider.Provider
 import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
@@ -27,14 +26,19 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
-    PropertyInternal<Map<String, String>> propertyWithNoValue() {
+    DefaultMapProperty<String, String> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
+    DefaultMapProperty<String, String> propertyWithNoValue() {
         def p = property()
         p.set((Map) null)
         return p
     }
 
     @Override
-    Provider<Map<String, String>> providerWithValue(Map<String, String> value) {
+    DefaultMapProperty<String, String> providerWithValue(Map<String, String> value) {
         def p = property()
         p.set(value)
         return p
@@ -53,6 +57,11 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     @Override
     Map<String, String> someOtherValue() {
         return ['k1': 'v1']
+    }
+
+    @Override
+    protected void setToNull(Object property) {
+        property.set((Map) null)
     }
 
     def property = property()
@@ -275,7 +284,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.putAll(Providers.of(['k4': 'v4']))
 
         expect:
-        assertValueIs([k1:  'v1', k2: 'v2', k3: 'v3', k4: 'v4'])
+        assertValueIs([k1: 'v1', k2: 'v2', k3: 'v3', k4: 'v4'])
     }
 
     def "property has no value when set to provider with no value and other entries added"() {
@@ -613,7 +622,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "keySet provider has no value when property has no value"() {
         given:
-        property.set((Map)null)
+        property.set((Map) null)
         def keySetProvider = property.keySet()
 
         expect:

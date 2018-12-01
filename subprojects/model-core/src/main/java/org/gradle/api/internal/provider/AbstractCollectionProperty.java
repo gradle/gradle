@@ -40,7 +40,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private boolean hasValue;
     private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
@@ -58,47 +57,47 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.add(new SingleElement<T>(element));
+        addCollector(new SingleElement<T>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
+        addCollector(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
     public void addAll(T... elements) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.add(new ElementsFromArray<T>(elements));
+        addCollector(new ElementsFromArray<T>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.add(new ElementsFromCollection<T>(elements));
+        addCollector(new ElementsFromCollection<T>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+        addCollector(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+    }
+
+    private void addCollector(Collector<T> collector) {
+        collectors.add(collector);
+        afterMutate();
     }
 
     @Nullable
@@ -132,7 +131,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public boolean isPresent() {
-        assertReadable();
+        beforeRead();
         if (!value.present()) {
             return false;
         }
@@ -146,7 +145,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public C get() {
-        assertReadable();
+        beforeRead();
         List<T> values = new ArrayList<T>(1 + collectors.size());
         value.collectInto(valueCollector, values);
         for (Collector<T> collector : collectors) {
@@ -158,10 +157,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public C getOrNull() {
-        assertReadable();
+        beforeRead();
         return doGetOrNull();
     }
 
+    @Nullable
     private C doGetOrNull() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
         if (!value.maybeCollectInto(valueCollector, values)) {
@@ -189,21 +189,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
-        hasValue = true;
-        collectors.clear();
         if (elements == null) {
-            this.value = (Collector<T>) NO_VALUE_COLLECTOR;
+            set((Collector<T>) NO_VALUE_COLLECTOR);
         } else {
-            this.value = new ElementsFromCollection<T>(elements);
+            set(new ElementsFromCollection<T>(elements));
         }
     }
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return;
         }
         if (provider == null) {
@@ -219,43 +217,50 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
-        hasValue = true;
-        collectors.clear();
-        value = new ElementsFromCollectionProvider<T>(p);
+        set(new ElementsFromCollectionProvider<T>(p));
     }
 
     @Override
     public HasMultipleValues<T> empty() {
-        if (!assertMutable()) {
+        if (!canMutate()) {
             return this;
         }
-        hasValue = true;
-        value = (Collector<T>) EMPTY_COLLECTION;
-        collectors.clear();
+        set((Collector<T>) EMPTY_COLLECTION);
         return this;
-    }
-
-    @Override
-    public void convention(Iterable<? extends T> elements) {
-        if (!assertMutable()) {
-            return;
-        }
-        if (!hasValue) {
-            value = new ElementsFromCollection<T>(elements);
-            collectors.clear();
-        }
     }
 
     @Override
     protected void makeFinal() {
         C collection = doGetOrNull();
-        hasValue = true;
         if (collection != null) {
-            value = new ElementsFromCollection<T>(collection);
+            set(new ElementsFromCollection<T>(collection));
         } else {
-            value = (Collector<T>) NO_VALUE_COLLECTOR;
+            set((Collector<T>) NO_VALUE_COLLECTOR);
         }
+    }
+
+    private void set(Collector<T> collector) {
         collectors.clear();
+        value = collector;
+        afterMutate();
+    }
+
+    @Override
+    public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
+        if (shouldApplyConvention()) {
+            value = new ElementsFromCollection<T>(elements);
+            collectors.clear();
+        }
+        return this;
+    }
+
+    @Override
+    public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        if (shouldApplyConvention()) {
+            value = new ElementsFromCollectionProvider<T>(Providers.internal(provider));
+            collectors.clear();
+        }
+        return this;
     }
 
     @Override
