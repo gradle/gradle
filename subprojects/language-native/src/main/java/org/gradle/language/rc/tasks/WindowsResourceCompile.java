@@ -73,7 +73,7 @@ public class WindowsResourceCompile extends DefaultTask {
         ObjectFactory objectFactory = getProject().getObjects();
         includes = getProject().files();
         source = getProject().files();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.compilerArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
         incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);

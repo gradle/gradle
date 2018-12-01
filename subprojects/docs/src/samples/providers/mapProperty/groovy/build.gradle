@@ -1,6 +1,6 @@
 class Generator extends DefaultTask {
     @Input
-    final MapProperty<String, Integer> properties = project.objects.mapProperty(String, Integer).empty()
+    final MapProperty<String, Integer> properties = project.objects.mapProperty(String, Integer)
 
     @TaskAction
     void generate() {

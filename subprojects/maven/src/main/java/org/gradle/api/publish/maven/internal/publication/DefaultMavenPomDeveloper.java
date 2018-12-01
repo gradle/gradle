@@ -17,12 +17,11 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.maven.MavenPomContributor;
 import org.gradle.api.publish.maven.MavenPomDeveloper;
-
-import java.util.Map;
 
 public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomContributor {
 
@@ -34,7 +33,7 @@ public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomCont
     private final Property<String> organizationUrl;
     private final SetProperty<String> roles;
     private final Property<String> timezone;
-    private final Property<Map<String, String>> properties;
+    private final MapProperty<String, String> properties;
 
     public DefaultMavenPomDeveloper(ObjectFactory objectFactory) {
         id = objectFactory.property(String.class);
@@ -43,9 +42,9 @@ public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomCont
         url = objectFactory.property(String.class);
         organization = objectFactory.property(String.class);
         organizationUrl = objectFactory.property(String.class);
-        roles = objectFactory.setProperty(String.class).empty();
+        roles = objectFactory.setProperty(String.class);
         timezone = objectFactory.property(String.class);
-        properties = (Property) objectFactory.property(Map.class);
+        properties = objectFactory.mapProperty(String.class, String.class);
     }
 
     @Override
@@ -89,7 +88,7 @@ public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomCont
     }
 
     @Override
-    public Property<Map<String, String>> getProperties() {
+    public MapProperty<String, String> getProperties() {
         return properties;
     }
 

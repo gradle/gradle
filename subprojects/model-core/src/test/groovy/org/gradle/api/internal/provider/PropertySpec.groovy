@@ -25,7 +25,12 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     /**
      * Returns a property with _no_ value.
      */
-    abstract PropertyInternal<T> property()
+    abstract PropertyInternal<T> propertyWithNoValue()
+
+    @Override
+    Provider<T> providerWithNoValue() {
+        return propertyWithNoValue()
+    }
 
     abstract T someValue()
 
@@ -33,24 +38,9 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     abstract Class<T> type()
 
-    def "has no value by default"() {
-        expect:
-        def property = property()
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(someValue()) == someValue()
-
-        when:
-        property.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
-    }
-
     def "cannot get value when it has none"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         property.get()
@@ -69,7 +59,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "can set value"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
@@ -86,7 +76,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         given:
         provider.type >> type()
 
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(provider)
 
         when:
@@ -129,7 +119,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         provider.type >> type()
         provider.get() >>> [someValue(), someOtherValue(), someValue()]
 
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(provider)
 
         expect:
@@ -140,7 +130,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "does not allow a null provider"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         property.set((Provider) null)
@@ -152,7 +142,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "can set untyped using null"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.setFromAnyValue(null)
 
         expect:
@@ -163,7 +153,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "can set untyped using value"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.setFromAnyValue(someValue())
 
         expect:
@@ -175,7 +165,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "fails when untyped value is set using incompatible type"() {
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         property.setFromAnyValue(new Thing())
@@ -193,7 +183,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         provider.get() >> someValue()
         provider.present >> true
 
-        def property = property()
+        def property = propertyWithNoValue()
         property.setFromAnyValue(provider)
 
         when:
@@ -207,7 +197,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "can map value using a transformation"() {
         def transformer = Mock(Transformer)
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         def provider = property.map(transformer)
@@ -235,7 +225,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "transformation is provided with the current value of the property each time the value is queried"() {
         def transformer = Mock(Transformer)
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         def provider = property.map(transformer)
@@ -264,7 +254,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "can map value to some other type"() {
         def transformer = Mock(Transformer)
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         def provider = property.map(transformer)
@@ -292,7 +282,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "mapped provider has no value and transformer is not invoked when property has no value"() {
         def transformer = Mock(Transformer)
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         def provider = property.map(transformer)
@@ -312,7 +302,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can finalize value when no value defined"() {
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         property."$method"()
@@ -326,7 +316,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can finalize value when value set"() {
-        def property = property()
+        def property = propertyWithNoValue()
 
         when:
         property.set(someValue())
@@ -341,7 +331,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "replaces provider with fixed value when value finalized"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -366,7 +356,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "replaces provider with fixed value when value finalized on next read"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -393,7 +383,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "replaces provider with fixed value when value finalized after finalize on next read"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -421,7 +411,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "replaces provider with fixed missing value when value finalized"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -446,7 +436,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "replaces provider with fixed missing value when value finalized on next read"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -473,7 +463,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can finalize value when already finalized"() {
-        def property = property()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
@@ -496,7 +486,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "cannot set value after value finalized"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValue()
 
@@ -510,7 +500,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "ignores set value after value finalized leniently"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnReadAndWarnAboutChanges()
         property.get()
@@ -524,7 +514,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "cannot set value after value finalized after value finalized leniently"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnReadAndWarnAboutChanges()
         property.set(someOtherValue())
@@ -540,7 +530,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "cannot set value using provider after value finalized"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValue()
 
@@ -554,7 +544,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "ignores set value using provider after value finalized leniently"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnReadAndWarnAboutChanges()
         property.get()
@@ -568,7 +558,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "cannot set value using any type after value finalized"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValue()
 
@@ -589,7 +579,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "ignores set value using any type after value finalized leniently"() {
         given:
-        def property = property()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnReadAndWarnAboutChanges()
         property.get()

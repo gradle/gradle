@@ -23,8 +23,10 @@ import spock.lang.Unroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     @Override
-    Provider<C> providerWithNoValue() {
-        return property()
+    PropertyInternal<C> propertyWithNoValue() {
+        def p = property()
+        p.set((Iterable) null)
+        return p
     }
 
     Provider<C> providerWithValue(C value) {
@@ -43,7 +45,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         return toMutable(["s1"])
     }
 
-    @Override
     abstract AbstractCollectionProperty<String, C> property()
 
     @Override
@@ -68,6 +69,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     protected abstract C toMutable(Collection<String> values)
 
     protected abstract Class<? extends ImmutableCollection<?>> getImmutableCollectionType()
+
+    def "has empty collection as value by default"() {
+        expect:
+        assertValueIs([])
+    }
 
     def "can change value to empty collection"() {
         property.empty()
@@ -355,7 +361,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         0 * _
     }
 
-    def "property has no value when value not set and values appended"() {
+    def "can append values to empty property"() {
         given:
         property.add("1")
         property.add(Providers.of("2"))
@@ -363,20 +369,12 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.addAll(Providers.of(["4"]))
 
         expect:
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(toMutable(["other"])) == toMutable(["other"])
-
-        when:
-        property.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        assertValueIs(["1", "2", "3", "4"])
     }
 
     def "property has no value when set to null and other values appended"() {
         given:
+        property.set((Iterable) null)
         property.add("1")
         property.add(Providers.of("2"))
         property.addAll(["3"])

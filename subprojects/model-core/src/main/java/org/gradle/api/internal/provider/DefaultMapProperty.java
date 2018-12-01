@@ -45,7 +45,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
     @SuppressWarnings("unchecked")
-    private MapCollector<K, V> value = (MapCollector<K, V>) NO_VALUE;
+    private MapCollector<K, V> value = (MapCollector<K, V>) EMPTY_MAP;
     private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {

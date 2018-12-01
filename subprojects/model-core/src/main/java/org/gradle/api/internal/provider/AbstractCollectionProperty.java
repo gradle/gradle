@@ -40,7 +40,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
+    private boolean hasValue;
+    private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
@@ -60,6 +61,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.add(new SingleElement<T>(element));
     }
 
@@ -68,6 +70,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
@@ -76,6 +79,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.add(new ElementsFromArray<T>(elements));
     }
 
@@ -84,6 +88,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.add(new ElementsFromCollection<T>(elements));
     }
 
@@ -92,6 +97,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
     }
 
@@ -186,6 +192,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        hasValue = true;
         collectors.clear();
         if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
@@ -212,6 +219,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
+        hasValue = true;
         collectors.clear();
         value = new ElementsFromCollectionProvider<T>(p);
     }
@@ -221,14 +229,27 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return this;
         }
+        hasValue = true;
         value = (Collector<T>) EMPTY_COLLECTION;
         collectors.clear();
         return this;
     }
 
     @Override
+    public void convention(Iterable<? extends T> elements) {
+        if (!assertMutable()) {
+            return;
+        }
+        if (!hasValue) {
+            value = new ElementsFromCollection<T>(elements);
+            collectors.clear();
+        }
+    }
+
+    @Override
     protected void makeFinal() {
         C collection = doGetOrNull();
+        hasValue = true;
         if (collection != null) {
             value = new ElementsFromCollection<T>(collection);
         } else {

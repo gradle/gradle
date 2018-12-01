@@ -27,7 +27,7 @@ import spock.lang.Unroll
 class DefaultObjectFactoryTest extends Specification {
     def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory))
 
-    def "can create a property"() {
+    def "property has no value"() {
         expect:
         def property = factory.property(Boolean)
         !property.present
@@ -75,11 +75,11 @@ class DefaultObjectFactoryTest extends Specification {
         factory.sourceDirectorySet("name", "display") != null
     }
 
-    def "can create a List property"() {
+    def "list property has empty list as value"() {
         expect:
         def property = factory.listProperty(String)
-        !property.present
-        property.getOrNull() == null
+        property.present
+        property.get().empty
     }
 
     @Unroll
@@ -89,7 +89,6 @@ class DefaultObjectFactoryTest extends Specification {
 
         expect:
         property.elementType == boxedType
-        !property.present
 
         where:
         type           | boxedType
@@ -103,11 +102,11 @@ class DefaultObjectFactoryTest extends Specification {
         Character.TYPE | Character
     }
 
-    def "can create a Set property"() {
+    def "set property has empty set as value"() {
         expect:
         def property = factory.setProperty(String)
-        !property.present
-        property.getOrNull() == null
+        property.present
+        property.get().empty
     }
 
     @Unroll
@@ -117,7 +116,6 @@ class DefaultObjectFactoryTest extends Specification {
 
         expect:
         property.elementType == boxedType
-        !property.present
 
         where:
         type           | boxedType
@@ -129,6 +127,13 @@ class DefaultObjectFactoryTest extends Specification {
         Float.TYPE     | Float
         Double.TYPE    | Double
         Character.TYPE | Character
+    }
+
+    def "map property has empty map as value"() {
+        expect:
+        def property = factory.mapProperty(String, Boolean)
+        property.present
+        property.get().isEmpty()
     }
 
     @Unroll
@@ -139,7 +144,6 @@ class DefaultObjectFactoryTest extends Specification {
         expect:
         property.keyType == boxedType
         property.valueType == boxedType
-        !property.present
 
         where:
         type           | boxedType

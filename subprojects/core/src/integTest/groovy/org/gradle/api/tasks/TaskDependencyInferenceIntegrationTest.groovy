@@ -448,7 +448,7 @@ The following types/formats are supported:
                 out1 = file("b-1.txt")
                 out2 = file("b-2.txt")
             }
-            def files = objects.setProperty(RegularFile).empty()
+            def files = objects.setProperty(RegularFile)
             files.add(a.out1)
             files.add(b.out2)
             tasks.register("c", InputFilesTask) {

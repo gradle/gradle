@@ -22,9 +22,22 @@ import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
-    @Override
     DefaultMapProperty<String, String> property() {
         new DefaultMapProperty<String, String>(String, String)
+    }
+
+    @Override
+    PropertyInternal<Map<String, String>> propertyWithNoValue() {
+        def p = property()
+        p.set((Map) null)
+        return p
+    }
+
+    @Override
+    Provider<Map<String, String>> providerWithValue(Map<String, String> value) {
+        def p = property()
+        p.set(value)
+        return p
     }
 
     @Override
@@ -42,19 +55,12 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         return ['k1': 'v1']
     }
 
-    @Override
-    Provider<Map<String, String>> providerWithValue(Map<String, String> value) {
-        def p = property()
-        p.set(value)
-        p
-    }
-
-    @Override
-    Provider<Map<String, String>> providerWithNoValue() {
-        return property()
-    }
-
     def property = property()
+
+    def "has empty map as value by default"() {
+        expect:
+        assertValueIs([:])
+    }
 
     def "can change value to empty map"() {
         when:
@@ -261,7 +267,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         0 * _
     }
 
-    def "property has no value when value not set and entries added"() {
+    def "can add entries to property with default value"() {
         given:
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
@@ -269,15 +275,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.putAll(Providers.of(['k4': 'v4']))
 
         expect:
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(['kk': 'vv']) == ['kk': 'vv']
-
-        when:
-        property.get()
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        assertValueIs([k1:  'v1', k2: 'v2', k3: 'v3', k4: 'v4'])
     }
 
     def "property has no value when set to provider with no value and other entries added"() {
@@ -615,6 +613,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "keySet provider has no value when property has no value"() {
         given:
+        property.set((Map)null)
         def keySetProvider = property.keySet()
 
         expect:
@@ -689,7 +688,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
             assert it.value instanceof String
         }
         assert actual == ImmutableMap.copyOf(expected)
-        assert property.present
     }
 
     private static void assertImmutable(Map<String, String> map) {
