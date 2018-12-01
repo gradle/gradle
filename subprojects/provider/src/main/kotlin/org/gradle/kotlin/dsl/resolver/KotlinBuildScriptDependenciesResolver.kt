@@ -82,20 +82,15 @@ fun EditorPosition.toIdePosition(): Position =
     Position(if (line == 0) 0 else line - 1, column)
 
 
-class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
+class KotlinBuildScriptDependenciesResolver internal constructor(
 
     private
     val logger: ResolverEventLogger
 
-    @Suppress("unused")
-    constructor() {
-        logger = DefaultResolverEventLogger
-    }
+) : ScriptDependenciesResolver {
 
-    internal
-    constructor(logger: ResolverEventLogger) {
-        this.logger = logger
-    }
+    @Suppress("unused")
+    constructor() : this(DefaultResolverEventLogger)
 
     override fun resolve(
         script: ScriptContents,
@@ -119,7 +114,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 script.file,
                 environment!!,
                 report,
-                previousDependencies)
+                previousDependencies
+            )
         } catch (e: BuildException) {
             logger.log(ResolutionFailure(script.file, e))
             if (previousDependencies == null) report.fatal(EditorMessages.buildConfigurationFailed)
@@ -250,8 +246,8 @@ typealias AsyncModelRequest = Pair<KotlinBuildScriptModelRequest, Continuation<K
 private
 object RequestQueue {
 
-    suspend fun post(request: KotlinBuildScriptModelRequest) =
-        suspendCoroutine<KotlinBuildScriptModel> { k ->
+    suspend fun post(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel =
+        suspendCoroutine { k ->
             require(eventLoop.accept(request to k))
         }
 
