@@ -50,7 +50,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
+        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forTransformer(transformer);
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File primaryInput : primaryInputs) {
             Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
