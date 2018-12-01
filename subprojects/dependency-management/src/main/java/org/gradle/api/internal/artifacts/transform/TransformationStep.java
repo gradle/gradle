@@ -42,6 +42,16 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
+    public boolean endsWith(Transformation otherTransform) {
+        return this == otherTransform;
+    }
+
+    @Override
+    public int stepsCount() {
+        return 1;
+    }
+
+    @Override
     public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;

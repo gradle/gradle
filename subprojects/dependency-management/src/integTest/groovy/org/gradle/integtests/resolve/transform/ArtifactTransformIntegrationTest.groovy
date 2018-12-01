@@ -1021,11 +1021,6 @@ Found the following transforms:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from configuration ':lib:compile' variant variant1:
-      - artifactType 'jar'
-      - buildType 'release'
-      - flavor 'free'
-      - usage 'api'
   - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'

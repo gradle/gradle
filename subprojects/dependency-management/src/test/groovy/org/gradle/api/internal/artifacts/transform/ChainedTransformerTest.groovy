@@ -51,6 +51,17 @@ class ChainedTransformerTest extends Specification {
         @Override
         void visitTransformationSteps(Action<? super TransformationStep> action) {
         }
+
+
+        @Override
+        boolean endsWith(Transformation otherTransform) {
+            return false
+        }
+
+        @Override
+        int stepsCount() {
+            return 1
+        }
     }
 
     class NonCachingTransformation implements Transformation {
@@ -72,6 +83,17 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         void visitTransformationSteps(Action<? super TransformationStep> action) {
+        }
+
+
+        @Override
+        boolean endsWith(Transformation otherTransform) {
+            return false
+        }
+
+        @Override
+        int stepsCount() {
+            return 1
         }
     }
 }
