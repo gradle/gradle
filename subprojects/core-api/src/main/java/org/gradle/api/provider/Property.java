@@ -65,7 +65,25 @@ public interface Property<T> extends Provider<T> {
      * @return this
      * @since 5.0
      */
-    Property<T> value(T value);
+    Property<T> value(@Nullable T value);
+
+    /**
+     * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param value The value.
+     * @return this
+     * @since 5.1
+     */
+    Property<T> convention(T value);
+
+    /**
+     * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param valueProvider The provider of the value.
+     * @return this
+     * @since 5.1
+     */
+    Property<T> convention(Provider<? extends T> valueProvider);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Object)} or {@link #set(Provider)} will fail.

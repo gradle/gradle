@@ -23,13 +23,19 @@ import spock.lang.Unroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     @Override
-    PropertyInternal<C> propertyWithNoValue() {
+    AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
+    AbstractCollectionProperty<String, C> propertyWithNoValue() {
         def p = property()
         p.set((Iterable) null)
         return p
     }
 
-    Provider<C> providerWithValue(C value) {
+    @Override
+    AbstractCollectionProperty<String, C> providerWithValue(C value) {
         def p = property()
         p.set(value)
         return p
@@ -49,6 +55,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     @Override
     abstract Class<C> type()
+
+    @Override
+    protected void setToNull(Object property) {
+        property.set((Iterable) null)
+    }
 
     def property = property()
 
@@ -524,6 +535,41 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         then:
         def ex = thrown(NullPointerException)
         ex.message == "Cannot add a null element to a property of type ${type().simpleName}."
+    }
+
+    def "ignores convention after element added"() {
+        expect:
+        property.add("a")
+        property.convention(["other"])
+        assertValueIs(["a"])
+    }
+
+    def "ignores convention after element added using provider"() {
+        expect:
+        property.add(Providers.of("a"))
+        property.convention(["other"])
+        assertValueIs(["a"])
+    }
+
+    def "ignores convention after elements added"() {
+        expect:
+        property.addAll(["a", "b"])
+        property.convention(["other"])
+        assertValueIs(["a", "b"])
+    }
+
+    def "ignores convention after elements added using provider"() {
+        expect:
+        property.addAll(Providers.of(["a", "b"]))
+        property.convention(["other"])
+        assertValueIs(["a", "b"])
+    }
+
+    def "ignores convention after collection made empty"() {
+        expect:
+        property.empty()
+        property.convention(["other"])
+        assertValueIs([])
     }
 
     def "cannot set to empty list after value finalized"() {

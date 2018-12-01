@@ -27,6 +27,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     private State state = State.Mutable;
     private Task producer;
+    private boolean hasValue;
 
     @Override
     public void attachProducer(Task task) {
@@ -62,14 +63,14 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     protected abstract void makeFinal();
 
-    protected void assertReadable() {
+    protected void beforeRead() {
         if (state == State.FinalNextGet) {
             makeFinal();
             state = State.FinalLenient;
         }
     }
 
-    protected boolean assertMutable() {
+    protected boolean canMutate() {
         if (state == State.FinalStrict) {
             throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
         } else if (state == State.FinalLenient) {
@@ -77,5 +78,16 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
             return false;
         }
         return true;
+    }
+
+    protected void afterMutate() {
+        hasValue = true;
+    }
+
+    protected boolean shouldApplyConvention() {
+        if (!canMutate()) {
+            return false;
+        }
+        return !hasValue;
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 
 import java.util.Collection;
@@ -35,6 +36,18 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     @Override
     public SetProperty<T> empty() {
         super.empty();
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> convention(Iterable<? extends T> elements) {
+        super.convention(elements);
+        return this;
+    }
+
+    @Override
+    public SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        super.convention(provider);
         return this;
     }
 }

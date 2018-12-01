@@ -22,21 +22,33 @@ import org.gradle.api.provider.Provider
 import java.util.concurrent.Callable
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
+    @Override
+    abstract PropertyInternal<T> providerWithValue(T value)
+
+    @Override
+    PropertyInternal<T> providerWithNoValue() {
+        return propertyWithNoValue()
+    }
+
     /**
      * Returns a property with _no_ value.
      */
     abstract PropertyInternal<T> propertyWithNoValue()
 
-    @Override
-    Provider<T> providerWithNoValue() {
-        return propertyWithNoValue()
-    }
+    /**
+     * Returns a property with its default value.
+     */
+    abstract PropertyInternal<T> propertyWithDefaultValue()
 
     abstract T someValue()
 
     abstract T someOtherValue()
 
     abstract Class<T> type()
+
+    protected void setToNull(def property) {
+        property.set(null)
+    }
 
     def "cannot get value when it has none"() {
         given:
@@ -195,6 +207,150 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         r2 == someValue()
     }
 
+    def "can set convention value before value has been set"() {
+        def property = propertyWithDefaultValue()
+        assert property.getOrNull() != someValue()
+
+        expect:
+        property.convention(someValue())
+        property.present
+        property.get() == someValue()
+
+        property.set(someOtherValue())
+        property.get() == someOtherValue()
+    }
+
+    def "can set convention provider before value has been set"() {
+        def provider = Mock(ProviderInternal)
+        def property = propertyWithDefaultValue()
+
+        when:
+        property.convention(provider)
+        def r = property.present
+        def r2 = property.get()
+
+        then:
+        r
+        r2 == someValue()
+
+        and:
+        1 * provider.present >> true
+        1 * provider.get() >> someValue()
+        0 * provider._
+
+        when:
+        property.set(someOtherValue())
+        property.present
+        property.get()
+
+        then:
+        0 * provider._
+    }
+
+    def "can replace convention value before value has been set"() {
+        def provider = Mock(ProviderInternal)
+        def property = propertyWithDefaultValue()
+
+        when:
+        property.convention(someValue())
+
+        then:
+        property.get() == someValue()
+
+        when:
+        property.convention(provider)
+        def r = property.get()
+
+        then:
+        r == someOtherValue()
+
+        and:
+        1 * provider.get() >> someOtherValue()
+        0 * provider._
+
+        when:
+        property.convention(someValue())
+
+        then:
+        property.get() == someValue()
+        0 * provider._
+
+        when:
+        property.set(someOtherValue())
+        def r2 = property.get()
+
+        then:
+        r2 == someOtherValue()
+        0 * provider._
+    }
+
+    def "convention value ignored after value has been set"() {
+        def property = propertyWithDefaultValue()
+        property.set(someValue())
+
+        expect:
+        property.convention(someOtherValue())
+        property.get() == someValue()
+    }
+
+    def "convention provider ignored after value has been set"() {
+        def provider = Mock(PropertyInternal)
+        0 * provider._
+
+        def property = propertyWithDefaultValue()
+        property.set(someValue())
+
+        expect:
+        property.convention(provider)
+        property.get() == someValue()
+    }
+
+    def "convention value ignored after value has been set to null"() {
+        def property = propertyWithDefaultValue()
+        setToNull(property)
+
+        expect:
+        property.convention(someOtherValue())
+        !property.present
+        property.getOrNull() == null
+    }
+
+    def "convention provider ignored after value has been set to null"() {
+        def provider = Mock(PropertyInternal)
+        0 * provider._
+
+        def property = propertyWithDefaultValue()
+        setToNull(property)
+
+        expect:
+        property.convention(provider)
+        !property.present
+        property.getOrNull() == null
+    }
+
+    def "convention value ignored after value has been set using provider with no value"() {
+        def property = propertyWithDefaultValue()
+        property.set(Providers.notDefined())
+
+        expect:
+        property.convention(someOtherValue())
+        !property.present
+        property.getOrNull() == null
+    }
+
+    def "convention provider ignored after value has been set using provider with no value"() {
+        def provider = Mock(PropertyInternal)
+        0 * provider._
+
+        def property = propertyWithDefaultValue()
+        property.set(Providers.notDefined())
+
+        expect:
+        property.convention(provider)
+        !property.present
+        property.getOrNull() == null
+    }
+
     def "can map value using a transformation"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()
@@ -320,6 +476,21 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         when:
         property.set(someValue())
+        property."$method"()
+
+        then:
+        property.present
+        property.getOrNull() == someValue()
+
+        where:
+        method << ["finalizeValue", "finalizeValueOnReadAndWarnAboutChanges"]
+    }
+
+    def "can finalize value when using convention"() {
+        def property = propertyWithDefaultValue()
+
+        when:
+        property.convention(someValue())
         property."$method"()
 
         then:
@@ -597,5 +768,60 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.get() == someValue()
     }
 
-    static class Thing { }
+    def "cannot set convention value after value finalized"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.finalizeValue()
+
+        when:
+        property.convention(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores set convention value after value finalized leniently"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.convention(someOtherValue())
+
+        then:
+        property.get() == someValue()
+    }
+
+    def "cannot set convention value using provider after value finalized"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.convention(Mock(ProviderInternal))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores set convention value using provider after value finalized leniently"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.convention(Mock(ProviderInternal))
+
+        then:
+        property.get() == someValue()
+    }
+
+    static class Thing {}
 }

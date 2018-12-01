@@ -42,7 +42,7 @@ public interface RegularFileProperty extends Property<RegularFile> {
     Provider<File> getAsFile();
 
     /**
-     * Sets the location of this file.
+     * Sets the location of this file, using a {@link File} instance.
      */
     void set(File file);
 
@@ -51,4 +51,16 @@ public interface RegularFileProperty extends Property<RegularFile> {
      */
     @Override
     RegularFileProperty value(RegularFile value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty convention(RegularFile value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty convention(Provider<? extends RegularFile> valueProvider);
 }

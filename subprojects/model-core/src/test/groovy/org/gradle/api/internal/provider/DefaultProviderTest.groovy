@@ -20,12 +20,12 @@ import org.gradle.api.provider.Provider
 
 class DefaultProviderTest extends ProviderSpec<String> {
     @Override
-    Provider<String> providerWithNoValue() {
+    DefaultProvider<String> providerWithNoValue() {
         return new DefaultProvider<String>({ null })
     }
 
     @Override
-    Provider<String> providerWithValue(String value) {
+    DefaultProvider<String> providerWithValue(String value) {
         return new DefaultProvider<String>({ value })
     }
 
