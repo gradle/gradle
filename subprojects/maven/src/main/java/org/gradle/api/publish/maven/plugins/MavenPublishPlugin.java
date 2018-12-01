@@ -25,7 +25,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
@@ -211,10 +210,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 generateTask.getPublication().set(publication);
                 generateTask.getPublications().set(publications);
-                RegularFileProperty outputFile = generateTask.getOutputFile();
-                if (!outputFile.isPresent()) {
-                    outputFile.set(buildDir.file("publications/" + publication.getName() + "/module.json"));
-                }
+                generateTask.getOutputFile().convention(buildDir.file("publications/" + publication.getName() + "/module.json"));
             }
         });
         // TODO: Make lazy
