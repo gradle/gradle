@@ -55,6 +55,10 @@ Look at the [userguide](userguide/declaring_repositories.html#sec::matching_repo
 
 This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model.
 
+### Allow a convention to be specified for a collection property
+
+A `convention` method is now available for `ListProperty` and `SetProperty` types, which allows the <em>convention</em> for a property to be specified. The convention is the value that is used when no value has been explicitly configured for the property.
+
 ## Tooling API: Enhanced/additional progress events
 
 The following Tooling API types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:

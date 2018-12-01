@@ -13,7 +13,7 @@ open class Producer : DefaultTask() {
 
 open class Consumer : DefaultTask() {
     @InputFiles
-    val inputFiles: ListProperty<RegularFile> = project.objects.listProperty(RegularFile::class).empty()
+    val inputFiles: ListProperty<RegularFile> = project.objects.listProperty(RegularFile::class)
 
     @TaskAction
     fun consume() {

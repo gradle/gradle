@@ -36,7 +36,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
@@ -159,7 +159,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Properties convertProperties(Property<Map<String, String>> source) {
+    private Properties convertProperties(Provider<Map<String, String>> source) {
         Properties target = new Properties();
         target.putAll(source.getOrElse(Collections.<String, String>emptyMap()));
         return target;
