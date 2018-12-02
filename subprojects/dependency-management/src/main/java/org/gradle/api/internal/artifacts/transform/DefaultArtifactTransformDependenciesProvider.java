@@ -31,6 +31,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Set;
@@ -72,32 +73,37 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
 
     @Override
     public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
-        ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
-        Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
-        for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
-            if (component.getId().equals(artifactId.getComponentIdentifier())) {
-                getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
+        return DeprecationLogger.whileDisabled(() -> {
+            // Temporarily ignore deprecation warning while triggering the artifact resolution
+            // This is unsafe as some other thread may be using the projects state.
+            // Should instead replace this with a node that resolves the configuration and on which each transform node depends
+            Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
+            ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
+            for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
+                if (component.getId().equals(artifactId.getComponentIdentifier())) {
+                    getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
+                }
             }
-        }
-        FileCollection files = resolvableDependencies.artifactView(conf -> {
-            conf.componentFilter(element -> {
-                return dependenciesIdentifiers.contains(element);
-            });
-            if (!attributes.isEmpty()) {
-                conf.attributes(container -> {
-                    for (Attribute<?> attribute : attributes.keySet()) {
-                        copyAttribute(attributes, container, attribute);
-                    }
+            FileCollection files = resolvableDependencies.artifactView(conf -> {
+                conf.componentFilter(element -> {
+                    return dependenciesIdentifiers.contains(element);
                 });
+                if (!attributes.isEmpty()) {
+                    conf.attributes(container -> {
+                        for (Attribute<?> attribute : attributes.keySet()) {
+                            copyAttribute(attributes, container, attribute);
+                        }
+                    });
+                }
+            }).getArtifacts().getArtifactFiles();
+
+            // Also ensure that the file collection is resolved
+            if (files.isEmpty()) {
+                return EMPTY_DEPENDENCIES;
             }
-        }).getArtifacts().getArtifactFiles();
 
-        // Also ensure that the file collection is resolved
-        if (files.isEmpty()) {
-            return EMPTY_DEPENDENCIES;
-        }
-
-        return new DefaultArtifactTransformDependencies(files);
+            return new DefaultArtifactTransformDependencies(files);
+        });
     }
 
     private static void getDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Set<? extends DependencyResult> dependencies) {

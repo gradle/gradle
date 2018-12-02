@@ -21,11 +21,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
-        // TODO LJA Investigate, this makes little sense
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
-
         settingsFile << """
             rootProject.name = 'transform-deps'
             include 'common', 'lib', 'app'
