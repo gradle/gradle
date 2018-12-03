@@ -1073,7 +1073,11 @@ public class BuildScriptBuilder {
             if (!lines.isEmpty()) {
                 println(" *");
                 for (String headerLine : lines) {
-                    println(" * " + headerLine);
+                    if (headerLine.isEmpty()) {
+                        println(" *");
+                    } else {
+                        println(" * " + headerLine);
+                    }
                 }
             }
             println(" */");
