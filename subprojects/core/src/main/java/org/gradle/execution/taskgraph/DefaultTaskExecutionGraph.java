@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.ExecutionDependencies;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -289,6 +290,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
+        return getExecutionDependencies(task).getTasks();
+    }
+
+    @Override
+    public ExecutionDependencies getExecutionDependencies(Task task) {
         ensurePopulated();
         return executionPlan.getDependencies(task);
     }

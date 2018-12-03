@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.execution.plan.TransformationNodeIdentifier;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -37,10 +38,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformationNode extends Node {
-    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
+public abstract class TransformationNode extends Node implements TransformationNodeIdentifier {
+    private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
-    private final int order = ORDER_COUNTER.incrementAndGet();
+    private final int uniqueId = SEQUENCE.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
 
@@ -54,6 +55,16 @@ public abstract class TransformationNode extends Node {
 
     protected TransformationNode(TransformationStep transformationStep) {
         this.transformationStep = transformationStep;
+    }
+
+    @Override
+    public long getUniqueId() {
+        return uniqueId;
+    }
+
+    @Override
+    public void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder) {
+        builder.add(this);
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
@@ -106,7 +117,7 @@ public abstract class TransformationNode extends Node {
             return getClass().getName().compareTo(other.getClass().getName());
         }
         TransformationNode otherTransformation = (TransformationNode) other;
-        return order - otherTransformation.order;
+        return uniqueId - otherTransformation.uniqueId;
     }
 
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
@@ -217,7 +228,7 @@ public abstract class TransformationNode extends Node {
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName("Transforming " + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
-                .details(new OperationDetails(transformerName, subjectName));
+                .details(new OperationDetails(uniqueId, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();
@@ -238,12 +249,19 @@ public abstract class TransformationNode extends Node {
 
     private static class OperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
 
+        private final long transformationId;
         private final String transformerName;
         private final String subjectName;
 
-        public OperationDetails(String transformerName, String subjectName) {
+        public OperationDetails(long transformationId, String transformerName, String subjectName) {
+            this.transformationId = transformationId;
             this.transformerName = transformerName;
             this.subjectName = subjectName;
+        }
+
+        @Override
+        public long getTransformationId() {
+            return transformationId;
         }
 
         @Override

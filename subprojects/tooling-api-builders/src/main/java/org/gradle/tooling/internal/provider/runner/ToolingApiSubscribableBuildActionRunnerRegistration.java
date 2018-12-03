@@ -61,8 +61,11 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
             }
+            TransformOperationTracker transformOperationTracker = null;
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM)) {
-                buildListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
+                ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
+                buildListener = transformOperationListener;
+                transformOperationTracker = transformOperationListener;
             }
             PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(parentTracker);
             if (clientSubscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
@@ -73,7 +76,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
                 if (clientSubscriptions.isAnyRequested(OperationType.TASK)) {
                     listeners.add(taskOriginTracker);
                 }
-                buildListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor, taskOriginTracker);
+                buildListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor, taskOriginTracker, transformOperationTracker);
             }
             listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, clientSubscriptions, buildListener, parentTracker, pluginApplicationTracker));
         }

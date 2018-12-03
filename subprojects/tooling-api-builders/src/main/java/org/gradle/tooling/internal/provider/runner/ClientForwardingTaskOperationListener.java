@@ -23,12 +23,14 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
+import org.gradle.execution.plan.ExecutionDependencies;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
@@ -45,6 +47,7 @@ import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -55,7 +58,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toCollection;
 
 /**
  * Task listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
@@ -69,11 +71,15 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     private final OperationResultPostProcessor operationResultPostProcessor;
     private final TaskOriginTracker taskOriginTracker;
 
+    @Nullable
+    private final TransformOperationTracker transformOperationTracker;
+
     ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker) {
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, @Nullable TransformOperationTracker transformOperationTracker) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
         this.taskOriginTracker = taskOriginTracker;
+        this.transformOperationTracker = transformOperationTracker;
     }
 
     @Override
@@ -128,14 +134,23 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
         }
     }
 
-    private Set<DefaultTaskDescriptor> computeTaskDependencies(TaskInternal task) {
+    private Set<InternalOperationDescriptor> computeTaskDependencies(TaskInternal task) {
         ProjectInternal rootProject = (ProjectInternal) task.getProject().getRootProject();
-        TaskExecutionGraph taskExecutionGraph = taskExecutionGraphs.get(rootProject.getIdentityPath());
-        return taskExecutionGraph.getDependencies(task).stream()
+        TaskExecutionGraphInternal taskExecutionGraph = (TaskExecutionGraphInternal) taskExecutionGraphs.get(rootProject.getIdentityPath());
+        ExecutionDependencies executionDependencies = taskExecutionGraph.getExecutionDependencies(task);
+        Set<InternalOperationDescriptor> result = new LinkedHashSet<>();
+        executionDependencies.getTasks().stream()
             .map(dependency -> ((TaskInternal) dependency).getTaskIdentity())
             .map(descriptors::get)
             .filter(Objects::nonNull)
-            .collect(toCollection(LinkedHashSet::new));
+            .forEach(result::add);
+        if (transformOperationTracker != null) {
+            executionDependencies.getTransformations().stream()
+                .map(transformOperationTracker::findOperationDescriptor)
+                .filter(Objects::nonNull)
+                .forEach(result::add);
+        }
+        return result;
     }
 
 }

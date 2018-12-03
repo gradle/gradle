@@ -54,11 +54,17 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         runBuild("resolve")
 
         then:
-        with(events.operation("Transform artifact lib.jar (project :lib) with FileSizer")) {
+        def transformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileSizer")
+        with(transformOperation) {
             transform
             descriptor.transformer.displayName == "FileSizer"
             descriptor.subject.displayName == "artifact lib.jar (project :lib)"
             successful
+        }
+        with(events.operation("Task :app:resolve")) {
+            task
+            successful
+            descriptor.dependencies == [transformOperation.descriptor] as Set
         }
     }
 

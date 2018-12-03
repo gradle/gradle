@@ -331,13 +331,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public Set<Task> getDependencies(Task task) {
-        TaskNode node = nodeMapping.get(task);
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (Node dependencyNode : node.getDependencySuccessors()) {
-            dependencyNode.collectTaskInto(builder);
-        }
-        return builder.build();
+    public ExecutionDependencies getDependencies(Task task) {
+        final TaskNode node = nodeMapping.get(task);
+        return new ExecutionDependencies() {
+            @Override
+            public Set<Task> getTasks() {
+                ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+                for (Node dependencyNode : node.getDependencySuccessors()) {
+                    dependencyNode.collectTaskInto(builder);
+                }
+                return builder.build();
+            }
+
+            @Override
+            public Set<TransformationNodeIdentifier> getTransformations() {
+                ImmutableSet.Builder<TransformationNodeIdentifier> builder = ImmutableSet.builder();
+                for (Node dependencyNode : node.getDependencySuccessors()) {
+                    dependencyNode.collectTransformationsInto(builder);
+                }
+                return builder.build();
+            }
+        };
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {

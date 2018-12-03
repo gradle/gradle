@@ -53,6 +53,11 @@ public abstract class Node implements Comparable<Node> {
      */
     public abstract void collectTaskInto(ImmutableCollection.Builder<Task> builder);
 
+    /**
+     * Adds the transformation associated with this node, if any, into the given collection.
+     */
+    public abstract void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder);
+
     @VisibleForTesting
     ExecutionState getState() {
         return state;

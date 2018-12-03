@@ -48,10 +48,10 @@ public interface ExecutionPlan extends Describable {
      * @return The tasks. Returns an empty set if there are no dependent tasks.
      * @throws IllegalStateException When the task is not part of the execution plan.
      *
-     * @since 4.5
+     * @since 5.1
      */
     @Incubating
-    Set<Task> getDependencies(Task task);
+    ExecutionDependencies getDependencies(Task task);
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.

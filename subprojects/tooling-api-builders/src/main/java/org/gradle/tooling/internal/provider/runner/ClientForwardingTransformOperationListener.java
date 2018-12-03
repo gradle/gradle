@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType;
+import org.gradle.execution.plan.TransformationNodeIdentifier;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -25,10 +26,14 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTransformDescriptor;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
 
@@ -37,10 +42,17 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  *
  * @since 5.1
  */
-class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationType.Details> {
+class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationType.Details> implements TransformOperationTracker {
+
+    private final Map<Long, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
 
     ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TRANSFORM, ExecuteScheduledTransformationStepBuildOperationType.Details.class);
+    }
+
+    @Override
+    public InternalTransformDescriptor findOperationDescriptor(TransformationNodeIdentifier identifier) {
+        return descriptors.get(identifier.getUniqueId());
     }
 
     @Override
@@ -54,12 +66,14 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
     }
 
     private DefaultTransformDescriptor toTransformDescriptor(BuildOperationDescriptor buildOperation, ExecuteScheduledTransformationStepBuildOperationType.Details details) {
-        OperationIdentifier id = buildOperation.getId();
-        String displayName = buildOperation.getDisplayName();
-        Object parentId = eventConsumer.findStartedParentId(buildOperation);
-        String transformerName = details.getTransformerName();
-        String subjectName = details.getSubjectName();
-        return new DefaultTransformDescriptor(id, displayName, parentId, transformerName, subjectName);
+        return descriptors.computeIfAbsent(details.getTransformationId(), uniqueId -> {
+            OperationIdentifier id = buildOperation.getId();
+            String displayName = buildOperation.getDisplayName();
+            Object parentId = eventConsumer.findStartedParentId(buildOperation);
+            String transformerName = details.getTransformerName();
+            String subjectName = details.getSubjectName();
+            return new DefaultTransformDescriptor(id, displayName, parentId, transformerName, subjectName);
+        });
     }
 
 }
