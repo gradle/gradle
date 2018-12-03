@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
@@ -101,15 +101,20 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
 
     private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
         AtomicBoolean stopFlag = new AtomicBoolean();
+        AtomicBoolean hasEntries = new AtomicBoolean();
         NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
-        TarEntry entry;
+        TarArchiveEntry entry;
         File expandedDir = getExpandedDir();
-        while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
+        while (!stopFlag.get() && (entry = tar.getNextTarEntry()) != null) {
             if (entry.isDirectory()) {
                 visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             } else {
                 visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             }
+            hasEntries.set(true);
+        }
+        if (!stopFlag.get() && !hasEntries.get() && tarFile.length() > 0) {
+            cannotExpand(new IOException("No tar entries in file detected"));
         }
     }
 
@@ -185,7 +190,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
     }
 
     private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
-        private final TarEntry entry;
+        private final TarArchiveEntry entry;
         private final NoCloseTarInputStream tar;
         private final AtomicBoolean stopFlag;
         private final ReadableResourceInternal resource;
@@ -193,7 +198,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         private File file;
         private boolean read;
 
-        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarArchiveEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.resource = resource;
             this.expandedDir = expandedDir;
@@ -236,7 +241,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             if (read && file != null) {
                 return GFileUtils.openInputStream(file);
             }
-            if (read || tar.getCurrent() != entry) {
+            if (read || tar.getCurrentEntry() != entry) {
                 throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
             }
             read = true;
@@ -252,7 +257,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         }
     }
 
-    private static class NoCloseTarInputStream extends TarInputStream {
+    private static class NoCloseTarInputStream extends TarArchiveInputStream {
         public NoCloseTarInputStream(InputStream is) {
             super(is);
         }
@@ -261,8 +266,5 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         public void close() throws IOException {
         }
 
-        public TarEntry getCurrent() {
-            return currEntry;
-        }
     }
 }
