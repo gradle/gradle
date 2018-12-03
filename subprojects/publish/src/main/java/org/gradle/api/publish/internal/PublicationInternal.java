@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectCompone
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -66,6 +67,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * @return The name and URI of the published file, or `null` if the source artifact is not published.
      */
     PublishedFile getPublishedFile(PublishArtifact source);
+
+    VersionMappingStrategyInternal getVersionMappingStrategy();
 
     interface PublishedFile {
         String getName();

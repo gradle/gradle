@@ -40,9 +40,12 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GUtil;
@@ -129,7 +132,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeVersionConstraint(VersionConstraint versionConstraint, JsonWriter jsonWriter) throws IOException {
+    private void writeVersionConstraint(VersionConstraint versionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
         if (DefaultImmutableVersionConstraint.of().equals(versionConstraint)) {
             return;
         }
@@ -148,6 +151,10 @@ public class ModuleMetadataFileGenerator {
         } else if (!versionConstraint.getPreferredVersion().isEmpty()) {
             jsonWriter.name("prefers");
             jsonWriter.value(versionConstraint.getPreferredVersion());
+        }
+        if (resolvedVersion != null) {
+            jsonWriter.name("resolved");
+            jsonWriter.value(resolvedVersion);
         }
         List<String> rejectedVersions = versionConstraint.getRejectedVersions();
         if (!rejectedVersions.isEmpty()) {
@@ -291,7 +298,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
         writeAttributes(variant.getAttributes(), jsonWriter);
-        writeDependencies(variant, jsonWriter);
+        writeDependencies(variant, publication.getVersionMappingStrategy(), jsonWriter);
         writeDependencyConstraints(variant, jsonWriter);
         writeArtifacts(publication, variant, jsonWriter);
         writeCapabilities(variant, jsonWriter);
@@ -362,21 +369,28 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeDependencies(UsageContext variant, JsonWriter jsonWriter) throws IOException {
+    private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy, JsonWriter jsonWriter) throws IOException {
         if (variant.getDependencies().isEmpty()) {
             return;
         }
         jsonWriter.name("dependencies");
         jsonWriter.beginArray();
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
+        String name = variant.getName();
+        VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
+        if (versionMappingStrategy != null) {
+            ImmutableAttributes attributes = ((AttributeContainerInternal)variant.getAttributes()).asImmutable();
+            variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(name, attributes);
+        }
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            writeDependency(moduleDependency, additionalExcludes, jsonWriter);
+            writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy);
         }
         jsonWriter.endArray();
     }
 
-    private void writeDependency(Dependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter) throws IOException {
+    private void writeDependency(Dependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) throws IOException {
         jsonWriter.beginObject();
+        String resolvedVersion = null;
         if (dependency instanceof ProjectDependency) {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
             ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
@@ -384,7 +398,10 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(identifier.getName());
-            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), jsonWriter);
+            if (variantVersionMappingStrategy != null) {
+                resolvedVersion = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
+            }
+            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion, jsonWriter);
         } else {
             jsonWriter.name("group");
             jsonWriter.value(dependency.getGroup());
@@ -396,7 +413,10 @@ public class ModuleMetadataFileGenerator {
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
-            writeVersionConstraint(vc, jsonWriter);
+            if (variantVersionMappingStrategy != null) {
+                resolvedVersion = variantVersionMappingStrategy.maybeResolveVersion(dependency.getGroup(), dependency.getName());
+            }
+            writeVersionConstraint(vc, resolvedVersion, jsonWriter);
         }
         if (dependency instanceof ModuleDependency) {
             writeExcludes((ModuleDependency) dependency, additionalExcludes, jsonWriter);
@@ -428,7 +448,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.value(dependencyConstraint.getGroup());
         jsonWriter.name("module");
         jsonWriter.value(dependencyConstraint.getName());
-        writeVersionConstraint(dependencyConstraint.getVersionConstraint(), jsonWriter);
+        writeVersionConstraint(dependencyConstraint.getVersionConstraint(), null, jsonWriter);
         writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {

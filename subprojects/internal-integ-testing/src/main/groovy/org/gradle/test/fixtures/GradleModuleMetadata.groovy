@@ -158,7 +158,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.reason, normalizeForTests(it.attributes))
+                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.reason, normalizeForTests(it.attributes), it.version?.resolved)
                 }
             }
             dependencies
@@ -316,6 +316,18 @@ class GradleModuleMetadata {
                 assert actualAttributes == expectedAttributes
                 this
             }
+
+            DependencyView resolvesTo(String expectedResolvedVersion) {
+                def actualResolved = find()?.resolvedTo
+                assert actualResolved == expectedResolvedVersion
+                this
+            }
+
+            DependencyView didNotResolve() {
+                def actualResolved = find()?.resolvedTo
+                assert actualResolved == null
+                this
+            }
         }
 
         class DependencyConstraintView {
@@ -430,10 +442,12 @@ class GradleModuleMetadata {
 
     static class Dependency extends Coords {
         final List<String> excludes
+        final String resolvedTo
 
-        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, String reason, Map<String, String> attributes) {
+        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, String reason, Map<String, String> attributes, String resolvedTo) {
             super(group, module, requires, prefers, strictly, rejectedVersions, reason, attributes)
             this.excludes = excludes*.toString()
+            this.resolvedTo = resolvedTo
         }
 
         String toString() {

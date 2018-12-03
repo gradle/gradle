@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -41,6 +42,8 @@ public class GenerateMavenPom extends DefaultTask {
 
     private MavenPom pom;
     private Object destination;
+    private ImmutableAttributes compileScopeAttributes = ImmutableAttributes.EMPTY;
+    private ImmutableAttributes runtimeScopeAttributes = ImmutableAttributes.EMPTY;
 
     public GenerateMavenPom() {
         // Never up to date; we don't understand the data structures.
@@ -55,6 +58,16 @@ public class GenerateMavenPom extends DefaultTask {
     @Inject
     protected VersionRangeMapper getVersionRangeMapper() {
         throw new UnsupportedOperationException();
+    }
+
+    public GenerateMavenPom withCompileScopeAttributes(ImmutableAttributes compileScopeAttributes) {
+        this.compileScopeAttributes = compileScopeAttributes;
+        return this;
+    }
+
+    public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes compileScopeAttributes) {
+        this.runtimeScopeAttributes = compileScopeAttributes;
+        return this;
     }
 
     /**
@@ -106,7 +119,12 @@ public class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
-        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity(), getVersionRangeMapper());
+        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(
+                pomInternal.getProjectIdentity(),
+                getVersionRangeMapper(),
+                pomInternal.getVersionMappingStrategy(),
+                compileScopeAttributes,
+                runtimeScopeAttributes);
         pomGenerator.configureFrom(pomInternal);
 
         for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
