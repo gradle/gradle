@@ -38,6 +38,8 @@ plugins {
     id("com.gradle.build-scan")
 }
 
+project.apply(from = "$rootDir/gradle/buildTagging.gradle")
+
 defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
