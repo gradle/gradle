@@ -53,6 +53,11 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     }
 
     @Override
+    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        // Cannot visit local artifacts until transform has been executed
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
         if (context instanceof ExecutionGraphDependenciesResolverAwareContext) {

@@ -43,6 +43,17 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         0 * _
     }
 
+    def "visits local artifacts of empty variant"() {
+        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
+        def set1 = of([])
+
+        when:
+        set1.artifacts.visitLocalArtifacts(visitor)
+
+        then:
+        0 * _
+    }
+
     def "visits artifacts and retains order when artifact files are not required"() {
         def visitor = Mock(ArtifactVisitor)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
@@ -118,6 +129,27 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
+        0 * _
+    }
+
+    def "visits local artifacts"() {
+        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
+        def set1 = of([artifact1, artifact2])
+        def set2 = of([artifact1])
+
+        when:
+        set1.artifacts.visitLocalArtifacts(visitor)
+
+        then:
+        1 * visitor.visitArtifact(artifact1)
+        1 * visitor.visitArtifact(artifact2)
+        0 * _
+
+        when:
+        set2.artifacts.visitLocalArtifacts(visitor)
+
+        then:
+        1 * visitor.visitArtifact(artifact1)
         0 * _
     }
 
