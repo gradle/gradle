@@ -37,6 +37,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
@@ -101,7 +102,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     public static abstract class RecordingRegistration {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
-        Class<? extends ArtifactTransform> actionType;
+        Class<?> actionType;
         Action<? super ActionConfiguration> configAction;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
@@ -133,12 +134,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type) {
+        public void artifactTransform(Class<?> type) {
             artifactTransform(type, null);
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, @Nullable Action<? super ActionConfiguration> config) {
+        public void artifactTransform(Class<?> type, @Nullable Action<? super ActionConfiguration> config) {
             if (this.actionType != null) {
                 throw new VariantTransformConfigurationException("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }
@@ -177,12 +178,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public Class<? extends ArtifactTransform> getActionClass() {
+        public Class<?> getActionClass() {
             return actionType;
         }
 
         @Override
-        public void setActionClass(Class<? extends ArtifactTransform> implementationClass) {
+        public void setActionClass(Class<?> implementationClass) {
             this.actionType = implementationClass;
         }
 

@@ -204,7 +204,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: an ArtifactTransform must be provided.'
+        e.message == 'Could not register transform: a transformer must be provided.'
         e.cause == null
     }
 

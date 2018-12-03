@@ -31,7 +31,7 @@ import java.util.List;
  * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
  */
 public interface Transformer extends Describable {
-    Class<? extends ArtifactTransform> getImplementationClass();
+    Class<?> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
 
