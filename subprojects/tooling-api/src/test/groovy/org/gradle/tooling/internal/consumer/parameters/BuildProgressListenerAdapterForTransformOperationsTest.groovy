@@ -60,6 +60,7 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
         _ * transformDescriptor.getDisplayName() >> 'Transform'
         _ * transformDescriptor.getTransformerName() >> 'SomeTransform'
         _ * transformDescriptor.getSubjectName() >> 'artifact "foo.jar"'
+        _ * transformDescriptor.getDependencies() >> []
 
         def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
@@ -90,6 +91,7 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
         _ * transformDescriptor.getDisplayName() >> 'Transform'
         _ * transformDescriptor.getTransformerName() >> 'SomeTransform'
         _ * transformDescriptor.getSubjectName() >> 'artifact "foo.jar"'
+        _ * transformDescriptor.getDependencies() >> []
 
         def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
@@ -135,6 +137,7 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
         _ * transformDescriptor.getDisplayName() >> 'Transform'
         _ * transformDescriptor.getTransformerName() >> 'SomeTransform'
         _ * transformDescriptor.getSubjectName() >> 'artifact "foo.jar"'
+        _ * transformDescriptor.getDependencies() >> []
 
         def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
@@ -166,6 +169,68 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
+        }
+    }
+
+    def "convert transform dependencies"() {
+        given:
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(listener)
+
+        def dependencyTransformDescriptor = Stub(InternalTransformDescriptor)
+        _ * dependencyTransformDescriptor.getId() >> ':dependency'
+        _ * dependencyTransformDescriptor.getName() >> 'dependency transform'
+        _ * dependencyTransformDescriptor.getParentId() >> null
+        _ * dependencyTransformDescriptor.getDependencies() >> []
+
+        def dependencyStartEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * dependencyStartEvent.getEventTime() >> 800
+        _ * dependencyStartEvent.getDisplayName() >> 'transform started'
+        _ * dependencyStartEvent.getDescriptor() >> dependencyTransformDescriptor
+
+        def dependencyTransformResult = Stub(InternalSuccessResult)
+        _ * dependencyTransformResult.getStartTime() >> 1
+        _ * dependencyTransformResult.getEndTime() >> 2
+
+        def dependencyFinishEvent = Stub(InternalOperationFinishedProgressEvent)
+        _ * dependencyFinishEvent.getEventTime() >> 900
+        _ * dependencyFinishEvent.getDisplayName() >> 'transform finished'
+        _ * dependencyFinishEvent.getDescriptor() >> dependencyTransformDescriptor
+        _ * dependencyFinishEvent.getResult() >> dependencyTransformResult
+
+        def transformDescriptor = Stub(InternalTransformDescriptor)
+        _ * transformDescriptor.getId() >> ':dummy'
+        _ * transformDescriptor.getName() >> 'some transform'
+        _ * transformDescriptor.getParentId() >> null
+        _ * transformDescriptor.getDependencies() >> [dependencyTransformDescriptor]
+
+        def startEvent = Stub(InternalOperationStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 1000
+        _ * startEvent.getDisplayName() >> 'transform started'
+        _ * startEvent.getDescriptor() >> transformDescriptor
+
+        when:
+        adapter.onEvent(dependencyStartEvent)
+        adapter.onEvent(dependencyFinishEvent)
+
+        then:
+        2 * listener.statusChanged(_)
+
+        when:
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TransformStartEvent) >> { TransformStartEvent event ->
+            assert event.eventTime == 1000
+            assert event.displayName == "transform started"
+            assert event.descriptor.name == 'some transform'
+            assert event.descriptor.parent == null
+            assert event.descriptor.dependencies.size() == 1
+            with(event.descriptor.dependencies[0]) {
+                assert it.name == 'dependency transform'
+                assert it.parent == null
+                assert it.dependencies.empty
+            }
         }
     }
 

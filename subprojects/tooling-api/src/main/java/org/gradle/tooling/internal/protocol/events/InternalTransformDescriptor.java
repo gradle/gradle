@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import java.util.Set;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
@@ -24,4 +26,5 @@ package org.gradle.tooling.internal.protocol.events;
 public interface InternalTransformDescriptor extends InternalOperationDescriptor {
     String getTransformerName();
     String getSubjectName();
+    Set<? extends InternalOperationDescriptor> getDependencies();
 }

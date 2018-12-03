@@ -36,7 +36,7 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
     String getTaskPath();
 
     /**
-     * Returns the dependencies of the task, if available.
+     * Returns the dependencies of the task (other tasks and transforms), if available.
      *
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
      * @since 5.1

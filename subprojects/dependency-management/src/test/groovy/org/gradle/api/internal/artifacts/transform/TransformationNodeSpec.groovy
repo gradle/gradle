@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
+import org.gradle.util.Path
 import org.jetbrains.annotations.NotNull
 import spock.lang.Specification
 
@@ -35,13 +36,14 @@ class TransformationNodeSpec extends Specification {
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
+    def buildPath = Path.ROOT
 
     def "initial node adds dependency on artifact node and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildPath)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -58,7 +60,7 @@ class TransformationNodeSpec extends Specification {
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver))
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver), buildPath)
 
         given:
         def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver)
@@ -82,7 +84,10 @@ class TransformationNodeSpec extends Specification {
 
         @Override
         void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+        }
 
+        @Override
+        void collectTransformationsInto(ImmutableCollection.Builder<org.gradle.execution.plan.TransformationNodeIdentifier> builder) {
         }
 
         @Override

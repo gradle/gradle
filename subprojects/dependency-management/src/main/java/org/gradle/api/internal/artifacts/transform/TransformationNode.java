@@ -31,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -49,8 +50,8 @@ public abstract class TransformationNode extends Node implements TransformationN
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
+    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, Path buildPath) {
+        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildPath);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -68,6 +69,8 @@ public abstract class TransformationNode extends Node implements TransformationN
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
+
+    protected abstract Path getBuildPath();
 
     @Override
     public String toString() {
@@ -130,11 +133,18 @@ public abstract class TransformationNode extends Node implements TransformationN
     private static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
         private final ExecutionGraphDependenciesResolver dependenciesResolver;
+        private final Path buildPath;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, Path buildPath) {
             super(transformationStep);
             this.artifact = artifact;
             this.dependenciesResolver = dependenciesResolver;
+            this.buildPath = buildPath;
+        }
+
+        @Override
+        public Path getBuildPath() {
+            return buildPath;
         }
 
         @Override
@@ -186,6 +196,11 @@ public abstract class TransformationNode extends Node implements TransformationN
         }
 
         @Override
+        protected Path getBuildPath() {
+            return previousTransformationNode.getBuildPath();
+        }
+
+        @Override
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation();
             buildOperationExecutor.run(chainedArtifactTransformStep);
@@ -228,7 +243,7 @@ public abstract class TransformationNode extends Node implements TransformationN
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName("Transforming " + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
-                .details(new OperationDetails(uniqueId, transformerName, subjectName));
+                .details(new OperationDetails(getBuildPath().toString(), uniqueId, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();
@@ -249,14 +264,21 @@ public abstract class TransformationNode extends Node implements TransformationN
 
     private static class OperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
 
+        private final String buildPath;
         private final long transformationId;
         private final String transformerName;
         private final String subjectName;
 
-        public OperationDetails(long transformationId, String transformerName, String subjectName) {
+        public OperationDetails(String buildPath, long transformationId, String transformerName, String subjectName) {
+            this.buildPath = buildPath;
             this.transformationId = transformationId;
             this.transformerName = transformerName;
             this.subjectName = subjectName;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
         }
 
         @Override

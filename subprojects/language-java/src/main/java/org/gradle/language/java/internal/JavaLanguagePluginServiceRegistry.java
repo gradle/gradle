@@ -32,7 +32,6 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
@@ -66,9 +65,9 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
         SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
             return new SubscribableBuildActionRunnerRegistration() {
                 @Override
-                public Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
+                public Iterable<Object> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
                     if (clientSubscriptions.isRequested(OperationType.TASK)) {
-                        return Collections.<BuildOperationListener>singletonList(factory);
+                        return Collections.<Object>singletonList(factory);
                     }
                     return emptyList();
                 }

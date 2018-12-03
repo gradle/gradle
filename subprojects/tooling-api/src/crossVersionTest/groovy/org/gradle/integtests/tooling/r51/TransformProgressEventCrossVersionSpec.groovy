@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r51
 
+
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,6 +36,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
             include 'lib', 'app'
         """
         buildFile << """
+            def artifactType = Attribute.of('artifactType', String)
             subprojects {
                 apply plugin: 'java'
             }
@@ -73,7 +75,8 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             ${getBrokenTransform('intentional failure')}
             project(":app") {
-                ${configurationAndTransform('BrokenTransform')}
+                ${registerTransform('BrokenTransform')}
+                ${createResolveTask()}
             }
         """
 
@@ -103,11 +106,45 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         events.operations.findAll { it.transform }.empty
     }
 
+    def "reports dependencies of transform operations"() {
+        given:
+        buildFile << """
+            $fileSizer
+            $fileNamer
+            project(":app") {
+                ${registerTransform('FileSizer', 'jar', 'size')}
+                ${registerTransform('FileNamer', 'size', 'name')}
+                ${createResolveTask('name')}
+            }
+        """
+
+        when:
+        runBuild("resolve")
+
+        then:
+        def firstTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileSizer")
+        with(firstTransformOperation) {
+            transform
+            descriptor.transformer.displayName == "FileSizer"
+            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            successful
+        }
+        def secondTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileNamer")
+        with(secondTransformOperation) {
+            transform
+            descriptor.transformer.displayName == "FileNamer"
+            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.dependencies == [firstTransformOperation.descriptor] as Set
+            successful
+        }
+    }
+
     private TestFile withFileSizerTransform() {
         buildFile << """
             $fileSizer
             project(":app") {
-                ${configurationAndTransform('FileSizer')}
+                ${registerTransform('FileSizer')}
+                ${createResolveTask()}
             }
         """
     }
@@ -124,7 +161,19 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    private static String getBrokenTransform(String message) {
+    def getFileNamer() {
+        """
+            class FileNamer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    output.text = String.valueOf(input.name)
+                    return [output]
+                }
+            }
+        """
+    }
+
+    def getBrokenTransform(String message) {
         """
             class BrokenTransform extends ArtifactTransform {
                 List<File> transform(File input) {
@@ -134,21 +183,23 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    def configurationAndTransform(String transformImplementation) {
+    def registerTransform(String transformImplementation, String from = "jar", String to = "size") {
         """
-            def artifactType = Attribute.of('artifactType', String)
-
             dependencies {
                 registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(artifactType, 'size')
+                    from.attribute(artifactType, '$from')
+                    to.attribute(artifactType, '$to')
                     artifactTransform($transformImplementation)
                 }
             }
+        """
+    }
 
+    def createResolveTask(String attribute = "size") {
+        """
             task resolve(type: Copy) {
                 from configurations.compile.incoming.artifactView {
-                    attributes { it.attribute(artifactType, 'size') }
+                    attributes { it.attribute(artifactType, '$attribute') }
                 }.artifacts.artifactFiles
                 into "\$buildDir/libs"
             }

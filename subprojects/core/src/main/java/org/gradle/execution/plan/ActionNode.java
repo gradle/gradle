@@ -37,6 +37,10 @@ class ActionNode extends Node {
     public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
     }
 
+    @Override
+    public void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder) {
+    }
+
     @Nullable
     @Override
     public Throwable getNodeFailure() {

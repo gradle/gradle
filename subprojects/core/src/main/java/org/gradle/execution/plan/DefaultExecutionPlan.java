@@ -332,7 +332,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public ExecutionDependencies getDependencies(Task task) {
-        final TaskNode node = nodeMapping.get(task);
+        return getDependencies(nodeMapping.get(task));
+    }
+
+    @Override
+    public ExecutionDependencies getDependencies(TransformationNodeIdentifier transformation) {
+        return getDependencies(nodeMapping.get(transformation));
+    }
+
+    private ExecutionDependencies getDependencies(final Node node) {
         return new ExecutionDependencies() {
             @Override
             public Set<Task> getTasks() {
@@ -1018,6 +1026,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private static class NodeMapping extends AbstractCollection<Node> {
         private final Map<Task, LocalTaskNode> taskMapping = Maps.newLinkedHashMap();
+        private final Map<Long, Node> transformationMapping = Maps.newLinkedHashMap();
         private final Set<Node> nodes = Sets.newLinkedHashSet();
 
         @Override
@@ -1033,6 +1042,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             if (node instanceof LocalTaskNode) {
                 LocalTaskNode taskNode = (LocalTaskNode) node;
                 taskMapping.put(taskNode.getTask(), taskNode);
+            } else if (node instanceof TransformationNodeIdentifier) {
+                transformationMapping.put(((TransformationNodeIdentifier) node).getUniqueId(), node);
             }
             return true;
         }
@@ -1043,6 +1054,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
             }
             return taskNode;
+        }
+
+        public Node get(TransformationNodeIdentifier transformation) {
+            Node node = transformationMapping.get(transformation.getUniqueId());
+            if (node == null) {
+                throw new IllegalStateException("Transformation is not part of the execution plan, no dependency information is available.");
+            }
+            return node;
         }
 
         public Set<Task> getTasks() {

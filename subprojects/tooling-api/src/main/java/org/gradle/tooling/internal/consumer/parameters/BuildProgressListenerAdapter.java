@@ -448,13 +448,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalTaskWithExtraInfoDescriptor) {
             InternalTaskWithExtraInfoDescriptor descriptorWithExtras = (InternalTaskWithExtraInfoDescriptor) descriptor;
-            Set<OperationDescriptor> dependencies = new LinkedHashSet<OperationDescriptor>();
-            for (InternalOperationDescriptor dependency : descriptorWithExtras.getDependencies()) {
-                OperationDescriptor dependencyDescriptor = descriptorCache.get(dependency.getId());
-                if (dependencyDescriptor != null) {
-                    dependencies.add(dependencyDescriptor);
-                }
-            }
+            Set<OperationDescriptor> dependencies = collectDescriptors(descriptorWithExtras.getDependencies());
             PluginIdentifier originPlugin = toPluginIdentifier(descriptorWithExtras.getOriginPlugin());
             return new DefaultTaskOperationDescriptor(descriptor, parent, descriptor.getTaskPath(), dependencies, originPlugin);
         }
@@ -473,7 +467,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TransformOperationDescriptor toTransformDescriptor(InternalTransformDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultTransformOperationDescriptor(descriptor, parent);
+        return new DefaultTransformOperationDescriptor(descriptor, parent, collectDescriptors(descriptor.getDependencies()));
+    }
+
+    private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
+        Set<OperationDescriptor> result = new LinkedHashSet<OperationDescriptor>();
+        for (InternalOperationDescriptor dependency : dependencies) {
+            OperationDescriptor dependencyDescriptor = descriptorCache.get(dependency.getId());
+            if (dependencyDescriptor != null) {
+                result.add(dependencyDescriptor);
+            }
+        }
+        return result;
     }
 
     private OperationDescriptor toDescriptor(InternalOperationDescriptor descriptor) {

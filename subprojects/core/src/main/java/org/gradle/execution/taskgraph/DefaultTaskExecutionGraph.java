@@ -42,6 +42,7 @@ import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.TransformationNodeIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -297,6 +298,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public ExecutionDependencies getExecutionDependencies(Task task) {
         ensurePopulated();
         return executionPlan.getDependencies(task);
+    }
+
+    @Override
+    public ExecutionDependencies getExecutionDependencies(TransformationNodeIdentifier transformation) {
+        ensurePopulated();
+        return executionPlan.getDependencies(transformation);
     }
 
     private void ensurePopulated() {

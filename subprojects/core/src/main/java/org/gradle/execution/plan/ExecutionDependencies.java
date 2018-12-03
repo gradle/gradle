@@ -22,8 +22,18 @@ import java.util.Set;
 
 public interface ExecutionDependencies {
 
+    /**
+     * Returns the set of task dependencies.
+     *
+     * @return The tasks. Returns an empty set if there are no dependent tasks.
+     */
     Set<Task> getTasks();
 
+    /**
+     * Returns the set of transformation dependencies.
+     *
+     * @return The transformations. Returns an empty set if there are no dependent transformation.
+     */
     Set<TransformationNodeIdentifier> getTransformations();
 
 }

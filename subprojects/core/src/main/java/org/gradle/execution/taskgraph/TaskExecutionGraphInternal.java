@@ -20,6 +20,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ExecutionDependencies;
+import org.gradle.execution.plan.TransformationNodeIdentifier;
 
 import java.util.Collection;
 import java.util.Set;
@@ -77,5 +78,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Returns the execution dependencies of the supplied task.
      */
     ExecutionDependencies getExecutionDependencies(Task task);
+
+    /**
+     * Returns the execution dependencies of the supplied transformation.
+     */
+    ExecutionDependencies getExecutionDependencies(TransformationNodeIdentifier transformation);
 
 }

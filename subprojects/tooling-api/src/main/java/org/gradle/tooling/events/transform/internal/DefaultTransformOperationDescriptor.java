@@ -21,15 +21,19 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 
+import java.util.Set;
+
 public class DefaultTransformOperationDescriptor extends DefaultOperationDescriptor implements TransformOperationDescriptor {
 
     private final TransformerDescriptor transformer;
     private final SubjectDescriptor subject;
+    private final Set<OperationDescriptor> dependencies;
 
-    public DefaultTransformOperationDescriptor(InternalTransformDescriptor descriptor, OperationDescriptor parent) {
+    public DefaultTransformOperationDescriptor(InternalTransformDescriptor descriptor, OperationDescriptor parent, Set<OperationDescriptor> dependencies) {
         super(descriptor, parent);
         this.transformer = new DefaultTransformerDescriptor(descriptor.getTransformerName());
         this.subject = new DefaultSubjectDescriptor(descriptor.getSubjectName());
+        this.dependencies = dependencies;
     }
 
     @Override
@@ -40,6 +44,11 @@ public class DefaultTransformOperationDescriptor extends DefaultOperationDescrip
     @Override
     public SubjectDescriptor getSubject() {
         return subject;
+    }
+
+    @Override
+    public Set<? extends OperationDescriptor> getDependencies() {
+        return dependencies;
     }
 
     private static class DefaultTransformerDescriptor implements TransformerDescriptor {

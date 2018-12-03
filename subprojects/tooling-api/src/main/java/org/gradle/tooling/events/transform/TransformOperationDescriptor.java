@@ -19,6 +19,8 @@ package org.gradle.tooling.events.transform;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
+import java.util.Set;
+
 /**
  * Describes a transform operation for which an event has occurred.
  *
@@ -36,6 +38,11 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
      * Returns the subject of this transform operation.
      */
     SubjectDescriptor getSubject();
+
+    /**
+     * Returns the dependencies (other transforms) of this transform operation.
+     */
+    Set<? extends OperationDescriptor> getDependencies();
 
     /**
      * Describes the transformer of a transform operation.

@@ -18,15 +18,19 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 
+import java.util.Set;
+
 public class DefaultTransformDescriptor extends DefaultOperationDescriptor implements InternalTransformDescriptor {
 
     private final String transformerName;
     private final String subjectName;
+    private final Set<InternalTransformDescriptor> dependencies;
 
-    public DefaultTransformDescriptor(Object id, String displayName, Object parentId, String transformerName, String subjectName) {
+    public DefaultTransformDescriptor(Object id, String displayName, Object parentId, String transformerName, String subjectName, Set<InternalTransformDescriptor> dependencies) {
         super(id, displayName, displayName, parentId);
         this.transformerName = transformerName;
         this.subjectName = subjectName;
+        this.dependencies = dependencies;
     }
 
     @Override
@@ -37,6 +41,11 @@ public class DefaultTransformDescriptor extends DefaultOperationDescriptor imple
     @Override
     public String getSubjectName() {
         return subjectName;
+    }
+
+    @Override
+    public Set<InternalTransformDescriptor> getDependencies() {
+        return dependencies;
     }
 
 }

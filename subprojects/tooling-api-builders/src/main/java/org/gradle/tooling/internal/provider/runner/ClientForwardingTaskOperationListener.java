@@ -16,9 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
@@ -44,12 +42,9 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
-import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,25 +62,21 @@ import static java.util.Collections.singletonList;
 class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> {
 
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
-    private final Map<Path, TaskExecutionGraph> taskExecutionGraphs = new HashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
+    private final TaskExecutionGraphTracker taskExecutionGraphTracker;
     private final TaskOriginTracker taskOriginTracker;
 
     @Nullable
     private final TransformOperationTracker transformOperationTracker;
 
     ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, @Nullable TransformOperationTracker transformOperationTracker) {
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskExecutionGraphTracker taskExecutionGraphTracker, TaskOriginTracker taskOriginTracker,
+                                          @Nullable TransformOperationTracker transformOperationTracker) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
+        this.taskExecutionGraphTracker = taskExecutionGraphTracker;
         this.taskOriginTracker = taskOriginTracker;
         this.transformOperationTracker = transformOperationTracker;
-    }
-
-    @Override
-    public void graphPopulated(@Nonnull TaskExecutionGraph taskExecutionGraph) {
-        ProjectInternal rootProject = ((TaskExecutionGraphInternal) taskExecutionGraph).getRootProject();
-        taskExecutionGraphs.put(rootProject.getIdentityPath(), taskExecutionGraph);
     }
 
     @Override
@@ -135,8 +126,7 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     }
 
     private Set<InternalOperationDescriptor> computeTaskDependencies(TaskInternal task) {
-        ProjectInternal rootProject = (ProjectInternal) task.getProject().getRootProject();
-        TaskExecutionGraphInternal taskExecutionGraph = (TaskExecutionGraphInternal) taskExecutionGraphs.get(rootProject.getIdentityPath());
+        TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphTracker.getTaskExecutionGraph(task);
         ExecutionDependencies executionDependencies = taskExecutionGraph.getExecutionDependencies(task);
         Set<InternalOperationDescriptor> result = new LinkedHashSet<>();
         executionDependencies.getTasks().stream()
