@@ -76,12 +76,12 @@ class CppLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepende
 
     @Override
     protected List<String> getAssembleDebugTasks() {
-        return [':compileDebugCpp', ':linkDebug']
+        return tasks.debug.allToAssemble - tasks.debug.assemble
     }
 
     @Override
     protected List<String> getAssembleReleaseTasks() {
-        return [':compileReleaseCpp', ':linkRelease'] + extractAndStripSymbolsTasksRelease()
+        return tasks.release.allToAssemble - tasks.release.assemble
     }
 
     @Override

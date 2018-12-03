@@ -55,13 +55,13 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         setupProject()
 
         when:
-        withBuildCache().run compileTask(buildType)
+        withBuildCache().run tasks.withBuildType(buildType).compile
 
         then:
         compileIsNotCached(buildType)
 
         when:
-        withBuildCache().run 'clean', installTask(buildType)
+        withBuildCache().run 'clean', tasks.withBuildType(buildType).install
 
         then:
         compileIsCached(buildType)
@@ -71,7 +71,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         file('lib1/src/main/public/greeter.h') << """
             // changed
         """
-        withBuildCache().run 'clean', installTask(buildType)
+        withBuildCache().run 'clean', tasks.withBuildType(buildType).install
 
         then:
         compileIsNotCached(buildType)
@@ -89,7 +89,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         when:
         inDirectory(originalLocation)
-        withBuildCache().run compileTask(release)
+        withBuildCache().run tasks.release.compile
 
         def snapshotsInOriginalLocation = snapshotObjects(originalLocation)
 
@@ -100,7 +100,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        run compileTask(release)
+        run tasks.release.compile
 
         then:
         compileIsNotCached(release)
@@ -108,7 +108,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         when:
         run 'clean'
-        withBuildCache().run compileTask(release), installTask(release)
+        withBuildCache().run tasks.release.compile, tasks.release.install
 
         then:
         compileIsCached(release, newLocation)
@@ -159,7 +159,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     }
 
     void compileIsCached(String buildType, projectDir = temporaryFolder.testDirectory) {
-        skipped compileTask(buildType)
+        skipped tasks.withBuildType(buildType).compile
         // checking the object file only works in `temporaryFolder.testDirectory` since the base class has a hard coded reference to it
         if (projectDir == temporaryFolder.testDirectory) {
             objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
@@ -167,7 +167,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     }
 
     void compileIsNotCached(String buildType) {
-        executedAndNotSkipped compileTask(buildType)
+        executedAndNotSkipped tasks.withBuildType(buildType).compile
     }
 
 }

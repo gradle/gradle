@@ -60,9 +60,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
 
         then:
         result.assertTasksExecuted(
-            compileAndLinkTasks(debug),
-            compileAndLinkTasks(release),
-            stripSymbolsTasksRelease(),
+            tasks.debug.allToLink,
+            tasks.release.allToLink,
+            tasks.release.strip,
             ":generatePomFileForMainDebugPublication",
             ":generateMetadataFileForMainDebugPublication",
             ":publishMainDebugPublicationToMavenRepository",

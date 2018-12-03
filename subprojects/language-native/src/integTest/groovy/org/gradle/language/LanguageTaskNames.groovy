@@ -26,70 +26,12 @@ abstract trait LanguageTaskNames {
 
     abstract String getLanguageTaskSuffix()
 
-    String installTaskDebug(String project = '') {
-        installTask(project, DEBUG)
-    }
-
-    String[] compileTasks(String project = '', String buildType) {
-        [compileTask(project, buildType)] as String[]
-    }
-
-    String compileTask(String project = '', String buildType) {
-        "${project}:compile${buildType}${getLanguageTaskSuffix()}"
-    }
-
-    String linkTask(String project = '', String buildType) {
-        "${project}:link${buildType}"
-    }
-
-    String staticLinkTask(String project = '', String buildType) {
-        "${project}:create${buildType}"
-    }
-
-    String installTask(String project = '', String buildType) {
-        "${project}:install${buildType}"
-    }
-
-    String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
-        projects.collect { project ->
-            [*compileTasks(project, buildType), linkTask(project, buildType)]
-        }.flatten()
-    }
-
-    String[] compileAndStaticLinkTasks(List<String> projects = [''], String buildType) {
-        projects.collect { project ->
-            [*compileTasks(project, buildType), staticLinkTask(project, buildType)]
-        }.flatten()
-    }
-
-    String[] extractAndStripSymbolsTasksRelease(String project = '') {
-        return extractAndStripSymbolsTasks(project, RELEASE)
-    }
-
-    String[] extractAndStripSymbolsTasks(String project = '', String buildType) {
-        if (toolchainUnderTest.visualCpp) {
-            return []
-        } else {
-            return stripSymbolsTasks(project, buildType) + ["${project}:extractSymbols${buildType}"]
-        }
-    }
-
-    String[] stripSymbolsTasksRelease(String project = '') {
-        return stripSymbolsTasks(project, RELEASE)
-    }
-
     String[] stripSymbolsTasks(String project = '', String buildType) {
         if (toolchainUnderTest.visualCpp) {
             return []
         } else {
             return ["${project}:stripSymbols${buildType}"]
         }
-    }
-
-    String[] stripSymbolsTasks(List<String> projects, String buildType) {
-        projects.collect { project ->
-            [*stripSymbolsTasks(project, buildType)]
-        }.flatten()
     }
 
     String getDebug() {
@@ -144,6 +86,15 @@ abstract trait LanguageTaskNames {
             return new ReleaseTasks()
         }
 
+        VariantTasks withBuildType(String buildType) {
+            return new VariantTasks() {
+                @Override
+                protected String getBuildType() {
+                    return buildType
+                }
+            }
+        }
+
         private withProject(String t) {
             project + ":" + t
         }
@@ -153,21 +104,31 @@ abstract trait LanguageTaskNames {
             return this
         }
 
-        class DebugTasks {
+        abstract class VariantTasks {
+            protected abstract String getBuildType()
+
             String getCompile() {
-                return withProject("compileDebug${variant}${languageTaskSuffix}")
+                return withProject("compile${buildType}${variant}${languageTaskSuffix}")
             }
 
             String getLink() {
-                return withProject("linkDebug${variant}")
+                return withProject("link${buildType}${variant}")
+            }
+
+            String getCreate() {
+                return withProject("create${buildType}${variant}")
             }
 
             String getInstall() {
-                return withProject("installDebug${variant}")
+                return withProject("install${buildType}${variant}")
             }
 
             String getAssemble() {
-                return withProject("assembleDebug${variant}")
+                return withProject("assemble${buildType}${variant}")
+            }
+
+            List<String> getAllToCreate() {
+                return [compile, create]
             }
 
             List<String> getAllToLink() {
@@ -177,23 +138,35 @@ abstract trait LanguageTaskNames {
             List<String> getAllToInstall() {
                 return allToLink + [install]
             }
+
+            List<String> getAllToAssemble() {
+                return allToLink + [assemble]
+            }
+
+            List<String> getAllToAssembleWithInstall() {
+                return allToInstall + [assemble]
+            }
         }
 
-        class ReleaseTasks {
-            String getCompile() {
-                return withProject("compileRelease${variant}${languageTaskSuffix}")
+        class DebugTasks extends VariantTasks {
+            @Override
+            protected String getBuildType() {
+                return "Debug"
             }
 
-            String getLink() {
-                return withProject("linkRelease${variant}")
+            List<String> getAllToInstall() {
+                return allToLink + [install]
             }
 
-            String getInstall() {
-                return withProject("installRelease${variant}")
+            List<String> getAllToAssemble() {
+                return allToLink + [assemble]
             }
+        }
 
-            String getAssemble() {
-                return withProject("assembleRelease${variant}")
+        class ReleaseTasks extends VariantTasks {
+            @Override
+            protected String getBuildType() {
+                return "Release"
             }
 
             List<String> getExtract() {
@@ -213,11 +186,15 @@ abstract trait LanguageTaskNames {
             }
 
             List<String> getAllToLink() {
-                return [compile, link] + strip
+                return super.allToLink + strip
             }
 
-            List<String> getAllToInstall() {
-                return allToLink + [install]
+            List<String> getAllToAssemble() {
+                return super.allToAssemble + extract
+            }
+
+            List<String> getAllToAssembleWithInstall() {
+                return super.allToAssembleWithInstall + extract
             }
         }
 
