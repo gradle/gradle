@@ -124,6 +124,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public ComponentIdentifier getComponentId() {
+            return artifactIdentifier.getComponentIdentifier();
+        }
+
+        @Override
         public ResolvedArtifactSet getArtifacts() {
             return this;
         }
@@ -139,7 +144,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public ImmutableAttributes getOverridenAttributes() {
+        public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
 

@@ -77,7 +77,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
-        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverridenAttributes());
+        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
         List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
@@ -103,7 +103,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformation, resolvableDependencies);
+            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, resolvableDependencies);
         }
 
         if (!candidates.isEmpty()) {
