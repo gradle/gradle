@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -33,13 +32,13 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ArtifactTransformDependenciesProvider dependenciesProvider, ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
         final List<TransformationStep> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         Function<ResolvableArtifact, TransformationNode> nodeCreator = artifact -> {
             ExecutionGraphDependenciesResolver resolver;
             resolver = extraExecutionGraphDependenciesResolverFactory.create(artifact.getId().getComponentIdentifier(), transformation);
-            return getOrCreateInternal(artifact, transformationChain, resolvableDependencies, resolver);
+            return getOrCreateInternal(artifact, transformationChain, dependenciesProvider, resolver);
         };
         collectTransformNodes(artifactSet, builder, nodeCreator);
         return builder.build();
@@ -55,14 +54,14 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         });
     }
 
-    private TransformationNode getOrCreateInternal(ResolvableArtifact artifact, List<TransformationStep> transformationChain, ResolvableDependencies resolvableDependencies, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+    private TransformationNode getOrCreateInternal(ResolvableArtifact artifact, List<TransformationStep> transformationChain, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         ArtifactTransformKey key = new ArtifactTransformKey(artifact.getId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, resolvableDependencies, executionGraphDependenciesResolver);
+                transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, dependenciesProvider, executionGraphDependenciesResolver);
             } else {
-                TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), resolvableDependencies, executionGraphDependenciesResolver);
+                TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesProvider, executionGraphDependenciesResolver);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
             transformations.put(key, transformationNode);

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -29,10 +28,10 @@ import java.util.Map;
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
     private final Map<File, TransformationOperation> fileResults;
+    private final ArtifactTransformDependenciesProvider dependenciesProvider;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
-    private final ResolvableDependencies resolvableDependencies;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
@@ -40,21 +39,20 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults,
         Map<File, TransformationOperation> fileResults,
-        ResolvableDependencies resolvableDependencies
+        ArtifactTransformDependenciesProvider dependenciesProvider
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
-        this.resolvableDependencies = resolvableDependencies;
+        this.dependenciesProvider = dependenciesProvider;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        ArtifactTransformDependenciesProvider dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(artifactId, resolvableDependencies);
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
         TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
         artifactResults.put(artifactId, operation);
@@ -80,7 +78,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, DefaultArtifactTransformDependenciesProvider.EMPTY);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesProvider);
         fileResults.put(file, operation);
         // We expect file transformations to be executed in an immediate way,
         // since they cannot be scheduled early.

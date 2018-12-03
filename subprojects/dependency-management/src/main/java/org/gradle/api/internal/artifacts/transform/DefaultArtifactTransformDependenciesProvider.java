@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -57,24 +56,13 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
         }
     };
 
-    static final ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
-        @Override
-        public ArtifactTransformDependenciesInternal forTransformer(Transformer transformer) {
-            return EMPTY_DEPENDENCIES;
-        }
-    };
-
-    private final ComponentArtifactIdentifier artifactId;
+    private final ComponentIdentifier componentIdentifier;
     private final ResolvableDependencies resolvableDependencies;
     private ImmutableSet<ComponentIdentifier> dependenciesIdentifiers;
 
-    DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
-        this.artifactId = artifactId;
+    DefaultArtifactTransformDependenciesProvider(ComponentIdentifier componentIdentifier, ResolvableDependencies resolvableDependencies) {
+        this.componentIdentifier = componentIdentifier;
         this.resolvableDependencies = resolvableDependencies;
-    }
-
-    public static ArtifactTransformDependenciesProvider create(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
-        return new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies);
     }
 
     @Override
@@ -117,7 +105,7 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
         ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
         Set<ComponentIdentifier> result = Sets.newHashSet();
         for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
-            if (component.getId().equals(artifactId.getComponentIdentifier())) {
+            if (component.getId().equals(componentIdentifier)) {
                 getDependenciesIdentifiers(result, component.getDependencies());
                 break;
             }

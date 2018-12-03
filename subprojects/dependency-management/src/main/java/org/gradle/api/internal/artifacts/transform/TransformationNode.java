@@ -46,8 +46,8 @@ public abstract class TransformationNode extends Node {
         return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ArtifactTransformDependenciesProvider ArtifactTransformDependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new InitialTransformationNode(initial, artifact, ArtifactTransformDependenciesProvider, executionGraphDependenciesResolver);
+    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new InitialTransformationNode(initial, artifact, dependenciesProvider, executionGraphDependenciesResolver);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -127,7 +127,7 @@ public abstract class TransformationNode extends Node {
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             InitialArtifactTransformationStepOperation transformationStep = new InitialArtifactTransformationStepOperation();
             buildOperationExecutor.run(transformationStep);
-            this.transformedSubject = transformationStep.getTransformedSubject();
+            this.transformedSubject = transformationStep.transform();
         }
 
         @Override
@@ -150,7 +150,7 @@ public abstract class TransformationNode extends Node {
             return dependencyResolver.resolveDependenciesFor(null, artifact);
         }
 
-        private class InitialArtifactTransformationStepOperation implements RunnableBuildOperation {
+        private class InitialArtifactTransformationStepOperation extends ArtifactTransformationStepBuildOperation {
 
             @Override
             protected String describeSubject() {
@@ -158,7 +158,8 @@ public abstract class TransformationNode extends Node {
             }
 
             @Override
-            protected TransformationSubject transform() {                File file;
+            protected TransformationSubject transform() {
+                File file;
                 try {
                     file = artifact.getFile();
                 } catch (ResolveException e) {
@@ -168,9 +169,7 @@ public abstract class TransformationNode extends Node {
                             new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e)));
                 }
 
-                dependenciesProvider = DefaultArtifactTransformDependenciesProvider.create(transformationStep, artifact.getId(), resolvableDependencies);
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
-
                 return transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);
             }
 

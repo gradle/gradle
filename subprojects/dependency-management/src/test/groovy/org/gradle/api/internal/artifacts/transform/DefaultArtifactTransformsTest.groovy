@@ -109,7 +109,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
     private ResolvedVariantSet resolvedVariantSet() {
         Stub(ResolvedVariantSet) {
-            getOverridenAttributes() >> ImmutableAttributes.EMPTY
+            getOverriddenAttributes() >> ImmutableAttributes.EMPTY
         }
     }
 
