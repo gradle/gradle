@@ -77,12 +77,12 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
 
     @Override
     protected List<String> getAssembleDebugTasks() {
-        return [':compileDebugCpp', ':linkDebug', ':installDebug']
+        return tasks.debug.allToAssembleWithInstall - tasks.debug.assemble
     }
 
     @Override
     protected List<String> getAssembleReleaseTasks() {
-        return [':compileReleaseCpp', ':linkRelease', ':installRelease'] + extractAndStripSymbolsTasksRelease()
+        return tasks.release.allToAssembleWithInstall - tasks.release.assemble
     }
 
     @Override
