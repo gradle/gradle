@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
@@ -284,7 +285,8 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews
+            featurePreviews,
+            CollectionCallbackActionDecorator.NOOP
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
@@ -368,7 +370,8 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews
+            featurePreviews,
+            CollectionCallbackActionDecorator.NOOP
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))

@@ -19,6 +19,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
@@ -50,12 +51,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
     private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator) {
+    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(componentIdentifier, ClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator);
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator, collectionCallbackActionDecorator);
     }
 
     @Override

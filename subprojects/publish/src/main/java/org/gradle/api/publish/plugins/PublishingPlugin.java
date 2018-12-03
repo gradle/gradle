@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
@@ -52,19 +53,26 @@ public class PublishingPlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry projectPublicationRegistry;
     private final FeaturePreviews featurePreviews;
     private final DocumentationRegistry documentationRegistry;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry projectPublicationRegistry, FeaturePreviews featurePreviews, DocumentationRegistry documentationRegistry) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices,
+                            Instantiator instantiator,
+                            ProjectPublicationRegistry projectPublicationRegistry,
+                            FeaturePreviews featurePreviews,
+                            DocumentationRegistry documentationRegistry,
+                            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.projectPublicationRegistry = projectPublicationRegistry;
         this.featurePreviews = featurePreviews;
         this.documentationRegistry = documentationRegistry;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
-        PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
+        PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator, collectionCallbackActionDecorator);
         PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
         project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override

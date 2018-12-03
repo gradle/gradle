@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
@@ -43,7 +44,7 @@ class DefaultJavaPluginConventionTest extends Specification {
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new DefaultJavaPluginConvention(project, instantiator)
+        convention = new DefaultJavaPluginConvention(project, instantiator,  CollectionCallbackActionDecorator.NOOP)
     }
 
     def defaultValues() {

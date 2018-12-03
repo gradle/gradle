@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.plugins.quality.FindBugsXmlReport;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.CustomizableHtmlReport;
@@ -30,8 +31,8 @@ import javax.inject.Inject;
 @SuppressWarnings("deprecation")
 public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReportsInternal {
     @Inject
-    public FindBugsReportsImpl(Task task) {
-        super(SingleFileReport.class, task);
+    public FindBugsReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(SingleFileReport.class, task, callbackActionDecorator);
 
         add(FindBugsXmlReportImpl.class, "xml", task);
         add(CustomizableHtmlReportImpl.class, "html", task);

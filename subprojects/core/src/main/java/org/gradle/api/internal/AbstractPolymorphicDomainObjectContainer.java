@@ -38,8 +38,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
-    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
     }
 
     protected abstract <U extends T> U doCreate(String name, Class<U> type);

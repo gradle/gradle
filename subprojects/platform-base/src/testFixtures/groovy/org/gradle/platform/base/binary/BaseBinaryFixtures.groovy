@@ -17,6 +17,7 @@
 package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.NamedEntityInstantiator
@@ -34,7 +35,7 @@ class BaseBinaryFixtures {
         return BaseInstanceFixtureSupport.create(publicType, BinarySpecInternal, implType, name) { MutableModelNode node ->
             def generated = GENERATOR.generate(implType)
             def identifier = componentNode ? componentNode.asImmutable(ModelType.of(ComponentSpecInternal), null).instance.identifier.child(name) : new DefaultComponentSpecIdentifier("project", name)
-            return BaseBinarySpec.create(publicType, generated, identifier, node, componentNode, DirectInstantiator.INSTANCE, {} as NamedEntityInstantiator)
+            return BaseBinarySpec.create(publicType, generated, identifier, node, componentNode, DirectInstantiator.INSTANCE, {} as NamedEntityInstantiator, CollectionCallbackActionDecorator.NOOP)
         }
     }
 }

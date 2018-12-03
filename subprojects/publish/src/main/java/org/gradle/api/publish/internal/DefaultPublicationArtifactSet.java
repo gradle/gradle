@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -33,8 +34,8 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
     private final String name;
     private final FileCollection files;
 
-    public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory) {
-        super(type);
+    public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(type, collectionCallbackActionDecorator);
         this.name = name;
         files = fileCollectionFactory.create(new AbstractTaskDependency() {
             @Override

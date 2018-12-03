@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -39,8 +40,8 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
-    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser, FileCollectionFactory fileCollectionFactory) {
-        super(IvyArtifact.class);
+    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(IvyArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());

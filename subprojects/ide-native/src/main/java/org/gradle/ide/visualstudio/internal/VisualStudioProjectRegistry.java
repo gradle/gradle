@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -27,8 +28,8 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry) {
-        super(DefaultVisualStudioProject.class, instantiator);
+    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
     }

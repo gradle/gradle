@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -39,7 +40,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def displayName = Describables.of("<config>")
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts
-    }, parentAttributes, DirectInstantiator.INSTANCE, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory)
+    }, parentAttributes, DirectInstantiator.INSTANCE, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

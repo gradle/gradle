@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.plugins.quality.JDependReports;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
@@ -27,8 +28,8 @@ import javax.inject.Inject;
 @SuppressWarnings("deprecation")
 public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> implements JDependReports {
     @Inject
-    public JDependReportsImpl(Task task) {
-        super(SingleFileReport.class, task);
+    public JDependReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(SingleFileReport.class, task, callbackActionDecorator);
 
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);

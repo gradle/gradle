@@ -27,13 +27,13 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
 
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
         namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
     }
 
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type));
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
+        this(type, instantiator, Named.Namer.forType(type), callbackDecorator);
     }
 
     @Override

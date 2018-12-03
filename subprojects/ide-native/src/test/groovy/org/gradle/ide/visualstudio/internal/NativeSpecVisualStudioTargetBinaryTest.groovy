@@ -20,6 +20,7 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.ExtensionAware
@@ -51,7 +52,7 @@ import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.Proj
 @UsesNativeServices
 class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
-    def flavors = new DefaultFlavorContainer(DirectInstantiator.INSTANCE)
+    def flavors = new DefaultFlavorContainer(DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
     def exe = Mock(NativeExecutableSpec) {
         getFlavors() >> flavors
     }
