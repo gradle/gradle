@@ -34,13 +34,8 @@ class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
     }
 
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugCpp", ":createDebug"]
-    }
-
-    @Override
-    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return [":compileDebug${getVariantSuffix(architecture)}Cpp", ":createDebug${getVariantSuffix(architecture)}"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebug${variant.capitalize()}Cpp", ":createDebug${variant.capitalize()}"]
     }
 
     @Override

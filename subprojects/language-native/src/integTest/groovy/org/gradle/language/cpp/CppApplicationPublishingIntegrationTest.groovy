@@ -439,7 +439,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
         then:
         assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         consumer.file("build.gradle") << """
@@ -528,9 +528,9 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, String buildType, Map<String, String> targetMachine) {
-        def executable = executable("build/exe/main/${buildType}/${targetMachine.os.toLowerCase()}/${targetMachine.architecture}/${module}")
-        return buildType == 'release' ? executable.strippedRuntimeFile : executable.file
+    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
+        def executable = executable("build/exe/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+        return variantContext.buildType.name == 'release' ? executable.strippedRuntimeFile : executable.file
     }
 
     @Override

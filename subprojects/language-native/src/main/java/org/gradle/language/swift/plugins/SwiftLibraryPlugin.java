@@ -54,6 +54,7 @@ import org.gradle.util.GUtil;
 import javax.inject.Inject;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
@@ -121,8 +122,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     for (TargetMachine targetMachine : targetMachines) {
                         for (Linkage linkage : linkages) {
 
-                            String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
-                            String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
+                            String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
+                            String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
                             String linkageSuffix = createDimensionSuffix(linkage, linkages);
                             String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix + architectureSuffix;
 

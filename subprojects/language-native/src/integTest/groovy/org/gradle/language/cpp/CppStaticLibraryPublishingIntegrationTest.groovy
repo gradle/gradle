@@ -63,15 +63,15 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
 
         then:
         assertMainModuleIsPublished('some.group', 'deck', '1.2', targetMachines, ["some.group:card:1.2"])
-        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName }, ["some.group:shuffle:1.2", "some.group:card:1.2"])
+        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines, ["some.group:shuffle:1.2", "some.group:card:1.2"])
 
         and:
         assertMainModuleIsPublished('some.group', 'card', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines)
 
         and:
         assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         def consumer = file("consumer").createDir()
@@ -131,15 +131,15 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
 
         then:
         assertMainModuleIsPublished('some.group', 'deck', '1.2', targetMachines, ["some.group:card:1.2"])
-        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName }, ["some.group:shuffle:1.2", "some.group:card:1.2"])
+        assertVariantsArePublished('some.group', 'deck', '1.2', ['debug', 'release'], targetMachines, ["some.group:shuffle:1.2", "some.group:card:1.2"])
 
         and:
         assertMainModuleIsPublished('some.group', 'card', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'card', '1.2', ['debug', 'release'], targetMachines)
 
         and:
         assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         def consumer = file("consumer").createDir()
@@ -180,8 +180,8 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, String buildType, Map<String, String> targetMachine) {
-        return staticLibrary("${module}/build/lib/main/${buildType}/${targetMachine.os.toLowerCase()}/${targetMachine.architecture}/${module}").file
+    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
+        return staticLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}").file
     }
 
     @Override
