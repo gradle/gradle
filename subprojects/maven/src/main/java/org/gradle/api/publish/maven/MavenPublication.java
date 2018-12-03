@@ -17,8 +17,10 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -282,4 +284,12 @@ public interface MavenPublication extends Publication {
      */
     void setVersion(String version);
 
+    /**
+     * Configures the version mapping strategy
+     * @param configureAction the configuration
+     *
+     * @since 5.2
+     */
+    @Incubating
+    void versionMapping(Action<? super VersionMappingStrategy> configureAction);
 }

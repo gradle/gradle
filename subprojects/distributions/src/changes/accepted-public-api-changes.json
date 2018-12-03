@@ -1,3 +1,16 @@
 {
-   "acceptedApiChanges": []
+   "acceptedApiChanges": [
+      {
+         "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+         "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.withCompileScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes)",
+         "acceptation": "Internal method used for attribute set injection",
+         "changes": []
+      },
+      {
+         "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+         "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.withRuntimeScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes)",
+         "acceptation": "Internal method used for attribute set injection",
+         "changes": []
+      }
+   ]
 }

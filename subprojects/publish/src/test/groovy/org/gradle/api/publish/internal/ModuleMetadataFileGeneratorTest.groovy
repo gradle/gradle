@@ -877,6 +877,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def publication = Stub(PublicationInternal)
         publication.component >> component
         publication.coordinates >> coords
+        publication.versionMappingStrategy >> null
         return publication
     }
 

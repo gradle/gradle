@@ -23,11 +23,14 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -35,8 +38,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
@@ -44,11 +50,15 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.versionmapping.DefaultVariantVersionMappingStrategy;
+import org.gradle.api.publish.maven.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -69,7 +79,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
-    private final Instantiator instantiator;
+    private final InstantiatorFactory instantiatorFactory;
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
@@ -81,11 +91,11 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public MavenPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
+    public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
                               FileResolver fileResolver, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
                               FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory,
                               CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.instantiator = instantiator;
+        this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
@@ -112,7 +122,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver, collectionCallbackActionDecorator));
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorate(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
                 realizePublishingTasksLater(project, extension);
             }
         });
@@ -130,7 +140,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             @Override
             public void execute(MavenPublicationInternal publication) {
                 createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
-                createGeneratePomTask(tasks, publication, buildDirectory);
+                createGeneratePomTask(tasks, publication, buildDirectory, project);
                 createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
                 createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication);
             }
@@ -185,7 +195,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
+    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir, final Project project) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
@@ -196,6 +206,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 if (generatePomTask.getDestination() == null) {
                     generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
                 }
+                project.getPluginManager().withPlugin("org.gradle.java", plugin -> {
+                    // If the Java plugin is applied, we want to express that the "compile" and "runtime" variants
+                    // are mapped to some attributes, which can be used in the version mapping strategy.
+                    // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
+                    generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
+                                   .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
+                });
             }
         });
         // TODO: Make lazy
@@ -226,22 +243,60 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
         private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+        private final ConfigurationContainer configurations;
+        private final PluginManager plugins;
+        private final ExtensionContainer extensionContainer;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
+                                        Instantiator instantiator,
+                                        FileResolver fileResolver,
+                                        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                                        ConfigurationContainer configurations,
+                                        PluginManager plugins,
+                                        ExtensionContainer extensionContainer) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
             this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+            this.configurations = configurations;
+            this.plugins = plugins;
+            this.extensionContainer = extensionContainer;
         }
 
         public MavenPublication create(final String name) {
             MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
+            VersionMappingStrategyInternal versionMappingStrategy = instantiator.newInstance(DefaultVersionMappingStrategy.class, objectFactory, configurations);
+            configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
             return instantiator.newInstance(
-                DefaultMavenPublication.class,
-                name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory,
-                collectionCallbackActionDecorator
+                    DefaultMavenPublication.class,
+                    name,
+                    projectIdentity,
+                    artifactNotationParser,
+                    instantiator,
+                    objectFactory,
+                    projectDependencyResolver,
+                    fileCollectionFactory,
+                    featurePreviews,
+                    immutableAttributesFactory,
+                    collectionCallbackActionDecorator,
+                    versionMappingStrategy
             );
+        }
+
+        private void configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(VersionMappingStrategyInternal versionMappingStrategy) {
+            plugins.withPlugin("org.gradle.java", plugin -> {
+                SourceSet mainSourceSet = extensionContainer.getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                // setup the default configurations used when mapping to resolved versions
+                versionMappingStrategy.usage(Usage.JAVA_API, strategy -> {
+                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
+                    mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()));
+                });
+                versionMappingStrategy.usage(Usage.JAVA_RUNTIME, strategy -> {
+                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
+                    mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()));
+                });
+            });
         }
 
         private MutableMavenProjectIdentity createProjectIdentity() {
@@ -268,4 +323,5 @@ public class MavenPublishPlugin implements Plugin<Project> {
             return projectIdentity;
         }
     }
+
 }
