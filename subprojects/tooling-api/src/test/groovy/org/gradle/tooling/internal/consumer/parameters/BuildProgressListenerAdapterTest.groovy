@@ -37,22 +37,22 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
 
         when:
-        def adapter = createAdapter(listeners)
+        def adapter = new BuildProgressListenerAdapter(listeners)
 
         then:
         adapter.subscribedOperations as Set == expectedSubscribedOperations
 
         where:
-        operationTypes << Sets.powerSet([OperationType.TEST, OperationType.TASK, OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.PROJECT_CONFIGURATION] as Set)
+        operationTypes << Sets.powerSet(EnumSet.allOf(OperationType))
         expectedSubscribedOperations << Sets.powerSet([InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION,
                                                        InternalBuildProgressListener.BUILD_EXECUTION, InternalBuildProgressListener.WORK_ITEM_EXECUTION,
-                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION] as Set)
+                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, InternalBuildProgressListener.TRANSFORM_EXECUTION] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
         given:
         def listener = Mock(ProgressListener)
-        def adapter = createAdapter([(OperationType.TASK): [listener]])
+        def adapter = new BuildProgressListenerAdapter([(OperationType.TASK): [listener]])
 
         when:
         def buildDescriptor = Mock(InternalOperationDescriptor)
@@ -90,8 +90,5 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
-    BuildProgressListenerAdapter createAdapter(Map<OperationType, List<ProgressListener>> listeners) {
-        new BuildProgressListenerAdapter(listeners)
-    }
 
 }
