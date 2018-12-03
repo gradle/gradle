@@ -54,6 +54,12 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new DefaultTransformationDependency(transformation, delegate, resolvableDependencies));
+        ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
+        if (context instanceof ExecutionGraphDependenciesResolverAwareContext) {
+            extraExecutionGraphDependenciesResolverFactory = ((ExecutionGraphDependenciesResolverAwareContext) context).getExecutionGraphDependenciesResolverFactory();
+        } else {
+            extraExecutionGraphDependenciesResolverFactory = ExtraExecutionGraphDependenciesResolverFactory.ALWAYS_EMPTY_RESOLVER_FACTORY;
+        }
+        context.add(new DefaultTransformationDependency(transformation, delegate, resolvableDependencies, extraExecutionGraphDependenciesResolverFactory));
     }
 }

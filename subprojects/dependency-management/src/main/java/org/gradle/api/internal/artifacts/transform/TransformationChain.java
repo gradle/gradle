@@ -25,10 +25,34 @@ public class TransformationChain implements Transformation {
 
     private final Transformation first;
     private final Transformation second;
+    private final int stepsCount;
 
     public TransformationChain(Transformation first, Transformation second) {
         this.first = first;
         this.second = second;
+        this.stepsCount = first.stepsCount() + second.stepsCount();
+    }
+
+    @Override
+    public boolean endsWith(Transformation otherTransform) {
+        int otherStepsCount = otherTransform.stepsCount();
+        if (otherStepsCount > this.stepsCount) {
+            return false;
+        } else if (otherStepsCount == 1) {
+            return second == otherTransform;
+        }
+
+        TransformationChain otherChain = (TransformationChain) otherTransform;
+        if (otherChain.second != second) {
+            return false;
+        } else {
+            return first.endsWith(otherChain.first);
+        }
+    }
+
+    @Override
+    public int stepsCount() {
+        return stepsCount;
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -150,7 +151,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                if (!property.getters.isEmpty() && (Property.class.isAssignableFrom(property.getType()) || HasMultipleValues.class.isAssignableFrom(property.getType()))) {
+                if (!property.getters.isEmpty() && isModelProperty(property)) {
                     builder.addPropertySetters(property, property.getters.get(0));
                     continue;
                 }
@@ -231,6 +232,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         cache.put(type, subclass);
         cache.put(subclass, subclass);
         return subclass;
+    }
+
+    private boolean isModelProperty(PropertyMetaData property) {
+        return Property.class.isAssignableFrom(property.getType()) ||
+            HasMultipleValues.class.isAssignableFrom(property.getType()) ||
+            MapProperty.class.isAssignableFrom(property.getType());
     }
 
     protected abstract <T> ClassBuilder<T> start(Class<T> type, ClassMetaData classMetaData);

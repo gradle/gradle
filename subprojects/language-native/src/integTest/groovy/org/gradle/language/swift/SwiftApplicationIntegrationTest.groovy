@@ -29,13 +29,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest implements SwiftTaskNames {
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugSwift", ":linkDebug", ":installDebug"]
-    }
-
-    @Override
-    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return [":compileDebug${getVariantSuffix(architecture)}Swift", ":linkDebug${getVariantSuffix(architecture)}", ":installDebug${getVariantSuffix(architecture)}"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebug${variant.capitalize()}Swift", ":linkDebug${variant.capitalize()}", ":installDebug${variant.capitalize()}"]
     }
 
     @Override
@@ -463,11 +458,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(tasks(':greeter').withArchitecture(currentArchitecture).debug.allToLink, tasks(':app').withArchitecture(currentArchitecture).debug.allToInstall, ":app:assemble")
+        result.assertTasksExecuted(tasks(':greeter').withOperatingSystemFamily(currentOsFamilyName).debug.allToLink, tasks(':app').withOperatingSystemFamily(currentOsFamilyName).debug.allToInstall, ":app:assemble")
 
-        executable("app/build/exe/main/debug/${currentOsFamilyName}/${currentArchitecture}/App").assertExists()
-        sharedLibrary("greeter/build/lib/main/debug/${currentOsFamilyName}/${currentArchitecture}/Greeter").assertExists()
-        def installation = installation("app/build/install/main/debug/${currentOsFamilyName}/${currentArchitecture}")
+        executable("app/build/exe/main/debug/${currentOsFamilyName}/App").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/${currentOsFamilyName}/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug/${currentOsFamilyName}")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("Greeter")
     }

@@ -22,11 +22,13 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -127,6 +129,19 @@ public interface ObjectFactory {
      * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);
+
+    /**
+     * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has no initial value.
+     *
+     * <p>The implementation will return immutable {@link Map} values from its query methods.</p>
+     * @param keyType the type of key.
+     * @param valueType the type of value.
+     * @param <K> the type of key.
+     * @param <V> the type of value.
+     * @return the property. Never returns null.
+     * @since 5.1
+     */
+    <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**
      * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.

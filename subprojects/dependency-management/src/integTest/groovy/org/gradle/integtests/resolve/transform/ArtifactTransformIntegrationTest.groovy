@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.junit.runner.RunWith
 import spock.lang.Issue
@@ -1021,11 +1023,6 @@ Found the following transforms:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from configuration ':lib:compile' variant variant1:
-      - artifactType 'jar'
-      - buildType 'release'
-      - flavor 'free'
-      - usage 'api'
   - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'
@@ -1781,8 +1778,9 @@ Found the following transforms:
         output.count("Transforming") == 1
     }
 
+    def "notifies transform listeners and build operation listeners on successful execution"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "notifies the transform listener on execution"() {
         given:
         buildFile << """                                                                   
             import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
@@ -1814,7 +1812,7 @@ Found the following transforms:
                 dependencies {
                     compile project(":lib")
                 }
-                ${configurationAndTransform()}
+                ${configurationAndTransform('FileSizer')}
             }
         """
 
@@ -1824,6 +1822,74 @@ Found the following transforms:
         then:
         outputContains("Before transformer FileSizer on artifact lib.jar (project :lib)")
         outputContains("After transformer FileSizer on artifact lib.jar (project :lib)")
+
+        and:
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
+            it.failure == null
+            displayName == "Transform artifact lib.jar (project :lib) with FileSizer"
+            details.transformerName == "FileSizer"
+            details.subjectName == "artifact lib.jar (project :lib)"
+        }
+    }
+
+    def "notifies transform listeners and build operation listeners on failed execution"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """                                                                   
+            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.internal.event.ListenerManager
+
+            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+                @Override
+                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                    println "Before transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+                
+                @Override
+                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                    println "After transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+            })
+
+            project(":lib") {
+                task jar(type: Jar) {
+                    archiveName = 'lib.jar'
+                    destinationDir = buildDir                    
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+            
+            project(":app") {
+                dependencies {
+                    compile project(":lib")
+                }
+                ${configurationAndTransform('BrokenTransform')}
+            }
+
+            class BrokenTransform extends ArtifactTransform {
+                List<File> transform(File input) {
+                    throw new GradleException('broken')
+                }
+            }
+        """
+
+        when:
+        fails "app:resolve"
+
+        then:
+        outputContains("Before transformer BrokenTransform on artifact lib.jar (project :lib)")
+        outputContains("After transformer BrokenTransform on artifact lib.jar (project :lib)")
+
+        and:
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
+            it.failure.contains("TransformationException")
+            displayName == "Transform artifact lib.jar (project :lib) with BrokenTransform"
+            details.transformerName == "BrokenTransform"
+            details.subjectName == "artifact lib.jar (project :lib)"
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6156")

@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.MachineArchitecture
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -50,6 +49,26 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    def "can build for current machine when multiple target machines are specified"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                targetMachines = [machines.linux(), machines.macOS(), machines.windows()]
+            }
+        """
+
+        expect:
+        succeeds taskNameToAssembleDevelopmentBinary
+        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
+    }
+
+    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build for multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -66,8 +85,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
         expect:
         succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTasksToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64),
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
+                getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
     }
@@ -107,7 +126,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
@@ -127,7 +146,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinaryWithArchitecture(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
     protected abstract String getDevelopmentBinaryCompileTask()
@@ -138,13 +157,6 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
     }
 
     protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return ":assembleDebug${getVariantSuffix(architecture)}"
+        return ":assembleDebug${architecture.capitalize()}"
     }
-
-    protected String getVariantSuffix(String architecture) {
-        String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
-        return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
-    }
-
-    protected abstract List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 }

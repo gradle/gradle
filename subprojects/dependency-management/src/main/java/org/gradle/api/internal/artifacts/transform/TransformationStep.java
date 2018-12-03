@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,16 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
+    public boolean endsWith(Transformation otherTransform) {
+        return this == otherTransform;
+    }
+
+    @Override
+    public int stepsCount() {
+        return 1;
+    }
+
+    @Override
     public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
@@ -49,7 +60,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forAttributes(transformer.getFromAttributes());
+        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forTransformer(transformer);
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File primaryInput : primaryInputs) {
             Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
@@ -75,6 +86,10 @@ public class TransformationStep implements Transformation {
     @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         action.execute(this);
+    }
+
+    public ImmutableAttributes getFromAttributes() {
+        return transformer.getFromAttributes();
     }
 
     @Override

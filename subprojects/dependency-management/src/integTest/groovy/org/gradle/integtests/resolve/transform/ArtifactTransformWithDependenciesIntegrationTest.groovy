@@ -21,18 +21,12 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
-        // TODO LJA Investigate, this makes little sense
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
-
         settingsFile << """
             rootProject.name = 'transform-deps'
-            include 'lib'
-            include 'app'
+            include 'common', 'lib', 'app'
         """
 
-        file('lib/src/main/java/test/MyClass.java') << """
+        def classContent = """
 package test;
 
 public class MyClass {
@@ -41,6 +35,8 @@ public class MyClass {
     }
 }
 """
+        file('lib/src/main/java/test/MyClass.java') << classContent
+        file('common/src/main/java/test/MyClass.java') << classContent
 
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
@@ -50,6 +46,10 @@ allprojects {
         mavenCentral()
     }
 }
+project(':common') {
+    apply plugin: 'java-library'
+}
+
 project(':lib') {
     apply plugin: 'java-library'
 
@@ -59,6 +59,7 @@ project(':lib') {
         } else {
             api 'org.slf4j:slf4j-api:1.7.25'
         }
+        api project(':common')
     }
 }
 
@@ -94,6 +95,21 @@ project(':app') {
                 params('Transform step 2')
             }
         }
+
+        //Multi step transform, without dependencies at step1
+        registerTransform {
+            from.attribute(artifactType, 'jar')
+            to.attribute(artifactType, 'middle')
+            artifactTransform(SimpleTransform)
+        }
+        registerTransform {
+            from.attribute(artifactType, 'middle')
+            to.attribute(artifactType, 'end')
+            artifactTransform(TestTransform) {
+                params('Transform step 2')
+            }
+        }
+
     }
 }
 
@@ -113,10 +129,22 @@ class TestTransform extends ArtifactTransform {
     
     List<File> transform(File input) {
         println "\${transformName} received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
+        assert artifactDependencies.files.every { it.exists() }
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
         println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+class SimpleTransform extends ArtifactTransform {
+
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name + ".txt")
+        println "Transforming without dependencies \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
         return [output]
     }
@@ -152,9 +180,41 @@ project(':app') {
         run "resolve"
 
         then:
-        output.count('Transforming') == 4
-        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.count('Transforming') == 5
+        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar')
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+    }
+
+    def "transform can access artifact dependencies as FileCollection when using ArtifactView, even if first step did not use dependencies"() {
+
+        given:
+
+        buildFile << """
+project(':app') {
+    task resolve(type: Copy) {
+        def artifacts = configurations.compileClasspath.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'end') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+        doLast {
+            println "files: " + artifacts.collect { it.file.name }
+            println "ids: " + artifacts.collect { it.id }
+            println "components: " + artifacts.collect { it.id.componentIdentifier }
+            println "variants: " + artifacts.collect { it.variant.attributes }
+        }
+    }
+}
+
+"""
+
+        when:
+        run "resolve"
+
+        then:
+        output.count('Transforming') == 10
+        output.contains('Transform step 2 received dependencies files [slf4j-api-1.7.25.jar.txt, common.jar.txt] for processing lib.jar.txt')
+        output.contains('Transform step 2 received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar.txt')
     }
 
     def "transform can access artifact dependencies, in previous transform step, as FileCollection when using ArtifactView"() {
@@ -184,9 +244,9 @@ project(':app') {
         run "resolve"
 
         then:
-        output.count('Transforming') == 8
-        output.contains('Transform step 1 received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
-        output.contains('Transform step 2 received dependencies files [slf4j-api-1.7.25.jar.txt] for processing lib.jar.txt')
+        output.count('Transforming') == 10
+        output.contains('Transform step 1 received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar')
+        output.contains('Transform step 2 received dependencies files [slf4j-api-1.7.25.jar.txt, common.jar.txt] for processing lib.jar.txt')
         output.contains('Transform step 1 received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
         output.contains('Transform step 2 received dependencies files [hamcrest-core-1.3.jar.txt] for processing junit-4.11.jar.txt')
     }
@@ -222,8 +282,8 @@ project(':app') {
         run "resolve"
 
         then:
-        output.count("Transforming") == 4
-        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar')
+        output.count("Transforming") == 5
+        output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar')
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
@@ -247,7 +307,7 @@ project(':app') {
         def outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 4
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 5
         outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
         outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
         outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
@@ -260,7 +320,7 @@ project(':app') {
         outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 2
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 3
         outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
         outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
 
@@ -268,6 +328,6 @@ project(':app') {
         outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
         outputLines.any { it == "Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar" }
         outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
-        outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar" }
+        outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar" }
     }
 }

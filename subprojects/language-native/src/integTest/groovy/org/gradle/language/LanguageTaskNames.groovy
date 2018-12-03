@@ -17,7 +17,6 @@
 package org.gradle.language
 
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 abstract trait LanguageTaskNames {
     private static final String DEBUG = 'Debug'
@@ -124,6 +123,7 @@ abstract trait LanguageTaskNames {
         private final AvailableToolChains.InstalledToolChain toolChainUnderTest
         private final String languageTaskSuffix
         private String architecture = null
+        private String operatingSystemFamily = null
 
         ProjectTasks(String project, AvailableToolChains.InstalledToolChain toolChainUnderTest, String languageTaskSuffix) {
             this.toolChainUnderTest = toolChainUnderTest
@@ -148,21 +148,26 @@ abstract trait LanguageTaskNames {
             project + ":" + t
         }
 
+        ProjectTasks withOperatingSystemFamily(String operatingSystemFamily) {
+            this.operatingSystemFamily = operatingSystemFamily
+            return this
+        }
+
         class DebugTasks {
             String getCompile() {
-                return withProject("compileDebug${variant(architecture)}${languageTaskSuffix}")
+                return withProject("compileDebug${variant}${languageTaskSuffix}")
             }
 
             String getLink() {
-                return withProject("linkDebug${variant(architecture)}")
+                return withProject("linkDebug${variant}")
             }
 
             String getInstall() {
-                return withProject("installDebug${variant(architecture)}")
+                return withProject("installDebug${variant}")
             }
 
             String getAssemble() {
-                return withProject("assembleDebug${variant(architecture)}")
+                return withProject("assembleDebug${variant}")
             }
 
             List<String> getAllToLink() {
@@ -176,26 +181,26 @@ abstract trait LanguageTaskNames {
 
         class ReleaseTasks {
             String getCompile() {
-                return withProject("compileRelease${variant(architecture)}${languageTaskSuffix}")
+                return withProject("compileRelease${variant}${languageTaskSuffix}")
             }
 
             String getLink() {
-                return withProject("linkRelease${variant(architecture)}")
+                return withProject("linkRelease${variant}")
             }
 
             String getInstall() {
-                return withProject("installRelease${variant(architecture)}")
+                return withProject("installRelease${variant}")
             }
 
             String getAssemble() {
-                return withProject("assembleRelease${variant(architecture)}")
+                return withProject("assembleRelease${variant}")
             }
 
             List<String> getExtract() {
                 if (toolChainUnderTest.visualCpp) {
                     return []
                 } else {
-                    return [withProject("extractSymbolsRelease${variant(architecture)}")]
+                    return [withProject("extractSymbolsRelease${variant}")]
                 }
             }
 
@@ -203,7 +208,7 @@ abstract trait LanguageTaskNames {
                 if (toolChainUnderTest.visualCpp) {
                     return []
                 } else {
-                    return [withProject("stripSymbolsRelease${variant(architecture)}")]
+                    return [withProject("stripSymbolsRelease${variant}")]
                 }
             }
 
@@ -216,12 +221,15 @@ abstract trait LanguageTaskNames {
             }
         }
 
-        protected String variant(String architecture) {
-            if (architecture == null) {
-                return ''
+        protected String getVariant() {
+            String result = ""
+            if (operatingSystemFamily != null) {
+                result += operatingSystemFamily.toLowerCase().capitalize()
             }
-            String operatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
-            return operatingSystemFamily.toLowerCase().capitalize() + architecture.toLowerCase().capitalize()
+            if (architecture != null) {
+                result += architecture.toLowerCase().capitalize()
+            }
+            return result
         }
     }
 }

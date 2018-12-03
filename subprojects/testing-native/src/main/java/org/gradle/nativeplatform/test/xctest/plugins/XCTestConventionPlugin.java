@@ -81,6 +81,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
@@ -130,9 +131,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 BuildType buildType = BuildType.DEBUG;
                 for (TargetMachine targetMachine : targetMachines) {
-                    String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
-                    String architecturePrefix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
-                    String variantName = buildType.getName() + operatingSystemSuffix + architecturePrefix;
+                    String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
+                    String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
+                    String variantName = buildType.getName() + operatingSystemSuffix + architectureSuffix;
 
                     Provider<String> group = project.provider(new Callable<String>() {
                         @Override

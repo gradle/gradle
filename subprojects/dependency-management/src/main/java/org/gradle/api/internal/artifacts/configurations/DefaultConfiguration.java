@@ -73,6 +73,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisit
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolverAwareContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -1606,7 +1607,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 results = cachedResolverResults;
             }
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+            FailureCollectingTaskDependencyResolveContext collectingContext = new ExecutionGraphDependenciesResolverAwareContext(context, results);
             selected.visitDependencies(collectingContext);
             if (!lenient) {
                 rethrowFailure("task dependencies", collectingContext.getFailures());

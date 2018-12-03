@@ -31,10 +31,18 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Set;
 
+/**
+ * Companion object of a {@link TransformationNode} that knows how to compute the artifacts of the dependencies
+ * of the artifact undergoing transformation by producing an {@link ArtifactTransformDependenciesInternal}.
+ *
+ * The implementation is not thread-safe, designed to work with a single {@link Transformation}
+ * and thus should not be shared beyond the members of a chain.
+ */
 class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformDependenciesProvider {
 
     private static final ArtifactTransformDependenciesInternal EMPTY_DEPENDENCIES = new ArtifactTransformDependenciesInternal() {
@@ -51,53 +59,70 @@ class DefaultArtifactTransformDependenciesProvider implements ArtifactTransformD
 
     static final ArtifactTransformDependenciesProvider EMPTY = new ArtifactTransformDependenciesProvider() {
         @Override
-        public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
+        public ArtifactTransformDependenciesInternal forTransformer(Transformer transformer) {
             return EMPTY_DEPENDENCIES;
         }
     };
 
     private final ComponentArtifactIdentifier artifactId;
     private final ResolvableDependencies resolvableDependencies;
+    private ImmutableSet<ComponentIdentifier> dependenciesIdentifiers;
 
     DefaultArtifactTransformDependenciesProvider(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
         this.artifactId = artifactId;
         this.resolvableDependencies = resolvableDependencies;
     }
 
-    public static ArtifactTransformDependenciesProvider create(Transformation transformation, ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
-        return transformation.requiresDependencies()
-            ? new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies)
-            : EMPTY;
+    public static ArtifactTransformDependenciesProvider create(ComponentArtifactIdentifier artifactId, ResolvableDependencies resolvableDependencies) {
+        return new DefaultArtifactTransformDependenciesProvider(artifactId, resolvableDependencies);
     }
 
     @Override
-    public ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes) {
-        ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
-        Set<ComponentIdentifier> dependenciesIdentifiers = Sets.newHashSet();
-        for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
-            if (component.getId().equals(artifactId.getComponentIdentifier())) {
-                getDependenciesIdentifiers(dependenciesIdentifiers, component.getDependencies());
-            }
-        }
-        FileCollection files = resolvableDependencies.artifactView(conf -> {
-            conf.componentFilter(element -> {
-                return dependenciesIdentifiers.contains(element);
-            });
-            if (!attributes.isEmpty()) {
-                conf.attributes(container -> {
-                    for (Attribute<?> attribute : attributes.keySet()) {
-                        copyAttribute(attributes, container, attribute);
-                    }
-                });
-            }
-        }).getArtifacts().getArtifactFiles();
-
-        // Also ensure that the file collection is resolved
-        if (files.isEmpty()) {
+    public ArtifactTransformDependenciesInternal forTransformer(Transformer transformer) {
+        if (!transformer.requiresDependencies()) {
             return EMPTY_DEPENDENCIES;
         }
 
-        return new DefaultArtifactTransformDependencies(files);
+        ImmutableAttributes fromAttributes = transformer.getFromAttributes();
+        return DeprecationLogger.whileDisabled(() -> {
+            // Temporarily ignore deprecation warning while triggering the configuration and artifact resolution
+            // This is unsafe as some other thread may be using the projects state.
+            // Should instead replace this with a node that resolves the configuration and on which each transform node depends
+            if (dependenciesIdentifiers == null) {
+                dependenciesIdentifiers = initializeDependencyIdentifiers();
+            }
+            FileCollection files = resolvableDependencies.artifactView(conf -> {
+                conf.componentFilter(element -> {
+                    return dependenciesIdentifiers.contains(element);
+                });
+                if (!fromAttributes.isEmpty()) {
+                    conf.attributes(container -> {
+                        for (Attribute<?> attribute : fromAttributes.keySet()) {
+                            copyAttribute(fromAttributes, container, attribute);
+                        }
+                    });
+                }
+            }).getArtifacts().getArtifactFiles();
+
+            // Also ensure that the file collection is resolved
+            if (files.isEmpty()) {
+                return EMPTY_DEPENDENCIES;
+            }
+
+            return new DefaultArtifactTransformDependencies(files);
+        });
+    }
+
+    private ImmutableSet<ComponentIdentifier> initializeDependencyIdentifiers() {
+        ResolutionResult resolutionResult = resolvableDependencies.getResolutionResult();
+        Set<ComponentIdentifier> result = Sets.newHashSet();
+        for (ResolvedComponentResult component : resolutionResult.getAllComponents()) {
+            if (component.getId().equals(artifactId.getComponentIdentifier())) {
+                getDependenciesIdentifiers(result, component.getDependencies());
+                break;
+            }
+        }
+        return ImmutableSet.copyOf(result);
     }
 
     private static void getDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Set<? extends DependencyResult> dependencies) {

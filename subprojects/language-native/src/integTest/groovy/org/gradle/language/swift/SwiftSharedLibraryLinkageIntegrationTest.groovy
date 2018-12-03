@@ -21,13 +21,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftSharedLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugSwift", ":linkDebug"]
-    }
-
-    @Override
-    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return [":compileDebug${getVariantSuffix(architecture)}Swift", ":linkDebug${getVariantSuffix(architecture)}"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebug${variant.capitalize()}Swift", ":linkDebug${variant.capitalize()}"]
     }
 
     @Override

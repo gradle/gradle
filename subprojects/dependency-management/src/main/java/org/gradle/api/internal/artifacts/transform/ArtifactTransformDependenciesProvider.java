@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-
 interface ArtifactTransformDependenciesProvider {
-    ArtifactTransformDependenciesInternal forAttributes(ImmutableAttributes attributes);
+    ArtifactTransformDependenciesInternal forTransformer(Transformer transformer);
 }

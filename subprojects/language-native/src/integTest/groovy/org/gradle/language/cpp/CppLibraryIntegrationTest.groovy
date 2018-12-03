@@ -35,13 +35,8 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
     }
 
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugCpp", ":linkDebug"]
-    }
-
-    @Override
-    protected List<String> getTasksToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return [":compileDebug${getVariantSuffix(architecture)}Cpp", ":linkDebug${getVariantSuffix(architecture)}"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebug${variant.capitalize()}Cpp", ":linkDebug${variant.capitalize()}"]
     }
 
     @Override

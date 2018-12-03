@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -51,7 +50,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
     def dependenciesProvider = Stub(ArtifactTransformDependenciesProvider) {
-        forAttributes(_ as ImmutableAttributes) >> dependencies
+        forTransformer(_ as Transformer) >> dependencies
     }
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")

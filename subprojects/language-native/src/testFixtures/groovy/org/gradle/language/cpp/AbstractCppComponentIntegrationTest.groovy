@@ -91,7 +91,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     protected abstract SourceElement getComponentUnderTest()
 
-    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
+    protected abstract List<String> getTasksToAssembleDevelopmentBinary(String variant = "")
 
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
 }

@@ -78,9 +78,12 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
     }
 
-    def "can define property and set calculated value using callable from language plugin"() {
+    def "can define property and set calculated value using function from language plugin"() {
         pluginSetsCalculatedValuesUsingCallable()
 
         buildFile << """
@@ -92,6 +95,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
     }
 
     def "can define property and set calculated value using mapped provider from language plugin"() {
@@ -106,6 +112,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
     }
 
     def "can define property in language plugin and set value from Groovy DSL"() {
@@ -116,6 +125,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
             tasks.someTask {
                 flag = true
                 message = "some value"
+                list = [1, 2]
+                set = [1, 2]
+                map = [1: true, 2: false]
             }
         """
         when:
@@ -124,12 +136,18 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
 
         when:
         buildFile << """
             tasks.someTask {
                 flag = provider { false }
                 message = provider { "some new value" }
+                list = provider { [3] }
+                set = provider { [3] }
+                map = provider { [3: true] }
             }
         """
         run("someTask")
@@ -137,6 +155,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some new value")
+        outputContains("list = [3]")
+        outputContains("set = [3]")
+        outputContains("map = {3=true}")
     }
 
     def "can define property in language plugin and set value from Kotlin DSL"() {
@@ -147,6 +168,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
             tasks.withType(SomeTask::class.java).named("someTask").configure {
                 flag.set(true)
                 message.set("some value")
+                list.set(listOf(1, 2))
+                set.set(listOf(1, 2))
+                map.set(mapOf(1 to true, 2 to false))
             }
         """
 
@@ -156,12 +180,18 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
 
         when:
         file("build.gradle.kts") << """
             tasks.withType(SomeTask::class.java).named("someTask").configure {
                 flag.set(provider { false })
                 message.set(provider { "some new value" })
+                list.set(provider { listOf(3) })
+                set.set(provider { listOf(3) })
+                map.set(provider { mapOf(3 to true) })
             }
         """
         run("someTask")
@@ -169,6 +199,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some new value")
+        outputContains("list = [3]")
+        outputContains("set = [3]")
+        outputContains("map = {3=true}")
     }
 
     def "can define property in language plugin and set value from Java plugin"() {
@@ -196,12 +229,21 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         otherDir.file("src/main/java/SomeOtherPlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
+            import ${Arrays.name};
+            import ${Map.name};
+            import ${LinkedHashMap.name};
 
             public class SomeOtherPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     project.getTasks().withType(SomeTask.class).configureEach(t -> {
                         t.getFlag().set(false);
                         t.getMessage().set("some other value");
+                        t.getList().set(Arrays.asList(1, 2));
+                        t.getSet().set(Arrays.asList(1, 2));
+                        Map<Integer, Boolean> map = new LinkedHashMap<>();
+                        map.put(1, true);
+                        map.put(2, false);
+                        t.getMap().set(map);
                     });
                 }
             }
@@ -218,6 +260,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some other value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
     }
 
     def "can define property in language plugin and set value from Kotlin plugin"() {
@@ -251,6 +296,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
                     project.tasks.withType(SomeTask::class.java).configureEach {
                         flag.set(false)
                         message.set("some other value")
+                        list.set(listOf(1, 2))
+                        set.set(listOf(1, 2))
+                        map.set(mapOf(1 to true, 2 to false))
                     }
                 }
             }
@@ -269,5 +317,8 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some other value")
+        outputContains("list = [1, 2]")
+        outputContains("set = [1, 2]")
+        outputContains("map = {1=true, 2=false}")
     }
 }

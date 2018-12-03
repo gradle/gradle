@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -94,6 +95,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
                 candidates.add(Pair.of(variant, consumerVariant));
             }
         }
+        if (candidates.size() > 1) {
+            candidates = tryDisambiguate(candidates);
+        }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
@@ -110,5 +114,26 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             return ResolvedArtifactSet.EMPTY;
         }
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
+    }
+
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> shortestTransforms = Lists.newArrayListWithExpectedSize(candidates.size());
+
+        for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
+            boolean newCandidate = true;
+            for (int i = 0; i < shortestTransforms.size(); i++) {
+                Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> shorterTransform = shortestTransforms.get(i);
+                if (shorterTransform.right.transformation.endsWith(candidate.right.transformation)) {
+                    newCandidate = false;
+                    shortestTransforms.set(i, candidate);
+                } else if (candidate.right.transformation.endsWith(shorterTransform.right.transformation)) {
+                    newCandidate = false;
+                }
+            }
+            if (newCandidate) {
+                shortestTransforms.add(candidate);
+            }
+        }
+        return shortestTransforms;
     }
 }
