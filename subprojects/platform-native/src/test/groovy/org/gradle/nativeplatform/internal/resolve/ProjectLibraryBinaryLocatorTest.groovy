@@ -37,7 +37,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def binaries = Mock(ModelMap)
     def nativeBinaries = Mock(ModelMap)
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, CollectionCallbackActionDecorator.NOOP)
-    def locator = new ProjectLibraryBinaryLocator(projectLocator)
+    def locator = new ProjectLibraryBinaryLocator(projectLocator, CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         convertedBinaries.add(binary)

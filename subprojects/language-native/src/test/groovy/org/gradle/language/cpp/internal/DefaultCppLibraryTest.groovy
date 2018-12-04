@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.MachineArchitecture
@@ -36,7 +37,7 @@ class DefaultCppLibraryTest extends Specification {
     DefaultCppLibrary library
 
     def setup() {
-        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations)
+        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
     }
 
     def "has display name"() {
@@ -174,8 +175,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations)
-        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations)
+        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
+        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set

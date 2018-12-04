@@ -31,8 +31,8 @@ import spock.lang.Specification
 
 class DefaultConfigurationPublicationsTest extends Specification {
     def parentAttributes = ImmutableAttributes.EMPTY
-    def artifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact), TestFiles.fileCollectionFactory())
-    def allArtifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact), TestFiles.fileCollectionFactory())
+    def artifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, CollectionCallbackActionDecorator.NOOP), TestFiles.fileCollectionFactory())
+    def allArtifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, CollectionCallbackActionDecorator.NOOP), TestFiles.fileCollectionFactory())
     def artifactNotationParser = Stub(NotationParser)
     def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()

@@ -67,8 +67,8 @@ public class Sign extends DefaultTask implements SignatureSpec {
     private final DefaultDomainObjectSet<Signature> signatures;
 
     @Inject
-    public Sign(CollectionCallbackActionDecorator decorator) {
-        this.signatures = new DefaultDomainObjectSet<Signature>(Signature.class, decorator);
+    public Sign() {
+        this.signatures = new DefaultDomainObjectSet<Signature>(Signature.class, getCallbackActionDecorator());
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
     }
@@ -323,5 +323,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     public void setRequired(boolean required) {
         this.required = required;
+    }
+
+    /**
+     * Required for decorating reports container callbacks for tracing user code application.
+     *
+     * @since 5.1
+     */
+    @Inject
+    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
+        throw new UnsupportedOperationException();
     }
 }
