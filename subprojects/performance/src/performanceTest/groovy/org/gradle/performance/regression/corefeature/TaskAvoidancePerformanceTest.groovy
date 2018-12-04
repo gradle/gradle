@@ -30,6 +30,7 @@ class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "help on #testProject with lazy and eager tasks"() {
         given:
+        runner.testGroup = "configuration avoidance"
         runner.buildSpec {
             warmUpCount = warmUpRuns
             invocationCount = runs

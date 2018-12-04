@@ -23,7 +23,7 @@ void createTasks(Project p, int iterations) {
 
 if (tasks.metaClass.respondsTo(tasks, "register")) {
     for (int i=0; i<$taskCount; i++) {
-       project.register("foo\$i", Copy)
+       project.tasks.register("foo\$i", Copy)
     }
 } else {
     createTasks(project, $taskCount)
