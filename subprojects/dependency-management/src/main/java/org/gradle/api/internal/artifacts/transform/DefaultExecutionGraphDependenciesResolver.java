@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
@@ -44,11 +43,11 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     }
 
     @Override
-    public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, ImmutableAttributes fromAttributes) {
-        if (buildDependencies.isEmpty()) {
+    public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, TransformationStep transformationStep) {
+        if (!transformationStep.requiresDependencies() || buildDependencies.isEmpty()) {
             return Collections.emptySet();
         } else {
-            SelectedArtifactSet projectArtifacts = visitedArtifacts.select(Specs.satisfyAll(), fromAttributes, element -> {
+            SelectedArtifactSet projectArtifacts = visitedArtifacts.select(Specs.satisfyAll(), transformationStep.getFromAttributes(), element -> {
                 return buildDependencies.contains(element);
             }, true);
             return dependencyResolver.resolveDependenciesFor(null, projectArtifacts);

@@ -27,11 +27,7 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
-        if (transformation.requiresDependencies()) {
-            return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results);
-        } else {
-            return ExecutionGraphDependenciesResolver.EMPTY_RESOLVER;
-        }
+    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results);
     }
 }

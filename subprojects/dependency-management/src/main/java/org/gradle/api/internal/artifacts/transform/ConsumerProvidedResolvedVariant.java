@@ -68,10 +68,14 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
         } else {
             extraExecutionGraphDependenciesResolverFactory = ExtraExecutionGraphDependenciesResolverFactory.ALWAYS_EMPTY_RESOLVER_FACTORY;
         }
-        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesProvider(), extraExecutionGraphDependenciesResolverFactory));
+        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesProvider(), getDependenciesResolver(extraExecutionGraphDependenciesResolverFactory)));
     }
 
-    private DefaultArtifactTransformDependenciesProvider getDependenciesProvider() {
+    private ArtifactTransformDependenciesProvider getDependenciesProvider() {
         return new DefaultArtifactTransformDependenciesProvider(componentIdentifier, resolvableDependencies);
+    }
+
+    private ExecutionGraphDependenciesResolver getDependenciesResolver(ExtraExecutionGraphDependenciesResolverFactory resolverFactory) {
+        return resolverFactory.create(componentIdentifier);
     }
 }

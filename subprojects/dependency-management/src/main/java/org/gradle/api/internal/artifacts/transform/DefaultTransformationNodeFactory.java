@@ -32,13 +32,11 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ArtifactTransformDependenciesProvider dependenciesProvider, ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver dependenciesResolver) {
         final List<TransformationStep> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         Function<ResolvableArtifact, TransformationNode> nodeCreator = artifact -> {
-            ExecutionGraphDependenciesResolver resolver;
-            resolver = extraExecutionGraphDependenciesResolverFactory.create(artifact.getId().getComponentIdentifier(), transformation);
-            return getOrCreateInternal(artifact, transformationChain, dependenciesProvider, resolver);
+            return getOrCreateInternal(artifact, transformationChain, dependenciesProvider, dependenciesResolver);
         };
         collectTransformNodes(artifactSet, builder, nodeCreator);
         return builder.build();
@@ -62,7 +60,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
                 transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, dependenciesProvider, executionGraphDependenciesResolver);
             } else {
                 TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesProvider, executionGraphDependenciesResolver);
-                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous, dependenciesProvider, executionGraphDependenciesResolver);
             }
             transformations.put(key, transformationNode);
         }
