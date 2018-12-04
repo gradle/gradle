@@ -45,8 +45,6 @@ public interface ExecutionPlan extends Describable {
      * Returns the dependencies of a task which are part of the execution plan.
      *
      * @throws IllegalStateException When the task is not part of the execution plan.
-     *
-     * @since 5.1
      */
     ExecutionDependencies getDependencies(Task task);
 
@@ -54,8 +52,6 @@ public interface ExecutionPlan extends Describable {
      * Returns the dependencies of a transformation which are part of the execution plan.
      *
      * @throws IllegalStateException When the transformation is not part of the execution plan.
-     *
-     * @since 5.1
      */
     ExecutionDependencies getDependencies(TransformationNodeIdentifier transformation);
 
