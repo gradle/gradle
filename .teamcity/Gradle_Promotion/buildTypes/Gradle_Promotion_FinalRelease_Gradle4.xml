@@ -16,7 +16,7 @@
   -->
 
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="33e9390f-e46c-457e-aa18-31b020aef4de" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
-  <name>Release - Final</name>
+  <name>Release Gradle 4 - Final</name>
   <description>Promotes the latest successful change on Gradle 4.x 'release' as a new release</description>
   <settings>
     <options>
