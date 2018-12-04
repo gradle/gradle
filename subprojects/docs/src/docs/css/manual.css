@@ -1529,7 +1529,7 @@ div.screenshot {
       Pushes the section headings to just below the top nav bar when a user
       navigates directly to section anchors.
      */
-    #content h2[id], #content h3[id], #content h4[id] {
+    #content h2[id], #content h3[id], #content h4[id], #content h5[id] {
         padding-top: 60px;
     }
 
@@ -1538,7 +1538,7 @@ div.screenshot {
         margin-top: -44px;
     }
 
-    #content h3[id], #content h4[id] {
+    #content h3[id], #content h4[id], #content h5[id] {
         margin-top: -60px;
     }
 
