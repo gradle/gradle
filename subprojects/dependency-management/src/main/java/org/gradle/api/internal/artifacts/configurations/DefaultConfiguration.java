@@ -73,7 +73,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisit
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolverAwareContext;
+import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -124,6 +125,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
@@ -569,9 +571,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                if (cachedResolverResults == null) {
-                    cachedResolverResults = new DefaultResolverResults();
-                }
+                cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
                 dependenciesModified = false;
                 resolvedState = GRAPH_RESOLVED;
@@ -648,6 +648,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         resolver.resolveArtifacts(DefaultConfiguration.this, cachedResolverResults);
         resolvedState = ARTIFACTS_RESOLVED;
+    }
+
+    @Override
+    public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies());
+    }
+
+    private ResolverResults getResultsForBuildDependencies() {
+        if (resolvedState == UNRESOLVED) {
+            throw new IllegalStateException("Cannot query results until resolution has happened.");
+        }
+        return cachedResolverResults;
+    }
+
+    private ResolverResults resolveGraphForBuildDependenciesIfRequired() {
+        if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+            // Force graph resolution as this is required to calculate build dependencies
+            resolveToStateOrLater(GRAPH_RESOLVED);
+        }
+        if (resolvedState == UNRESOLVED) {
+            // Traverse graph
+            ResolverResults results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+            resolvedState = BUILD_DEPENDENCIES_RESOLVED;
+            cachedResolverResults = results;
+        }
+        // Otherwise, already have a result, so reuse it
+        return cachedResolverResults;
     }
 
     public TaskDependency getBuildDependencies() {
@@ -1593,21 +1621,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
-            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                // Force graph resolution as this is required to calculate build dependencies
-                resolveToStateOrLater(GRAPH_RESOLVED);
-            }
-            ResolverResults results;
-            if (getState() == State.UNRESOLVED) {
-                // Traverse graph
-                results = new DefaultResolverResults();
-                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-            } else {
-                // Otherwise, already have a result, so reuse it
-                results = cachedResolverResults;
-            }
+            ResolverResults results = resolveGraphForBuildDependenciesIfRequired();
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-            FailureCollectingTaskDependencyResolveContext collectingContext = new ExecutionGraphDependenciesResolverAwareContext(context, results);
+            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
             selected.visitDependencies(collectingContext);
             if (!lenient) {
                 rethrowFailure("task dependencies", collectingContext.getFailures());

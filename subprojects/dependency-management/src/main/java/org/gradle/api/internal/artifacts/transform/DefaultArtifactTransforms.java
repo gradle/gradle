@@ -37,8 +37,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     }
 
     @Override
-    public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ResolvableDependencies resolvableDependencies) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, resolvableDependencies);
+    public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory resolverFactory) {
+        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, resolvableDependencies, resolverFactory);
     }
 
 }

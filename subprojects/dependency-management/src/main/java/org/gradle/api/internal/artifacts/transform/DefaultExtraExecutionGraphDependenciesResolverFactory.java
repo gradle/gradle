@@ -18,16 +18,17 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.internal.Factory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
-    private final ResolverResults results;
+    private final Factory<ResolverResults> results;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(ResolverResults results) {
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> results) {
         this.results = results;
     }
 
     @Override
     public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
-        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results);
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results.create());
     }
 }

@@ -50,6 +50,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
     def resolvableDependencies = Mock(ResolvableDependencies)
+    def dependenciesResolver = Mock(ExtraExecutionGraphDependenciesResolverFactory)
     def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory())
 
     def "selects producer variant with requested attributes"() {
@@ -70,7 +71,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies).select(set)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies, dependenciesResolver).select(set)
         result == variant1Artifacts
     }
 
@@ -93,7 +94,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies).select(set)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, resolvableDependencies, dependenciesResolver).select(set)
         visit(result)
 
         then:
@@ -149,7 +150,7 @@ class DefaultArtifactTransformsTest extends Specification {
             result.matched(to, transformation, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
-        def result = transforms.variantSelector(targetAttributes, true, resolvableDependencies).select(set)
+        def result = transforms.variantSelector(targetAttributes, true, resolvableDependencies, dependenciesResolver).select(set)
 
         when:
         result.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), listener).visit(visitor)
@@ -204,7 +205,7 @@ class DefaultArtifactTransformsTest extends Specification {
                 result.matched(to, Stub(Transformation), 1)
         }
 
-        def selector = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies)
+        def selector = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies, dependenciesResolver)
 
         when:
         def result = selector.select(set)
@@ -237,7 +238,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies).select(set)
+        def result = transforms.variantSelector(typeAttributes("dll"), true, resolvableDependencies, dependenciesResolver).select(set)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -263,7 +264,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         when:
-        def result = transforms.variantSelector(typeAttributes("dll"), false, resolvableDependencies).select(set)
+        def result = transforms.variantSelector(typeAttributes("dll"), false, resolvableDependencies, dependenciesResolver).select(set)
         visit(result)
 
         then:

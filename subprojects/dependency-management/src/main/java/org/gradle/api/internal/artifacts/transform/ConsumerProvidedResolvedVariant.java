@@ -38,13 +38,15 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
     private final ResolvableDependencies resolvableDependencies;
+    private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
 
-    public ConsumerProvidedResolvedVariant(ComponentIdentifier componentIdentifier, ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ResolvableDependencies resolvableDependencies) {
+    public ConsumerProvidedResolvedVariant(ComponentIdentifier componentIdentifier, ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
         this.resolvableDependencies = resolvableDependencies;
+        this.resolverFactory = dependenciesResolverFactory;
     }
 
     @Override
@@ -62,20 +64,14 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
-        if (context instanceof ExecutionGraphDependenciesResolverAwareContext) {
-            extraExecutionGraphDependenciesResolverFactory = ((ExecutionGraphDependenciesResolverAwareContext) context).getExecutionGraphDependenciesResolverFactory();
-        } else {
-            extraExecutionGraphDependenciesResolverFactory = ExtraExecutionGraphDependenciesResolverFactory.ALWAYS_EMPTY_RESOLVER_FACTORY;
-        }
-        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesProvider(), getDependenciesResolver(extraExecutionGraphDependenciesResolverFactory)));
+        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesProvider(), getDependenciesResolver()));
     }
 
     private ArtifactTransformDependenciesProvider getDependenciesProvider() {
         return new DefaultArtifactTransformDependenciesProvider(componentIdentifier, resolvableDependencies);
     }
 
-    private ExecutionGraphDependenciesResolver getDependenciesResolver(ExtraExecutionGraphDependenciesResolverFactory resolverFactory) {
+    private ExecutionGraphDependenciesResolver getDependenciesResolver() {
         return resolverFactory.create(componentIdentifier);
     }
 }

@@ -1133,7 +1133,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
@@ -1187,7 +1187,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:

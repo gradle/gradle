@@ -24,11 +24,10 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
-import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskDependencyResolver;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,14 +42,21 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     }
 
     @Override
-    public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, TransformationStep transformationStep) {
+    public TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep) {
         if (!transformationStep.requiresDependencies() || buildDependencies.isEmpty()) {
-            return Collections.emptySet();
+            return TaskDependencyContainer.EMPTY;
         } else {
-            SelectedArtifactSet projectArtifacts = visitedArtifacts.select(Specs.satisfyAll(), transformationStep.getFromAttributes(), element -> {
-                return buildDependencies.contains(element);
-            }, true);
-            return dependencyResolver.resolveDependenciesFor(null, projectArtifacts);
+            return new TaskDependencyContainer() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    if (!buildDependencies.isEmpty()) {
+                        SelectedArtifactSet projectArtifacts = visitedArtifacts.select(Specs.satisfyAll(), transformationStep.getFromAttributes(), element -> {
+                            return buildDependencies.contains(element);
+                        }, true);
+                        context.add(projectArtifacts);
+                    }
+                }
+            };
         }
     }
 
