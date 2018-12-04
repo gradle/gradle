@@ -187,9 +187,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public GradleVersion getNextMajor() {
-        if (stage != null && stage.stage == STAGE_MILESTONE) {
-            return version(majorPart + ".0");
-        }
         return version((majorPart + 1) + ".0");
     }
 
