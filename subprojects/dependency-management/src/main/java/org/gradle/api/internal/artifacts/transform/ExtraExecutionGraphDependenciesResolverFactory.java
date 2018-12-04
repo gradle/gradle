@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 public interface ExtraExecutionGraphDependenciesResolverFactory {
     ExtraExecutionGraphDependenciesResolverFactory ALWAYS_EMPTY_RESOLVER_FACTORY = new ExtraExecutionGraphDependenciesResolverFactory() {
         @Override
-        public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
+        public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
             return ExecutionGraphDependenciesResolver.EMPTY_RESOLVER;
         }
     };
@@ -33,9 +33,8 @@ public interface ExtraExecutionGraphDependenciesResolverFactory {
      * Creates a {@link ExecutionGraphDependenciesResolver} based on the provided {@code ComponentIdentifier} and {@code Transformation}.
      *
      * @param componentIdentifier the identifier of the artifact under transform
-     * @param transformation the transformation definition
      *
      * @return an {@code ExecutionGraphDependenciesResolver} based on the provided parameters
      */
-    ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation);
+    ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier);
 }

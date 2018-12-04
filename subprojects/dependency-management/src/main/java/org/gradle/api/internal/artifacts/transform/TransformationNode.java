@@ -42,8 +42,8 @@ public abstract class TransformationNode extends Node {
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
 
-    public static TransformationNode chained(TransformationStep current, TransformationNode previous) {
-        return new ChainedTransformationNode(current, previous);
+    public static TransformationNode chained(TransformationStep current, TransformationNode previous, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new ChainedTransformationNode(current, previous, dependenciesProvider, executionGraphDependenciesResolver);
     }
 
     public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
@@ -55,10 +55,6 @@ public abstract class TransformationNode extends Node {
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
-
-    protected abstract ArtifactTransformDependenciesProvider getDependenciesProvider();
-
-    protected abstract ExecutionGraphDependenciesResolver getExecutionGraphDependenciesResolver();
 
     @Override
     public String toString() {
@@ -131,23 +127,9 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
-        protected ExecutionGraphDependenciesResolver getExecutionGraphDependenciesResolver() {
-            return executionGraphDependenciesResolver;
-        }
-
-        @Override
-        protected ArtifactTransformDependenciesProvider getDependenciesProvider() {
-            return dependenciesProvider;
-        }
-
-        @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            processDependencies(processHardSuccessor, getDependencies(dependencyResolver));
-            processDependencies(processHardSuccessor, executionGraphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep.getFromAttributes()));
-        }
-
-        private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
-            return dependencyResolver.resolveDependenciesFor(null, artifact);
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifact));
+            processDependencies(processHardSuccessor, executionGraphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep));
         }
 
         private class InitialArtifactTransformationStepOperation extends ArtifactTransformationStepBuildOperation {
@@ -172,16 +154,19 @@ public abstract class TransformationNode extends Node {
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
                 return transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);
             }
-
         }
     }
 
     private static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
+        private final ArtifactTransformDependenciesProvider dependenciesProvider;
+        private final ExecutionGraphDependenciesResolver executionGraphDependenciesResolver;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode) {
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
             super(transformationStep);
             this.previousTransformationNode = previousTransformationNode;
+            this.dependenciesProvider = dependenciesProvider;
+            this.executionGraphDependenciesResolver = executionGraphDependenciesResolver;
         }
 
         @Override
@@ -192,20 +177,10 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
-        protected ArtifactTransformDependenciesProvider getDependenciesProvider() {
-            return previousTransformationNode.getDependenciesProvider();
-        }
-
-        @Override
-        protected ExecutionGraphDependenciesResolver getExecutionGraphDependenciesResolver() {
-            return previousTransformationNode.getExecutionGraphDependenciesResolver();
-        }
-
-        @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             addDependencySuccessor(previousTransformationNode);
             processHardSuccessor.execute(previousTransformationNode);
-            processDependencies(processHardSuccessor, getExecutionGraphDependenciesResolver().computeDependencyNodes(dependencyResolver, transformationStep.getFromAttributes()));
+            processDependencies(processHardSuccessor, executionGraphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep));
         }
 
         private class ChainedArtifactTransformStepOperation extends ArtifactTransformationStepBuildOperation {
@@ -220,7 +195,7 @@ public abstract class TransformationNode extends Node {
                 if (transformedSubject.getFailure() != null) {
                     return transformedSubject;
                 }
-                return transformationStep.transform(transformedSubject, getDependenciesProvider());
+                return transformationStep.transform(transformedSubject, dependenciesProvider);
             }
         }
     }

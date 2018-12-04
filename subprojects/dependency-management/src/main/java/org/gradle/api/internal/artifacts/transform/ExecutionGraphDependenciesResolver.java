@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
 
@@ -32,7 +31,7 @@ import java.util.Set;
 public interface ExecutionGraphDependenciesResolver {
     ExecutionGraphDependenciesResolver EMPTY_RESOLVER = new ExecutionGraphDependenciesResolver() {
         @Override
-        public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, ImmutableAttributes fromAttributes) {
+        public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, TransformationStep transformationStep) {
             return Collections.emptySet();
         }
     };
@@ -41,8 +40,8 @@ public interface ExecutionGraphDependenciesResolver {
      * Computes the extra dependency nodes.
      *
      * @param dependencyResolver the resolver
-     * @param fromAttributes the origin attributes of the transform
+     * @param transformationStep the transformation
      * @return a set of {@link Node}, can be empty
      */
-    Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, ImmutableAttributes fromAttributes);
+    Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, TransformationStep transformationStep);
 }
