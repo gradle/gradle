@@ -156,7 +156,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     }
 
     def "include paths include component headers"() {
-        final inputs = new DefaultDomainObjectSet(LanguageSourceSet)
+        final inputs = new DefaultDomainObjectSet(LanguageSourceSet, CollectionCallbackActionDecorator.NOOP)
 
         when:
         exeBinary.inputs >> inputs
@@ -191,7 +191,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         def deps1 = dependencySet(file1, file2)
         def deps2 = dependencySet(file3)
 
-        exeBinary.inputs >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        exeBinary.inputs >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, CollectionCallbackActionDecorator.NOOP)
         exeBinary.libs >> [deps1, deps2]
 
         then:
@@ -199,7 +199,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     }
 
     def "reflects source files of binary"() {
-        def sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        def sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, CollectionCallbackActionDecorator.NOOP)
         def sourcefile1 = new File('file1')
         def sourcefile2 = new File('file2')
         def sourcefile3 = new File('file3')

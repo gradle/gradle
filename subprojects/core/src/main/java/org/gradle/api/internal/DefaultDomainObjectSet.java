@@ -33,10 +33,6 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     // TODO: Combine these with MutationGuard
     private ImmutableActionSet<Void> beforeContainerChange = ImmutableActionSet.empty();
 
-    public DefaultDomainObjectSet(Class<? extends T> type) {
-        super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
-    }
-
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), decorator);
     }

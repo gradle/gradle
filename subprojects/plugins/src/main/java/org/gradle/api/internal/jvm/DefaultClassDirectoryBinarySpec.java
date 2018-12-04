@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {
-    private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets;
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
@@ -56,6 +56,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
+        this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, collectionCallbackActionDecorator);
         this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator, collectionCallbackActionDecorator);
     }
 
