@@ -260,10 +260,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     project.afterEvaluate {
-                        long start = System.currentTimeMillis()
-                        while (System.currentTimeMillis() - start < $sleepMillis) {
-                            Thread.sleep($sleepMillis)
-                        } 
+                        ${simulateWork(sleepMillis)}
                     }
                 }
             }
@@ -292,10 +289,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 void apply(Project project) {
                     project.configurations.all {
                         if (name == 'foo') {
-                            long start = System.currentTimeMillis()
-                            while (System.currentTimeMillis() - start < $sleepMillis) {
-                                Thread.sleep($sleepMillis)
-                            }
+                            ${simulateWork(sleepMillis)}
                         }
                     }
                 }
@@ -327,10 +321,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 void apply(Project project) {
                     project.configurations.all {
                         if (name == 'foo') {
-                            long start = System.currentTimeMillis()
-                            while (System.currentTimeMillis() - start < $sleepDurationMillis) {
-                                Thread.sleep(${sleepDurationMillis / 2})
-                            }
+                            ${simulateWork(sleepDurationMillis)}
                         }
                     }
                 }
@@ -347,6 +338,17 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
         result.totalConfigurationTime >= Duration.ofMillis(sleepDurationMillis)
         result.totalConfigurationTime < Duration.ofMillis(2 * sleepDurationMillis)
+    }
+
+    def simulateWork(long durationMillis) {
+        """
+            def start = org.gradle.internal.time.Time.currentTimeMillis()
+            Thread.sleep($durationMillis)
+            def elapsed
+            while ((elapsed = org.gradle.internal.time.Time.currentTimeMillis() - start) < $durationMillis) {
+                Thread.sleep($durationMillis - elapsed)
+            }
+        """
     }
 
     void containsPluginApplicationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
