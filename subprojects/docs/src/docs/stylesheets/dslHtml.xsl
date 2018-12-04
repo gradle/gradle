@@ -85,18 +85,18 @@
       -->
 
     <xsl:template match="book" mode="sidebar">
-        <li><a href="/userguide/userguide.html">User Manual Home</a></li>
-        <li><a href="/dsl/" class="active">DSL Reference Home</a></li>
-        <li><a href="/release-notes.html">Release Notes</a></li>
+        <li><a href="../userguide/userguide.html">User Manual Home</a></li>
+        <li><a href="index.html" class="active">DSL Reference Home</a></li>
+        <li><a href="../release-notes.html">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section" mode="sidebar.link"/>
         </ul>
     </xsl:template>
 
     <xsl:template match="chapter" mode="sidebar">
-        <li><a href="/userguide/userguide.html">User Manual Home</a></li>
-        <li><a href="/dsl/">DSL Reference Home</a></li>
-        <li><a href="/release-notes.html">Release Notes</a></li>
+        <li><a href="../userguide/userguide.html">User Manual Home</a></li>
+        <li><a href="index.html">DSL Reference Home</a></li>
+        <li><a href="../release-notes.html">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section[table]" mode="sidebar.link"/>
         </ul>
