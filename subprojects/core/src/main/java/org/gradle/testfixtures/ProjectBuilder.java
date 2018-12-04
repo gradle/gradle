@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.util.SingleMessageLogger;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 
