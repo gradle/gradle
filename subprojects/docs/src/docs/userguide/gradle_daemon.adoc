@@ -165,7 +165,7 @@ The required Gradle version is another aspect of the requested build environment
 [[sec:how_much_memory_does_the_daemon_use_and_can_i_give_it_more]]
 === How much memory does the Daemon use and can I give it more?
 
-If the requested build environment does not specify a maximum heap size, the Daemon will use up to 1GB of heap. It will use the JVM's default minimum heap size. 1GB is more than enough for most builds. Larger builds with hundreds of subprojects, lots of configuration, and source code may require, or perform better, with more memory.
+If the requested build environment does not specify a maximum heap size, the Daemon will use up to 512MB of heap. It will use the JVM's default minimum heap size. 512MB is more than enough for most builds. Larger builds with hundreds of subprojects, lots of configuration, and source code may require, or perform better, with more memory.
 
 To increase the amount of memory the Daemon can use, specify the appropriate flags as part of the requested build environment. Please see <<build_environment.adoc#build_environment,Build Environment>> for details.
 
