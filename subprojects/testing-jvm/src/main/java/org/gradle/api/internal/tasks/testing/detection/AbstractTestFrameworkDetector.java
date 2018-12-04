@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
