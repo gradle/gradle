@@ -22,10 +22,6 @@ import javax.annotation.Nullable;
 
 public interface CollectionCallbackActionDecorator {
 
-    // TODO when removing this feature toggle, also remove this class from the allowed
-    //      classes in org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
-    String CALLBACK_EXECUTION_BUILD_OPS_TOGGLE = "org.gradle.internal.domain-collection-callback-ops";
-
     @Nullable
     <T> Action<T> decorate(@Nullable Action<T> action);
 

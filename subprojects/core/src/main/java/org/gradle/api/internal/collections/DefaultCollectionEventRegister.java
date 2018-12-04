@@ -83,7 +83,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     @Override
     public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
-        return registerLazyAddDecoratedAction(addAction);
+        return registerLazyAddDecoratedAction(decorate(addAction));
     }
 
     @Override
