@@ -128,6 +128,7 @@ fun Project.configureIde(testType: TestType) {
     plugins.withType<IdeaPlugin> {
         idea {
             module {
+                testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
                 testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
                 scopes["TEST"]!!["plus"]!!.apply {
