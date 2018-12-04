@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 
 /**
