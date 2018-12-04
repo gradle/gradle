@@ -1,4 +1,4 @@
-package Gradle_Check4
+package Gradle_R4
 
 import jetbrains.buildServer.configs.kotlin.v2018_1.project
 import jetbrains.buildServer.configs.kotlin.v2018_1.version

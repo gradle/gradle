@@ -50,7 +50,7 @@
     </requirements>
     <build-triggers />
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_559" sourceBuildTypeId="Gradle_Check4_Stage_ReadyforRelease_Trigger" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_559" sourceBuildTypeId="Gradle_R4_Stage_ReadyforRelease_Trigger" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="release" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
