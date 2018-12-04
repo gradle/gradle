@@ -122,11 +122,13 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         runBuild("resolve")
 
         then:
+        def taskOperation = events.operation("Task :lib:jar")
         def firstTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileSizer")
         with(firstTransformOperation) {
             transform
             descriptor.transformer.displayName == "FileSizer"
             descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.dependencies == [taskOperation.descriptor] as Set
             successful
         }
         def secondTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileNamer")

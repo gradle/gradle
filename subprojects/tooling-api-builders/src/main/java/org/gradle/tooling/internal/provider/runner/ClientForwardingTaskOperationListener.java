@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.execution.plan.ExecutionDependencies;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -43,14 +42,12 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEve
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 
@@ -59,24 +56,29 @@ import static java.util.Collections.singletonList;
  *
  * @since 2.5
  */
-class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> {
+class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> implements OperationDependenciesLookup {
 
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
-    private final TaskExecutionGraphTracker taskExecutionGraphTracker;
     private final TaskOriginTracker taskOriginTracker;
-
-    @Nullable
-    private final TransformOperationTracker transformOperationTracker;
+    private final OperationDependenciesProvider operationDependenciesProvider;
 
     ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                          OperationResultPostProcessor operationResultPostProcessor, TaskExecutionGraphTracker taskExecutionGraphTracker, TaskOriginTracker taskOriginTracker,
-                                          @Nullable TransformOperationTracker transformOperationTracker) {
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesProvider operationDependenciesProvider) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
-        this.taskExecutionGraphTracker = taskExecutionGraphTracker;
         this.taskOriginTracker = taskOriginTracker;
-        this.transformOperationTracker = transformOperationTracker;
+        this.operationDependenciesProvider = operationDependenciesProvider;
+    }
+
+    @Override
+    public Stream<DefaultTaskDescriptor> lookupExistingOperationDescriptors(ExecutionDependencies dependencies) {
+        if (isEnabled()) {
+            return dependencies.getTasks().stream()
+                .map(dependency -> ((TaskInternal) dependency).getTaskIdentity())
+                .map(descriptors::get);
+        }
+        return Stream.empty();
     }
 
     @Override
@@ -98,8 +100,9 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
             String displayName = buildOperation.getDisplayName();
             String taskPath = task.getIdentityPath().toString();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesProvider.computeTaskDependencies(task);
             InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
-            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, computeTaskDependencies(task), originPlugin);
+            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, dependencies, originPlugin);
         });
     }
 
@@ -123,24 +126,6 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
                 return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
             }
         }
-    }
-
-    private Set<InternalOperationDescriptor> computeTaskDependencies(TaskInternal task) {
-        TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphTracker.getTaskExecutionGraph(task);
-        ExecutionDependencies executionDependencies = taskExecutionGraph.getExecutionDependencies(task);
-        Set<InternalOperationDescriptor> result = new LinkedHashSet<>();
-        executionDependencies.getTasks().stream()
-            .map(dependency -> ((TaskInternal) dependency).getTaskIdentity())
-            .map(descriptors::get)
-            .filter(Objects::nonNull)
-            .forEach(result::add);
-        if (transformOperationTracker != null) {
-            executionDependencies.getTransformations().stream()
-                .map(transformOperationTracker::findOperationDescriptor)
-                .filter(Objects::nonNull)
-                .forEach(result::add);
-        }
-        return result;
     }
 
 }

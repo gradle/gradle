@@ -40,7 +40,7 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
     SubjectDescriptor getSubject();
 
     /**
-     * Returns the dependencies (other transforms) of this transform operation.
+     * Returns the dependencies (other transforms and tasks) of this transform operation.
      */
     Set<? extends OperationDescriptor> getDependencies();
 
