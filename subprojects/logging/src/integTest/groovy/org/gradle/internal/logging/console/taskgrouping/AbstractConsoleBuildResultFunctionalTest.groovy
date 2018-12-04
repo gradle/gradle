@@ -97,7 +97,7 @@ BUILD SUCCESSFUL in \\d+s\\n?
         then:
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*build finished
 
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+s\\n?
 1 actionable task: 1 executed
 .*"""
     }
