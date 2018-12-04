@@ -92,7 +92,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * @throws UnknownTaskException If a task with the given name is not defined.
      * @since 4.9
      */
-    @Incubating
     TaskProvider<T> named(String name) throws UnknownTaskException;
 
     /**
@@ -100,7 +99,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
-    @Incubating
     TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException;
 
 
@@ -109,7 +107,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
-    @Incubating
     <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException;
 
     /**
@@ -117,6 +114,5 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @since 5.0
      */
-    @Incubating
     <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException;
 }
