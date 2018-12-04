@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.jetbrains.annotations.NotNull
@@ -32,23 +33,11 @@ class TransformationNodeSpec extends Specification {
     def artifactNode = new TestNode()
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
+    def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
 
-    def "initial node with empty extra resolver only adds dependency on artifact node"() {
-
-        given:
-        def node = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
-
-        when:
-        node.resolveDependencies(dependencyResolver, hardSuccessor)
-
-        then:
-        1 * dependencyResolver.resolveDependenciesFor(null, artifact) >> [artifactNode]
-        1 * hardSuccessor.execute(artifactNode)
-        0 * hardSuccessor._
-    }
-
-    def "initial node with non empty extra resolver only adds dependency on artifact node when extra provides none"() {
-        def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
+    def "initial node adds dependency on artifact node and dependencies"() {
+        def container = Stub(TaskDependencyContainer)
+        def additionalNode = new TestNode()
 
         given:
         def node = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
@@ -58,76 +47,29 @@ class TransformationNodeSpec extends Specification {
 
         then:
         1 * dependencyResolver.resolveDependenciesFor(null, artifact) >> [artifactNode]
-        1 * graphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep) >> []
         1 * hardSuccessor.execute(artifactNode)
+        1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
+        1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
+        1 * hardSuccessor.execute(additionalNode)
         0 * hardSuccessor._
     }
 
-    def "initial node with non empty extra resolver adds dependency on all nodes when extra provides one"() {
-        def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-        def extraNode = new TestNode()
+    def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
+        def container = Stub(TaskDependencyContainer)
+        def additionalNode = new TestNode()
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
-
-        when:
-        node.resolveDependencies(dependencyResolver, hardSuccessor)
-
-        then:
-        1 * dependencyResolver.resolveDependenciesFor(null, artifact) >> [artifactNode]
-        1 * graphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep) >> [extraNode]
-        1 * hardSuccessor.execute(artifactNode)
-        1 * hardSuccessor.execute(extraNode)
-        0 * hardSuccessor._
-    }
-
-    def "chained node with empty extra resolver only adds dependency on previous step"() {
-        def initialNode = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
-
-        given:
-        def node = TransformationNode.chained(Mock(TransformationStep), initialNode, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
+        def node = TransformationNode.chained(transformationStep, initialNode, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
 
         then:
         1 * hardSuccessor.execute(initialNode)
-        0 * hardSuccessor._
-    }
-
-    def "chained node with non empty extra resolver only adds dependency on previous step when extra provides none"() {
-        def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-        def initialNode = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
-        def chainedStep = Mock(TransformationStep)
-
-        given:
-        def node = TransformationNode.chained(chainedStep, initialNode, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
-
-        when:
-        node.resolveDependencies(dependencyResolver, hardSuccessor)
-
-        then:
-        1 * graphDependenciesResolver.computeDependencyNodes(dependencyResolver, chainedStep) >> []
-        1 * hardSuccessor.execute(initialNode)
-        0 * hardSuccessor._
-    }
-
-    def "chained node with non empty extra resolver only adds dependency on all nodes when extra provides one"() {
-        def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-        def initialNode = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
-        def chainedStep = Mock(TransformationStep)
-        def extraNode = new TestNode()
-
-        given:
-        def node = TransformationNode.chained(chainedStep, initialNode, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
-
-        when:
-        node.resolveDependencies(dependencyResolver, hardSuccessor)
-
-        then:
-        1 * graphDependenciesResolver.computeDependencyNodes(dependencyResolver, chainedStep) >> [extraNode]
-        1 * hardSuccessor.execute(initialNode)
-        1 * hardSuccessor.execute(extraNode)
+        1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
+        1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
+        1 * hardSuccessor.execute(additionalNode)
         0 * hardSuccessor._
     }
 

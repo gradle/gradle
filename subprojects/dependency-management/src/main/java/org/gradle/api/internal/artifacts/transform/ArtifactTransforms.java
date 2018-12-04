@@ -23,5 +23,5 @@ public interface ArtifactTransforms {
     /**
      * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
      */
-    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ResolvableDependencies resolvableDependencies);
+    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory resolverFactory);
 }

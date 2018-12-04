@@ -129,7 +129,7 @@ public abstract class TransformationNode extends Node {
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifact));
-            processDependencies(processHardSuccessor, executionGraphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep));
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, executionGraphDependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
         private class InitialArtifactTransformationStepOperation extends ArtifactTransformationStepBuildOperation {
@@ -180,7 +180,7 @@ public abstract class TransformationNode extends Node {
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             addDependencySuccessor(previousTransformationNode);
             processHardSuccessor.execute(previousTransformationNode);
-            processDependencies(processHardSuccessor, executionGraphDependenciesResolver.computeDependencyNodes(dependencyResolver, transformationStep));
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, executionGraphDependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
         private class ChainedArtifactTransformStepOperation extends ArtifactTransformationStepBuildOperation {
