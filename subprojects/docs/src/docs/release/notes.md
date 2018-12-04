@@ -46,6 +46,31 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Configuration avoidance for Tasks
+
+[In a recent blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time), we described a new API for creating and configuration `Task` instances that allow Gradle to avoid creating and configuring tasks that do not need to be executed.
+
+In this release, we now [recommend that you use this new API when working with tasks](userguide/task_configuration_avoidance.html). 
+
+By default, the Kotlin DSL [uses the new APIs](current/userguide/kotlin_dsl.html#type-safe-accessors).
+
+"Old style" task declarations in the Groovy DSL continue to be eager and force creation/configuration of any tasks created this way.
+```
+// "Old style" task declaration uses Task create API.  This always creates a task.
+task myTask(type: MyTask) {
+    // This is always called
+}
+```
+
+In Groovy, to use the new API:
+```
+tasks.register("myTask", MyTask) {
+    
+}
+```
+
+The existing API is not deprecated, but as builds transition to the new API, we will consider deprecating the API in a future release.
+
 ## Fixed issues
 
 ### Inherited configuration-wide dependency excludes are now published
