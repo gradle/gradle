@@ -11,7 +11,7 @@ import model_g4.Stage
 class RootProject(model: CIBuildModel) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
     id = AbsoluteId(uuid)
-    parentId = AbsoluteId("Gradle")
+    parentId = AbsoluteId("Gradle4")
     name = model.rootProjectName
 
     features {
