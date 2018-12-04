@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -48,15 +47,7 @@ public abstract class Node implements Comparable<Node> {
         this.state = ExecutionState.UNKNOWN;
     }
 
-    /**
-     * Adds the task associated with this node, if any, into the given collection.
-     */
-    public abstract void collectTaskInto(ImmutableCollection.Builder<Task> builder);
-
-    /**
-     * Adds the transformation associated with this node, if any, into the given collection.
-     */
-    public abstract void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder);
+    public abstract void accept(Visitor visitor);
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -237,4 +228,15 @@ public abstract class Node implements Comparable<Node> {
 
     @Override
     public abstract String toString();
+
+    public static abstract class Visitor {
+
+        public void visitTask(Task task) {
+        }
+
+        public void visitTransformation(TransformationNodeIdentifier transformation) {
+        }
+
+    }
+
 }

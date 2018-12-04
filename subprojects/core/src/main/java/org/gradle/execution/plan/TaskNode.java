@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -113,10 +112,6 @@ public abstract class TaskNode extends Node {
         }
         return getMustSuccessors().contains(successor)
             || getFinalizingSuccessors().contains(successor);
-    }
-
-    @Override
-    public void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder) {
     }
 
     /**

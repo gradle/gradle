@@ -16,10 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 
 import javax.annotation.Nullable;
@@ -34,11 +32,7 @@ class ActionNode extends Node {
     }
 
     @Override
-    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
-    }
-
-    @Override
-    public void collectTransformationsInto(ImmutableCollection.Builder<TransformationNodeIdentifier> builder) {
+    public void accept(Visitor visitor) {
     }
 
     @Nullable

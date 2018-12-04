@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -84,9 +83,9 @@ public class TaskNodeFactory {
         }
 
         @Override
-        public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+        public void accept(Visitor visitor) {
             // Expose the task to build logic (for now)
-            builder.add(task);
+            visitor.visitTask(task);
         }
 
         @Nullable

@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
@@ -83,11 +81,7 @@ class TransformationNodeSpec extends Specification {
         }
 
         @Override
-        void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
-        }
-
-        @Override
-        void collectTransformationsInto(ImmutableCollection.Builder<org.gradle.execution.plan.TransformationNodeIdentifier> builder) {
+        void accept(Visitor visitor) {
         }
 
         @Override
