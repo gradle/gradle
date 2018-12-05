@@ -24,27 +24,69 @@ abstract trait CppTaskNames extends LanguageTaskNames {
         return 'Cpp'
     }
 
-    static Map<String, VariantDimension> toVariantContext(Object[] collections) {
-        def result = new HashMap<String, VariantDimension>().withDefault { VariantDimension.missing(it) }
-        def dimensions = GroovyCollections.combinations(collections)
-        dimensions.eachWithIndex { item, idx ->
-            if (item instanceof VariantDimension) {
-                assert collections[idx] instanceof Iterable
-                if (collections[idx].size() > 1) {
-                    result.put(item.dimensionName, item)
-                }
-            } else if (item instanceof Map) {
-                item.each { key, value ->
-                    assert key instanceof String
-                    assert value instanceof String
-                    if (collections[idx].collect { it.get(key) }.unique().size() > 1) {
-                        result.put(key, VariantDimension.of(key, value))
-                    }
-                }
-            }
+    static List<VariantContext> toVariantContext(Object[] collections) {
+        return VariantContext.of(collections)
+    }
+
+    static class VariantContext {
+        private final Map<String, VariantDimension> dimensions
+
+        private VariantContext(Map<String, VariantDimension> dimensions) {
+            this.dimensions = dimensions
         }
 
-        return result
+        VariantDimension getBuildType() {
+            return dimensions.get("buildType")
+        }
+
+        VariantDimension getOs() {
+            return dimensions.get("os")
+        }
+
+        String getAsPath() {
+            if (dimensions.isEmpty()) {
+                return ''
+            }
+            return dimensions.values()*.name.join('/') + '/'
+        }
+
+        String getAsVariantName() {
+            return dimensions.values()*.name*.capitalize().join('').uncapitalize()
+        }
+
+        String getAsPublishName() {
+            if (dimensions.isEmpty()) {
+                return ''
+            }
+            return '_' + dimensions.values()*.name.join('_')
+        }
+
+        static List<VariantContext> of(Object[] listOfDimensionArrays) {
+            def result = new ArrayList<VariantContext>()
+            def dimensions = GroovyCollections.combinations(listOfDimensionArrays)
+            dimensions.each {
+                def dimension = new LinkedHashMap<String, VariantDimension>().withDefault { VariantDimension.missing(it) }
+                it.eachWithIndex { item, idx ->
+                    if (item instanceof VariantDimension) {
+                        assert listOfDimensionArrays[idx] instanceof Iterable
+                        if (listOfDimensionArrays[idx].size() > 1) {
+                            dimension.put(item.dimensionName, item)
+                        }
+                    } else if (item instanceof Map) {
+                        item.each { key, value ->
+                            assert key instanceof String
+                            assert value instanceof String
+                            if (listOfDimensionArrays[idx].collect { it.get(key) }.unique().size() > 1) {
+                                dimension.put(key, VariantDimension.of(key, value))
+                            }
+                        }
+                    }
+                }
+                result.add(new VariantContext(dimension))
+            }
+
+            return result
+        }
     }
 
     static abstract class VariantDimension {
@@ -67,6 +109,10 @@ abstract trait CppTaskNames extends LanguageTaskNames {
             return new DefaultVariantDimension(dimensionName, dimensionValue.toLowerCase())
         }
 
+        static List<VariantDimension> of(String dimensionName, List<String> dimensionValues) {
+            return dimensionValues.collect { of(dimensionName, it) }
+        }
+
         static class DefaultVariantDimension extends VariantDimension {
             private final String normalizedDimensionValue
 
@@ -79,6 +125,7 @@ abstract trait CppTaskNames extends LanguageTaskNames {
             String getAsPath() {
                 return "/${normalizedDimensionValue}"
             }
+
 
             @Override
             String getAsPublishingName() {

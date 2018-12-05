@@ -527,8 +527,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        def executable = executable("build/exe/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        def executable = executable("build/exe/main/${variantContext.asPath}${module}")
         return variantContext.buildType.name == 'release' ? executable.strippedRuntimeFile : executable.file
     }
 

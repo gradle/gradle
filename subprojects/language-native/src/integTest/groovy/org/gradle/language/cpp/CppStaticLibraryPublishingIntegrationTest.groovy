@@ -179,8 +179,8 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        return staticLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}").file
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        return staticLibrary("${module}/build/lib/main/${variantContext.asPath}${module}").file
     }
 
     @Override

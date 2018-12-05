@@ -945,8 +945,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        def library = sharedLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        def library = sharedLibrary("${module}/build/lib/main/${variantContext.asPath}${module}")
         return variantContext.buildType.name == 'release' ? library.strippedRuntimeFile : library.file
     }
 
