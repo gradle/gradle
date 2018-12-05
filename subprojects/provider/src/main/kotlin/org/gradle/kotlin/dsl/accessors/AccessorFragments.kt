@@ -392,6 +392,93 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             )
         ),
         AccessorFragment(
+            source = name.run {
+                """
+                    /**
+                     * Adds an artifact to the '$original' configuration.
+                     *
+                     * @param artifactNotation the group of the module to be added as a dependency.
+                     * @return The artifact.
+                     *
+                     * @see [ArtifactHandler.add]
+                     */
+                    fun ArtifactHandler.`$kotlinIdentifier`(artifactNotation: Any): PublishArtifact =
+                        add("$stringLiteral", artifactNotation)
+                """
+            },
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(name.original)
+                    ALOAD(1)
+                    INVOKEINTERFACE(GradleTypeName.artifactHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/PublishArtifact;")
+                    ARETURN()
+                }
+            },
+            metadata = {
+                writer.writeFunctionOf(
+                    receiverType = GradleType.artifactHandler,
+                    returnType = GradleType.publishArtifact,
+                    name = propertyName,
+                    functionFlags = publicFunctionFlags,
+                    parameters = {
+                        visitParameter("artifactNotation", KotlinType.any)
+                    },
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.original,
+                "(Lorg/gradle/api/artifacts/dsl/ArtifactHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/PublishArtifact;"
+            )
+        ),
+        AccessorFragment(
+            source = name.run {
+                """
+                    /**
+                     * Adds an artifact to the '$original' configuration.
+                     *
+                     * @param artifactNotation the group of the module to be added as a dependency.
+                     * @param configureAction The action to execute to configure the artifact.
+                     * @return The artifact.
+                     *
+                     * @see [ArtifactHandler.add]
+                     */
+                    fun ArtifactHandler.`$kotlinIdentifier`(
+                        artifactNotation: Any,
+                        configureAction:  ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
+                            add("$stringLiteral", artifactNotation, configureAction)
+                """
+            },
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    ALOAD(2)
+                    INVOKEINTERFACE(GradleTypeName.artifactHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/PublishArtifact;")
+                    ARETURN()
+                }
+            },
+            metadata = {
+                writer.writeFunctionOf(
+                    receiverType = GradleType.artifactHandler,
+                    returnType = GradleType.publishArtifact,
+                    name = propertyName,
+                    functionFlags = publicFunctionFlags,
+                    parameters = {
+                        visitParameter("artifactNotation", KotlinType.any)
+                        visitParameter("configureAction", actionTypeOf(GradleType.configurablePublishArtifact))
+                    },
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.original,
+                "(Lorg/gradle/api/artifacts/dsl/ArtifactHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/PublishArtifact;"
+            )
+        ),
+        AccessorFragment(
             source = "",
             bytecode = {
             },

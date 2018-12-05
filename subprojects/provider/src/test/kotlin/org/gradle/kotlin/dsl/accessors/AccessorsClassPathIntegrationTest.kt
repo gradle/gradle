@@ -105,7 +105,8 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
         hasItem(
             matching<File>({ appendText("accessors source") }) {
                 resolve(accessorsSourceFilePath).isFile
-            })
+            }
+        )
 
     private
     fun hasAccessorsClasses() =
