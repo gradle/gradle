@@ -50,10 +50,19 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     private final BuildDashboardReports reports;
 
-    @Inject
-    public GenerateBuildDashboard(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
-        reports = instantiator.newInstance(DefaultBuildDashboardReports.class, this, callbackActionDecorator);
+    public GenerateBuildDashboard() {
+        reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this, getCollectionCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
+    }
+
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected CollectionCallbackActionDecorator getCollectionCallbackActionDecorator() {
+        throw new UnsupportedOperationException();
     }
 
     @Input
