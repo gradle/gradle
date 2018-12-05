@@ -111,12 +111,10 @@ if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
+
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { "CI" in System.getenv() }
-if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-}
-
 if (isCiServer) {
     gradle.buildFinished {
         allprojects.forEach { project ->
