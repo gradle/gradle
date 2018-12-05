@@ -89,15 +89,17 @@ object DefaultResolverEventLogger : ResolverEventLogger {
 
     private
     fun outputDir() =
-        File(userHome(), logDirForOperatingSystem()).apply { mkdirs() }
+        logDirForOperatingSystem().apply { mkdirs() }
 
     private
     fun logDirForOperatingSystem() =
         OperatingSystem.current().run {
             when {
-                isMacOsX -> "Library/Logs/gradle-kotlin-dsl"
-                isWindows -> "Application Data/gradle-kotlin-dsl/log"
-                else -> ".gradle-kotlin-dsl/log"
+                isMacOsX -> userHome().resolve("Library/Logs/gradle-kotlin-dsl")
+                isWindows -> System.getenv("LOCALAPPDATA")
+                    ?.let { File("$it/gradle-kotlin-dsl/log") }
+                    ?: userHome().resolve("AppData/Local/gradle-kotlin-dsl/log")
+                else -> userHome().resolve(".gradle-kotlin-dsl/log")
             }
         }
 
