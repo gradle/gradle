@@ -52,6 +52,8 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
+                        apiVersion = "1.3"
+                        languageVersion = "1.3"
                         freeCompilerArgs += listOf(
                             KotlinCompilerArguments.javaParameters,
                             KotlinCompilerArguments.jsr305Strict,
