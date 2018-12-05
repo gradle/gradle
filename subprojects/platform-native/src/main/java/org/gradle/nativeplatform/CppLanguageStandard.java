@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 
@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 5.1
  */
 @Incubating
-public enum CppSourceCompatibility {
+public enum CppLanguageStandard {
     /**
      * Configures the source to be compatible with the 1998 C++ standard.
      *
@@ -40,14 +40,15 @@ public enum CppSourceCompatibility {
     Cpp98Extended,
 
     /**
-     * Configures the source to be compatible with the 2003 C++ standard.
+     * Configures the source to be compatible with the 1998 ISO C++ standard plus the 2003 technical corrigendum.
      *
      * <p>For example, this is equivalent to specifying the {@code -std=c++03} command-line flag for GCC.</p>
      */
     Cpp03,
 
     /**
-     * Configures the source to be compatible with the compiler-specific extensions of the 2003 C++ standard.
+     * Configures the source to be compatible with the compiler-specific extensions of the 1998 ISO C++
+     * standard plus the 2003 technical corrigendum.
      *
      * <p>For example, this is equivalent to specifying the {@code -std=gnu++03} command-line flag for GCC.</p>
      */
@@ -94,4 +95,18 @@ public enum CppSourceCompatibility {
      * <p>For example, this is equivalent to specifying the {@code -std=gnu++17} command-line flag for GCC.</p>
      */
     Cpp17Extended,
+
+    /**
+     * Configures the source to be compatible with the expected 2020 C++ standard.
+     *
+     * <p>For example, this is equivalent to specifying the {@code -std=c++2a} command-line flag for GCC.</p>
+     */
+    Cpp2a,
+
+    /**
+     * Configures the source to be compatible with the compiler-specific extensions of the expected 2020 C++ standard.
+     *
+     * <p>For example, this is equivalent to specifying the {@code -std=gnu++2a} command-line flag for GCC.</p>
+     */
+    Cpp2aExtended,
 }

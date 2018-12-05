@@ -28,11 +28,11 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppSourceCompatibility;
 import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.CppLanguageStandard;
 import org.gradle.nativeplatform.TargetMachine;
 
 import javax.inject.Inject;
@@ -49,7 +49,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
     private final SetProperty<TargetMachine> targetMachines;
-    private final Property<CppSourceCompatibility> srcCompatibility;
+    private final Property<CppLanguageStandard> langStandard;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -63,7 +63,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
         targetMachines = objectFactory.setProperty(TargetMachine.class);
-        srcCompatibility = objectFactory.property(CppSourceCompatibility.class);
+        langStandard = objectFactory.property(CppLanguageStandard.class);
     }
 
     @Override
@@ -133,7 +133,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public Property<CppSourceCompatibility> getSourceCompatibility() {
-        return srcCompatibility;
+    public Property<CppLanguageStandard> getLanguageStandard() {
+        return langStandard;
     }
 }
