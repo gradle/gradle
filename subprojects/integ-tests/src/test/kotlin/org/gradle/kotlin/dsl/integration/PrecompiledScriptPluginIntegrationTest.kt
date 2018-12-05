@@ -46,7 +46,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             $pluginManagementBlock
             buildCache {
                 local<DirectoryBuildCache> {
-                    directory = file("$cacheDir")
+                    directory = file("${escapedPathOf(cacheDir)}")
                 }
             }
         """)
