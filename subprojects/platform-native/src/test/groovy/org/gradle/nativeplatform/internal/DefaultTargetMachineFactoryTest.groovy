@@ -48,8 +48,8 @@ class DefaultTargetMachineFactoryTest extends Specification {
     def "different target machine are not equals"() {
         expect:
         factory.windows != factory.linux
-        factory.linux != factory.getMacOS()
-        factory.getMacOS() != factory.windows
+        factory.linux != factory.macOS
+        factory.macOS != factory.windows
         factory.windows.x86 != factory.windows.x86_64
         factory.linux.x86 != factory.windows.x86
         factory.windows.architecture("arm") != factory.windows.architecture("leg")
