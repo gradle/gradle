@@ -303,7 +303,6 @@ public class ModuleMetadataParser {
                 requiredVersion = reader.nextString();
             } else if ("strictly".equals(cst)) {
                 strictVersion = reader.nextString();
-                requiredVersion = strictVersion;
             } else if ("rejects".equals(cst)) {
                 reader.beginArray();
                 while (reader.peek() != END_ARRAY) {

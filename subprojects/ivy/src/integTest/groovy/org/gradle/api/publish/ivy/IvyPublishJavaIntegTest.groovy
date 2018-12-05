@@ -538,7 +538,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
                 prefers(null)
                 strictly('3.2.2')
@@ -619,7 +619,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:') {
+            constraint('org.tukaani:xz:1.6') {
                 prefers(null)
                 strictly('1.6')
                 rejects()

@@ -152,10 +152,12 @@ public class ModuleMetadataFileGenerator {
         if (!versionConstraint.getStrictVersion().isEmpty()) {
             jsonWriter.name("strictly");
             jsonWriter.value(versionConstraint.getStrictVersion());
-        } else if (required != null) {
+        }
+        if (required != null) {
             jsonWriter.name("requires");
             jsonWriter.value(required);
-        } else if (preferred != null) {
+        }
+        if (preferred != null) {
             jsonWriter.name("prefers");
             jsonWriter.value(preferred);
         }

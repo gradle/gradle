@@ -253,7 +253,7 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == null
+        variant.dependencies[0].version == '1.0'
         variant.dependencies[0].prefers == null
         variant.dependencies[0].strictly == '1.0'
         variant.dependencies[0].rejectsVersion == []
