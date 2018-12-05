@@ -23,7 +23,6 @@ import com.dd.plist.NSString
 import com.dd.plist.PropertyListParser
 import com.google.common.base.MoreObjects
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
-import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask
 import org.gradle.test.fixtures.file.TestFile
 
 class ProjectFile {
@@ -294,7 +293,8 @@ class ProjectFile {
         }
 
         void assertSupportedArchitectures(String... architectures) {
-            String expectedValidArchitectures = architectures.collect { GenerateXcodeProjectFileTask.toXcodeArchitecture(it) }.join(" ")
+            def toXcodeArchitecture = [x86: 'i386', 'x86-64': 'x86_64'].withDefault { it }
+            String expectedValidArchitectures = architectures.collect { toXcodeArchitecture.get(it) }.join(" ")
             assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.VALID_ARCHS == expectedValidArchitectures }
         }
 

@@ -274,7 +274,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         return target;
     }
 
-    public static String toXcodeArchitecture(String architectureName) {
+    private static String toXcodeArchitecture(String architectureName) {
         if (architectureName.equals(MachineArchitecture.X86)) {
             return "i386";
         } else if (architectureName.equals(MachineArchitecture.X86_64)) {
