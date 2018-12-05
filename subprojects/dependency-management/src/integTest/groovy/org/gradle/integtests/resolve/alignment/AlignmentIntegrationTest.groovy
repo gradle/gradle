@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
@@ -1051,4 +1052,46 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
+    @Issue("gradle/gradle#7916")
+    def "shouldn't fail when a referenced component is a virtual platform"() {
+        repository {
+            'org:foo:1.0'()
+            'org:foo:1.1'()
+        }
+
+        given:
+        buildFile << '''
+            dependencies {
+              constraints {
+                  conf platform("org:platform:1.1")
+              }
+            
+              conf 'org:foo:1.0'
+            }
+        '''
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('foo') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'foo'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+                constraint("org:platform:1.1", "org:platform:1.1") {
+                    noArtifacts()
+                    constraint('org:foo:1.1')
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
 }
