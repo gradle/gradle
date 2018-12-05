@@ -753,7 +753,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.windows().architecture('${currentArchitecture}'), machines.linux().architecture('${currentArchitecture}'), machines.macOS().architecture('${currentArchitecture}')]
+                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
             project(':deck') { 
@@ -823,7 +823,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                    targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
             project(':deck') { 
@@ -892,7 +892,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86_64()]
+                    targetMachines = [machines.host().x86_64]
                 }
             }
             project(':deck') { 
@@ -919,7 +919,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             apply plugin: 'cpp-application'
             repositories { maven { url '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
-            application { targetMachines = [machines.host().x86()] }
+            application { targetMachines = [machines.host().x86] }
         """
         app.main.writeToProject(consumer)
 

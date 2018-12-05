@@ -24,7 +24,6 @@ import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -40,7 +39,7 @@ class DefaultSwiftLibraryTest extends Specification {
     DefaultSwiftLibrary library
 
     def setup() {
-        library = new DefaultSwiftLibrary("main", project.objects, project.fileOperations, project.configurations, project.services.get(TargetMachineFactory.class))
+        library = new DefaultSwiftLibrary("main", project.objects, project.fileOperations, project.configurations)
     }
 
     def "has display name"() {
