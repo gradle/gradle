@@ -45,10 +45,13 @@ import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdenti
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -205,6 +208,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 executable.getExecutableFileProducer().set(link);
             }
 
+            if(executable.isDebuggable() && OperatingSystem.current().isWindows() && executable instanceof DefaultCppExecutable) {
+                ((DefaultCppExecutable) executable).getPdbFile().set(buildDirectory.file(executable.getBaseName().map(baseName -> "exe/" + names.getDirName() + baseName + ".pdb")));
+            }
+
             // Add an install task
             // TODO - should probably not add this for all executables?
             // TODO - add stripped symbols to the installation
@@ -272,6 +279,11 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(extractSymbols.flatMap(task -> task.getSymbolFile()));
                 linkFileTask = stripSymbols;
             }
+
+            if(library.isDebuggable() && OperatingSystem.current().isWindows() && library instanceof DefaultCppSharedLibrary) {
+                ((DefaultCppSharedLibrary) library).getPdbFile().set(buildDirectory.file(library.getBaseName().map(baseName -> "lib/" + names.getDirName() + baseName + ".pdb")));
+            }
+
             library.getLinkTask().set(link);
             library.getLinkFile().set(linkFile);
             library.getLinkFileProducer().set(linkFileTask);
@@ -333,6 +345,15 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
             if (component.hasRuntimeFile()) {
                 runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
+            }
+
+            if(component.isDebuggable() && OperatingSystem.current().isWindows()) {
+                if (component instanceof DefaultCppSharedLibrary) {
+                    runtimeElements.getOutgoing().artifact(((DefaultCppSharedLibrary) component).getPdbFile());
+                }
+                if (component instanceof DefaultCppExecutable) {
+                    runtimeElements.getOutgoing().artifact(((DefaultCppExecutable) component).getPdbFile());
+                }
             }
 
             component.getRuntimeElements().set(runtimeElements);

@@ -33,6 +33,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.nativeplatform.ComponentWithPdbFile;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
@@ -46,7 +47,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 
-public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultCppSharedLibrary extends DefaultCppBinary implements ComponentWithPdbFile, CppSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+    private final RegularFileProperty pdbFile;
     private final RegularFileProperty linkFile;
     private final Property<Task> linkFileProducer;
     private final RegularFileProperty runtimeFile;
@@ -58,6 +60,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     @Inject
     public DefaultCppSharedLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.pdbFile = objectFactory.fileProperty();
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.runtimeFile = objectFactory.fileProperty();
@@ -70,6 +73,11 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     @Override
     public ConfigurableFileCollection getOutputs() {
         return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getPdbFile() {
+        return pdbFile;
     }
 
     @Override

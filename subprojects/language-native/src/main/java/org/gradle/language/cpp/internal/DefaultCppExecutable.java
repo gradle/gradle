@@ -34,6 +34,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.nativeplatform.ComponentWithPdbFile;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -48,7 +49,8 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ComponentWithPdbFile, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+    private final RegularFileProperty pdbFile;
     private final RegularFileProperty executableFile;
     private final Property<Task> executableFileProducer;
     private final DirectoryProperty installationDirectory;
@@ -61,6 +63,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Inject
     public DefaultCppExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.pdbFile = objectFactory.fileProperty();
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         this.debuggerExecutableFile = objectFactory.fileProperty();
@@ -74,6 +77,11 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public ConfigurableFileCollection getOutputs() {
         return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getPdbFile() {
+        return pdbFile;
     }
 
     @Override
