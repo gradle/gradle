@@ -52,6 +52,6 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
     String[] getTasksToBuildAndRunUnitTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
-
+    
     protected abstract XCTestSourceElement getPassingTestFixture()
 }

@@ -540,7 +540,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getUniquePragmaOutput(String message) {
-        if (toolChain.displayName == "clang") {
+        if (toolChain.displayName.startsWith("clang")) {
             return "warning: ${message}"
         } else if (toolChain.displayName.startsWith("gcc") || toolChain.displayName == "mingw") {
             return "message: ${message}"

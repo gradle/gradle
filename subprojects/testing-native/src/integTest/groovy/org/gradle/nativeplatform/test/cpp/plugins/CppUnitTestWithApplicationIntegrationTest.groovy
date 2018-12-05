@@ -82,4 +82,9 @@ class CppUnitTestWithApplicationIntegrationTest extends AbstractNativeUnitTestIn
     protected String[] getTasksToAssembleComponentUnderTest() {
         return [":linkDebug", ":installDebug"]
     }
+
+    @Override
+    protected String[] getTasksToRelocate(String architecture) {
+        return tasks.withArchitecture(architecture).test.relocate
+    }
 }
