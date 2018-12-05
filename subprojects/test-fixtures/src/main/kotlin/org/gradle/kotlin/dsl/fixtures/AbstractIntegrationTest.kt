@@ -231,7 +231,6 @@ fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
 )
 
 
-private
 fun gradleRunnerFor(projectDir: File, vararg arguments: String): GradleRunner = GradleRunner.create().run {
     withGradleInstallation(customInstallation())
     withProjectDir(projectDir)

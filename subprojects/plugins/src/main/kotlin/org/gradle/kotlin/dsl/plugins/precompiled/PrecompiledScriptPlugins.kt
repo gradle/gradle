@@ -40,8 +40,6 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-import java.io.File
-
 
 /*
  * Exposes `*.gradle.kts` scripts from regular Kotlin source-sets as binary Gradle plugins.
@@ -149,68 +147,16 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptS
     val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
     sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
-    val generateScriptPluginAdapters by tasks.registering {
-        inputs.files(scriptSourceFiles)
-        outputs.dir(generatedSourcesDir)
-        doLast {
-            val outputDir = generatedSourcesDir.get().asFile
-            for (scriptPlugin in scriptPlugins) {
-                scriptPlugin.writeScriptPluginAdapterTo(outputDir)
-            }
-        }
+    val generateScriptPluginAdapters by tasks.registering(GenerateScriptPluginAdapters::class) {
+        scripts = scriptSourceFiles
+        plugins = scriptPlugins
+        outputDirectory.set(generatedSourcesDir)
     }
 
     tasks.named("compileKotlin") {
         it.dependsOn(generateScriptPluginAdapters)
     }
 }
-
-
-internal
-fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
-
-    val (packageDir, packageDeclaration) =
-        packageName?.let { packageName ->
-            packageDir(outputDir, packageName) to "package $packageName"
-        } ?: outputDir to ""
-
-    val outputFile =
-        packageDir.resolve("$simplePluginAdapterClassName.kt")
-
-    outputFile.writeText("""
-
-        $packageDeclaration
-
-        /**
-         * Precompiled [$scriptFileName][$compiledScriptTypeName] script plugin.
-         *
-         * @see $compiledScriptTypeName
-         */
-        class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
-            override fun apply(target: $targetType) {
-                try {
-                    Class
-                        .forName("$compiledScriptTypeName")
-                        .getDeclaredConstructor($targetType::class.java)
-                        .newInstance(target)
-                } catch (e: java.lang.reflect.InvocationTargetException) {
-                    throw e.targetException
-                }
-            }
-        }
-
-    """.replaceIndent().trim() + "\n")
-}
-
-
-private
-fun packageDir(outputDir: File, packageName: String) =
-    outputDir.mkdir(packageName.replace('.', '/'))
-
-
-private
-fun File.mkdir(relative: String) =
-    resolve(relative).apply { mkdirs() }
 
 
 private
