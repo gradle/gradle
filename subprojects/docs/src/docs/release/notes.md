@@ -29,6 +29,26 @@ Instead of listing all available tasks, [`gradle tasks` can now show only the ta
 
 This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
 
+## Repository content filtering
+
+It is now possible to match repositories to dependencies, so that Gradle doesn't search for a dependency in a repository if it's never going to be found there.
+
+Example:
+```
+repositories {
+    maven {
+        url "https://repo.mycompany.com"
+        content {
+           includeGroupByRegex "com\\.mycompany.*"
+        }
+    }
+}
+```
+
+This filtering can also be used to separate snapshot repositories from release repositories.
+
+Look at the [userguide](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
+
 ## Improvements for plugin authors
 
 ### Conveniences for properties of type Map
