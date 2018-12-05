@@ -70,7 +70,7 @@ public abstract class OperatingSystemFamily implements Named {
      * The macOS operating system family.
      *
      */
-    public static final String MACOS = "macOS";
+    public static final String MACOS = "macos";
 
     /**
      * Is this the macOS operating system family?
