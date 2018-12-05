@@ -87,7 +87,7 @@ class DefaultSwiftComponentTest extends Specification {
         def f1 = tmpDir.createFile("src/a/swift/a.swift")
         def f2 = tmpDir.createFile("src/b/swift/b.swift")
         def c1 = new TestComponent("a", fileOperations, objectFactory)
-        def c2 = new TestComponent("b", fileOperations, objectFactory, targetMachineFactory)
+        def c2 = new TestComponent("b", fileOperations, objectFactory)
 
         expect:
         c1.swiftSource.files == [f1] as Set
