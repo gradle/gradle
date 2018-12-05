@@ -66,7 +66,7 @@ class ScriptHandlerScopeTest {
         val constraintHandler = mock<DependencyConstraintHandler> {
             on { add(any(), any()) } doReturn constraint
         }
-        val dependencies = mock<DependencyHandler>(arrayOf(ExtensionAware::class)) {
+        val dependencies = newDependencyHandlerMock {
             on { constraints } doReturn constraintHandler
             on { constraints(any()) } doAnswer {
                 (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)

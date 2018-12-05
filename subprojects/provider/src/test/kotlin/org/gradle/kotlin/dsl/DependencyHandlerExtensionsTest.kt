@@ -311,8 +311,8 @@ class DependencyHandlerExtensionsTest {
             verifyNoMoreInteractions()
         }
     }
-
-    private
-    fun newDependencyHandlerMock(stubbing: KStubbing<DependencyHandler>.(DependencyHandler) -> Unit = {}) =
-        mock<DependencyHandler>(extraInterfaces = arrayOf(ExtensionAware::class), stubbing = stubbing)
 }
+
+
+fun newDependencyHandlerMock(stubbing: KStubbing<DependencyHandler>.(DependencyHandler) -> Unit = {}) =
+    mock<DependencyHandler>(extraInterfaces = arrayOf(ExtensionAware::class), stubbing = stubbing)
