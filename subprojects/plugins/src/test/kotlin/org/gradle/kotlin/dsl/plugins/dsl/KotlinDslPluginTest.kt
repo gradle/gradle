@@ -16,8 +16,6 @@ import org.hamcrest.CoreMatchers.not
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-import java.io.File
-
 
 class KotlinDslPluginTest : AbstractPluginTest() {
 
@@ -343,10 +341,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
     }
-
-    private
-    fun escapedPathOf(file: File) =
-        file.absolutePath.replace("\\", "\\\\")
 
     private
     fun outputOf(vararg arguments: String) =
