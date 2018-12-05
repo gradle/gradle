@@ -108,19 +108,36 @@ object DefaultResolverEventLogger : ResolverEventLogger {
     fun now() = GregorianCalendar.getInstance().time
 
     private
-    fun cleanupLogDirectory(logDir: File) {
-        val expiration = GregorianCalendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -cleanupAfterDays) }.time
-        logDir.listFiles { file ->
-            file.isFile && file.name.matches(resolverLogFilenameRegex) && Date(file.lastModified()).before(expiration)
-        }.forEach { it.delete() }
-    }
+    const val cleanupAfterDays = 1
+
+    private
+    const val logFilesExpireAfterDays = 7
+
+    private
+    fun cleanupLogDirectory(logDir: File) =
+        readyForCleanup(logDir) {
+            val expiration = daysAgo(logFilesExpireAfterDays)
+            logDir.listFiles { file ->
+                file.isFile && file.name.matches(resolverLogFilenameRegex) && Date(file.lastModified()).before(expiration)
+            }.forEach { it.delete() }
+        }
+
+    private
+    fun readyForCleanup(logDir: File, cleanup: () -> Unit) =
+        logDir.resolve(".cleanup").run {
+            if (!isFile || (isFile && Date(lastModified()).before(daysAgo(cleanupAfterDays)))) {
+                cleanup()
+                writeBytes(ByteArray(0))
+            }
+        }
+
+    private
+    fun daysAgo(days: Int) =
+        GregorianCalendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -days) }.time
 
     private
     val resolverLogFilenameRegex =
         Regex("resolver-\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{3}\\.log")
-
-    private
-    const val cleanupAfterDays = 7
 
     internal
     fun prettyPrint(e: ResolverEvent): String = e.run {
