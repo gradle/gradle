@@ -40,6 +40,8 @@ class ScriptBuildCacheKey(
     override fun getDisplayName(): String = displayName
 
     override fun getHashCode(): String = cacheKey
+
+    override fun toString(): String = cacheKey
 }
 
 

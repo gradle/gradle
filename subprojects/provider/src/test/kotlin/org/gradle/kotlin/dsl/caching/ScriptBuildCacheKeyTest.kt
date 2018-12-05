@@ -30,7 +30,16 @@ class ScriptBuildCacheKeyTest {
     fun `it discards the local cache key prefix`() {
 
         assertThat(
-            buildCacheKeyFor("gradle-kotlin-dsl/dx7phw87epyvb7zje5dti3tvl"),
+            buildCacheKeyFor("gradle-kotlin-dsl/dx7phw87epyvb7zje5dti3tvl").hashCode,
+            equalTo("dx7phw87epyvb7zje5dti3tvl")
+        )
+    }
+
+    @Test
+    fun `toString is the hashCode`() {
+
+        assertThat(
+            buildCacheKeyFor("gradle-kotlin-dsl/dx7phw87epyvb7zje5dti3tvl").toString(),
             equalTo("dx7phw87epyvb7zje5dti3tvl")
         )
     }
@@ -38,5 +47,4 @@ class ScriptBuildCacheKeyTest {
     private
     fun buildCacheKeyFor(cacheKey: String) =
         ScriptBuildCacheKey("", cacheKey)
-            .hashCode
 }
