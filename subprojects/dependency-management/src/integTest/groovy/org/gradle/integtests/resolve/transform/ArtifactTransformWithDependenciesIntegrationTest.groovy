@@ -287,7 +287,7 @@ project(':app') {
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
-    def "transform with changed dependencies are re-executed"() {
+    def "transform with non-ABI change in dependencies are up-to-date"() {
         given:
         buildFile << """
 project(':app') {
@@ -320,14 +320,69 @@ project(':app') {
         outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 3
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 4
         outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
         outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
 
-        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
-        outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
+        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 1
         outputLines.any { it == "Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar" }
         outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
-        outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar" }
+    }
+
+    def "transform with ABI-change in dependencies are re-executed"() {
+        given:
+        buildFile << """
+project(':app') {
+    task resolve(type: Copy) {
+        def artifacts = configurations.compileClasspath.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'size') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+    }
+}
+
+project(':lib') {
+    dependencies {
+        if (rootProject.hasProperty("useOldABIDependencyVersion")) {
+            api 'com.google.guava:guava:19.0'
+        } else {
+            api 'com.google.guava:guava:21.0'
+        }         
+    }
+}
+"""
+        run "resolve", "-PuseOldABIDependencyVersion"
+
+        when:
+        run "resolve", "-PuseOldABIDependencyVersion", "--info"
+        def outputLines = output.readLines()
+
+        then:
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 6
+        outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.25.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*guava-19.0.jar as it is up-to-date./ }
+
+        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 0
+
+        when:
+        run "resolve", "--info"
+        outputLines = output.readLines()
+
+        then:
+        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 4
+        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.25.jar as it is up-to-date./ }
+
+        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
+        outputLines.any { it ==~ /TestTransform: .*guava-21.0.jar is not up-to-date because:/ }
+        outputLines.any { it == "Single step transform received dependencies files [] for processing guava-21.0.jar" }
+        outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
+        outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar, guava-21.0.jar] for processing lib.jar" }
     }
 }

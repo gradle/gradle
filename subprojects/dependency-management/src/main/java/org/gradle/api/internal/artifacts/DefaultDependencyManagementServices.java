@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
@@ -119,7 +119,7 @@ import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -245,8 +245,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
-                                                    // For now we assume absolute paths when dealing with dependencies
-                                                    AbsolutePathFileCollectionFingerprinter dependencyFingerprinter,
+                                                    // For now we assume compile classpath normalization when dealing with dependencies
+                                                    CompileClasspathFingerprinter dependencyFingerprinter,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                                     ProjectFinder projectFinder,
