@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.configureWith
 
@@ -42,7 +43,7 @@ class ScriptHandlerScopeTest {
     fun `can exclude modules from classpath dependency`() {
 
         val dependency = mock<ExternalModuleDependency>()
-        val dependencies = mock<DependencyHandler> {
+        val dependencies = mock<DependencyHandler>(arrayOf(ExtensionAware::class)) {
             on { create("...") } doReturn dependency
         }
         val buildscript = mock<ScriptHandler> {
@@ -65,7 +66,7 @@ class ScriptHandlerScopeTest {
         val constraintHandler = mock<DependencyConstraintHandler> {
             on { add(any(), any()) } doReturn constraint
         }
-        val dependencies = mock<DependencyHandler> {
+        val dependencies = newDependencyHandlerMock {
             on { constraints } doReturn constraintHandler
             on { constraints(any()) } doAnswer {
                 (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)

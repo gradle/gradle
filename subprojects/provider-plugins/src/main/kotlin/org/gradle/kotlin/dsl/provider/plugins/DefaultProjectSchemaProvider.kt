@@ -20,6 +20,7 @@ import org.gradle.api.NamedDomainObjectCollectionSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.HasPublicType
@@ -82,6 +83,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
             }
+            collectSchemaOf(target.dependencies, typeOfDependencyHandler)
             // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
@@ -161,6 +163,10 @@ val typeOfConfigurationContainer = typeOf<NamedDomainObjectContainer<Configurati
 
 private
 val typeOfSourceSet = typeOf<SourceSet>()
+
+
+private
+val typeOfDependencyHandler = typeOf<DependencyHandler>()
 
 
 private

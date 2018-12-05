@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.KStubbing
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -19,6 +20,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.plugins.ExtensionAware
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -40,7 +42,7 @@ class DependencyHandlerExtensionsTest {
             "classifier" to "cls",
             "ext" to "x")
 
-        val dependencies: DependencyHandler = mock()
+        val dependencies = newDependencyHandlerMock()
         val dependency: ExternalModuleDependency = mock()
         whenever(dependencies.create(expectedModuleMap)).thenReturn(dependency)
 
@@ -58,7 +60,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given group and module, 'exclude' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope.of(mock())
+        val dependencies = DependencyHandlerScope.of(newDependencyHandlerMock())
         val dependency: ExternalModuleDependency = mock()
         val events = mutableListOf<String>()
         whenever(dependencies.create("dependency")).then {
@@ -93,7 +95,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given path and configuration, 'project' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope.of(mock())
+        val dependencies = DependencyHandlerScope.of(newDependencyHandlerMock())
         val dependency: ProjectDependency = mock()
         val events = mutableListOf<String>()
         val expectedProjectMap = mapOf("path" to ":project", "configuration" to "default")
@@ -126,7 +128,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given configuration name and dependency notation, it will add the dependency`() {
 
-        val dependencyHandler = mock<DependencyHandler> {
+        val dependencyHandler = newDependencyHandlerMock {
             on { add(any(), any()) } doReturn mock<Dependency>()
         }
 
@@ -141,7 +143,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given configuration and dependency notation, it will add the dependency to the named configuration`() {
 
-        val dependencyHandler = mock<DependencyHandler> {
+        val dependencyHandler = newDependencyHandlerMock {
             on { add(any(), any()) } doReturn mock<Dependency>()
         }
         val configuration = mock<Configuration> {
@@ -167,7 +169,7 @@ class DependencyHandlerExtensionsTest {
         val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
         val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
 
-        val dependencies = mock<DependencyHandler> {
+        val dependencies = newDependencyHandlerMock {
             on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule
 
             on { create("commons-cli:commons-cli:1.0") } doReturn commonsCliDependency
@@ -214,7 +216,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `dependency on configuration using string notation doesn't cause IllegalStateException`() {
 
-        val dependencyHandler = mock<DependencyHandler> {
+        val dependencyHandler = newDependencyHandlerMock {
             on { add(any(), any()) }.thenReturn(null)
         }
 
@@ -231,7 +233,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `dependency on configuration doesn't cause IllegalStateException`() {
 
-        val dependencyHandler = mock<DependencyHandler> {
+        val dependencyHandler = newDependencyHandlerMock {
             on { add(any(), any()) }.thenReturn(null)
         }
 
@@ -257,7 +259,7 @@ class DependencyHandlerExtensionsTest {
             on { add(any(), any()) } doReturn constraint
             on { add(any(), any(), any()) } doReturn constraint
         }
-        val dependenciesHandler = mock<DependencyHandler> {
+        val dependenciesHandler = newDependencyHandlerMock {
             on { constraints } doReturn constraintHandler
             on { constraints(any()) } doAnswer {
                 (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)
@@ -310,3 +312,7 @@ class DependencyHandlerExtensionsTest {
         }
     }
 }
+
+
+fun newDependencyHandlerMock(stubbing: KStubbing<DependencyHandler>.(DependencyHandler) -> Unit = {}) =
+    mock<DependencyHandler>(extraInterfaces = arrayOf(ExtensionAware::class), stubbing = stubbing)
