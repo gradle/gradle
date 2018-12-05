@@ -140,21 +140,24 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.name("version");
         jsonWriter.beginObject();
 
+        String required = !versionConstraint.getRequiredVersion().isEmpty() ? versionConstraint.getRequiredVersion() : null;
+        String preferred = !versionConstraint.getPreferredVersion().isEmpty() ? versionConstraint.getPreferredVersion() : null;
+        if (resolvedVersion != null) {
+            required = resolvedVersion;
+            preferred = null;
+        }
+
         // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
         // Only publish the defining constraint.
         if (!versionConstraint.getStrictVersion().isEmpty()) {
             jsonWriter.name("strictly");
             jsonWriter.value(versionConstraint.getStrictVersion());
-        } else if (!versionConstraint.getRequiredVersion().isEmpty()) {
+        } else if (required != null) {
             jsonWriter.name("requires");
-            jsonWriter.value(versionConstraint.getRequiredVersion());
-        } else if (!versionConstraint.getPreferredVersion().isEmpty()) {
+            jsonWriter.value(required);
+        } else if (preferred != null) {
             jsonWriter.name("prefers");
-            jsonWriter.value(versionConstraint.getPreferredVersion());
-        }
-        if (resolvedVersion != null) {
-            jsonWriter.name("resolved");
-            jsonWriter.value(resolvedVersion);
+            jsonWriter.value(preferred);
         }
         List<String> rejectedVersions = versionConstraint.getRejectedVersions();
         if (!rejectedVersions.isEmpty()) {

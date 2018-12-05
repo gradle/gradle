@@ -55,17 +55,17 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         then:
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("api") {
-            dependency("org.test:foo:+") {
-                resolvesTo '1.0'
+            dependency("org.test:foo:1.0") {
+                exists()
             }
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("runtime") {
-            dependency("org.test:foo:+") {
-                resolvesTo '1.0'
+            dependency("org.test:foo:1.0") {
+                exists()
             }
-            dependency("org.test:bar:+") {
-                resolvesTo '1.1'
+            dependency("org.test:bar:1.1") {
+                exists()
             }
             noMoreDependencies()
         }
@@ -140,16 +140,16 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("api") {
             dependency("org.test:foo:1.0") {
-                didNotResolve()
+                exists()
             }
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("runtime") {
             dependency("org.test:foo:1.0") {
-                resolvesTo '1.0'
+                exists()
             }
-            dependency("org.test:bar:1.0") {
-                resolvesTo '1.1'
+            dependency("org.test:bar:1.1") {
+                exists()
             }
             noMoreDependencies()
         }
@@ -157,8 +157,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         and:
         resolveArtifacts(javaLibrary) {
             withModuleMetadata {
-                // because we don't use "resolved" when resolving yet
-                expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
                 expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
@@ -178,8 +177,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         and:
         resolveRuntimeArtifacts(javaLibrary) {
             withModuleMetadata {
-                // because we don't use "resolved" when resolving yet
-                expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
                 expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
