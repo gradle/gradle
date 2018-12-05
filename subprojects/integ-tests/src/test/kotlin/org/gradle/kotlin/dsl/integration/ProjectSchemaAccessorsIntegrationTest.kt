@@ -582,7 +582,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            val adhocConfig: Configuration by configurations.creating
+            val adhocConfig by configurations.creating
             configurations.create("for-string-invoke")
 
             (artifacts) {
