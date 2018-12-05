@@ -293,7 +293,6 @@ public class ModuleMetadataParser {
         String requiredVersion = "";
         String preferredVersion = "";
         String strictVersion = "";
-        String resolved = "";
         List<String> rejects = Lists.newArrayList();
         while (reader.peek() != END_OBJECT) {
             // At this stage, 'strictly' implies 'requires'.
@@ -311,9 +310,6 @@ public class ModuleMetadataParser {
                     rejects.add(reader.nextString());
                 }
                 reader.endArray();
-            } else if ("resolved".equals(cst)) {
-                // TODO CC: do something with the resolved version
-                resolved = reader.nextString();
             }
         }
         reader.endObject();
