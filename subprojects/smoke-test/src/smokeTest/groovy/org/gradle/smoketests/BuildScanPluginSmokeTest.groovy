@@ -25,6 +25,7 @@ import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.MIN_S
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> GRACEFULLY_UNSUPPORTED_WITHOUT_FAILURE = [
+            "2.0.2",
             "2.0.1",
             "2.0",
             "1.16",
@@ -33,7 +34,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     ]
 
     private static final List<String> SUPPORTED = [
-            "2.0.2"
+            "2.1-rc-1-20181205122938-release"
     ]
 
     @Unroll
