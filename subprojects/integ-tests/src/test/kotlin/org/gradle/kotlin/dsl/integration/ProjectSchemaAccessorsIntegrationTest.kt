@@ -1000,6 +1000,35 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         build("help")
     }
 
+    @Test
+    fun `accessors to extensions of the dependency handler`() {
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/Mine.kt", """
+            open class Mine {
+                val some = 19
+                val more = 23
+            }
+        """)
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            (dependencies as ExtensionAware).extensions.create<Mine>("mine")
+        """)
+
+        withBuildScript("""
+            plugins {
+                `my-plugin`
+            }
+
+            dependencies {
+                println(mine.some + project.dependencies.mine.more)
+            }
+        """.trimIndent())
+
+        build("help").apply {
+            assertThat(output, containsString("42"))
+        }
+    }
+
     private
     fun withBuildSrc(contents: FoldersDslExpression) {
         withFolders {

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.plugins.ExtensionAware
 
 
 /**
@@ -28,14 +29,19 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
  *
  * @see [DependencyHandler]
  */
-class DependencyHandlerScope
+open class DependencyHandlerScope
 private constructor(
     val dependencies: DependencyHandler
 ) : DependencyHandler by dependencies {
 
     companion object {
         fun of(dependencies: DependencyHandler) =
-            DependencyHandlerScope(dependencies)
+            ExtensionAwareDependencyHandlerScope(dependencies) as DependencyHandlerScope
+
+        private
+        class ExtensionAwareDependencyHandlerScope(
+            dependencies: DependencyHandler
+        ) : DependencyHandlerScope(dependencies), ExtensionAware by (dependencies as ExtensionAware)
     }
 
     /**
