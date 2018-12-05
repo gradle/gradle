@@ -30,9 +30,9 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, callbackActionDecorator)
 
-    final boolean supportsBuildOperations = false
+    final boolean supportsBuildOperations = true
 
     @Override
     final PolymorphicDomainObjectContainer<Person> getContainer() {

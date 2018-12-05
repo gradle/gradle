@@ -131,7 +131,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     protected NamedDomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
         assertCanAdd(name);
         NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), getEventRegister().getDecorator().decorate(configurationAction))
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), configurationAction)
         );
         addLater(provider);
         return provider;
