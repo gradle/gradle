@@ -26,11 +26,17 @@ After making changes, you can test them by running `./gradlew check`.
 
 To try out a change in behavior manually, use the Gradle distribution from `./build/custom`, just make sure to stop all Gradle daemons before using it (`./gradlew --stop`).
 
-You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach at debugger at `localhost:5005` by default. We recommend disabling the Gradle Daemon when debugging (`--no-daemon`).
+You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach at debugger at `localhost:5005` by default.
 
 ### Getting Help
 
-If you run into any trouble, please reach out to us in the #gradle channel of the public [Kotlin Slack](https://kotlinlang.slack.com) instance.
+If you run into any trouble, please reach out to us in the #kotlin-dsl channel of the [Gradle Community Slack](https://join.slack.com/t/gradle-community/shared_invite/enQtNDE3MzAwNjkxMzY0LTYwMTk0MWUwN2FiMzIzOWM3MzBjYjMxNWYzMDE1NGIwOTJkMTQ2NDEzOGM2OWIzNmU1ZTk5MjVhYjFhMTI3MmE).
+
+### Resources
+
+* The [Gradle Kotlin DSL Primer](https://docs.gradle.org/current/userguide/kotlin_dsl.html) is a must read.
+* The Gradle [user manual](https://docs.gradle.org/current/userguide/userguide.html) and [guides](https://gradle.org/guides/) contain Kotlin DSL build script samples that demonstrate how to use all Gradle features.
+* Some [diagrams](../doc/c4) provide a good overview of how the Kotlin DSL is structured and interacts with Gradle, Gradle plugins, IDEs.
 
 ### Creating Commits And Writing Commit Messages
 
