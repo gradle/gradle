@@ -590,9 +590,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 adhocConfig(file("second.txt")) {
                     setType("other-type")
                 }
+                "for-string-invoke"(file("first.txt"))
+                "for-string-invoke"(file("second.txt")) {
+                    setType("other-type")
+                }
             }
 
-            listOf(configurations.myConfig.get(), adhocConfig).forEach { config ->
+            listOf(configurations.myConfig.get(), adhocConfig, configurations["for-string-invoke"]).forEach { config ->
                 config.artifacts.forEach { artifact ->
                     println("${'$'}{config.name} -> ${'$'}{artifact.name}:${'$'}{artifact.extension}:${'$'}{artifact.type}")
                 }

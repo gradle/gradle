@@ -48,6 +48,27 @@ private constructor(
      * @return The artifact.
      * @see [ArtifactHandler.add]
      */
+    operator fun String.invoke(artifactNotation: Any): PublishArtifact =
+        artifacts.add(this, artifactNotation)
+
+    /**
+     * Adds an artifact to the given configuration.
+     *
+     * @param artifactNotation notation of the artifact to add.
+     * @param configureAction the action to execute to configure the artifact.
+     * @return The artifact.
+     * @see [ArtifactHandler.add]
+     */
+    operator fun String.invoke(artifactNotation: Any, configureAction: ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
+        artifacts.add(this, artifactNotation, configureAction)
+
+    /**
+     * Adds an artifact to the given configuration.
+     *
+     * @param artifactNotation notation of the artifact to add.
+     * @return The artifact.
+     * @see [ArtifactHandler.add]
+     */
     operator fun Configuration.invoke(artifactNotation: Any): PublishArtifact =
         add(name, artifactNotation)
 
