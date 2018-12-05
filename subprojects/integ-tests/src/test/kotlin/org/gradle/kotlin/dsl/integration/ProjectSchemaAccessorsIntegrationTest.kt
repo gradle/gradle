@@ -582,8 +582,24 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            configurations.myConfig.artifacts.forEach {
-                println("${"$"}{it.name}:${"$"}{it.extension}:${"$"}{it.type}")
+            val adhocConfig by configurations.creating
+            configurations.create("for-string-invoke")
+
+            (artifacts) {
+                adhocConfig(file("first.txt"))
+                adhocConfig(file("second.txt")) {
+                    setType("other-type")
+                }
+                "for-string-invoke"(file("first.txt"))
+                "for-string-invoke"(file("second.txt")) {
+                    setType("other-type")
+                }
+            }
+
+            listOf(configurations.myConfig.get(), adhocConfig, configurations["for-string-invoke"]).forEach { config ->
+                config.artifacts.forEach { artifact ->
+                    println("${'$'}{config.name} -> ${'$'}{artifact.name}:${'$'}{artifact.extension}:${'$'}{artifact.type}")
+                }
             }
         """)
 
@@ -592,8 +608,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             result.output,
             allOf(
-                containsString("first:txt:txt"),
-                containsString("second:txt:other-type")))
+                containsString("myConfig -> first:txt:txt"),
+                containsString("myConfig -> second:txt:other-type"),
+                containsString("adhocConfig -> first:txt:txt"),
+                containsString("adhocConfig -> second:txt:other-type")
+            )
+        )
     }
 
     @Test

@@ -16,18 +16,19 @@
 
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.hamcrest.CoreMatchers.equalTo
+
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
+
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -45,48 +46,62 @@ class ArtifactHandlerExtensionsTest {
         val configuration: Configuration = mock {
             on { name } doReturn "configName"
         }
-        val notation = "a:b:c"
+        val firstNotation = "a:b:c"
+        val secondNotation = "d:e:f"
 
-        lateinit var returnedArtifact: PublishArtifact
+        lateinit var firstArtifact: PublishArtifact
+        lateinit var secondArtifact: PublishArtifact
         artifacts {
-            returnedArtifact = configuration(notation)
+            firstArtifact = configuration(firstNotation)
+            secondArtifact = "string-invoke"(secondNotation)
         }
 
-        verify(artifactHandler).add("configName", notation)
+        verify(artifactHandler).add("configName", firstNotation)
+        verify(artifactHandler).add("string-invoke", secondNotation)
 
-        assertThat(returnedArtifact, sameInstance(publishArtifact))
+        assertThat(firstArtifact, sameInstance(publishArtifact))
+        assertThat(secondArtifact, sameInstance(publishArtifact))
     }
 
     @Test
     fun `add artifact with publish artifact configuration block`() {
-        val publishArtifact: PublishArtifact = mock()
-        val configurablePublishArtifact: ConfigurablePublishArtifact = mock()
+
+        val firstConfiguredArtifact: ConfigurablePublishArtifact = mock()
+        val secondConfiguredArtifact: ConfigurablePublishArtifact = mock()
         val artifactHandler: ArtifactHandler = mock {
-            on { add(any(), any(), any<Action<in ConfigurablePublishArtifact>>()) } doReturn publishArtifact
+            on { add(any(), any(), any<Action<in ConfigurablePublishArtifact>>()) } doAnswer { invocation ->
+                val action = invocation.getArgument<Action<in ConfigurablePublishArtifact>>(2)
+                when (invocation.getArgument<String>(0)) {
+                    "configName" -> firstConfiguredArtifact.also(action::invoke)
+                    "string-invoke" -> secondConfiguredArtifact.also(action::invoke)
+                    else -> null
+                }
+            }
         }
         val artifacts = ArtifactHandlerScope.of(artifactHandler)
         val configuration: Configuration = mock {
             on { name } doReturn "configName"
         }
-        val notation = "a:b:c"
+        val firstNotation = "a:b:c"
+        val secondNotation = "d:e:f"
 
-        lateinit var returnedArtifact: PublishArtifact
+        lateinit var firstArtifact: PublishArtifact
+        lateinit var secondArtifact: PublishArtifact
         artifacts {
-            returnedArtifact = configuration(notation) {
-                configurablePublishArtifact.extension = "zip"
+            firstArtifact = configuration(firstNotation) {
+                extension = "zip"
+            }
+            secondArtifact = "string-invoke"(secondNotation) {
+                extension = "zip"
             }
         }
 
-        argumentCaptor<Action<in ConfigurablePublishArtifact>>().apply {
-            verify(artifactHandler).add(
-                eq("configName"),
-                eq(notation),
-                capture()
-            )
-            assertThat(allValues.size, equalTo(1))
-            firstValue(configurablePublishArtifact)
-        }
-        verify(configurablePublishArtifact).extension = "zip"
-        assertThat(returnedArtifact, sameInstance(publishArtifact))
+        verify(artifactHandler).add(eq("configName"), eq(firstNotation), any<Action<ConfigurablePublishArtifact>>())
+        verify(firstConfiguredArtifact).extension = "zip"
+        assertThat(firstArtifact, sameInstance(firstConfiguredArtifact as PublishArtifact))
+
+        verify(artifactHandler).add(eq("string-invoke"), eq(secondNotation), any<Action<ConfigurablePublishArtifact>>())
+        verify(secondConfiguredArtifact).extension = "zip"
+        assertThat(secondArtifact, sameInstance(secondArtifact as PublishArtifact))
     }
 }
