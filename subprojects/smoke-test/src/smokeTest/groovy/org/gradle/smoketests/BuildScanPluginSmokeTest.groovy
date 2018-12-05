@@ -34,7 +34,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     ]
 
     private static final List<String> SUPPORTED = [
-            "2.1-rc-1-20181205122938-release"
+            "2.0.2"
     ]
 
     @Unroll
