@@ -37,6 +37,7 @@ import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.nativeplatform.CppLanguageStandard;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -116,6 +117,9 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         if (binary instanceof CppSharedLibrary) {
                             compile.setPositionIndependentCode(true);
                         }
+
+                        // default to using the compiler's default language standard
+                        compile.getLanguageStandard().set((CppLanguageStandard) null);
                     }
                 });
 
