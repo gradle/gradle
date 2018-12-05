@@ -25,7 +25,7 @@ data class CIBuildModel (
         val rootProjectName: String = "R4",
         val tagBuilds: Boolean = true,
         val publishStatusToGitHub: Boolean = true,
-        val masterAndReleaseBranches: List<String> = listOf("master", "release"),
+        val masterAndReleaseBranches: List<String> = listOf("release-4.10"),
         val parentBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val buildScanTags: List<String> = emptyList(),
