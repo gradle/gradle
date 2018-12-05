@@ -65,7 +65,6 @@ import java.util.concurrent.Callable;
  * @param <T> Type of value represented by provider
  * @since 4.0
  */
-@Incubating
 @HasInternalProtocol
 @NonExtensible
 public interface Provider<T> {
@@ -120,6 +119,7 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. Should not return {@code null}.
      * @since 5.0
      */
+    @Incubating
     <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
 
     /**

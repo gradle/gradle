@@ -123,4 +123,159 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
+
+    def "transform with two attributes will not confuse"() {
+        given:
+        buildFile << """
+class AarRelease extends ArtifactTransform {
+    AarRelease() {
+        println "Creating AarRelease"
+    }
+    
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name.replace(".jar",".release.aar"))
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+class AarDebug extends ArtifactTransform {
+    AarDebug() {
+        println "Creating AarDebug"
+    }
+    
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name.replace(".jar",".debug.aar"))
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+class AarClasses extends ArtifactTransform {
+    AarClasses() {
+        println "Creating AarClasses"
+    }
+    
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name.replace(".aar",".classes"))
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+} 
+
+
+def buildType = Attribute.of('buildType', String)
+def artifactType = Attribute.of('artifactType', String)
+
+projectDir.mkdirs()
+def jar1 = file('lib1.jar')
+jar1.text = 'some text'
+
+configurations {
+    compile
+}
+
+dependencies {
+    attributesSchema {
+        attribute(buildType)
+    }
+
+    compile files(jar1)
+
+    registerTransform {
+        from.attribute(artifactType, 'jar')
+        to.attribute(artifactType, 'aar')
+
+        from.attribute(buildType, 'default')
+        to.attribute(buildType, 'release')
+
+        artifactTransform(AarRelease)
+    }
+    
+    registerTransform {
+        from.attribute(artifactType, 'jar')
+        to.attribute(artifactType, 'aar')
+
+        from.attribute(buildType, 'default')
+        to.attribute(buildType, 'debug')
+
+        artifactTransform(AarDebug)
+    }
+    
+    registerTransform {
+        from.attribute(artifactType, 'aar')
+        to.attribute(artifactType, 'classes')
+
+        artifactTransform(AarClasses)
+    }
+}
+
+task resolveReleaseClasses {
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { 
+            it.attribute(artifactType, 'classes') 
+            it.attribute(buildType, 'release') 
+        }
+    }.artifacts
+    inputs.files artifacts.artifactFiles
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+        println "content: " + artifacts.collect { it.file.text }
+    }
+}
+
+
+task resolveTestClasses {
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { 
+            it.attribute(artifactType, 'classes') 
+            it.attribute(buildType, 'test') 
+        }
+    }.artifacts
+    inputs.files artifacts.artifactFiles
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+        println "content: " + artifacts.collect { it.file.text }
+    }
+}
+        """
+
+        when:
+        run "resolveReleaseClasses"
+
+        then:
+        outputContains("files: [lib1.release.classes]")
+        outputContains("ids: [lib1.release.classes (lib1.jar)]")
+        outputContains("components: [lib1.jar]")
+        outputContains("variants: [{artifactType=classes, buildType=release}]")
+        outputContains("content: [1]")
+
+        and:
+        output.count("Transforming") == 2
+
+        when:
+        run "resolveTestClasses"
+
+        then:
+        outputContains("files: []")
+        outputContains("ids: []")
+        outputContains("components: []")
+        outputContains("variants: []")
+        outputContains("content: []")
+
+        and:
+        output.count("Transforming") == 0
+    }
 }
