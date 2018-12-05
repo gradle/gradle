@@ -26,6 +26,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
+
 public class GradleWrapperMain {
     public static final String GRADLE_USER_HOME_OPTION = "g";
     public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
@@ -59,7 +61,7 @@ public class GradleWrapperMain {
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
         wrapperExecutor.execute(
                 args,
-                new Install(logger, new Download(logger, "gradlew"), new PathAssembler(gradleUserHome)),
+                new Install(logger, new Download(logger, "gradlew", UNKNOWN_VERSION), new PathAssembler(gradleUserHome)),
                 new BootstrapMainStarter());
     }
 

@@ -20,10 +20,12 @@ import org.hamcrest.*;
 
 public class UserAgentMatcher extends BaseMatcher {
 
-    private final String applicationIdentifier;
+    private final String applicationName;
+    private final String version;
 
-    private UserAgentMatcher(String applicationIdentifier) {
-        this.applicationIdentifier = applicationIdentifier;
+    public UserAgentMatcher(String applicationName, String version) {
+        this.applicationName = applicationName;
+        this.version = version;
     }
 
     public void describeTo(Description description) {
@@ -32,12 +34,7 @@ public class UserAgentMatcher extends BaseMatcher {
 
     @Factory
     public static UserAgentMatcher matchesNameAndVersion(String applicationName, String version) {
-        return matchesIdentifier(applicationName + "/" + version);
-    }
-
-    @Factory
-    public static UserAgentMatcher matchesIdentifier(String applicationIdentifier) {
-        return new UserAgentMatcher(applicationIdentifier);
+        return new UserAgentMatcher(applicationName, version);
     }
 
     public boolean matches(Object o) {
@@ -52,6 +49,6 @@ public class UserAgentMatcher extends BaseMatcher {
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s (%s;%s;%s) (%s;%s;%s)", applicationIdentifier, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 }

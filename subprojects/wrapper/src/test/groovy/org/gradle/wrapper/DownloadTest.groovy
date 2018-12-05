@@ -32,7 +32,7 @@ class DownloadTest extends Specification {
         def sourceUrl = remoteFile.toURI()
 
         when:
-        def download = new Download(new Logger(true), "gradlew")
+        def download = new Download(new Logger(true), "gradlew", "aVersion")
         download.download(sourceUrl, destination)
 
         then:
