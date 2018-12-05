@@ -33,6 +33,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -56,6 +57,7 @@ import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -75,6 +77,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -123,7 +126,15 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), targetMachineFactory);
+                final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
+                Set<TargetMachine> targetMachines;
+                if (mainComponent != null) {
+                    testComponent.getTestedComponent().set(mainComponent);
+                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), mainComponent.getTargetMachines());
+                } else {
+                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), null);
+                }
+
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }
@@ -174,10 +185,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         testComponent.getTestBinary().set(binary);
 
                         // TODO: Publishing for test executable?
-                        final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
-                        if (mainComponent != null) {
-                            testComponent.getTestedComponent().set(mainComponent);
-                        }
                     }
                 }
 
@@ -382,5 +389,27 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
             }
         });
+    }
+
+    private Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> testTargetMachines, @Nullable SetProperty<TargetMachine> mainTargetMachines) {
+        if (mainTargetMachines != null && mainTargetMachines.isPresent()) {
+            if (!testTargetMachines.isPresent()) {
+                testTargetMachines.set(mainTargetMachines);
+            } else {
+                Set<TargetMachine> mainComponentTargetMachines = mainTargetMachines.get();
+                for (TargetMachine machine : testTargetMachines.get()) {
+                    if (!mainComponentTargetMachines.contains(machine)) {
+                        throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
+                    }
+                }
+            }
+        } else {
+            if (!testTargetMachines.isPresent()) {
+                testTargetMachines.empty().add(((DefaultTargetMachineFactory)targetMachineFactory).host());
+            }
+        }
+
+        testTargetMachines.finalizeValue();
+        return testTargetMachines.get();
     }
 }
