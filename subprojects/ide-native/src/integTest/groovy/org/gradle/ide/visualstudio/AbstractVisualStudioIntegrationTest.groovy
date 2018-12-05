@@ -23,6 +23,8 @@ import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 
 import static org.gradle.language.VariantContext.dimensions
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
+import static org.junit.Assume.assumeFalse
 
 abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
@@ -38,6 +40,8 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
     }
 
     def "ignores target machine not buildable from project configuration dimensions"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
         when:
         componentUnderTest.writeToProject(testDirectory)
         makeSingleProject()
@@ -61,6 +65,8 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
     }
 
     def "create visual studio solution for component with multiple target machines"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
         when:
         componentUnderTest.writeToProject(testDirectory)
         makeSingleProject()
