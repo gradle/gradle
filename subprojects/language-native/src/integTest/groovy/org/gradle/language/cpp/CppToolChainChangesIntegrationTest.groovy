@@ -97,13 +97,13 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'cpp-library'
                 library {
                     publicHeaders.from('src/main/headers')
-                    targetMachines = [machines.host().x86()]
+                    targetMachines = [machines.host().x86]
                 }
             }
             project(':app') {
                 apply plugin: 'cpp-application'
                 application {
-                    targetMachines = [machines.host().x86()]
+                    targetMachines = [machines.host().x86]
                 }
                 dependencies {
                     implementation project(':library')
