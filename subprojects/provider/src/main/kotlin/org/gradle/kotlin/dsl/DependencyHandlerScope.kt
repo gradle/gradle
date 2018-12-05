@@ -35,8 +35,8 @@ private constructor(
 ) : DependencyHandler by dependencies {
 
     companion object {
-        fun of(dependencies: DependencyHandler) =
-            ExtensionAwareDependencyHandlerScope(dependencies) as DependencyHandlerScope
+        fun of(dependencies: DependencyHandler): DependencyHandlerScope =
+            ExtensionAwareDependencyHandlerScope(dependencies)
 
         private
         class ExtensionAwareDependencyHandlerScope(
