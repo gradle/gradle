@@ -73,8 +73,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
 
         then:
         result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
-        result.assertTasksSkipped(tasksToCompileComponentUnderTest + tasksToRelocate)
-        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest - tasksToRelocate, ":test")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest)
+        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest, ":test")
     }
 
     // Creates a single project build with no source

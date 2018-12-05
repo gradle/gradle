@@ -497,7 +497,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.SUPPORTS_32_AND_64;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.SUPPORTS_32 || requirement == ToolChainRequirement.SUPPORTS_32_AND_64;
         }
 
         @Override
@@ -567,6 +567,7 @@ public class AvailableToolChains {
         @Override
         public boolean meets(ToolChainRequirement requirement) {
             switch (requirement) {
+                case SUPPORTS_32:
                 case WINDOWS_GCC:
                     return true;
                 case SUPPORTS_32_AND_64:
@@ -675,6 +676,7 @@ public class AvailableToolChains {
             switch (requirement) {
                 case AVAILABLE:
                 case VISUALCPP:
+                case SUPPORTS_32:
                 case SUPPORTS_32_AND_64:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
@@ -763,6 +765,7 @@ public class AvailableToolChains {
                 case CLANG:
                 case GCC_COMPATIBLE:
                     return true;
+                case SUPPORTS_32:
                 case SUPPORTS_32_AND_64:
                     return getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
                 default:
