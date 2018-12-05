@@ -28,8 +28,8 @@ public class Download implements IDownload {
     private final String appVersion;
     private final DownloadProgressListener progressListener;
 
-    public Download(Logger logger, String appName, String appVersion) {
-        this(logger, null, appName, appVersion);
+    public Download(Logger logger, String appName) {
+        this(logger, null, appName, null);
     }
 
     public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion) {
@@ -161,7 +161,8 @@ public class Download implements IDownload {
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        String appVersionWithSeparator = appVersion == null ? "" : ("/" + appVersion);
+        return String.format("%s%s (%s;%s;%s) (%s;%s;%s)", appName, appVersionWithSeparator, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
     private static class ProxyAuthenticator extends Authenticator {
