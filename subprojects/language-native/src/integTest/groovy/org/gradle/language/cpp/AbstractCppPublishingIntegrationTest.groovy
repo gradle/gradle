@@ -16,10 +16,13 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
 import org.gradle.language.nativeplatform.internal.Dimensions
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.language.VariantContext.dimensions
 
 abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -65,7 +68,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     }
 
     void assertVariantIsPublished(String group, String module, String version, VariantContext variantContext, List<String> dependencies = []) {
-        String variantModuleName = "${module}${variantContext.asPublishingName}"
+        String variantModuleName = "${module}${variantContext.asPublishName}"
         String variantModuleNameWithVersion = "${variantModuleName}-${version}"
         def publishedModule = mavenRepo.module(group, variantModuleName, version)
         publishedModule.assertPublished()
@@ -95,8 +98,8 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         }
     }
 
-    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, VariantDimension>> targetMachines, List<String> dependencies = []) {
-        VariantContext.of(VariantDimension.of("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
+    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, VariantContext.VariantDimension>> targetMachines, List<String> dependencies = []) {
+        VariantContext.of(dimensions("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
             assertVariantIsPublished(group, module, version, variantContext, dependencies)
         }
     }

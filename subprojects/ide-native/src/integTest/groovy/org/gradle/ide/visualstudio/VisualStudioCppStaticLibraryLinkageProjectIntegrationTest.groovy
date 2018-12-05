@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio
 
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 

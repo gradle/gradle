@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -29,8 +30,11 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
-import static org.gradle.nativeplatform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 

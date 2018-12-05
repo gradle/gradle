@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -489,7 +490,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
         then:
         assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         consumer.file("build.gradle") << """

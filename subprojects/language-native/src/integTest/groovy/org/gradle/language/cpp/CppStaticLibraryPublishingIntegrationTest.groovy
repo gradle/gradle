@@ -16,13 +16,17 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
-import static org.gradle.nativeplatform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {

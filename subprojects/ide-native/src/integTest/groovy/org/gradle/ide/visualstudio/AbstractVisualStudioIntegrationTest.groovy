@@ -19,10 +19,12 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.language.cpp.CppTaskNames
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 
-abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioIntegrationSpec implements CppTaskNames {
+import static org.gradle.language.VariantContext.dimensions
+
+abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -50,7 +52,7 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
         result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
-        def contexts = VariantContext.of(VariantDimension.of("buildType", ['debug', 'release']), VariantDimension.of("architecture", ['x86', 'x86-64']))
+        def contexts = VariantContext.of(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
         def projectConfigurations = contexts*.asVariantName as Set
         projectFile.projectConfigurations.keySet() == projectConfigurations
 
@@ -75,7 +77,7 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
         and:
         projectFile.assertHasComponentSources(componentUnderTest, "src/main")
 
-        def contexts = VariantContext.of(VariantDimension.of("buildType", ['debug', 'release']), VariantDimension.of("architecture", ['x86', 'x86-64']))
+        def contexts = VariantContext.of(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
         projectFile.projectConfigurations.size() == contexts.size()
 
         contexts.each {
