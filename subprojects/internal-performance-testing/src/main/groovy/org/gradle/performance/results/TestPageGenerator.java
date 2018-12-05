@@ -191,8 +191,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             private void addPerformanceGraphs() {
                 List<Chart> charts = Lists.newArrayList(new Chart("totalTime", "total time", "s", "totalTimeChart", false));
                 if(testHistory instanceof CrossVersionPerformanceTestHistory) {
-                    charts.add(new Chart("confidence", "confidence", "%", "confidenceChart", true));
-                    charts.add(new Chart("difference", "difference", "%", "differenceChart", false));
+                    charts.add(new Chart("confidence", "confidence", "%", "confidenceChart", false));
+                    charts.add(new Chart("difference", "difference", "%", "differenceChart", true));
                 }
 
                 charts.forEach(chart -> {

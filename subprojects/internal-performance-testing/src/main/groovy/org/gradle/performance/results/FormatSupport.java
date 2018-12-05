@@ -57,7 +57,9 @@ public class FormatSupport {
             // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
             return new BigDecimal(0);
         }
-        return new BigDecimal(100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
+
+        double sign = Math.signum(getDifferencePercentage(baseline, current).doubleValue());
+        return new BigDecimal(sign * 100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {

@@ -76,12 +76,11 @@ class TestDataGeneratorTest extends ResultSpecification {
                 ],
                 [
                     label: 'master vs 5.0-mockbaseline-2',
-                    data: [[1, 68.27]]
+                    data: [[1, -87.87]]
                 ],
             ],
             background: [
-                [xaxis: [from: -0.5, to: 0.5], color: "#ff0000"],
-                [xaxis: [from: 0.5, to: 1.5], color: "#00ff00"]
+                [xaxis: [from: 0.5, to: 1.5], color: "#80ff00"]
             ]
         ]
     }

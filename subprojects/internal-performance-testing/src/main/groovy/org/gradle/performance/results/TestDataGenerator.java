@@ -100,8 +100,8 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             this.totalTime = totalTime;
             this.confidence = confidence;
             this.difference = difference;
-            if (difference != null) {
-                this.background = difference.stream().flatMap(data -> data.data.stream()).map(BackgroundColor::new).collect(Collectors.toList());
+            if (confidence != null) {
+                this.background = confidence.stream().flatMap(data -> data.data.stream()).map(BackgroundColor::ofConfidence).filter(Objects::nonNull).collect(Collectors.toList());
             }
         }
 
@@ -183,19 +183,25 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private Map xaxis;
         private String color;
 
-        private BackgroundColor(List<Number> xy) {
+        private static BackgroundColor ofConfidence(List<Number> xy) {
             double index = xy.get(0).doubleValue();
-            double differencePercentage = xy.get(1).doubleValue();
-            xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
-            if (differencePercentage > 2) {
-                color = RED;
-            } else if (differencePercentage > 0) {
-                color = ORANGE;
-            } else if (differencePercentage > -2) {
-                color = LIGHT_GREEN;
+            double confidencePercentage = xy.get(1).doubleValue();
+            if (confidencePercentage > 90) {
+                return new BackgroundColor(index, RED);
+            } else if (confidencePercentage > 80) {
+                return new BackgroundColor(index, ORANGE);
+            } else if (confidencePercentage > -80) {
+                return null;
+            } else if (confidencePercentage > -90) {
+                return new BackgroundColor(index, LIGHT_GREEN);
             } else {
-                color = GREEN;
+                return new BackgroundColor(index, GREEN);
             }
+        }
+
+        private BackgroundColor(double index, String color) {
+            this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
+            this.color = color;
         }
 
         public Map getXaxis() {

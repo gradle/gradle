@@ -115,13 +115,7 @@
 
     function determineMinY(data, unit) {
         if (unit == '%') {
-            var min = 0
-            for(var i = 0; i < data.length; ++i) {
-                if(data[i][1] < min) {
-                    min = data[i][1]
-                }
-            }
-            return min - 10
+            return -100
         } else {
             return 0
         }
