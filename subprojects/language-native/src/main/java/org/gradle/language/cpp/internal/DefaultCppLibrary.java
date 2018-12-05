@@ -37,7 +37,6 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.internal.DefaultLibraryDependencies;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
-import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -55,7 +54,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, TargetMachineFactory targetMachineFactory) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);

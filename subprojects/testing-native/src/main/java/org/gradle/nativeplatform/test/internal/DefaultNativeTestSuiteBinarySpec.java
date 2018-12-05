@@ -16,10 +16,10 @@
 package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.NativeInstallationSpec;
+import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
