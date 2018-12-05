@@ -17,17 +17,29 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
 public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
-    @Inject
+
+    /**
+     * This internal constructor is used by the 'nebula.lint' plugin which we test as part of our ci pipeline.
+     * */
+    @Deprecated
     public CodeNarcReportsImpl(Task task) {
-        super(SingleFileReport.class, task);
+        this(task, CollectionCallbackActionDecorator.NOOP);
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor CodeNarcReportsImpl(Task)", "Don't ex");
+    }
+
+    @Inject
+    public CodeNarcReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(SingleFileReport.class, task, callbackActionDecorator);
 
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "html", task);

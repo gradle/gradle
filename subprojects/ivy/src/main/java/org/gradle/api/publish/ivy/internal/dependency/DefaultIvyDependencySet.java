@@ -16,10 +16,11 @@
 
 package org.gradle.api.publish.ivy.internal.dependency;
 
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 
 public class DefaultIvyDependencySet extends DefaultDomainObjectSet<IvyDependencyInternal> {
-    public DefaultIvyDependencySet() {
-        super(IvyDependencyInternal.class);
+    public DefaultIvyDependencySet(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(IvyDependencyInternal.class, collectionCallbackActionDecorator);
     }
 }

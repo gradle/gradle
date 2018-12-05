@@ -18,6 +18,7 @@ package org.gradle.util;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -52,7 +53,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable domain object set.
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
-        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type);
+        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type, CollectionCallbackActionDecorator.NOOP);
         set.addAll(Arrays.asList(items));
         return set;
     }

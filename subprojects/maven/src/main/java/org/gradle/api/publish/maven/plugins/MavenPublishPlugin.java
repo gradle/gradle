@@ -26,6 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -77,11 +78,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ProviderFactory providerFactory;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
                               FileResolver fileResolver, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory) {
+                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory,
+                              CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
@@ -91,6 +94,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         this.featurePreviews = featurePreviews;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.providerFactory = providerFactory;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final Project project) {
@@ -108,7 +112,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver, collectionCallbackActionDecorator));
                 realizePublishingTasksLater(project, extension);
             }
         });
@@ -221,11 +225,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
+        private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver) {
+        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
+            this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         }
 
         public MavenPublication create(final String name) {
@@ -233,7 +239,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
             return instantiator.newInstance(
                 DefaultMavenPublication.class,
-                name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
+                name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory,
+                collectionCallbackActionDecorator
             );
         }
 

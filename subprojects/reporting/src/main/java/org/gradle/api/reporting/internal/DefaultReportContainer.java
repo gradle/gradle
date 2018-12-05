@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
@@ -39,8 +40,8 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     };
     private NamedDomainObjectSet<T> enabled;
 
-    public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator) {
-        super(type, instantiator, Report.NAMER);
+    public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, Report.NAMER, callbackActionDecorator);
 
         enabled = matching(new Spec<T>() {
             public boolean isSatisfiedBy(T element) {

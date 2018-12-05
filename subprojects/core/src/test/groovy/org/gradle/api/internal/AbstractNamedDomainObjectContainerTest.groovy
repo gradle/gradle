@@ -26,6 +26,7 @@ import spock.lang.Specification
 
 class AbstractNamedDomainObjectContainerTest extends Specification {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    CollectionCallbackActionDecorator collectionCallbackActionDecorator = CollectionCallbackActionDecorator.NOOP
     AbstractNamedDomainObjectContainer<TestObject> container = instantiator.newInstance(TestContainer.class, instantiator)
 
     def "is dynamic object aware"() {

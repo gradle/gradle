@@ -32,10 +32,6 @@ import java.util.Set;
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
     private final MutationGuard parentMutationGuard;
 
-    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
-        this(type, instantiator, namer, CollectionCallbackActionDecorator.NOOP);
-    }
-
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
         super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer, decorator);
         this.parentMutationGuard = MutationGuards.identity();

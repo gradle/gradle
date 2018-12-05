@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
@@ -38,7 +39,7 @@ class DefaultReportContainerTest extends Specification {
 
     static class TestReportContainer extends DefaultReportContainer {
         TestReportContainer(Closure c) {
-            super(Report, DefaultReportContainerTest.instantiator)
+            super(Report, DefaultReportContainerTest.instantiator, CollectionCallbackActionDecorator.NOOP)
 
             c.delegate = new Object() {
                 Report createReport(String name) {

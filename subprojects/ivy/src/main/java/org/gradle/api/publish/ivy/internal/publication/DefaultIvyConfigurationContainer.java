@@ -17,14 +17,15 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectContainer<IvyConfiguration> implements IvyConfigurationContainer {
 
-    public DefaultIvyConfigurationContainer(Instantiator instantiator) {
-        super(IvyConfiguration.class, instantiator);
+    public DefaultIvyConfigurationContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(IvyConfiguration.class, instantiator, collectionCallbackActionDecorator);
     }
 
     @Override

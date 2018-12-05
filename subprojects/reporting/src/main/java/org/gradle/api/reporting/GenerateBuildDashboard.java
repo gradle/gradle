@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
@@ -50,12 +51,17 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
-        reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this);
+        reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this, getCollectionCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
     }
 
     @Inject
     protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected CollectionCallbackActionDecorator getCollectionCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 

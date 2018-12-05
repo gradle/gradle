@@ -46,6 +46,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         callbackScript(containerAccess, callbackName)
         buildFile << """
+            ${requiresPlugins ? requiresPlugins.collect { "apply plugin: '${it}'" }.join('\n') : ''}
             ${callbackClass(containerAccess, callbackName)}
             ${addingPluginClass(containerItemCreation)}
             apply plugin: CallbackPlugin
@@ -58,7 +59,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
         then:
         def creatingBuildOpParent = creatingBuildOpParentQuery(ops)
-        assert creatingBuildOpParent.children.size() == 2
+        assert creatingBuildOpParent.children.size() == requiresPlugins ? 2 + requiresPlugins.size() : 2 // additional plugin application results in another callback execution
 
         def callbackPluginApplicationId = ops.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'CallbackPlugin' }).details.applicationId
         creatingBuildOpParent.children.findAll {
@@ -72,29 +73,30 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
 
         where:
-        callbackName                         | containerType              | containerAccess                                              | containerItemCreation               | creatingBuildOpParentQuery
-        'all'                                | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
-        'withType(Task)'                     | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
-        'matching{true}.all'                 | 'tasks'                    | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
-        'all'                                | 'plugins'                  | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
-        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
-        'all'                                | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
-        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'repositories'             | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
-        'all'                                | 'configurations'           | 'configurations'                                             | createFooConfigurationSnippet()     | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'configurations'           | 'configurations'                                             | createFooConfigurationSnippet()     | addingPluginBuildOpQuery
-        'all'                                | 'dependencies'             | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'withType(ExternalModuleDependency)' | 'dependencies'             | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'dependencies'             | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'all'                                | 'allDependencies'          | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'withType(ExternalModuleDependency)' | 'allDependencies'          | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'allDependencies'          | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
-        'all'                                | 'dependencyConstraints'    | "configurations.maybeCreate('foo').dependencyConstraints"    | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'dependencyConstraints'    | "configurations.maybeCreate('foo').dependencyConstraints"    | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
-        'all'                                | 'allDependencyConstraints' | "configurations.maybeCreate('foo').allDependencyConstraints" | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
-        'matching{true}.all'                 | 'allDependencyConstraints' | "configurations.maybeCreate('foo').allDependencyConstraints" | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
-        'all'                                | 'artifactTypes'            | 'dependencies.artifactTypes'                                 | createArtifactTypeSnippet()         | addingPluginBuildOpQuery
+        callbackName                         | containerType              | requiresPlugins  | containerAccess                                              | containerItemCreation               | creatingBuildOpParentQuery
+        'all'                                | 'tasks'                    | []               | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
+        'withType(Task)'                     | 'tasks'                    | []               | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
+        'matching{true}.all'                 | 'tasks'                    | []               | 'tasks'                                                      | "p.tasks.create('foo')"             | fooTaskRealizationOpsQuery
+        'all'                                | 'plugins'                  | []               | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
+        'withType(Plugin)'                   | 'plugins'                  | []               | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'plugins'                  | []               | 'plugins'                                                    | ''                                  | addingPluginBuildOpQuery
+        'all'                                | 'repositories'             | []               | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
+        'withType(ArtifactRepository)'       | 'repositories'             | []               | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'repositories'             | []               | 'repositories'                                               | "p.repositories.mavenCentral()"     | addingPluginBuildOpQuery
+        'all'                                | 'configurations'           | []               | 'configurations'                                             | createFooConfigurationSnippet()     | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'configurations'           | []               | 'configurations'                                             | createFooConfigurationSnippet()     | addingPluginBuildOpQuery
+        'all'                                | 'dependencies'             | []               | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'withType(ExternalModuleDependency)' | 'dependencies'             | []               | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'dependencies'             | []               | "configurations.maybeCreate('foo').dependencies"             | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'all'                                | 'allDependencies'          | []               | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'withType(ExternalModuleDependency)' | 'allDependencies'          | []               | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'allDependencies'          | []               | "configurations.maybeCreate('foo').allDependencies"          | createFooDependencySnippet()        | addingPluginBuildOpQuery
+        'all'                                | 'dependencyConstraints'    | []               | "configurations.maybeCreate('foo').dependencyConstraints"    | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'dependencyConstraints'    | []               | "configurations.maybeCreate('foo').dependencyConstraints"    | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
+        'all'                                | 'allDependencyConstraints' | []               | "configurations.maybeCreate('foo').allDependencyConstraints" | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
+        'matching{true}.all'                 | 'allDependencyConstraints' | []               | "configurations.maybeCreate('foo').allDependencyConstraints" | createDependencyConstraintSnippet() | addingPluginBuildOpQuery
+        'all'                                | 'artifactTypes'            | []               | 'dependencies.artifactTypes'                                 | createArtifactTypeSnippet()         | addingPluginBuildOpQuery
+        'all'                                | 'distributions'            | ['distribution'] | 'distributions'                                              | createFooDistributions()            | addingPluginBuildOpQuery
     }
 
     @Unroll
@@ -102,6 +104,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         given:
         callbackScript(containerAccess, callbackName)
         buildFile << """
+            ${requiresPlugins ? requiresPlugins.collect { "apply plugin: '${it}'" }.join('\n') : ''}
             ${callbackClass(containerAccess, callbackName)}
             ${addingPluginClass(containerItemCreation)}
             apply plugin: AddingPlugin
@@ -110,6 +113,10 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
 
         when:
+        if (containerName == 'findbugs reports') {
+            executer.expectDeprecationWarnings(1)
+        }
+
         run('tasks')
 
         then:
@@ -124,29 +131,39 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
         where:
-        callbackName                         | containerName              | containerAccess                               | containerItemCreation
-        'all'                                | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
-        'withType(Task)'                     | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
-        'matching{true}.all'                 | 'create tasks'             | 'tasks'                                       | "p.tasks.create('foo')"
-        'all'                                | 'plugins'                  | 'plugins'                                     | ''
-        'withType(Plugin)'                   | 'plugins'                  | 'plugins'                                     | ''
-        'matching{true}.all'                 | 'plugins'                  | 'plugins'                                     | ''
-        'all'                                | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'withType(ArtifactRepository)'       | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'matching{true}.all'                 | 'repositories'             | 'repositories'                                | "p.repositories.mavenCentral()"
-        'all'                                | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
-        'matching{true}.all'                 | 'configurations'           | 'configurations'                              | createFooConfigurationSnippet()
-        'all'                                | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
-        'withType(ExternalModuleDependency)' | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
-        'matching{true}.all'                 | 'dependencies'             | "configurations.foo.dependencies"             | createFooDependencySnippet()
-        'all'                                | 'allDependencies'          | "configurations.foo.allDependencies"          | createFooDependencySnippet()
-        'withType(ExternalModuleDependency)' | 'allDependencies'          | "configurations.foo.allDependencies"          | createFooDependencySnippet()
-        'matching{true}.all'                 | 'allDependencies'          | "configurations.foo.allDependencies"          | createFooDependencySnippet()
-        'all'                                | 'dependencyConstraints'    | "configurations.foo.dependencyConstraints"    | createDependencyConstraintSnippet()
-        'matching{true}.all'                 | 'dependencyConstraints'    | "configurations.foo.dependencyConstraints"    | createDependencyConstraintSnippet()
-        'all'                                | 'allDependencyConstraints' | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
-        'matching{true}.all'                 | 'allDependencyConstraints' | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
-        'all'                                | 'artifactTypes'            | 'dependencies.artifactTypes'                  | createArtifactTypeSnippet()
+        callbackName         | containerName             | requiresPlugins                | containerAccess                          | containerItemCreation
+        'all'                                | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
+        'withType(Task)'                     | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
+        'matching{true}.all'                 | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
+        'all'                                | 'plugins'                  | []                             | 'plugins'                                     | ''
+        'withType(Plugin)'                   | 'plugins'                  | []                             | 'plugins'                                     | ''
+        'matching{true}.all'                 | 'plugins'                  | []                             | 'plugins'                                     | ''
+        'all'                                | 'repositories'             | []                             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'withType(ArtifactRepository)'       | 'repositories'             | []                             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'matching{true}.all'                 | 'repositories'             | []                             | 'repositories'                                | "p.repositories.mavenCentral()"
+        'all'                                | 'configurations'           | []                             | 'configurations'                              | createFooConfigurationSnippet()
+        'matching{true}.all'                 | 'configurations'           | []                             | 'configurations'                              | createFooConfigurationSnippet()
+        'all'                                | 'dependencies'             | []                             | "configurations.foo.dependencies"             | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)' | 'dependencies'             | []                             | "configurations.foo.dependencies"             | createFooDependencySnippet()
+        'matching{true}.all'                 | 'dependencies'             | []                             | "configurations.foo.dependencies"             | createFooDependencySnippet()
+        'all'                                | 'allDependencies'          | []                             | "configurations.foo.allDependencies"          | createFooDependencySnippet()
+        'withType(ExternalModuleDependency)' | 'allDependencies'          | []                             | "configurations.foo.allDependencies"          | createFooDependencySnippet()
+        'matching{true}.all'                 | 'allDependencies'          | []                             | "configurations.foo.allDependencies"          | createFooDependencySnippet()
+        'all'                                | 'dependencyConstraints'    | []                             | "configurations.foo.dependencyConstraints"    | createDependencyConstraintSnippet()
+        'matching{true}.all'                 | 'dependencyConstraints'    | []                             | "configurations.foo.dependencyConstraints"    | createDependencyConstraintSnippet()
+        'all'                                | 'allDependencyConstraints' | []                             | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
+        'matching{true}.all'                 | 'allDependencyConstraints' | []                             | "configurations.foo.allDependencyConstraints" | createDependencyConstraintSnippet()
+        'all'                                | 'artifactTypes'            | []                             | 'dependencies.artifactTypes'                  | createArtifactTypeSnippet()
+        'all'                                | 'distributions'            | ['distribution']               | 'distributions'                               | createFooDistributions()
+        "matching{it.name == 'foo'}.all"     | 'distributions'            | ['distribution']               | 'distributions'                               | createFooDistributions()
+        "matching{true}.all" | 'test reports'            | ['java-library']               | 'test.reports'                           | ''
+        "matching{true}.all" | 'checkstyle reports'      | ['java-library', 'checkstyle'] | 'checkstyleMain.reports'                 | ''
+        "matching{true}.all" | 'findbugs reports'        | ['java-library', 'findbugs']   | 'findbugsMain.reports'                   | ''
+        "matching{true}.all" | 'pmd reports'             | ['java-library', 'pmd']        | 'pmdMain.reports'                        | ''
+        "matching{true}.all" | 'codenarc reports'        | ['groovy', 'codenarc']         | 'codenarcMain.reports'                   | ''
+        "matching{true}.all" | 'html dependency reports' | ['project-report']             | 'htmlDependencyReport.reports'           | ''
+        "matching{true}.all" | 'build dasboard reports'  | ['build-dashboard']            | 'buildDashboard.reports'                 | ''
+        "matching{true}.all" | 'jacoco reports'          | ['java-library', 'jacoco']     | 'jacocoTestReport.reports'               | ''
     }
 
     def "task registration callback action executions emit build operation with script applicationId"() {
@@ -415,6 +432,17 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
     }
 
+    def createFooDistributions() {
+        """
+           p.distributions.maybeCreate('foo')
+        """
+    }
+
+    def createCheckstyleReport() {
+        """
+        """
+    }
+
     private String createFooConfigurationSnippet() {
         "p.configurations.maybeCreate('foo')"
     }
@@ -438,7 +466,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
     static String callbackClass(String containerAccess, String callbackName) {
         """class CallbackPlugin implements Plugin<Project> {
-                void apply(Project p){
+                void apply(Project p) {
                     p.${containerAccess}.$callbackName {
                         println "plugin callback \$it"
                     }
@@ -446,9 +474,10 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
             }"""
     }
 
-    static String addingPluginClass(String creationLogic) {
+    static String addingPluginClass(String creationLogic, String requiredPlugin = null) {
         """class AddingPlugin implements Plugin<Project> {
                 void apply(Project p){
+                    ${requiredPlugin != null ? "p.plugins.apply('${requiredPlugin}')" : ''}
                     $creationLogic
                 }
             }"""
