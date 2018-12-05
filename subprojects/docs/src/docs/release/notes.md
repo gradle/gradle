@@ -144,6 +144,7 @@ We would like to thank the following community members for making contributions 
  - [John Bennewitz](https://github.com/b-john) - Allow C++ binary to relocate on Linux (gradle/gradle#6176)
  - [Alex Saveau](https://github.com/SUPERCILEX) - Add option to display tasks from a specific group only (gradle/gradle#7788) 
  - [Till Krullmann](https://github.com/tkrullmann) - Add `MapProperty` (gradle/gradle#6863)
+ - [TO XZ](https://github.com/noproxy) - Gradle should always respect the extra attributes when selecting artifacts transforms chains (gradle/gradle#7061)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
