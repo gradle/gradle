@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.junit.Assume.assumeTrue
@@ -211,5 +212,9 @@ rootProject.name = "${rootProjectName}"
     static List<TestFile> toFiles(Object includePath) {
         def includePathElements = Splitter.on('"').splitToList(String.valueOf(includePath))
         return includePathElements.grep( { !it.trim().empty }).collect { new TestFile(it) }
+    }
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
     }
 }

@@ -71,7 +71,7 @@ apply plugin: 'swift-application'
         buildFile << """
             apply plugin: 'swift-application'
 
-            application.targetMachines = [machines.macOS().x86(), machines.macOS().x86_64()]
+            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
         """
 
         def app = new SwiftApp()
@@ -161,7 +161,7 @@ apply plugin: 'swift-library'
         buildFile << """
             apply plugin: 'swift-library'
 
-            library.targetMachines = [machines.macOS().x86(), machines.macOS().x86_64()]
+            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
         """
 
         def lib = new SwiftLib()

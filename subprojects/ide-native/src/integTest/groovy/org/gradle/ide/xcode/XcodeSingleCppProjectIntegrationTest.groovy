@@ -66,7 +66,7 @@ apply plugin: 'cpp-application'
         buildFile << """
             apply plugin: 'cpp-application'
 
-            application.targetMachines = [machines.macOS().x86(), machines.macOS().x86_64()]
+            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
         """
 
         def app = new CppApp()
@@ -158,7 +158,7 @@ apply plugin: 'cpp-library'
         buildFile << """
             apply plugin: 'cpp-library'
 
-            library.targetMachines = [machines.macOS().x86(), machines.macOS().x86_64()]
+            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
         """
 
         def lib = new CppLib()
