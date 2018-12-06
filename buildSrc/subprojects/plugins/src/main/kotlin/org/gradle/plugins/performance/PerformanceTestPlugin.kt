@@ -44,7 +44,6 @@ object PropertyNames {
     const val performanceTestVerbose = "performanceTest.verbose"
     const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
-    const val branchName = "org.gradle.performance.branchName"
 
     const val teamCityUsername = "teamCityUsername"
     const val teamCityPassword = "teamCityPassword"
@@ -63,6 +62,9 @@ object Config {
 
     const val adhocTestDbUrl = "jdbc:h2:./build/database"
 }
+
+
+fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
 
 
 private
@@ -308,7 +310,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            branchName = stringPropertyOrNull(PropertyNames.branchName)
+            branchName = determineCurrentBranch()
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
             teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
