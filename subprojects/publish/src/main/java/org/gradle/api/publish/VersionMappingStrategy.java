@@ -32,11 +32,10 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 public interface VersionMappingStrategy {
     /**
-     * Configures the version mapping strategy for a named variant.
-     * @param name the variant name
+     * Configures the version mapping strategy for all variants
      * @param action the configuration action
      */
-    void variant(String name, Action<? super VariantVersionMappingStrategy> action);
+    void allVariants(Action<? super VariantVersionMappingStrategy> action);
 
     /**
      * Configures the version mapping strategy for the variant which matches the provided
