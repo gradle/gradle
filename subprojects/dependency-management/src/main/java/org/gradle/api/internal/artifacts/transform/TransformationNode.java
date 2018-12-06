@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
-import org.gradle.execution.plan.TransformationNodeIdentifier;
+import org.gradle.execution.plan.TransformationIdentity;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -37,12 +37,12 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformationNode extends Node implements TransformationNodeIdentifier {
+public abstract class TransformationNode extends Node {
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
-    private final int uniqueId = SEQUENCE.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
+    private final TransformationIdentity identity;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
@@ -53,17 +53,13 @@ public abstract class TransformationNode extends Node implements TransformationN
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
+        this.identity = TransformationIdentity.create();
         this.transformationStep = transformationStep;
     }
 
     @Override
-    public long getUniqueId() {
-        return uniqueId;
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visitTransformation(this);
+    public TransformationIdentity getIdentity() {
+        return identity;
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
@@ -114,7 +110,7 @@ public abstract class TransformationNode extends Node implements TransformationN
             return getClass().getName().compareTo(other.getClass().getName());
         }
         TransformationNode otherTransformation = (TransformationNode) other;
-        return uniqueId - otherTransformation.uniqueId;
+        return Long.compare(identity.getId(), otherTransformation.identity.getId());
     }
 
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
@@ -237,7 +233,7 @@ public abstract class TransformationNode extends Node implements TransformationN
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName("Transforming " + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
-                .details(new OperationDetails(getBuildPath().toString(), uniqueId, transformerName, subjectName));
+                .details(new ExecuteScheduledTransformationStepBuildOperationDetails(getBuildPath(), identity, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();
@@ -256,38 +252,4 @@ public abstract class TransformationNode extends Node implements TransformationN
         }
     }
 
-    private static class OperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
-
-        private final String buildPath;
-        private final long transformationId;
-        private final String transformerName;
-        private final String subjectName;
-
-        public OperationDetails(String buildPath, long transformationId, String transformerName, String subjectName) {
-            this.buildPath = buildPath;
-            this.transformationId = transformationId;
-            this.transformerName = transformerName;
-            this.subjectName = subjectName;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-
-        @Override
-        public long getTransformationId() {
-            return transformationId;
-        }
-
-        @Override
-        public String getTransformerName() {
-            return transformerName;
-        }
-
-        @Override
-        public String getSubjectName() {
-            return subjectName;
-        }
-    }
 }

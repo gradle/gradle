@@ -16,12 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.execution.plan.ExecutionDependencies;
-import org.gradle.execution.plan.TransformationNodeIdentifier;
+import org.gradle.api.internal.project.WorkIdentity;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.util.Path;
@@ -40,9 +38,9 @@ import static java.util.stream.Collectors.toCollection;
 class OperationDependenciesResolver implements TaskExecutionGraphListener {
 
     private final Map<Path, TaskExecutionGraphInternal> taskExecutionGraphs = new HashMap<>();
-    private final List<OperationDependenciesLookup> lookups = new ArrayList<>();
+    private final List<OperationDependencyLookup> lookups = new ArrayList<>();
 
-    void addLookup(OperationDependenciesLookup lookup) {
+    void addLookup(OperationDependencyLookup lookup) {
         lookups.add(lookup);
     }
 
@@ -52,37 +50,21 @@ class OperationDependenciesResolver implements TaskExecutionGraphListener {
         taskExecutionGraphs.put(buildPath, (TaskExecutionGraphInternal) taskExecutionGraph);
     }
 
-    Set<InternalOperationDescriptor> resolveTaskDependencies(Task task) {
-        Path buildPath = ((ProjectInternal) task.getProject()).getGradle().getIdentityPath();
-        TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphs.get(buildPath);
-        return lookupExistingOperationDescriptors(taskExecutionGraph.getExecutionDependencies(task));
-    }
-
-    Set<InternalOperationDescriptor> resolveTransformDependencies(Path buildPath, long transformationId) {
-        TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphs.get(buildPath);
-        return lookupExistingOperationDescriptors(taskExecutionGraph.getExecutionDependencies(new DefaultTransformationNodeIdentifier(transformationId)));
-    }
-
-    private Set<InternalOperationDescriptor> lookupExistingOperationDescriptors(ExecutionDependencies dependencies) {
-        return lookups.stream()
-            .flatMap(entry -> entry.lookupExistingOperationDescriptors(dependencies))
+    Set<InternalOperationDescriptor> resolveDependencies(Path buildPath, WorkIdentity workIdentity) {
+        return taskExecutionGraphs.get(buildPath)
+            .getNode(workIdentity)
+            .getDependencySuccessors().stream()
+            .map(this::lookupExistingOperationDescriptor)
             .filter(Objects::nonNull)
             .collect(toCollection(LinkedHashSet::new));
     }
 
-    private static class DefaultTransformationNodeIdentifier implements TransformationNodeIdentifier {
-
-        private final long transformationId;
-
-        public DefaultTransformationNodeIdentifier(long transformationId) {
-            this.transformationId = transformationId;
-        }
-
-        @Override
-        public long getUniqueId() {
-            return transformationId;
-        }
-
+    private InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
+        return lookups.stream()
+            .map(entry -> entry.lookupExistingOperationDescriptor(node))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
 }

@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.internal.project.WorkIdentity;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -47,7 +47,7 @@ public abstract class Node implements Comparable<Node> {
         this.state = ExecutionState.UNKNOWN;
     }
 
-    public abstract void accept(Visitor visitor);
+    public abstract WorkIdentity getIdentity();
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -228,15 +228,5 @@ public abstract class Node implements Comparable<Node> {
 
     @Override
     public abstract String toString();
-
-    public static abstract class Visitor {
-
-        public void visitTask(Task task) {
-        }
-
-        public void visitTransformation(TransformationNodeIdentifier transformation) {
-        }
-
-    }
 
 }

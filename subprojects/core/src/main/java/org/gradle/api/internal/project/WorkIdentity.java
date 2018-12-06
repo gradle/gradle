@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.internal.project;
 
-public interface TransformationNodeIdentifier {
-
-    long getUniqueId();
-
+public interface WorkIdentity {
 }

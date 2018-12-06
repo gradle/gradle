@@ -18,9 +18,9 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.specs.Spec;
-import org.gradle.execution.plan.ExecutionDependencies;
-import org.gradle.execution.plan.TransformationNodeIdentifier;
+import org.gradle.execution.plan.Node;
 
 import java.util.Collection;
 import java.util.Set;
@@ -75,13 +75,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     ProjectInternal getRootProject();
 
     /**
-     * Returns the execution dependencies of the supplied task.
+     * Returns the node with the supplied identity that is part of this execution plan.
+     *
+     * @throws IllegalStateException When no node with the supplied identity is part of this execution plan.
      */
-    ExecutionDependencies getExecutionDependencies(Task task);
-
-    /**
-     * Returns the execution dependencies of the supplied transformation.
-     */
-    ExecutionDependencies getExecutionDependencies(TransformationNodeIdentifier transformation);
+    Node getNode(WorkIdentity workIdentity);
 
 }

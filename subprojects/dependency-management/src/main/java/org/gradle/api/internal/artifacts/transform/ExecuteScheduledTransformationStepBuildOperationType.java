@@ -30,7 +30,7 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
         /**
          * Returns the unique path of the build this transformation is part of.
          */
-        String getBuildPath();
+        String getBuildPathString();
 
         /**
          * Returns the unique id of the transformation.

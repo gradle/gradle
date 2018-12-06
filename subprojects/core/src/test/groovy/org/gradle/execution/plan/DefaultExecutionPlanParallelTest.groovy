@@ -622,8 +622,8 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "handles an exception while walking the task graph when an enforced task is present"() {
         given:
-        Task finalizer = project.task("finalizer", type: BrokenTask)
-        Task finalized = project.task("finalized")
+        TaskInternal finalizer = project.task("finalizer", type: BrokenTask) as TaskInternal
+        TaskInternal finalized = project.task("finalized") as TaskInternal
         finalized.finalizedBy finalizer
 
         when:
@@ -647,8 +647,8 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         executionPlan.abortAllAndFail(e)
 
         then:
-        executionPlan.getNode(finalized).isSuccessful()
-        executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+        executionPlan.getNode(finalized.taskIdentity).isSuccessful()
+        executionPlan.getNode(finalizer.taskIdentity).state == Node.ExecutionState.SKIPPED
     }
 
     private void addToGraphAndPopulate(Task... tasks) {

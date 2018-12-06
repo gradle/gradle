@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -38,6 +37,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -119,9 +119,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return path.toString();
     }
 
-    @VisibleForTesting
-    TaskNode getNode(Task task) {
-        return nodeMapping.get(task);
+    @Override
+    public Node getNode(WorkIdentity workIdentity) {
+        return nodeMapping.get(workIdentity);
     }
 
     public void addEntryTasks(Collection<? extends Task> tasks) {
@@ -328,50 +328,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
-    }
-
-    @Override
-    public ExecutionDependencies getDependencies(Task task) {
-        return getDependencies(nodeMapping.get(task));
-    }
-
-    @Override
-    public ExecutionDependencies getDependencies(TransformationNodeIdentifier transformation) {
-        return getDependencies(nodeMapping.get(transformation));
-    }
-
-    private ExecutionDependencies getDependencies(final Node node) {
-        return new ExecutionDependencies() {
-            @Override
-            public Set<Task> getTasks() {
-                final ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-                collectDependencies(node, new Node.Visitor() {
-                    @Override
-                    public void visitTask(Task task) {
-                        builder.add(task);
-                    }
-                });
-                return builder.build();
-            }
-
-            @Override
-            public Set<TransformationNodeIdentifier> getTransformations() {
-                final ImmutableSet.Builder<TransformationNodeIdentifier> builder = ImmutableSet.builder();
-                collectDependencies(node, new Node.Visitor() {
-                    @Override
-                    public void visitTransformation(TransformationNodeIdentifier transformation) {
-                        builder.add(transformation);
-                    }
-                });
-                return builder.build();
-            }
-
-            private void collectDependencies(Node node, Node.Visitor visitor) {
-                for (Node dependencyNode : node.getDependencySuccessors()) {
-                    dependencyNode.accept(visitor);
-                }
-            }
-        };
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -997,7 +953,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public int size() {
-        return nodeMapping.nodes.size();
+        return nodeMapping.size();
     }
 
     private static class GraphEdge {
@@ -1037,67 +993,57 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static class NodeMapping extends AbstractCollection<Node> {
-        private final Map<Task, LocalTaskNode> taskMapping = Maps.newLinkedHashMap();
-        private final Map<Long, Node> transformationMapping = Maps.newLinkedHashMap();
-        private final Set<Node> nodes = Sets.newLinkedHashSet();
+        private final Map<WorkIdentity, Node> nodeMapping = Maps.newLinkedHashMap();
+        private final Set<Task> tasks = Sets.newLinkedHashSet();
 
         @Override
         public boolean contains(Object o) {
-            return nodes.contains(o);
+            return nodeMapping.values().contains(o);
         }
 
         @Override
         public boolean add(Node node) {
-            if (!nodes.add(node)) {
+            WorkIdentity identity = node.getIdentity();
+            if (nodeMapping.containsKey(identity)) {
                 return false;
             }
+            nodeMapping.put(identity, node);
             if (node instanceof LocalTaskNode) {
-                LocalTaskNode taskNode = (LocalTaskNode) node;
-                taskMapping.put(taskNode.getTask(), taskNode);
-            } else if (node instanceof TransformationNodeIdentifier) {
-                transformationMapping.put(((TransformationNodeIdentifier) node).getUniqueId(), node);
+                tasks.add(((LocalTaskNode) node).getTask());
             }
             return true;
         }
 
-        public TaskNode get(Task task) {
-            TaskNode taskNode = taskMapping.get(task);
-            if (taskNode == null) {
-                throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
-            }
-            return taskNode;
-        }
-
-        public Node get(TransformationNodeIdentifier transformation) {
-            Node node = transformationMapping.get(transformation.getUniqueId());
+        public Node get(WorkIdentity workIdentity) {
+            Node node = nodeMapping.get(workIdentity);
             if (node == null) {
-                throw new IllegalStateException("Transformation is not part of the execution plan, no dependency information is available.");
+                throw new IllegalStateException("Node is not part of the execution plan: " + workIdentity);
             }
             return node;
         }
 
         public Set<Task> getTasks() {
-            return taskMapping.keySet();
+            return tasks;
         }
 
         @Override
         public Iterator<Node> iterator() {
-            return nodes.iterator();
+            return nodeMapping.values().iterator();
         }
 
         @Override
         public void clear() {
-            nodes.clear();
-            taskMapping.clear();
+            nodeMapping.clear();
+            tasks.clear();
         }
 
         @Override
         public int size() {
-            return nodes.size();
+            return nodeMapping.size();
         }
 
         public void retainFirst(int count) {
-            Iterator<Node> executionPlanIterator = nodes.iterator();
+            Iterator<Node> executionPlanIterator = nodeMapping.values().iterator();
             for (int i = 0; i < count; i++) {
                 executionPlanIterator.next();
             }
@@ -1105,7 +1051,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 Node removedNode = executionPlanIterator.next();
                 executionPlanIterator.remove();
                 if (removedNode instanceof LocalTaskNode) {
-                    taskMapping.remove(((LocalTaskNode) removedNode).getTask());
+                    tasks.remove(((LocalTaskNode) removedNode).getTask());
                 }
             }
         }

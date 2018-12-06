@@ -18,11 +18,12 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.util.Path;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class TaskIdentity<T extends Task> {
+public final class TaskIdentity<T extends Task> implements WorkIdentity {
 
     private static final AtomicLong SEQUENCE = new AtomicLong();
 

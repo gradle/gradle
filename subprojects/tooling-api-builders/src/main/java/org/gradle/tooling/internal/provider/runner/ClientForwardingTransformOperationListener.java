@@ -16,9 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType;
-import org.gradle.execution.plan.ExecutionDependencies;
-import org.gradle.execution.plan.TransformationNodeIdentifier;
+import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
+import org.gradle.api.internal.project.WorkIdentity;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TransformationIdentity;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -36,55 +37,54 @@ import org.gradle.tooling.internal.provider.events.DefaultTransformDescriptor;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
-import static org.gradle.util.Path.path;
 
 /**
  * Transform listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
  * @since 5.1
  */
-class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationType.Details> implements OperationDependenciesLookup {
+class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationDetails> implements OperationDependencyLookup {
 
-    private final Map<Long, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
+    private final Map<TransformationIdentity, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
 
     ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
                                                OperationDependenciesResolver operationDependenciesResolver) {
-        super(eventConsumer, clientSubscriptions, delegate, OperationType.TRANSFORM, ExecuteScheduledTransformationStepBuildOperationType.Details.class);
+        super(eventConsumer, clientSubscriptions, delegate, OperationType.TRANSFORM, ExecuteScheduledTransformationStepBuildOperationDetails.class);
         this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
     @Override
-    public Stream<DefaultTransformDescriptor> lookupExistingOperationDescriptors(ExecutionDependencies dependencies) {
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
         if (isEnabled()) {
-            return dependencies.getTransformations().stream()
-                .map(TransformationNodeIdentifier::getUniqueId)
-                .map(descriptors::get);
+            WorkIdentity identity = node.getIdentity();
+            if (identity instanceof TransformationIdentity) {
+                return descriptors.get(identity);
+            }
         }
-        return Stream.empty();
+        return null;
     }
 
     @Override
-    protected InternalOperationStartedProgressEvent toStartedEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent, ExecuteScheduledTransformationStepBuildOperationType.Details details) {
+    protected InternalOperationStartedProgressEvent toStartedEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent, ExecuteScheduledTransformationStepBuildOperationDetails details) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toTransformDescriptor(buildOperation, details));
     }
 
     @Override
-    protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ExecuteScheduledTransformationStepBuildOperationType.Details details) {
+    protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ExecuteScheduledTransformationStepBuildOperationDetails details) {
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), toTransformDescriptor(buildOperation, details), toOperationResult(finishEvent));
     }
 
-    private DefaultTransformDescriptor toTransformDescriptor(BuildOperationDescriptor buildOperation, ExecuteScheduledTransformationStepBuildOperationType.Details details) {
-        return descriptors.computeIfAbsent(details.getTransformationId(), uniqueId -> {
+    private DefaultTransformDescriptor toTransformDescriptor(BuildOperationDescriptor buildOperation, ExecuteScheduledTransformationStepBuildOperationDetails details) {
+        return descriptors.computeIfAbsent(details.getTransformationIdentity(), transformationIdentity -> {
             OperationIdentifier id = buildOperation.getId();
             String displayName = buildOperation.getDisplayName();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
             String transformerName = details.getTransformerName();
             String subjectName = details.getSubjectName();
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveTransformDependencies(path(details.getBuildPath()), details.getTransformationId());
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getBuildPath(), transformationIdentity);
             return new DefaultTransformDescriptor(id, displayName, parentId, transformerName, subjectName, dependencies);
         });
     }

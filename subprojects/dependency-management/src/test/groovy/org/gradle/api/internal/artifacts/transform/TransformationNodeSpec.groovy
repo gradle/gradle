@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.project.WorkIdentity
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
@@ -81,7 +82,8 @@ class TransformationNodeSpec extends Specification {
         }
 
         @Override
-        void accept(Visitor visitor) {
+        WorkIdentity getIdentity() {
+            return null
         }
 
         @Override

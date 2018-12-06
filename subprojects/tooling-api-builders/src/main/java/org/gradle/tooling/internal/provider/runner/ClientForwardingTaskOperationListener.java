@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
-import org.gradle.execution.plan.ExecutionDependencies;
+import org.gradle.execution.plan.Node;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 
@@ -56,7 +56,7 @@ import static java.util.Collections.singletonList;
  *
  * @since 2.5
  */
-class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> implements OperationDependenciesLookup {
+class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> implements OperationDependencyLookup {
 
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
@@ -72,13 +72,14 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     }
 
     @Override
-    public Stream<DefaultTaskDescriptor> lookupExistingOperationDescriptors(ExecutionDependencies dependencies) {
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
         if (isEnabled()) {
-            return dependencies.getTasks().stream()
-                .map(dependency -> ((TaskInternal) dependency).getTaskIdentity())
-                .map(descriptors::get);
+            WorkIdentity identity = node.getIdentity();
+            if (identity instanceof TaskIdentity<?>) {
+                return descriptors.get(identity);
+            }
         }
-        return Stream.empty();
+        return null;
     }
 
     @Override
@@ -98,9 +99,9 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
             Object id = buildOperation.getId();
             String taskIdentityPath = buildOperation.getName();
             String displayName = buildOperation.getDisplayName();
-            String taskPath = task.getIdentityPath().toString();
+            String taskPath = taskIdentity.identityPath.getPath();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveTaskDependencies(task);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(taskIdentity.buildPath, taskIdentity);
             InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
             return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, dependencies, originPlugin);
         });

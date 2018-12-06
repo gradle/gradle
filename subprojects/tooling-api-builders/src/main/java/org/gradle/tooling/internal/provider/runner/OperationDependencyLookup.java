@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.execution.plan.TransformationNodeIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
+import org.gradle.execution.plan.Node;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-public interface TransformOperationTracker {
+interface OperationDependencyLookup {
 
-    InternalTransformDescriptor findOperationDescriptor(TransformationNodeIdentifier identifier);
+    InternalOperationDescriptor lookupExistingOperationDescriptor(Node node);
 
 }
