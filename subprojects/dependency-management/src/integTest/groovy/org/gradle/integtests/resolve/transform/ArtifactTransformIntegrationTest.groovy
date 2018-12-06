@@ -1827,8 +1827,8 @@ Found the following transforms:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
             it.failure == null
             displayName == "Transform artifact lib.jar (project :lib) with FileSizer"
-            details.buildPathString == ":"
-            details.transformationId >= 0
+            details.buildPath.path == ":"
+            details.transformationIdentity.id >= 0
             details.transformerName == "FileSizer"
             details.subjectName == "artifact lib.jar (project :lib)"
         }
@@ -1889,8 +1889,8 @@ Found the following transforms:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
             it.failure.contains("TransformationException")
             displayName == "Transform artifact lib.jar (project :lib) with BrokenTransform"
-            details.buildPathString == ":"
-            details.transformationId >= 0
+            details.buildPath.path == ":"
+            details.transformationIdentity.id >= 0
             details.transformerName == "BrokenTransform"
             details.subjectName == "artifact lib.jar (project :lib)"
         }

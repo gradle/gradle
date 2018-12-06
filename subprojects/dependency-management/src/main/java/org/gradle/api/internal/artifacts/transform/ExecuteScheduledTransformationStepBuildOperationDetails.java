@@ -41,16 +41,6 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     }
 
     @Override
-    public String getBuildPathString() {
-        return buildPath.getPath();
-    }
-
-    @Override
-    public long getTransformationId() {
-        return transformationIdentity.getId();
-    }
-
-    @Override
     public String getTransformerName() {
         return transformerName;
     }
@@ -59,4 +49,5 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     public String getSubjectName() {
         return subjectName;
     }
+
 }

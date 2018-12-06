@@ -28,16 +28,6 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
     public interface Details {
 
         /**
-         * Returns the unique path of the build this transformation is part of.
-         */
-        String getBuildPathString();
-
-        /**
-         * Returns the unique id of the transformation.
-         */
-        long getTransformationId();
-
-        /**
          * Returns the display name of the transformer.
          */
         String getTransformerName();
