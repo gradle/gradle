@@ -71,7 +71,7 @@ apply plugin: 'swift-application'
         buildFile << """
             apply plugin: 'swift-application'
 
-            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
+            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
         """
 
         def app = new SwiftApp()
@@ -161,7 +161,7 @@ apply plugin: 'swift-library'
         buildFile << """
             apply plugin: 'swift-library'
 
-            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
+            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
         """
 
         def lib = new SwiftLib()
@@ -588,7 +588,7 @@ apply plugin: 'swift-application'
         buildFile << """
             apply plugin: 'swift-application'
 
-            application.targetMachines = [machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+            application.targetMachines = [machines.${currentOsFamilyName}().x86, machines.${currentOsFamilyName}().x86_64]
         """
 
         app.writeToProject(testDirectory)
@@ -731,7 +731,7 @@ apply plugin: 'swift-library'
         buildFile << """
             apply plugin: 'swift-library'
 
-            library.targetMachines = [machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+            library.targetMachines = [machines.${currentOsFamilyName}().x86, machines.${currentOsFamilyName}().x86_64]
         """
 
         lib.writeToProject(testDirectory)

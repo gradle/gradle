@@ -215,6 +215,6 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
     }
 }
