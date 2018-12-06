@@ -1094,4 +1094,46 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             virtualConfiguration("org:platform:1.1")
         }
     }
+
+    @Issue("gradle/gradle#7954")
+    def "shouldn't fail when versionless dependency belongs to virtual platform"() {
+        repository {
+            'org:foo:1.1'()
+        }
+
+        given:
+        buildFile << '''
+            dependencies {
+              constraints {
+                  conf platform("org:platform:1.1")
+              }
+            
+              conf 'org:foo'
+            }
+        '''
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('foo') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'foo'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo", "org:foo:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+                constraint("org:platform:1.1", "org:platform:1.1") {
+                    noArtifacts()
+                    constraint('org:foo:1.1')
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
 }
