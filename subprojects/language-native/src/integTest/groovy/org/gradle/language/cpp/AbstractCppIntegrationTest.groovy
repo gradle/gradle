@@ -50,4 +50,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
     protected String getTaskNameToAssembleDevelopmentBinary() {
         return 'assemble'
     }
+
+    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return ":assembleDebug${architecture.capitalize()}"
+    }
 }

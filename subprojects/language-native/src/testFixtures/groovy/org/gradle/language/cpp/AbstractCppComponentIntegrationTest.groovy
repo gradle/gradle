@@ -167,9 +167,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
 
-    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return ":assembleDebug${architecture.capitalize()}"
-    }
+    protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 
     protected configureTargetMachines(String targetMachines) {
         return """

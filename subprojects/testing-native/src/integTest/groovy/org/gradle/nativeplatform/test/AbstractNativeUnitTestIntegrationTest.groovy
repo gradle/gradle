@@ -66,7 +66,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         given:
         makeSingleProject()
         writeTests()
-        configureTargetMachines("machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()")
+        configureTargetMachines("machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64")
 
         when:
         succeeds(task)
@@ -91,8 +91,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         given:
         makeSingleProject()
         writeTests()
-        configureTargetMachines("machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()")
-        configureTestTargetMachines("machines.os('${currentOsFamilyName}').x86_64()")
+        configureTargetMachines("machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64")
+        configureTestTargetMachines("machines.os('${currentOsFamilyName}').x86_64")
 
         when:
         succeeds(task)
