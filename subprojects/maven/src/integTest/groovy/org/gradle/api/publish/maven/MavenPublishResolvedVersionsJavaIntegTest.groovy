@@ -24,8 +24,8 @@ import spock.lang.Unroll
 class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @Unroll
-    def "can publish java-library with dependencies using default configuration"() {
+    @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
+    def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -91,12 +91,10 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         where:
-        [apiMapping, runtimeMapping] << [
-                [apiUsingVariantNames(), apiUsingVariantNames("fromResolutionOf('compileClasspath')"), apiUsingVariantNames("fromResolutionOf(project.configurations.compileClasspath)"),
-                 apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-                [runtimeUsingVariantNames(), runtimeUsingVariantNames("fromResolutionOf('runtimeClasspath')"), runtimeUsingVariantNames("fromResolutionOf(project.configurations.runtimeClasspath)"),
-                 runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")]
-        ].combinations()
+        [apiMapping, runtimeMapping] << ([
+                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")]
+        ].combinations() + [[allVariants(), noop()]])
     }
 
     /**
@@ -284,12 +282,10 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         where:
-        [apiMapping, runtimeMapping] << [
-                [apiUsingVariantNames(), apiUsingVariantNames("fromResolutionOf('compileClasspath')"),
-                 apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')")],
-                [runtimeUsingVariantNames(), runtimeUsingVariantNames("fromResolutionOf('runtimeClasspath')"),
-                 runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
-        ].combinations()
+        [apiMapping, runtimeMapping] << ([
+                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')")],
+                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
+        ].combinations() + [[allVariants(), noop()]])
     }
 
     def "dependency constraints which are unresolved are published as is"() {
@@ -451,39 +447,18 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
     }
 
-    private static String apiUsingVariantNames(String config = "fromResolutionResult()") {
-        """
-                            variant("api") { // Gradle Metadata
-                                $config
-                            }
-                            variant("compile") { // Maven POM
-                                $config
-                            }
-        """
+    private static String allVariants() {
+        " allVariants { fromResolutionResult() } "
     }
+
+    private static String noop() { "" }
 
     private static String apiUsingUsage(String config = "fromResolutionResult()") {
-        """
-                            usage("java-api") {
-                                $config
-                            }
-        """
-    }
-
-    private static String runtimeUsingVariantNames(String config = "fromResolutionResult()") {
-        """
-                            variant("runtime") {
-                                $config
-                            }
-        """
+        """ usage("java-api") { $config } """
     }
 
     private static String runtimeUsingUsage(String config = "fromResolutionResult()") {
-        """
-                            usage("java-runtime") {
-                                $config
-                            }
-        """
+        """ usage("java-runtime") { $config } """
     }
 
     private void createBuildScripts(def append) {

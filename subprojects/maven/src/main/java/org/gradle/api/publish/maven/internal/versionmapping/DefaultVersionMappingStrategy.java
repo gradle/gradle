@@ -27,6 +27,7 @@ import org.gradle.api.publish.VariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.util.List;
 
@@ -41,13 +42,8 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     }
 
     @Override
-    public void variant(String name, Action<? super VariantVersionMappingStrategy> action) {
-        PublishedVariantVersionMapping mapping = new PublishedVariantVersionMapping(new Spec<PublishedVariant>() {
-            @Override
-            public boolean isSatisfiedBy(PublishedVariant element) {
-                return name.equals(element.name);
-            }
-        }, action);
+    public void allVariants(Action<? super VariantVersionMappingStrategy> action) {
+        PublishedVariantVersionMapping mapping = new PublishedVariantVersionMapping(Specs.SATISFIES_ALL, action);
         mappings.add(mapping);
     }
 
