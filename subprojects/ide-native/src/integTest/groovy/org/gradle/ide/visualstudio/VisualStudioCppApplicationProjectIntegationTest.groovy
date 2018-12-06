@@ -50,7 +50,7 @@ class VisualStudioCppApplicationProjectIntegationTest extends AbstractVisualStud
 
     @Override
     List<String> getTasksToBuildFromIde(String variant) {
-        return [":compile${variant}Cpp", ":link${variant}", ":install${variant}"]
+        return [":compile${variant.capitalize()}Cpp", ":link${variant.capitalize()}", ":install${variant.capitalize()}"]
     }
 
     @Override

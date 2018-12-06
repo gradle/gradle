@@ -51,7 +51,7 @@ class VisualStudioCppStaticLibraryLinkageProjectIntegrationTest extends Abstract
 
     @Override
     List<String> getTasksToBuildFromIde(String variant) {
-        return [":compile${variant}Cpp", ":create${variant}"]
+        return [":compile${variant.capitalize()}Cpp", ":create${variant.capitalize()}"]
     }
 
     @Override
