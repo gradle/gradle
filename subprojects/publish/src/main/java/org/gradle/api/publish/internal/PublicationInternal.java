@@ -25,6 +25,7 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
@@ -68,6 +69,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      */
     PublishedFile getPublishedFile(PublishArtifact source);
 
+    @Nullable
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
     interface PublishedFile {
