@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.execution.plan.TransformationIdentity;
 import org.gradle.util.Path;
 
 public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
 
     private final Path buildPath;
-    private final org.gradle.execution.plan.TransformationIdentity transformationIdentity;
+    private final TransformationIdentity transformationIdentity;
     private final String transformerName;
     private final String subjectName;
 
-    public ExecuteScheduledTransformationStepBuildOperationDetails(Path buildPath, org.gradle.execution.plan.TransformationIdentity transformationIdentity, String transformerName, String subjectName) {
+    public ExecuteScheduledTransformationStepBuildOperationDetails(Path buildPath, TransformationIdentity transformationIdentity, String transformerName, String subjectName) {
         this.buildPath = buildPath;
         this.transformationIdentity = transformationIdentity;
         this.transformerName = transformerName;

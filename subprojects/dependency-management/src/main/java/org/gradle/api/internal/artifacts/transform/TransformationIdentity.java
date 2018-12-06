@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.project.WorkIdentity;
 

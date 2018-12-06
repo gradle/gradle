@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
+import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
 import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TransformationIdentity;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
