@@ -49,12 +49,12 @@ import static org.gradle.util.Path.path;
 class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationType.Details> implements OperationDependenciesLookup {
 
     private final Map<Long, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
-    private final OperationDependenciesProvider operationDependenciesProvider;
+    private final OperationDependenciesResolver operationDependenciesResolver;
 
     ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                               OperationDependenciesProvider operationDependenciesProvider) {
+                                               OperationDependenciesResolver operationDependenciesResolver) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TRANSFORM, ExecuteScheduledTransformationStepBuildOperationType.Details.class);
-        this.operationDependenciesProvider = operationDependenciesProvider;
+        this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
     @Override
@@ -84,7 +84,7 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
             String transformerName = details.getTransformerName();
             String subjectName = details.getSubjectName();
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesProvider.computeTransformDependencies(path(details.getBuildPath()), details.getTransformationId());
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveTransformDependencies(path(details.getBuildPath()), details.getTransformationId());
             return new DefaultTransformDescriptor(id, displayName, parentId, transformerName, subjectName, dependencies);
         });
     }

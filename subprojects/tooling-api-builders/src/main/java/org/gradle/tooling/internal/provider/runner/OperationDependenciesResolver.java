@@ -37,7 +37,7 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.toCollection;
 
-class OperationDependenciesProvider implements TaskExecutionGraphListener {
+class OperationDependenciesResolver implements TaskExecutionGraphListener {
 
     private final Map<Path, TaskExecutionGraphInternal> taskExecutionGraphs = new HashMap<>();
     private final List<OperationDependenciesLookup> lookups = new ArrayList<>();
@@ -52,13 +52,13 @@ class OperationDependenciesProvider implements TaskExecutionGraphListener {
         taskExecutionGraphs.put(buildPath, (TaskExecutionGraphInternal) taskExecutionGraph);
     }
 
-    Set<InternalOperationDescriptor> computeTaskDependencies(Task task) {
+    Set<InternalOperationDescriptor> resolveTaskDependencies(Task task) {
         Path buildPath = ((ProjectInternal) task.getProject()).getGradle().getIdentityPath();
         TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphs.get(buildPath);
         return lookupExistingOperationDescriptors(taskExecutionGraph.getExecutionDependencies(task));
     }
 
-    Set<InternalOperationDescriptor> computeTransformDependencies(Path buildPath, long transformationId) {
+    Set<InternalOperationDescriptor> resolveTransformDependencies(Path buildPath, long transformationId) {
         TaskExecutionGraphInternal taskExecutionGraph = taskExecutionGraphs.get(buildPath);
         return lookupExistingOperationDescriptors(taskExecutionGraph.getExecutionDependencies(new DefaultTransformationNodeIdentifier(transformationId)));
     }

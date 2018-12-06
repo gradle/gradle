@@ -61,13 +61,13 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
             }
-            OperationDependenciesProvider operationDependenciesProvider = new OperationDependenciesProvider();
+            OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
             if (clientSubscriptions.isAnyRequested(OperationType.TRANSFORM, OperationType.TASK)) {
-                listeners.add(operationDependenciesProvider);
+                listeners.add(operationDependenciesResolver);
             }
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM)) {
-                ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationDependenciesProvider);
-                operationDependenciesProvider.addLookup(transformOperationListener);
+                ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationDependenciesResolver);
+                operationDependenciesResolver.addLookup(transformOperationListener);
                 buildListener = transformOperationListener;
             }
             PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(parentTracker);
@@ -79,8 +79,8 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
                 if (clientSubscriptions.isAnyRequested(OperationType.TASK)) {
                     listeners.add(taskOriginTracker);
                 }
-                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor, taskOriginTracker, operationDependenciesProvider);
-                operationDependenciesProvider.addLookup(taskOperationListener);
+                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationResultPostProcessor, taskOriginTracker, operationDependenciesResolver);
+                operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }
             listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, clientSubscriptions, buildListener, parentTracker, pluginApplicationTracker));

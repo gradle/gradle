@@ -61,14 +61,14 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
     private final TaskOriginTracker taskOriginTracker;
-    private final OperationDependenciesProvider operationDependenciesProvider;
+    private final OperationDependenciesResolver operationDependenciesResolver;
 
     ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesProvider operationDependenciesProvider) {
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
         this.taskOriginTracker = taskOriginTracker;
-        this.operationDependenciesProvider = operationDependenciesProvider;
+        this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
     @Override
@@ -100,7 +100,7 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
             String displayName = buildOperation.getDisplayName();
             String taskPath = task.getIdentityPath().toString();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesProvider.computeTaskDependencies(task);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveTaskDependencies(task);
             InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
             return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, dependencies, originPlugin);
         });
