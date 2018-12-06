@@ -21,7 +21,7 @@ TIP: If you are using Gradle for Android, you need to move to version 3.4 or hig
 
 We recommend the following steps for all users:
 
- . If you are not already on version 4.10.2, read the sections <<#changes_5.0,below>> for help upgrading your project to 4.10.2.
+ . If you are not already on version 4.10.3, read the sections <<#changes_5.0,below>> for help upgrading your project to 4.10.3.
  . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan. If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
