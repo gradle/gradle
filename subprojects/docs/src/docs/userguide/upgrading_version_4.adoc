@@ -81,6 +81,7 @@ The following breaking changes are not from deprecations, but the result of chan
 While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a https://docs.gradle.org/current/dsl/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
  * The <<#rel5.0:configuration_avoidance, Configuration Avoidance API>> has been updated to prevent the creation and configuration of tasks that are never used.
+  * The default maximum heap size for the <<gradle_daemon.adoc#the-gradle-daemon, Gradle Daemon>> has been decreased from 1GB to 512MB. If after updating to Gradle 5.0 your build fails with an `OutOfMemoryError`, try <<gradle_daemon.adoc#how-much-memory-does-the-daemon-use-and-can-i-give-it-more, increasing this value>> (quick fix: setting `org.gradle.jvmargs=-Xmx1g` in `gradle.properties` will bring back the default behavior of Gradle 4.x).
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:
 
