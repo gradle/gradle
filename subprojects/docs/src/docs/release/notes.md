@@ -13,9 +13,15 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX)
 [Till Krullmann](https://github.com/tkrullmann)
 
-## Use plugins from included build using the `plugins { }` block 
+## Apply plugins from included build using `plugins { }` block 
 
-The `plugins { }` block in build scripts can now be used to refer to plugins defined in included builds.
+The [`plugins { }`](userguide/plugins.html#sec:plugins_block) block in build scripts can now be used to refer to plugins defined in included builds. In previous versions of Gradle, this was possible but required some additional boiler-plate code in the settings file. This boiler-plate is now no longer required.
+
+This change makes it super easy to add a test build for a Gradle plugin and streamlines the process of implementing a Gradle plugin. You can also use this feature to conveniently work on changes to a plugin and builds that use that plugin at the same time, to implement a plugin that is both published and used by projects in the same source repository, or to structure a complex build into a number of plugins.
+
+Using the `plugins { } ` block also makes the Gradle Kotlin DSL much more convenient to use.
+
+You can find out more about composite builds in the [user manual](userguide/composite_builds.html).
 
 ## Stricter validation with `validateTaskProperties`
 
@@ -47,17 +53,21 @@ repositories {
 
 This filtering can also be used to separate snapshot repositories from release repositories.
 
-Look at the [userguide](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
+Look at the [user manual](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
 
 ## Improvements for plugin authors
 
-### Conveniences for properties of type Map
+### Conveniences for Map properties
 
-This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model.
+This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model, for example in a project extension or task property.
 
-### Allow a convention to be specified for a property
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_maps) for more details.
 
-A `convention` method is now available for property types, which allows the <em>convention</em> for a property to be specified. The convention is the value that is used when no value has been explicitly configured for the property.
+### Specify a convention for a property
+
+A `convention` method is now available for property types, which allows the <em>convention</em> for a property to be specified. The convention is a value that is used when no value has been explicitly configured for the property.
+
+See the [user manual](userguide/lazy_configuration.html#sec:applying_conventions) for more details.
 
 ## Tooling API: Enhanced/additional progress events
 
@@ -78,7 +88,7 @@ The additional data and the new operation types are only available if the versio
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
