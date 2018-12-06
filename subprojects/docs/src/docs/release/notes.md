@@ -55,6 +55,22 @@ Look at the [userguide](userguide/declaring_repositories.html#sec::matching_repo
 
 This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model.
 
+## Tooling API: Enhanced/additional progress events
+
+The following Tooling API types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:
+
+- [`TaskOperationDescriptor`](javadoc/org/gradle/tooling/events/task/TaskOperationDescriptor.html) now includes the identifier of the plugin that registered the task and its dependencies.
+- [`TaskExecutionResult`](javadoc/org/gradle/tooling/events/task/TaskExecutionResult.html) now includes the list of reasons why a task was executed and whether it was executed incrementally. 
+- [`JavaCompileTaskOperationResult`](javadoc/org/gradle/tooling/events/task/java/JavaCompileTaskOperationResult.html) is a new subinterface of [`TaskOperationResult`](javadoc/org/gradle/tooling/events/task/TaskOperationResult.html) for `JavaCompile` tasks that includes information about the used annotation processors.
+
+Additional [operation types](javadoc/org/gradle/tooling/events/OperationType.html) that were previously only available as generic progress events now use their own dedicated interfaces: 
+
+- Project configuration (see [`org.gradle.tooling.events.configuration`](javadoc/org/gradle/tooling/events/configuration/package-summary.html)), including configuration times of applied plugins in [`ProjectConfigurationOperationResult`](javadoc/org/gradle/tooling/events/configuration/ProjectConfigurationOperationResult.html)
+- Worker API work items (see [`org.gradle.tooling.events.work`](javadoc/org/gradle/tooling/events/work/package-summary.html))
+- Artifact transforms (see [`org.gradle.tooling.events.transform`](javadoc/org/gradle/tooling/events/transform/package-summary.html))
+
+The additional data and the new operation types are only available if the version of Gradle that is running the build is 5.1 or above.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
