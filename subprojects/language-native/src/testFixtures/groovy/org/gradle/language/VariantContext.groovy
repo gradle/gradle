@@ -51,7 +51,7 @@ class VariantContext {
 
     static VariantContext of(Map<String, String> dimensions) {
         return new VariantContext(dimensions.collectEntries([:]) { key, value ->
-            [key: VariantDimension.of(key, value)]
+            [(key): VariantDimension.of(key, value)]
         })
     }
 

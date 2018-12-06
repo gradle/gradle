@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.MachineArchitecture
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -215,6 +216,11 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.language.VariantContext
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
@@ -180,6 +181,11 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
     }
 }
