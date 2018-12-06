@@ -21,6 +21,7 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -48,7 +49,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         componentUnderTest.writeToProject(testDirectory)
         makeSingleProject()
         buildFile << """
-            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family'), machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family'), machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
         """
 
         and:
@@ -73,7 +74,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         componentUnderTest.writeToProject(testDirectory)
         makeSingleProject()
         buildFile << """
-            ${componentUnderTestDsl}.targetMachines = [machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
         """
 
         and:
@@ -107,7 +108,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         componentUnderTest.writeToProject(testDirectory)
         makeSingleProject()
         buildFile << """
-            ${componentUnderTestDsl}.targetMachines = [machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
         """
         run "visualStudio"
 
@@ -177,5 +178,9 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         } else {
             return configurationName.startsWith("release") ? "stripped/" : ""
         }
+    }
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
     }
 }
