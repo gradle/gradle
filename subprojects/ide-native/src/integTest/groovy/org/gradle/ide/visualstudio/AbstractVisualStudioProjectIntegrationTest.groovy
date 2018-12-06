@@ -137,7 +137,6 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         resultRelease.size() == 1
         resultRelease[0].assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':installReleaseX86-64')
         file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
-        installation(file('build/install/main/release/x86-64')).assertInstalled()
     }
 
     String getRootProjectName() {
