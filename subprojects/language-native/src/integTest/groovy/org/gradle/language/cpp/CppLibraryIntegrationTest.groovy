@@ -126,6 +126,23 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
+    def "sources are compiled with C++ compiler with 'dot' in project name"() {
+        given:
+        settingsFile << "rootProject.name = 'hello.test'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        sharedLibrary("build/lib/main/debug/hello.test").assertExists()
+    }
+
     def "can build debug and release variants of library"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -153,6 +170,36 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         result.assertTasksExecuted(tasks.debug.allToLink, tasks.debug.assemble)
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         sharedLibrary("build/lib/main/debug/hello").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
+        !output.contains('compiling with feature enabled')
+    }
+
+    def "can build debug and release variants of library with 'dot' in project"() {
+        given:
+        settingsFile << "rootProject.name = 'hello.test'"
+        def lib = new CppGreeterWithOptionalFeature()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library.binaries.get { it.optimized }.configure { compileTask.get().macros(WITH_FEATURE: "true") }
+         """
+
+        expect:
+        executer.withArgument("--info")
+        succeeds tasks.release.assemble
+
+        result.assertTasksExecuted(tasks.release.allToLink, tasks.release.extract, tasks.release.assemble)
+        sharedLibrary("build/lib/main/release/hello.test").assertExists()
+        sharedLibrary("build/lib/main/release/hello.test").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
+        output.contains('compiling with feature enabled')
+
+        executer.withArgument("--info")
+        succeeds tasks.debug.assemble
+
+        result.assertTasksExecuted(tasks.debug.allToLink, tasks.debug.assemble)
+        sharedLibrary("build/lib/main/debug/hello.test").assertExists()
+        sharedLibrary("build/lib/main/debug/hello.test").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         !output.contains('compiling with feature enabled')
     }
 

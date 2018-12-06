@@ -84,6 +84,8 @@ class OperatingSystemTest extends Specification {
         os.getScriptName("a.exe") == "a.bat"
         os.getScriptName("a.b/c") == "a.b/c.bat"
         os.getScriptName("a.b\\c") == "a.b\\c.bat"
+        os.getScriptName("any/path/to/filesystem/base.name") == "any/path/to/filesystem/base.name.bat"
+        os.getScriptName("any/path/to/filesystem/base-name") == "any/path/to/filesystem/base-name.bat"
     }
 
     def "windows transforms executable names"() {
@@ -97,6 +99,8 @@ class OperatingSystemTest extends Specification {
         os.getExecutableName("a.bat") == "a.exe"
         os.getExecutableName("a.b/c") == "a.b/c.exe"
         os.getExecutableName("a.b\\c") == "a.b\\c.exe"
+        os.getExecutableName("any/path/to/filesystem/base.name") == "any/path/to/filesystem/base.name.exe"
+        os.getExecutableName("any/path/to/filesystem/base-name") == "any/path/to/filesystem/base-name.exe"
     }
 
     def "windows transforms shared library names"() {
@@ -110,9 +114,18 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("a") == "a.dll"
         os.getSharedLibraryName("a.lib") == "a.dll"
         os.getSharedLibraryName("a.b/c") == "a.b/c.dll"
+        os.getSharedLibraryName("abc.def/a") == "abc.def/a.dll"
+        os.getSharedLibraryName("abc.def/ghi.jkl") == "abc.def/ghi.jkl.dll"
+        os.getSharedLibraryName("any/path/to/filesystem/base.name") == "any/path/to/filesystem/base.name.dll"
+        os.getSharedLibraryName("any/path/to/filesystem/base-name") == "any/path/to/filesystem/base-name.dll"
+        os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
         os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
         os.getLinkLibraryName("a") == "a.lib"
         os.getLinkLibraryName("a.lib") == "a.lib"
+        os.getLinkLibraryName("abc.def") == "abc.def.lib"
+        os.getLinkLibraryName("abc/def") == "abc/def.lib"
+        os.getLinkLibraryName("abc/def/base-name") == "abc/def/base-name.lib"
+        os.getLinkLibraryName("abc/def/base.name") == "abc/def/base.name.lib"
     }
 
     def "windows transforms static library names"() {
@@ -124,6 +137,8 @@ class OperatingSystemTest extends Specification {
         os.getStaticLibraryName("a.LIB") == "a.LIB"
         os.getStaticLibraryName("a") == "a.lib"
         os.getStaticLibraryName("a.dll") == "a.lib"
+        os.getStaticLibraryName("any/path/to/filesystem/base-name") == "any/path/to/filesystem/base-name.lib"
+        os.getStaticLibraryName("any/path/to/filesystem/base.name") == "any/path/to/filesystem/base.name.lib"
         os.getStaticLibraryName("a.b/c") == "a.b/c.lib"
         os.getStaticLibraryName("a.b\\c") == "a.b\\c.lib"
     }

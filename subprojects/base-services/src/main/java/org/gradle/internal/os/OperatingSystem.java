@@ -25,8 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.gradle.internal.FileUtils.withExtension;
-
 public abstract class OperatingSystem {
     public static final Windows WINDOWS = new Windows();
     public static final MacOs MAC_OS = new MacOs();
@@ -124,6 +122,24 @@ public abstract class OperatingSystem {
     public abstract String getLinkLibrarySuffix();
 
     public abstract String getLinkLibraryName(String libraryPath);
+
+    public static String withExtension(String filePath, String extension) {
+        if (filePath.toLowerCase().endsWith(extension)) {
+            return filePath;
+        }
+        return removeExtension(filePath) + extension;
+    }
+
+    public static String removeExtension(String filePath) {
+        int fileNameStart = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+        int extensionPos = filePath.lastIndexOf('.');
+
+        if (extensionPos > fileNameStart && filePath.matches("^.*\\.(bat|BAT|exe|EXE|dll|DLL|lib|LIB|so|a)$")) {
+            return filePath.substring(0, extensionPos);
+        }
+        return filePath;
+    }
+
 
     @UsedByScanPlugin
     public abstract String getFamilyName();

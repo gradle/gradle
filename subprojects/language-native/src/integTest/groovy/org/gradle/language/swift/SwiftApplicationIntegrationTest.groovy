@@ -148,6 +148,26 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
+    def "sources are compiled and linked with Swift tools with 'dot' in project name"() {
+        given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app.test'"
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+
+        executable("build/exe/main/debug/app.test").assertExists()
+        file("build/modules/main/debug/app.test.swiftmodule").assertIsFile()
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "can build debug and release variant of the executable"() {
         given:
         def app = new SwiftAppWithOptionalFeature()
