@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -30,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
@@ -80,6 +82,13 @@ public abstract class TransformationNode extends Node {
 
     @Override
     public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+    }
+
+    @Nullable
+    @Override
+    public Project getProject() {
+        // Transforms do not require project state
+        return null;
     }
 
     @Override

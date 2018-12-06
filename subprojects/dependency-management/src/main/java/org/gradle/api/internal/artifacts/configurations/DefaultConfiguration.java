@@ -89,6 +89,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -116,6 +117,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -555,6 +557,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         });
     }
 
+    /**
+     * Must be called from {@link #resolveExclusively(InternalState)} only.
+     */
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
@@ -569,7 +574,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
+                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -639,6 +644,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    /**
+     * Must be called from {@link #resolveExclusively(InternalState)} only.
+     */
     private void resolveArtifactsIfRequired() {
         if (resolvedState == ARTIFACTS_RESOLVED) {
             return;
@@ -652,8 +660,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> {
-            resolveGraphIfRequired(GRAPH_RESOLVED);
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), new WorkNodeAction() {
+            @Nullable
+            @Override
+            public Project getProject() {
+                return maybeGetOwningProject();
+            }
+
+            @Override
+            public void run() {
+                resolveExclusively(GRAPH_RESOLVED);
+            }
         });
     }
 
@@ -1154,17 +1171,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private boolean hasMutableProjectState() {
-        if (domainObjectContext.getProjectPath() != null) {
-            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-            if (project != null) {
-                ProjectState projectState = projectStateRegistry.stateFor(project);
-                if (!projectState.hasMutableState()) {
-                    return false;
-                }
-            }
+        Project project = maybeGetOwningProject();
+        if (project != null) {
+            ProjectState projectState = projectStateRegistry.stateFor(project);
+            return projectState.hasMutableState();
         }
-
         return true;
+    }
+
+    @Nullable
+    private Project maybeGetOwningProject() {
+        if (domainObjectContext.getProjectPath() != null) {
+            return projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+        } else {
+            return null;
+        }
     }
 
     private void assertIsResolvable() {
