@@ -236,7 +236,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
         def previousFile = temporaryFolder.file("output.txt")
         previousFile.createNewFile()
-        def outputFiles = ImmutableSortedMap.of(
+        def previousOutputFingerprints = ImmutableSortedMap.of(
             "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
         )
 
@@ -252,12 +252,13 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskContext.getAfterPreviousExecution() >> afterPreviousExecutionState
-        1 * afterPreviousExecutionState.outputFileProperties >> outputFiles
+        1 * afterPreviousExecutionState.outputFileProperties >> previousOutputFingerprints
         1 * taskArtifactState.overlappingOutputs >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
+            // Delete the file here so that deletion in SkipEmptySourceFilesTaskExecuter fails
             assert previousFile.delete()
             return true
         }

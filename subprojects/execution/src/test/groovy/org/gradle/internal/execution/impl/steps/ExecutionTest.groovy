@@ -37,7 +37,7 @@ class ExecutionTest extends Specification {
 
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def executeStep = new CatchExceptionStep<Context>(
+    def executionStep = new CatchExceptionStep<Context>(
         new CancelExecutionStep<Context>(cancellationToken,
             new ExecuteStep(outputChangeListener)
         )
@@ -48,7 +48,7 @@ class ExecutionTest extends Specification {
             return true
         })
         when:
-        def result = executeStep.execute { -> unitOfWork}
+        def result = executionStep.execute { -> unitOfWork}
 
         then:
         unitOfWork.executed
@@ -61,7 +61,7 @@ class ExecutionTest extends Specification {
 
     def "reports no work done"() {
         when:
-        def result = executeStep.execute { ->
+        def result = executionStep.execute { ->
             new TestUnitOfWork({ ->
                 return false
             })
@@ -81,7 +81,7 @@ class ExecutionTest extends Specification {
         })
 
         when:
-        def result = executeStep.execute { -> unitOfWork }
+        def result = executionStep.execute { -> unitOfWork }
 
         then:
         result.outcome == ExecutionOutcome.EXECUTED
@@ -98,7 +98,7 @@ class ExecutionTest extends Specification {
         def unitOfWork = new TestUnitOfWork({ -> true }, changingOutputs)
 
         when:
-        def result = executeStep.execute { -> unitOfWork }
+        def result = executionStep.execute { -> unitOfWork }
 
         then:
         result.outcome == ExecutionOutcome.EXECUTED
@@ -113,7 +113,7 @@ class ExecutionTest extends Specification {
 
         when:
         cancellationToken.cancel()
-        def result = executeStep.execute { -> unitOfWork }
+        def result = executionStep.execute { -> unitOfWork }
 
         then:
         result.outcome == ExecutionOutcome.EXECUTED
