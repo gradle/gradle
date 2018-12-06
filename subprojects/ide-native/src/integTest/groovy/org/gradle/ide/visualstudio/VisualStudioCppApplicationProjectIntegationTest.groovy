@@ -49,6 +49,11 @@ class VisualStudioCppApplicationProjectIntegationTest extends AbstractVisualStud
     }
 
     @Override
+    List<String> getTasksToBuildFromIde(String variant) {
+        return [":compile${variant}Cpp", ":link${variant}", ":install${variant}"]
+    }
+
+    @Override
     String getVisualStudioProjectName() {
         return rootProjectName
     }

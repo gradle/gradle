@@ -123,7 +123,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(':compileDebugX86Cpp', ':linkDebugX86', ':installDebugX86')
+        resultDebug[0].assertTasksExecuted(getTasksToBuildFromIde("debugX86"))
         file(getBuildFile(VariantContext.of(buildType: 'debug', architecture: 'x86'))).assertIsFile()
 
         when:
@@ -136,7 +136,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultRelease.size() == 1
-        resultRelease[0].assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':installReleaseX86-64')
+        resultRelease[0].assertTasksExecuted(getTasksToBuildFromIde("releaseX86-64"))
         file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
     }
 
@@ -163,6 +163,8 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     abstract CppSourceElement getComponentUnderTest()
 
     abstract String getIdeBuildTaskName(String variant)
+
+    abstract List<String> getTasksToBuildFromIde(String variant)
 
     String[] getProjectTasks() {
         return [":${visualStudioProjectName}VisualStudioProject", ":${visualStudioProjectName}VisualStudioFilters"]

@@ -49,6 +49,11 @@ class VisualStudioCppSharedLibraryLinkageProjectIntegrationTest extends Abstract
     }
 
     @Override
+    List<String> getTasksToBuildFromIde(String variant) {
+        return [":compile${variant}Cpp", ":link${variant}"]
+    }
+
+    @Override
     String getVisualStudioProjectName() {
         return "${rootProjectName}Dll"
     }
