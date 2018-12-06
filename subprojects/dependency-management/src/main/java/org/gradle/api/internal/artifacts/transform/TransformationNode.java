@@ -34,10 +34,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class TransformationNode extends Node {
-    private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
