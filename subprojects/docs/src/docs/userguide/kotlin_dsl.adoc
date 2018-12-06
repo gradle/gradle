@@ -129,7 +129,7 @@ If the above doesn't work and you suspect an issue with the Kotlin DSL script ed
 * Check the logs in one of these locations:
 ** `$HOME/Library/Logs/gradle-kotlin-dsl` on Mac OS X
 ** `$HOME/.gradle-kotlin-dsl/logs` on Linux
-** `$HOME/Application Data/gradle-kotlin-dsl/log` on Windows
+** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
 * Open an issue on the link:{kotlin-dsl-issues}[Kotlin DSL issue tracker], including as much detail as you can.
 
 For IDE problems outside of the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
