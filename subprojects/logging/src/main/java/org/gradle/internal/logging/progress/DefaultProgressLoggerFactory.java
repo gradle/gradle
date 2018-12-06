@@ -22,6 +22,7 @@ import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
@@ -93,6 +94,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
         }
+        BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
         return new ProgressLoggerImpl(
             (ProgressLoggerImpl) parentOperation,
             new OperationIdentifier(buildOperationIdFactory.nextId()),
@@ -100,8 +102,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             progressListener,
             clock,
             false,
-            currentBuildOperationRef.getId(),
-            currentBuildOperationRef.getParentId(),
+            currentBuildOperation != null ? currentBuildOperation.getId() : null,
+            currentBuildOperation != null ? currentBuildOperation.getParentId() : null,
             null
         );
     }
