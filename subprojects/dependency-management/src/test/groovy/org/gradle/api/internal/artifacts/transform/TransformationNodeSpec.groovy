@@ -41,7 +41,7 @@ class TransformationNodeSpec extends Specification {
         def additionalNode = new TestNode()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -58,10 +58,10 @@ class TransformationNodeSpec extends Specification {
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ArtifactTransformDependenciesProvider), Stub(ExecutionGraphDependenciesResolver))
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver))
 
         given:
-        def node = TransformationNode.chained(transformationStep, initialNode, Stub(ArtifactTransformDependenciesProvider), graphDependenciesResolver)
+        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)

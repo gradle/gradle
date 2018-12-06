@@ -22,16 +22,18 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Factory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
-    private final Factory<ResolverResults> results;
+    private final Factory<ResolverResults> graphResults;
+    private final Factory<ResolverResults> artifactResults;
     private final WorkNodeAction graphResolveAction;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> results, WorkNodeAction graphResolveAction) {
-        this.results = results;
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction) {
+        this.graphResults = graphResults;
+        this.artifactResults = artifactResults;
         this.graphResolveAction = graphResolveAction;
     }
 
     @Override
     public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
-        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results.create(), graphResolveAction);
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, graphResolveAction);
     }
 }
