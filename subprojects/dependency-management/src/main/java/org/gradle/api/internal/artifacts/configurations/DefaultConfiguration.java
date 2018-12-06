@@ -652,7 +652,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies());
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> {
+            resolveGraphIfRequired(GRAPH_RESOLVED);
+        });
     }
 
     private ResolverResults getResultsForBuildDependencies() {
