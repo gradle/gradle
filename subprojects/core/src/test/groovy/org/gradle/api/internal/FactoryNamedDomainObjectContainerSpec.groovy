@@ -28,7 +28,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     final namer = { it } as Namer
 
     def usesFactoryToCreateContainerElements() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity())
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         def result = container.create('a')
@@ -40,7 +40,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, MutationGuards.identity())
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         def result = container.create('a')
@@ -52,7 +52,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
 
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl, MutationGuards.identity())
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         def result = container.create('a')
@@ -73,7 +73,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
+        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs), CollectionCallbackActionDecorator.NOOP).create(name)
     }
 
     static class JustName implements Named {

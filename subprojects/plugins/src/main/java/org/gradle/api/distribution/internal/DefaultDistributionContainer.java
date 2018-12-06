@@ -18,6 +18,7 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -27,8 +28,8 @@ import org.gradle.internal.reflect.Instantiator;
 public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
     private final FileOperations fileOperations;
 
-    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, FileOperations fileOperations) {
-        super(type, instantiator);
+    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, FileOperations fileOperations, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, callbackDecorator);
         this.fileOperations = fileOperations;
     }
 

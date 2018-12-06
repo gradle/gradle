@@ -246,16 +246,9 @@ class GradleVersionTest extends Specification {
         '20.17-20101220100000+1000'           | "21.0"
         '0.9-SNAPSHOT'                        | "1.0"
         '3.0-snapshot-1'                      | "4.0"
-    }
-
-    def "milestones are part of previous major version"() {
-        expect:
-        GradleVersion.version(v).nextMajor == GradleVersion.version(major)
-
-        where:
-        v                                     | major
-        '1.0-milestone-3'                     | "1.0"
-        '1.0-milestone-3-20121012100000+1000' | "1.0"
-        '2.0-milestone-3'                     | "2.0" // not that we're planning to do this
+        '5.1-milestone-1'                     | "6.0"
+        '1.0-milestone-3'                     | "2.0"
+        '1.0-milestone-3-20121012100000+1000' | "2.0"
+        '2.0-milestone-3'                     | "3.0"
     }
 }

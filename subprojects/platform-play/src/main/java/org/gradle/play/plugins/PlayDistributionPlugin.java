@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Sync;
@@ -78,8 +79,8 @@ public class PlayDistributionPlugin extends RuleSource {
     public static final String STAGE_LIFECYCLE_TASK_NAME = "stage";
 
     @Model
-    PlayDistributionContainer distributions(Instantiator instantiator) {
-        return new DefaultPlayDistributionContainer(instantiator);
+    PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 
     @Mutate

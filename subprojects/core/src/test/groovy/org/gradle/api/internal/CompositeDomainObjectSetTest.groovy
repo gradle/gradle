@@ -23,7 +23,7 @@ class CompositeDomainObjectSetTest extends Specification {
     Class type = String
 
     protected collection(Object... entries) {
-        def collection = new DefaultDomainObjectSet(type)
+        def collection = new DefaultDomainObjectSet(type, CollectionCallbackActionDecorator.NOOP)
         entries.each { collection.add(it) }
         collection
     }

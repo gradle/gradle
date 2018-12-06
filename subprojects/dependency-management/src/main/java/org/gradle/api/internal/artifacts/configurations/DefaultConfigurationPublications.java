@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -55,6 +56,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private List<Capability> capabilities;
@@ -68,7 +70,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
                                             NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                             NotationParser<Object, Capability> capabilityNotationParser,
                                             FileCollectionFactory fileCollectionFactory,
-                                            ImmutableAttributesFactory attributesFactory) {
+                                            ImmutableAttributesFactory attributesFactory,
+                                            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
@@ -78,6 +81,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.capabilityNotationParser = capabilityNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
@@ -151,7 +155,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         if (variants == null) {
             // Create variants container only as required
             variantFactory = new ConfigurationVariantFactory();
-            variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, variantFactory);
+            variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, variantFactory, collectionCallbackActionDecorator);
         }
         return variants;
     }
@@ -192,7 +196,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         @Override
         public ConfigurationVariant create(String name) {
             if (canCreate) {
-                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory);
+                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, collectionCallbackActionDecorator);
             } else {
                 throw new InvalidUserCodeException("Cannot create variant '" + name + "' after " + displayName + " has been resolved");
             }

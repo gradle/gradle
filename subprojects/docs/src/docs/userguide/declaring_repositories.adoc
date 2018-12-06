@@ -69,3 +69,50 @@ include::sample[dir="/userguide/dependencyManagement/declaringRepositories/multi
 ====
 The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about the inner workings of <<introduction_dependency_management.adoc#sec:dependency_resolution,Gradle's resolution mechanism>>.
 ====
+
+[[sec::matching_repositories_to_dependencies]]
+== Matching repositories to dependencies
+
+[NOTE]
+====
+
+Matching repositories to dependencies is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
+
+====
+
+Gradle exposes an API to declare what a repository may or may not contain.
+There are different use cases for it:
+
+- performance, when you know a dependency will never be found in a specific repository
+- security, by avoiding leaking what dependencies are used in a private project
+- reliability, when some repositories contain corrupted metadata or artifacts
+
+It's even more important when considering that order of repositories matter.
+
+=== Declaring a repository filter
+
+.Declaring repository contents
+====
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=repository-filter]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
+====
+
+By default, repositories include everything and exclude nothing:
+
+* If you declare an include, then it excludes everything _but_ what is included.
+* If you declare an exclude, then it includes everything _but_ what is excluded.
+* If you declare both includes and excludes, then it includes only what is explicitly included and not excluded.
+
+It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
+See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
+
+=== Maven repository filtering
+
+For Maven repositories, it's often the case that a repository would either contain releases or snapshots.
+Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
+
+.Splitting snaphshots and releases
+====
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
+====

@@ -16,11 +16,11 @@
 
 package org.gradle.language.cpp.internal
 
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +32,7 @@ class DefaultCppApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def application = new DefaultCppApplication("main", project.objects, project.fileOperations, project.services.get(TargetMachineFactory.class))
+    def application = new DefaultCppApplication("main", project.objects, project.fileOperations, CollectionCallbackActionDecorator.NOOP)
 
     def "has display name"() {
         expect:

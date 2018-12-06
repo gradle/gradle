@@ -60,7 +60,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.linux(), machines.macOS()]
+                targetMachines = [machines.linux, machines.macOS]
             }
         """
 
@@ -78,7 +78,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.os('${currentOsFamilyName}').x86()]
+                targetMachines = [machines.os('${currentOsFamilyName}').x86]
             }
         """
 

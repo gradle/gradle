@@ -38,7 +38,7 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
 
     public JacocoReport() {
         super();
-        reports = getInstantiator().newInstance(JacocoReportsContainerImpl.class, this);
+        reports = getInstantiator().newInstance(JacocoReportsContainerImpl.class, this, getCallbackActionDecorator());
     }
 
     /**

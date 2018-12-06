@@ -49,8 +49,8 @@ class NameValidatorTest extends Specification {
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
         ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, Stub(DocumentationRegistry), CollectionCallbackActionDecorator.NOOP, null)],
-        ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)],
-        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())]
+        ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)],
+        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 
     def cleanup() {

@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -63,7 +64,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
     private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
-    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final DomainObjectSet<LanguageSourceSet> inputSourceSets;
     private final BinaryTasksCollection tasks;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
@@ -78,8 +79,9 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
      */
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
-                                                      Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator) {
-        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator));
+                                                      Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator,
+                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -99,7 +101,8 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
         this.componentNode = info.componentNode;
-        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskInstantiator);
+        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskInstantiator, info.collectionCallbackActionDecorator);
+        this.inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, info.collectionCallbackActionDecorator);
 
         MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODELTYPE, "sources");
@@ -220,14 +223,16 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         private final NamedEntityInstantiator<Task> taskInstantiator;
         private final Instantiator instantiator;
         private final ComponentSpecIdentifier componentId;
+        private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
-        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator) {
+        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, NamedEntityInstantiator<Task> taskInstantiator, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;
             this.componentNode = componentNode;
             this.taskInstantiator = taskInstantiator;
             this.instantiator = instantiator;
+            this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         }
     }
 

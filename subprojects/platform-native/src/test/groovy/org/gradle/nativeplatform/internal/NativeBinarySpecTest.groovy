@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.internal
 
-
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.BuildType
@@ -156,7 +156,7 @@ class NativeBinarySpecTest extends Specification {
 
     static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
-        def tasks = new DefaultBinaryTasksCollection(this, null)
+        def tasks = new DefaultBinaryTasksCollection(this, null, CollectionCallbackActionDecorator.NOOP)
 
         String getOutputFileName() {
             return null

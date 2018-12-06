@@ -443,13 +443,13 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
                     implementation project(':greeter')
                 }
                 application {
-                    targetMachines = [machines.macOS(), machines.linux()]
+                    targetMachines = [machines.macOS, machines.linux]
                 }
             }
             project(':greeter') {
                 apply plugin: 'swift-library'
                 library {
-                    targetMachines = [machines.macOS(), machines.linux()]
+                    targetMachines = [machines.macOS, machines.linux]
                 }
             }
         """
@@ -479,7 +479,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
                     implementation project(':greeter')
                 }
                 application {
-                    targetMachines = [machines.macOS(), machines.linux()]
+                    targetMachines = [machines.macOS, machines.linux]
                 }
             }
             project(':greeter') {

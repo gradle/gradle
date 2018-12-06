@@ -17,12 +17,12 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,7 +37,7 @@ class DefaultCppLibraryTest extends Specification {
     DefaultCppLibrary library
 
     def setup() {
-        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations, project.services.get(TargetMachineFactory.class))
+        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
     }
 
     def "has display name"() {
@@ -175,8 +175,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations, project.services.get(TargetMachineFactory.class))
-        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations, project.services.get(TargetMachineFactory.class))
+        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
+        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations, CollectionCallbackActionDecorator.NOOP)
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set
