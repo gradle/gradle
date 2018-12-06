@@ -35,7 +35,7 @@ class ConcurrentGroupingQueue<T>(
      * Predicate to check whether the given most recently pushed element (the receiver)
      * supersedes the given less recent element (the argument).
      *
-     * When the predicate returns true the argument is considered to be in the same the group
+     * When the predicate returns true the argument is considered to be in the same group
      * as the receiver.
      */
     private
