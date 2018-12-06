@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.concurrent.RessurectingThread
+import org.gradle.kotlin.dsl.concurrent.ResurrectingThread
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import kotlin.coroutines.Continuation
@@ -51,7 +51,7 @@ open class KotlinBuildScriptModelRepository {
     }
 
     private
-    val processor = RessurectingThread("Kotlin DSL Resolver") {
+    val processor = ResurrectingThread("Kotlin DSL Resolver") {
         while (true) {
             val group = q.nextGroup()
             if (group.isEmpty()) {

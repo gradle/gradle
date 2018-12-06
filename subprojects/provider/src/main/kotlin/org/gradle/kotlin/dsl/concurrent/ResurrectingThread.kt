@@ -23,17 +23,17 @@ import kotlin.concurrent.thread
  * A thread that comes back to life when [poke]d.
  */
 internal
-class RessurectingThread(val name: String, val block: () -> Unit) {
+class ResurrectingThread(val name: String, val block: () -> Unit) {
 
     private
     var thread: Thread? = null
 
     /**
-     * Checks if the thread is alive, ressurecting it if it's not.
+     * Checks if the thread is alive, resurrecting it if it's not.
      */
     fun poke() = synchronized(this) {
         if (thread?.isAlive != true) {
-            thread = thread(name = name, block = block)
+            thread = thread(name = name, isDaemon = true, block = block)
         }
     }
 }

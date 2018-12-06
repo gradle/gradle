@@ -38,7 +38,7 @@ class EventLoop<T>(
     val q = ArrayBlockingQueue<T>(64)
 
     private
-    var consumer = RessurectingThread(name = name) {
+    var consumer = ResurrectingThread(name = name) {
         loop(::poll)
     }
 
