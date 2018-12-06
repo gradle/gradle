@@ -45,8 +45,10 @@ import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
@@ -177,10 +179,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                             mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                 @Override
                                 public void execute(final CppBinary testedBinary) {
-                                    // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
-                                    if (testedBinary.getTargetPlatform().getOperatingSystemFamily().getName() != testExecutable.getTargetPlatform().getOperatingSystemFamily().getName()
-                                        || testedBinary.getTargetPlatform().getArchitecture().getName() != testExecutable.getTargetPlatform().getArchitecture().getName()
-                                        || testedBinary.isOptimized()) {
+                                    if (!isTestedBinary(testExecutable, testedBinary)) {
                                         return;
                                     }
 
@@ -251,6 +250,18 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 testComponent.getBinaries().realizeNow();
             }
         });
+    }
+
+    private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, CppBinary testedBinary) {
+        // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
+        return testedBinary.getTargetPlatform().getOperatingSystemFamily().getName() == testExecutable.getTargetPlatform().getOperatingSystemFamily().getName()
+                && testedBinary.getTargetPlatform().getArchitecture().getName() == testExecutable.getTargetPlatform().getArchitecture().getName()
+                && !testedBinary.isOptimized()
+                && !(isStaticLibrary(testedBinary));
+    }
+
+    private boolean isStaticLibrary(CppBinary testedBinary) {
+        return testedBinary instanceof ConfigurableComponentWithLinkUsage && ((ConfigurableComponentWithLinkUsage)testedBinary).getLinkage() == Linkage.STATIC;
     }
 
     private Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> testTargetMachines, @Nullable SetProperty<TargetMachine> mainTargetMachines) {

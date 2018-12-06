@@ -38,4 +38,9 @@ class CppUnitTestComponentWithStaticLibraryLinkageIntegrationTest extends Abstra
     protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
         return [":compileDebug${variant.capitalize()}Cpp", ":compileTest${variant.capitalize()}Cpp", ":linkTest${variant.capitalize()}", ":installTest${variant.capitalize()}", ":runTest${variant.capitalize()}"]
     }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "library"
+    }
 }
