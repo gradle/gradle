@@ -26,7 +26,7 @@ public interface TransformationWorkspaceProvider {
     /**
      * Provides a workspace for executing the transformation.
      */
-    Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction);
+    Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction);
 
     /**
      * The execution history store for transformations using the provided workspaces.

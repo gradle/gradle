@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-public interface TransformationIdentity {
+public interface TransformationWorkspaceIdentity {
 
     /**
      * Identity of the transformation.
