@@ -191,6 +191,266 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ]
     }
 
+    @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
+    def "can publish resolved versions from dependency constraints"() {
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        given:
+        createBuildScripts("""
+            dependencies {
+                constraints {
+                    api "org.test:bar:+"
+                }
+                api "org.test:foo:1.0"
+                implementation "org.test:bar"
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            $apiMapping
+                            $runtimeMapping
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedModuleMetadata.variant("api") {
+            constraint("org.test:bar:1.1") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
+        dependencies.size() == 1
+        dependencies[0].with {
+            assert it.groupId.text() == 'org.test'
+            assert it.artifactId.text() == 'bar'
+            assert it.version.text() == '1.1'
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtime") {
+            constraint("org.test:bar:1.1") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            dependency("org.test:bar:1.1") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveApiArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveRuntimeArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        where:
+        [apiMapping, runtimeMapping] << [
+                [apiUsingVariantNames(), apiUsingVariantNames("fromResolutionOf('compileClasspath')"),
+                 apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')")],
+                [runtimeUsingVariantNames(), runtimeUsingVariantNames("fromResolutionOf('runtimeClasspath')"),
+                 runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
+        ].combinations()
+    }
+
+    def "dependency constraints which are unresolved are published as is"() {
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        given:
+        createBuildScripts("""
+            dependencies {
+                constraints {
+                    api "org.test:bar:[1.0, 2.0["
+                }
+                api "org.test:foo:1.0"
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedModuleMetadata.variant("api") {
+            constraint("org.test:bar:[1.0, 2.0[") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
+        dependencies.size() == 1
+        dependencies[0].with {
+            assert it.groupId.text() == 'org.test'
+            assert it.artifactId.text() == 'bar'
+            assert it.version.text() == '[1.0, 2.0)'
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtime") {
+            constraint("org.test:bar:[1.0, 2.0[") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveApiArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveRuntimeArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+    }
+
+    // This test documents the existing behavior, not necessarily the best one
+    def "import scope makes use of runtime classpath"() {
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        given:
+        createBuildScripts("""
+            dependencies {
+                constraints {
+                    api platform("org.test:bar:1.0")
+                }
+                api "org.test:foo:1.0"
+                runtimeOnly(platform("org.test:bar:1.1"))
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedModuleMetadata.variant("api") {
+            constraint("org.test:bar:1.0") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
+        dependencies.size() == 2
+        dependencies[0].with {
+            assert it.groupId.text() == 'org.test'
+            assert it.artifactId.text() == 'bar'
+            assert it.version.text() == '1.0'
+            assert it.scope.text() == 'compile'
+        }
+        dependencies[1].with {
+            assert it.groupId.text() == 'org.test'
+            assert it.artifactId.text() == 'bar'
+            assert it.version.text() == '1.1'
+            assert it.scope.text() == 'import'
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtime") {
+            constraint("org.test:bar:1.1") {
+                exists()
+            }
+            dependency("org.test:bar:1.1") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+    }
+
     private static String apiUsingVariantNames(String config = "fromResolutionResult()") {
         """
                             variant("api") { // Gradle Metadata

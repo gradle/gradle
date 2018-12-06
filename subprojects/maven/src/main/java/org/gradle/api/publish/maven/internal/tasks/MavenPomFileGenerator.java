@@ -285,7 +285,7 @@ public class MavenPomFileGenerator {
     private ImmutableAttributes attributesForScope(String scope) {
         if ("compile".equals(scope)) {
             return compileScopeAttributes;
-        } else if ("runtime".equals(scope)) {
+        } else if ("runtime".equals(scope) || "import".equals(scope)) {
             return runtimeScopeAttributes;
         }
         throw new IllegalStateException("Unexpected scope : " + scope);
@@ -293,9 +293,13 @@ public class MavenPomFileGenerator {
 
     private void addDependencyManagement(MavenDependency dependency, String scope) {
         Dependency mavenDependency = new Dependency();
-        mavenDependency.setGroupId(dependency.getGroupId());
-        mavenDependency.setArtifactId(dependency.getArtifactId());
-        mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+        String groupId = dependency.getGroupId();
+        mavenDependency.setGroupId(groupId);
+        String artifactId = dependency.getArtifactId();
+        mavenDependency.setArtifactId(artifactId);
+        ImmutableAttributes attributes = attributesForScope(scope);
+        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(scope, attributes).maybeResolveVersion(groupId, artifactId);
+        mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion);
         String type = dependency.getType();
         if (type != null) {
             mavenDependency.setType(type);
