@@ -76,6 +76,8 @@ subprojects {
         failOnWarning = true
         enableStricterValidation = true
     }
+
+    apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 allprojects {
@@ -110,8 +112,6 @@ if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
         }
     }
 }
-
-apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { "CI" in System.getenv() }
