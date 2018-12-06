@@ -767,7 +767,7 @@ public class AvailableToolChains {
                     return true;
                 case SUPPORTS_32:
                 case SUPPORTS_32_AND_64:
-                    return getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
+                    return (!OperatingSystem.current().isMacOsX()) || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
                 default:
                     return false;
             }
