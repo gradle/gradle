@@ -136,7 +136,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}, machines.host()${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary

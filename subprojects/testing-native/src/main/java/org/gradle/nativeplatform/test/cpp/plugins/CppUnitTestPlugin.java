@@ -48,7 +48,6 @@ import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
-import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
@@ -126,6 +125,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
                 }
 
+                CppTestExecutable lastExecutable = null;
                 for (TargetMachine targetMachine : targetMachines) {
                     Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                     Provider<String> group = project.provider(new Callable<String>() {
@@ -161,13 +161,22 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, targetMachine);
                         CppTestExecutable testExecutable = testComponent.addExecutable(variantName, debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
-                        // If we have a mainComponent set, we'll derive the main test binary from the main component development binary later,
+                        // If we have a main component set, we'll derive the main test binary from the main component development binary later,
                         // otherwise we set it to the executable that matches the current architecture.
-                        if (mainComponent == null && DefaultNativePlatform.getCurrentArchitecture().equals(result.getTargetPlatform().getArchitecture())) {
+                        if (mainComponent == null && DefaultNativePlatform.getCurrentArchitecture().equals(result.getTargetPlatform().getArchitecture()) && !testComponent.getTestBinary().isPresent()) {
                             testComponent.getTestBinary().set(testExecutable);
                         }
 
+                        lastExecutable = testExecutable;
+                        
                         // TODO: Publishing for test executable?
+                    }
+                }
+
+                // There is no main component, and none of our target platforms match the current platform, so we just pick the last one
+                if (mainComponent == null && !testComponent.getTestBinary().isPresent()) {
+                    if (lastExecutable != null) {
+                        testComponent.getTestBinary().set(lastExecutable);
                     }
                 }
 
@@ -179,7 +188,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                             mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                 @Override
                                 public void execute(final CppBinary testedBinary) {
-                                    if (!isTestedBinary(testExecutable, testedBinary)) {
+                                    if (!isTestedBinary(testExecutable, mainComponent, testedBinary)) {
                                         return;
                                     }
 
@@ -215,7 +224,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                     testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
 
                                     // Set this as the main test binary if it tests the main development binary
-                                    if (testedBinary == mainComponent.getDevelopmentBinary().get()) {
+                                    if (testedBinary == mainComponent.getDevelopmentBinary().get() && !testComponent.getTestBinary().isPresent()) {
                                         testComponent.getTestBinary().set(testExecutable);
                                     }
                                 }
@@ -252,16 +261,21 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, CppBinary testedBinary) {
+    private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, ProductionCppComponent mainComponent, CppBinary testedBinary) {
         // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
         return testedBinary.getTargetPlatform().getOperatingSystemFamily().getName() == testExecutable.getTargetPlatform().getOperatingSystemFamily().getName()
                 && testedBinary.getTargetPlatform().getArchitecture().getName() == testExecutable.getTargetPlatform().getArchitecture().getName()
                 && !testedBinary.isOptimized()
-                && !(isStaticLibrary(testedBinary));
+                && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
     }
 
-    private boolean isStaticLibrary(CppBinary testedBinary) {
-        return testedBinary instanceof ConfigurableComponentWithLinkUsage && ((ConfigurableComponentWithLinkUsage)testedBinary).getLinkage() == Linkage.STATIC;
+    private boolean hasDevelopmentBinaryLinkage(ProductionCppComponent mainComponent, CppBinary testedBinary) {
+        if (!(testedBinary instanceof ConfigurableComponentWithLinkUsage)) {
+            return true;
+        }
+        ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
+        ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
+        return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
     }
 
     private Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> testTargetMachines, @Nullable SetProperty<TargetMachine> mainTargetMachines) {
