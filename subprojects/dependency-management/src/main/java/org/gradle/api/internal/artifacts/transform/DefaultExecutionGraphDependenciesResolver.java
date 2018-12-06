@@ -26,35 +26,44 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Specs;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraphDependenciesResolver {
-
+    private final ComponentIdentifier componentIdentifier;
     private final VisitedArtifactSet visitedArtifacts;
-    private final Set<ComponentIdentifier> buildDependencies;
+    private final ResolverResults results;
+    private final WorkNodeAction graphResolveAction;
+    private Set<ComponentIdentifier> buildDependencies;
 
-    public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, ResolverResults results) {
+    public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, ResolverResults results, WorkNodeAction graphResolveAction) {
+        this.componentIdentifier = componentIdentifier;
         this.visitedArtifacts = results.getVisitedArtifacts();
-        this.buildDependencies = computeProjectDependencies(componentIdentifier, results.getResolutionResult().getAllComponents());
+        this.results = results;
+        this.graphResolveAction = graphResolveAction;
     }
 
     @Override
     public TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep) {
-        if (!transformationStep.requiresDependencies() || buildDependencies.isEmpty()) {
+        if (!transformationStep.requiresDependencies()) {
             return TaskDependencyContainer.EMPTY;
         } else {
             return new TaskDependencyContainer() {
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
+                    if (buildDependencies == null) {
+                        buildDependencies = computeProjectDependencies(componentIdentifier, results.getResolutionResult().getAllComponents());
+                    }
                     if (!buildDependencies.isEmpty()) {
                         SelectedArtifactSet projectArtifacts = visitedArtifacts.select(Specs.satisfyAll(), transformationStep.getFromAttributes(), element -> {
                             return buildDependencies.contains(element);
                         }, true);
                         context.add(projectArtifacts);
                     }
+                    context.add(graphResolveAction);
                 }
             };
         }

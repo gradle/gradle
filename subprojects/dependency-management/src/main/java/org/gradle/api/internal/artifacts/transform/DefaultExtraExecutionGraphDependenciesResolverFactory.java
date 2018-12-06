@@ -18,17 +18,20 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Factory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
     private final Factory<ResolverResults> results;
+    private final WorkNodeAction graphResolveAction;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> results) {
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> results, WorkNodeAction graphResolveAction) {
         this.results = results;
+        this.graphResolveAction = graphResolveAction;
     }
 
     @Override
     public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
-        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results.create());
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results.create(), graphResolveAction);
     }
 }
