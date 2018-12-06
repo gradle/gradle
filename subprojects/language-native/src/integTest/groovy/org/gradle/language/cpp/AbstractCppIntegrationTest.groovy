@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
+import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
@@ -49,6 +50,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build for current machine when multiple target machines are specified"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -107,6 +110,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build current architecture when other, non-buildable architectures are specified"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -125,6 +130,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "ignores duplicate target machines"() {
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
