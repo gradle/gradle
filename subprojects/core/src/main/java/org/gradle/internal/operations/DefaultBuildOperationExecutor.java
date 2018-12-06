@@ -215,7 +215,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private BuildOperationState maybeStartUnmanagedThreadOperation(BuildOperationState parentState) {
-        if (!GradleThread.isManaged() && parentState == null) {
+        if (parentState == null && !GradleThread.isManaged()) {
             parentState = UnmanagedThreadOperation.create(clock);
             parentState.setRunning(true);
             setCurrentBuildOperation(parentState);
