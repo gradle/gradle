@@ -99,7 +99,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     }
 
     void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, VariantContext.VariantDimension>> targetMachines, List<String> dependencies = []) {
-        VariantContext.of(dimensions("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
+        VariantContext.from(dimensions("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
             assertVariantIsPublished(group, module, version, variantContext, dependencies)
         }
     }

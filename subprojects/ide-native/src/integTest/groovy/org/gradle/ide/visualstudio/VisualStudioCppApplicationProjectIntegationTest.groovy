@@ -19,8 +19,9 @@ package org.gradle.ide.visualstudio
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
+import org.gradle.test.fixtures.file.TestFile
 
-class VisualStudioCppApplicationProjectIntegationTest extends AbstractVisualStudioIntegrationTest {
+class VisualStudioCppApplicationProjectIntegationTest extends AbstractVisualStudioProjectIntegrationTest {
     @Override
     void makeSingleProject() {
         buildFile << """

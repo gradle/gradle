@@ -21,12 +21,14 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
 import static org.junit.Assume.assumeFalse
 
-abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioIntegrationSpec {
+abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -56,7 +58,7 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
         result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
-        def contexts = VariantContext.of(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
+        def contexts = VariantContext.from(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
         def projectConfigurations = contexts*.asVariantName as Set
         projectFile.projectConfigurations.keySet() == projectConfigurations
 
@@ -83,7 +85,7 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
         and:
         projectFile.assertHasComponentSources(componentUnderTest, "src/main")
 
-        def contexts = VariantContext.of(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
+        def contexts = VariantContext.from(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
         projectFile.projectConfigurations.size() == contexts.size()
 
         contexts.each {
@@ -95,6 +97,46 @@ abstract class AbstractVisualStudioIntegrationTest extends AbstractVisualStudioI
         and:
         solutionFile.assertHasProjects(visualStudioProjectName)
         solutionFile.assertReferencesProject(projectFile, contexts*.asVariantName as Set)
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "build generated visual studio solution with multiple target machines"() {
+        useMsbuildTool()
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentOsFamilyName}().x86(), machines.${currentOsFamilyName}().x86_64()]
+        """
+        run "visualStudio"
+
+        when:
+        def resultDebug = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withConfiguration("debugX86")
+                .withProject(visualStudioProjectName)
+                .succeeds()
+
+        then:
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':compileDebugX86Cpp', ':linkDebugX86', ':installDebugX86')
+        file(getBuildFile(VariantContext.of(buildType: 'debug', architecture: 'x86'))).assertIsFile()
+
+        when:
+        def resultRelease = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withConfiguration("releaseX86-64")
+                .withProject(visualStudioProjectName)
+                .succeeds()
+
+        then:
+        resultRelease.size() == 1
+        resultRelease[0].assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':installReleaseX86-64')
+        file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
+        installation(file('build/install/main/release/x86-64')).assertInstalled()
     }
 
     String getRootProjectName() {

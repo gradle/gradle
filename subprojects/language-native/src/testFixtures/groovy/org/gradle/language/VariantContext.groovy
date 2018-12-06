@@ -20,7 +20,7 @@ class VariantContext {
     private final Map<String, VariantDimension> dimensions
 
     private VariantContext(Map<String, VariantDimension> dimensions) {
-        this.dimensions = dimensions
+        this.dimensions = dimensions.withDefault { VariantDimension.missing(it) }
     }
 
     VariantDimension getBuildType() {
@@ -49,11 +49,17 @@ class VariantContext {
         return '_' + dimensions.values()*.name.join('_')
     }
 
-    static List<VariantContext> of(Object[] listOfDimensionArrays) {
+    static VariantContext of(Map<String, String> dimensions) {
+        return new VariantContext(dimensions.collectEntries([:]) { key, value ->
+            [key: VariantDimension.of(key, value)]
+        })
+    }
+
+    static List<VariantContext> from(Object[] listOfDimensionArrays) {
         def result = new ArrayList<VariantContext>()
         def dimensions = GroovyCollections.combinations(listOfDimensionArrays)
         dimensions.each {
-            def dimension = new LinkedHashMap<String, VariantDimension>().withDefault { VariantDimension.missing(it) }
+            def dimension = new LinkedHashMap<String, VariantDimension>()
             it.eachWithIndex { item, idx ->
                 if (item instanceof VariantDimension) {
                     assert listOfDimensionArrays[idx] instanceof Iterable

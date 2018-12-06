@@ -19,8 +19,9 @@ package org.gradle.ide.visualstudio
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
+import org.gradle.test.fixtures.file.TestFile
 
-class VisualStudioCppStaticLibraryLinkageProjectIntegrationTest extends AbstractVisualStudioIntegrationTest {
+class VisualStudioCppStaticLibraryLinkageProjectIntegrationTest extends AbstractVisualStudioProjectIntegrationTest {
     @Override
     String getBuildFile(VariantContext variantContext) {
         return staticLibraryName("build/lib/main/${variantContext.asPath}${rootProjectName}")
