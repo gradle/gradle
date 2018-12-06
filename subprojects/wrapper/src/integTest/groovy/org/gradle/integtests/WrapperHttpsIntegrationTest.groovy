@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
-import org.gradle.util.GradleVersion
+import org.gradle.wrapper.Download
 import org.junit.Rule
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
@@ -32,7 +32,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
         server.start()
-        server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
+        server.expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
         file("build.gradle") << """
     task hello {
         doLast {
