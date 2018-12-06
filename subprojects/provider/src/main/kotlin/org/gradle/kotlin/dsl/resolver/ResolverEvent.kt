@@ -50,6 +50,13 @@ data class SubmittedModelRequest(
 
 
 internal
+data class RequestCancelled(
+    val scriptFile: File?,
+    val request: KotlinBuildScriptModelRequest
+) : ResolverEvent()
+
+
+internal
 data class ReceivedModelResponse(
     val scriptFile: File?,
     val response: KotlinBuildScriptModel

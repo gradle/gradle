@@ -137,7 +137,11 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
         val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment)
         logger.log(SubmittedModelRequest(scriptFile, scriptModelRequest))
 
-        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest) ?: return null
+        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest)
+        if (response == null) {
+            logger.log(RequestCancelled(scriptFile, scriptModelRequest))
+            return null
+        }
         logger.log(ReceivedModelResponse(scriptFile, response))
 
         response.editorReports.forEach { editorReport ->
