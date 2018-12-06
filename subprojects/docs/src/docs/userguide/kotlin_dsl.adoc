@@ -132,6 +132,9 @@ If the above doesn't work and you suspect an issue with the Kotlin DSL script ed
 ** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
 * Open an issue on the link:{kotlin-dsl-issues}[Kotlin DSL issue tracker], including as much detail as you can.
 
+From version 5.1 onwards, the log directory is cleaned up automatically.
+It is checked periodically (at most every 24 hours) and log files are deleted if they haven’t been used for 7 days.
+
 For IDE problems outside of the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
 
 * link:[JetBrains's IDEA issue tracker],
