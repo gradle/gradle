@@ -44,12 +44,12 @@ public abstract class TransformationNode extends Node {
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
 
-    public static TransformationNode chained(TransformationStep current, TransformationNode previous, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new ChainedTransformationNode(current, previous, dependenciesProvider, executionGraphDependenciesResolver);
+    public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new InitialTransformationNode(initial, artifact, dependenciesProvider, executionGraphDependenciesResolver);
+    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
@@ -118,14 +118,12 @@ public abstract class TransformationNode extends Node {
 
     private static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
-        private final ExecutionGraphDependenciesResolver executionGraphDependenciesResolver;
-        private final ArtifactTransformDependenciesProvider dependenciesProvider;
+        private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep);
             this.artifact = artifact;
-            this.executionGraphDependenciesResolver = executionGraphDependenciesResolver;
-            this.dependenciesProvider = dependenciesProvider;
+            this.dependenciesResolver = dependenciesResolver;
         }
 
         @Override
@@ -138,7 +136,7 @@ public abstract class TransformationNode extends Node {
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifact));
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, executionGraphDependenciesResolver.computeDependencyNodes(transformationStep)));
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
         private class InitialArtifactTransformationStepOperation extends ArtifactTransformationStepBuildOperation {
@@ -161,21 +159,19 @@ public abstract class TransformationNode extends Node {
                 }
 
                 TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
-                return transformationStep.transform(initialArtifactTransformationSubject, dependenciesProvider);
+                return transformationStep.transform(initialArtifactTransformationSubject, dependenciesResolver);
             }
         }
     }
 
     private static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
-        private final ArtifactTransformDependenciesProvider dependenciesProvider;
-        private final ExecutionGraphDependenciesResolver executionGraphDependenciesResolver;
+        private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ArtifactTransformDependenciesProvider dependenciesProvider, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep);
             this.previousTransformationNode = previousTransformationNode;
-            this.dependenciesProvider = dependenciesProvider;
-            this.executionGraphDependenciesResolver = executionGraphDependenciesResolver;
+            this.dependenciesResolver = dependenciesResolver;
         }
 
         @Override
@@ -189,7 +185,7 @@ public abstract class TransformationNode extends Node {
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             addDependencySuccessor(previousTransformationNode);
             processHardSuccessor.execute(previousTransformationNode);
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, executionGraphDependenciesResolver.computeDependencyNodes(transformationStep)));
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
         private class ChainedArtifactTransformStepOperation extends ArtifactTransformationStepBuildOperation {
@@ -204,7 +200,7 @@ public abstract class TransformationNode extends Node {
                 if (transformedSubject.getFailure() != null) {
                     return transformedSubject;
                 }
-                return transformationStep.transform(transformedSubject, dependenciesProvider);
+                return transformationStep.transform(transformedSubject, dependenciesResolver);
             }
         }
     }

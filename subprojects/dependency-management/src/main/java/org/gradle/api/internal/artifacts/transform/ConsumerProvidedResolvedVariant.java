@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -37,15 +36,13 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
-    private final ResolvableDependencies resolvableDependencies;
     private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
 
-    public ConsumerProvidedResolvedVariant(ComponentIdentifier componentIdentifier, ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ResolvableDependencies resolvableDependencies, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    public ConsumerProvidedResolvedVariant(ComponentIdentifier componentIdentifier, ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
-        this.resolvableDependencies = resolvableDependencies;
         this.resolverFactory = dependenciesResolverFactory;
     }
 
@@ -53,7 +50,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesProvider()));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver()));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
@@ -64,11 +61,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesProvider(), getDependenciesResolver()));
-    }
-
-    private ArtifactTransformDependenciesProvider getDependenciesProvider() {
-        return new DefaultArtifactTransformDependenciesProvider(componentIdentifier, resolvableDependencies);
+        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesResolver()));
     }
 
     private ExecutionGraphDependenciesResolver getDependenciesResolver() {

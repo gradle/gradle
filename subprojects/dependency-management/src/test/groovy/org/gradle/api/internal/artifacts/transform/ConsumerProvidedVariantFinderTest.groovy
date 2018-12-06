@@ -201,7 +201,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformation.transform(initialSubject("in.txt"), Mock(ArtifactTransformDependenciesProvider))
+        def result = transformer.transformation.transform(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver))
 
         then:
         result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
@@ -278,7 +278,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformation.transform(initialSubject("a"), Mock(ArtifactTransformDependenciesProvider)).files
+        def files = result.matches.first().transformation.transform(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver)).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -402,7 +402,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.from >> from
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {
-            transform(_ as TransformationSubject, _ as ArtifactTransformDependenciesProvider) >> { TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider ->
+            transform(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver ->
                 return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }
         }

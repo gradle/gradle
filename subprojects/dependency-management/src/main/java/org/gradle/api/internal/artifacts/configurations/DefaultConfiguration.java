@@ -660,7 +660,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), new WorkNodeAction() {
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new WorkNodeAction() {
             @Nullable
             @Override
             public Project getProject() {
@@ -678,6 +678,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState == UNRESOLVED) {
             throw new IllegalStateException("Cannot query results until resolution has happened.");
         }
+        return cachedResolverResults;
+    }
+
+    private ResolverResults getResultsForArtifacts() {
+        resolveExclusively(ARTIFACTS_RESOLVED);
         return cachedResolverResults;
     }
 

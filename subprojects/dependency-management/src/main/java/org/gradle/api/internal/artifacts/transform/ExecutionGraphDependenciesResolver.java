@@ -27,10 +27,15 @@ import org.gradle.execution.plan.Node;
  */
 public interface ExecutionGraphDependenciesResolver {
     /**
-     * Computes the extra dependency nodes.
+     * Computes the build dependencies for the given transformation step.
      *
      * @param transformationStep the transformation
      * @return a set of {@link Node}, can be empty
      */
     TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep);
+
+    /**
+     * Computes the dependency artifacts for the given transformation step.
+     */
+    ArtifactTransformDependenciesInternal forTransformer(Transformer transformer);
 }

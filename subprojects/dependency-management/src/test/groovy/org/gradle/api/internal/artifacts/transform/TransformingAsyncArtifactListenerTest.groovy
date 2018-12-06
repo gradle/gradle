@@ -26,7 +26,7 @@ import org.gradle.testing.internal.util.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ArtifactTransformDependenciesProvider))
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver))
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -48,6 +48,6 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformation.transform({ it.files == [artifactFile] }, _ as ArtifactTransformDependenciesProvider)
+        1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver)
     }
 }

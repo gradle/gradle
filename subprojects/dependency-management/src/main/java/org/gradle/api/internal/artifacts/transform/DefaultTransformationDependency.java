@@ -23,15 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 public class DefaultTransformationDependency implements TransformationDependency {
     private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
-    private final ArtifactTransformDependenciesProvider dependenciesProvider;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
     public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts,
-                                           ArtifactTransformDependenciesProvider dependenciesProvider,
                                            ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformation = transformation;
         this.artifacts = artifacts;
-        this.dependenciesProvider = dependenciesProvider;
         this.dependenciesResolver = dependenciesResolver;
     }
 
@@ -41,10 +38,6 @@ public class DefaultTransformationDependency implements TransformationDependency
 
     public ResolvedArtifactSet getArtifacts() {
         return artifacts;
-    }
-
-    public ArtifactTransformDependenciesProvider getDependenciesProvider() {
-        return dependenciesProvider;
     }
 
     public ExecutionGraphDependenciesResolver getDependenciesResolver() {

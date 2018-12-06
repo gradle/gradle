@@ -28,13 +28,13 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        chain.transform(initialSubject, Mock(ArtifactTransformDependenciesProvider)).files == [new File("foo/cached/non-cached")]
+        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver)).files == [new File("foo/cached/non-cached")]
     }
 
     class CachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
             return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "cached")))
         }
 
@@ -67,7 +67,7 @@ class ChainedTransformerTest extends Specification {
     class NonCachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+        TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
             return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached")))
         }
 
