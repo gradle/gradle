@@ -18,9 +18,7 @@ package org.gradle.api.publish.maven.internal.versionmapping;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 
 import java.util.Set;
@@ -53,15 +51,11 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     @Override
     public String maybeResolveVersion(String group, String module) {
         if (usePublishedVersions && targetConfiguration != null) {
-            Set<? extends DependencyResult> allDependencies = targetConfiguration.getIncoming().getResolutionResult().getAllDependencies();
-            for (DependencyResult dependency : allDependencies) {
-                if (dependency instanceof ResolvedDependencyResult) {
-                    ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependency;
-                    ResolvedComponentResult selected = resolved.getSelected();
-                    ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
-                    if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
-                        return moduleVersion.getVersion();
-                    }
+            Set<? extends ResolvedComponentResult> resolvedComponentResults = targetConfiguration.getIncoming().getResolutionResult().getAllComponents();
+            for (ResolvedComponentResult selected : resolvedComponentResults) {
+                ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
+                if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
+                    return moduleVersion.getVersion();
                 }
             }
         }

@@ -111,6 +111,10 @@ class MavenPom {
         return pom?.distributionManagement[0]
     }
 
+    Node getDependencyManagement() {
+        return pom?.dependencyManagement[0]
+    }
+
     NodeList getMailingLists() {
         return pom?.mailingLists?.mailingList
     }
