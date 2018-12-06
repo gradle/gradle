@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test
 
 import org.gradle.language.LanguageTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.junit.Assume
 import spock.lang.Unroll
@@ -58,8 +59,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @Unroll
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "runs tests when #task lifecycle task executes and target machines are specified on the component under test"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
         Assume.assumeFalse(componentUnderTestDsl == null)
 
         given:
@@ -83,8 +84,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @Unroll
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "runs tests when #task lifecycle task executes and target machines are specified on both main component and test component"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
         Assume.assumeFalse(componentUnderTestDsl == null)
 
         given:
@@ -166,8 +167,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
 
         then:
         result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
-        result.assertTasksSkipped(tasksToCompileComponentUnderTest)
-        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest + tasksToRelocate)
+        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest - tasksToRelocate, ":test")
     }
 
     private void configureTargetMachines(String targetMachineDeclaration) {
@@ -208,6 +209,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
 
     protected abstract String[] getTasksToBuildAndRunUnitTest(String architecture)
 
+    protected abstract String[] getTasksToRelocate()
+
     protected String[] getTasksToCompileComponentUnderTest() {
         return []
     }
@@ -221,6 +224,10 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     protected String[] getTasksToAssembleComponentUnderTest(String architecture) {
+        return []
+    }
+
+    protected String[] getTasksToRelocate(String architecture) {
         return []
     }
 }

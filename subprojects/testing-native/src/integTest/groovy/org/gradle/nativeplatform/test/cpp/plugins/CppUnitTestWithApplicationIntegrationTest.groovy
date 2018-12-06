@@ -88,4 +88,9 @@ class CppUnitTestWithApplicationIntegrationTest extends AbstractCppUnitTestInteg
         def debugTasks = tasks.withArchitecture(architecture).debug
         return [debugTasks.link, debugTasks.install]
     }
+
+    @Override
+    protected String[] getTasksToRelocate(String architecture) {
+        return tasks.withArchitecture(architecture).test.relocate
+    }
 }

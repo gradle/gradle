@@ -49,4 +49,9 @@ abstract class AbstractCppUnitTestIntegrationTest extends AbstractNativeUnitTest
     protected String[] getTasksToAssembleComponentUnderTest() {
         return getTasksToAssembleComponentUnderTest(null)
     }
+
+    @Override
+    protected String[] getTasksToRelocate() {
+        return getTasksToRelocate(null)
+    }
 }

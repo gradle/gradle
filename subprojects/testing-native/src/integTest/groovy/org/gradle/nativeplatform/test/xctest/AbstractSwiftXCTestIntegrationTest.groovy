@@ -73,6 +73,11 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
         return tasksToCompileComponentUnderTest
     }
 
+    @Override
+    protected String[] getTasksToRelocate() {
+        return getTasksToRelocate(null)
+    }
+
     protected abstract XCTestSourceElement getPassingTestFixture()
 
     @Override
