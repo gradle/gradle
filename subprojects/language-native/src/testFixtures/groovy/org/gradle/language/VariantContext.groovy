@@ -46,7 +46,7 @@ class VariantContext {
         if (dimensions.isEmpty()) {
             return ''
         }
-        return '_' + dimensions.values()*.name.join('_')
+        return '_' + dimensions.values()*.name.join('_').replaceAll('-', '_')
     }
 
     static VariantContext of(Map<String, String> dimensions) {

@@ -98,7 +98,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         }
     }
 
-    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, VariantContext.VariantDimension>> targetMachines, List<String> dependencies = []) {
+    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, String>> targetMachines, List<String> dependencies = []) {
         VariantContext.from(dimensions("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
             assertVariantIsPublished(group, module, version, variantContext, dependencies)
         }
@@ -113,6 +113,6 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     }
 
     Map<String, String> machine(String os, String architecture) {
-        return ["os": os, "architecture": architecture]
+        return new LinkedHashMap<String, String>(["os": os, "architecture": architecture])
     }
 }
