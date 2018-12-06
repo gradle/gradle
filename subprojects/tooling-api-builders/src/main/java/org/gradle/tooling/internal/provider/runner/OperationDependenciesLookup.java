@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import java.util.stream.Stream;
 
-@FunctionalInterface
 interface OperationDependenciesLookup {
 
     Stream<? extends InternalOperationDescriptor> lookupExistingOperationDescriptors(ExecutionDependencies dependencies);
