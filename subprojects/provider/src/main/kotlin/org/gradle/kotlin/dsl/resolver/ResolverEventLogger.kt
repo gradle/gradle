@@ -76,7 +76,10 @@ object DefaultResolverEventLogger : ResolverEventLogger {
 
     private
     val outputFile by lazy {
-        File(outputDir(), "resolver-${timestampForFileName()}.log")
+        outputDir().let { logDir ->
+            cleanupLogDirectory(logDir)
+            logDir.resolve("resolver-${timestampForFileName()}.log")
+        }
     }
 
     private
@@ -105,6 +108,38 @@ object DefaultResolverEventLogger : ResolverEventLogger {
 
     private
     fun now() = GregorianCalendar.getInstance().time
+
+    private
+    const val cleanupAfterDays = 1
+
+    private
+    const val logFilesExpireAfterDays = 7
+
+    private
+    fun cleanupLogDirectory(logDir: File) =
+        readyForCleanup(logDir) {
+            val expiration = daysAgo(logFilesExpireAfterDays)
+            logDir.listFiles { file ->
+                file.isFile && file.name.matches(resolverLogFilenameRegex) && Date(file.lastModified()).before(expiration)
+            }.forEach { it.delete() }
+        }
+
+    private
+    fun readyForCleanup(logDir: File, cleanup: () -> Unit) =
+        logDir.resolve(".cleanup").run {
+            if (!isFile || (isFile && Date(lastModified()).before(daysAgo(cleanupAfterDays)))) {
+                cleanup()
+                writeBytes(ByteArray(0))
+            }
+        }
+
+    private
+    fun daysAgo(days: Int) =
+        GregorianCalendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -days) }.time
+
+    private
+    val resolverLogFilenameRegex =
+        Regex("resolver-\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{3}\\.log")
 
     internal
     fun prettyPrint(e: ResolverEvent): String = e.run {
