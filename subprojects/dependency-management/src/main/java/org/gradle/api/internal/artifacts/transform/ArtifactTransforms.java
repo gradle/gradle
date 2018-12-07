@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 public interface ArtifactTransforms {
     /**
      * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
      */
-    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ResolvableDependencies resolvableDependencies);
+    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver);
 }

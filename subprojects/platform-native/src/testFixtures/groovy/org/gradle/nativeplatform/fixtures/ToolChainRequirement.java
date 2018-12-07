@@ -48,5 +48,9 @@ public enum ToolChainRequirement {
     // Any Swift 3.x compiler
     SWIFTC_3,
     // Any Swift 4.x compiler
-    SWIFTC_4
+    SWIFTC_4,
+    // Supports building 32-bit binaries
+    SUPPORTS_32,
+    // Supports building both 32-bit and 64-bit binaries
+    SUPPORTS_32_AND_64
 }

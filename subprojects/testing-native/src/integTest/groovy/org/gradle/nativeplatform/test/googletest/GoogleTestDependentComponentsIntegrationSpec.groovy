@@ -18,12 +18,15 @@ package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")

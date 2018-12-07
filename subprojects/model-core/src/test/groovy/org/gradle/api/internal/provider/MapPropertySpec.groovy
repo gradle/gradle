@@ -17,14 +17,31 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
-import org.gradle.api.provider.Provider
 import org.spockframework.util.Assert
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
-    @Override
     DefaultMapProperty<String, String> property() {
         new DefaultMapProperty<String, String>(String, String)
+    }
+
+    @Override
+    DefaultMapProperty<String, String> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
+    DefaultMapProperty<String, String> propertyWithNoValue() {
+        def p = property()
+        p.set((Map) null)
+        return p
+    }
+
+    @Override
+    DefaultMapProperty<String, String> providerWithValue(Map<String, String> value) {
+        def p = property()
+        p.set(value)
+        return p
     }
 
     @Override
@@ -43,18 +60,16 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
-    Provider<Map<String, String>> providerWithValue(Map<String, String> value) {
-        def p = property()
-        p.set(value)
-        p
-    }
-
-    @Override
-    Provider<Map<String, String>> providerWithNoValue() {
-        return property()
+    protected void setToNull(Object property) {
+        property.set((Map) null)
     }
 
     def property = property()
+
+    def "has empty map as value by default"() {
+        expect:
+        assertValueIs([:])
+    }
 
     def "can change value to empty map"() {
         when:
@@ -167,7 +182,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "appends multiple entries from map #value using putAll"() {
         given:
-        property.empty()
         property.putAll(value)
 
         expect:
@@ -182,7 +196,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "appends multiple entries from provider #value using putAll"() {
         given:
-        property.empty()
         property.putAll(Providers.of(value))
 
         expect:
@@ -195,6 +208,15 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         ['k1': 'v1', 'k2': 'v2'] | ['k1': 'v1', 'k2': 'v2']
     }
 
+    def "empty map is used when entries added after convention set"() {
+        given:
+        property.convention([k1: 'v1'])
+        property.put('k2', 'v2')
+
+        expect:
+        assertValueIs([k2:  'v2'])
+    }
+
     def "queries entries of provider on every call to get()"() {
         given:
         def provider = Stub(ProviderInternal)
@@ -202,7 +224,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         _ * provider.present >> true
         _ * provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
         and:
-        property.empty()
         property.putAll(provider)
 
         expect:
@@ -214,7 +235,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "queries entries of map on every call to get()"() {
         given:
         def value = ['k1': 'v1']
-        property.empty()
         property.putAll(value)
 
         expect:
@@ -261,7 +281,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         0 * _
     }
 
-    def "property has no value when value not set and entries added"() {
+    def "can add entries to property with default value"() {
         given:
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
@@ -269,15 +289,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.putAll(Providers.of(['k4': 'v4']))
 
         expect:
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(['kk': 'vv']) == ['kk': 'vv']
-
-        when:
-        property.get()
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        assertValueIs([k1: 'v1', k2: 'v2', k3: 'v3', k4: 'v4'])
     }
 
     def "property has no value when set to provider with no value and other entries added"() {
@@ -353,7 +365,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "can set null value to remove any added entries"() {
         given:
-        property.empty()
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
         property.putAll(['k3': 'v3'])
@@ -371,7 +382,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "can set value to replace added entries"() {
         given:
-        property.empty()
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
         property.putAll(['k3': 'v3'])
@@ -385,7 +395,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "can make empty to replace added entries"() {
         given:
-        property.empty()
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
         property.putAll(['k3': 'v3'])
@@ -399,7 +408,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "throws NullPointerException when provider returns map with null key to property"() {
         given:
-        property.empty()
         property.putAll(Providers.of(Collections.singletonMap(null, 'value')))
 
         when:
@@ -411,7 +419,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "throws NullPointerException when provider returns map with null value to property"() {
         given:
-        property.empty()
         property.putAll(Providers.of(['k': null]))
 
         when:
@@ -422,8 +429,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     def "throws NullPointerException when adding an entry with a null key to the property"() {
-        given:
-        property.empty()
         when:
         property.put(null, (String) 'v')
         then:
@@ -432,8 +437,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     def "throws NullPointerException when adding an entry with a null value to the property"() {
-        given:
-        property.empty()
         when:
         property.put('k', (String) null)
         then:
@@ -582,7 +585,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "entry provider tracks value of last added entry"() {
         given:
         def entryProvider = property.getting('key')
-        property.empty()
 
         when:
         property.put('key', 'v1')
@@ -615,6 +617,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "keySet provider has no value when property has no value"() {
         given:
+        property.set((Map) null)
         def keySetProvider = property.keySet()
 
         expect:
@@ -628,11 +631,9 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     def "keySet provider tracks value of property"() {
-        given:
+        when:
         def keySetProvider = property.keySet()
 
-        when:
-        property.empty()
         then:
         keySetProvider.present
         keySetProvider.get() == [] as Set
@@ -640,6 +641,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         property.set(['k1': 'v1', 'k2': 'v2'])
+
         then:
         keySetProvider.present
         keySetProvider.get() == ['k1', 'k2'] as Set
@@ -649,7 +651,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     def "keySet provider includes keys of added entries"() {
         given:
         def keySetProvider = property.keySet()
-        property.empty()
 
         when:
         property.put('k1', 'v1')
@@ -689,7 +690,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
             assert it.value instanceof String
         }
         assert actual == ImmutableMap.copyOf(expected)
-        assert property.present
     }
 
     private static void assertImmutable(Map<String, String> map) {

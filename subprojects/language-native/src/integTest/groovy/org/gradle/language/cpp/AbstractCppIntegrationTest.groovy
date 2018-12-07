@@ -17,10 +17,10 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.MachineArchitecture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
-
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
-import static org.junit.Assume.assumeFalse
+import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
@@ -50,7 +50,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build for current machine when multiple target machines are specified"() {
-        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
         given:
         makeSingleProject()
@@ -69,9 +69,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "can build for multiple target machines"() {
-        assumeFalse(toolChain.meets(WINDOWS_GCC))
-
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -111,8 +110,8 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "can build current architecture when other, non-buildable architectures are specified"() {
-        assumeFalse(toolChain.meets(WINDOWS_GCC))
-        
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -131,7 +130,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
     def "ignores duplicate target machines"() {
-        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
         given:
         makeSingleProject()

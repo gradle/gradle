@@ -83,8 +83,8 @@ public class OutputEventTransformer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
-            if (forwarded.remove(completeEvent.getProgressOperationId())) {
+            OperationIdentifier mappedEvent = effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
+            if (mappedEvent == null && forwarded.remove(completeEvent.getProgressOperationId())) {
                 listener.onOutput(event);
             }
         } else if (event instanceof ProgressEvent) {

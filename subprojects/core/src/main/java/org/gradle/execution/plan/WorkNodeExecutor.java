@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.execution.plan;
 
-interface ArtifactTransformDependenciesProvider {
-    ArtifactTransformDependenciesInternal forTransformer(Transformer transformer);
+import org.gradle.execution.ProjectExecutionServiceRegistry;
+
+public class WorkNodeExecutor implements NodeExecutor {
+    @Override
+    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
+        if (!(node instanceof ActionNode)) {
+            return false;
+        }
+        ((ActionNode) node).run();
+        return true;
+    }
 }

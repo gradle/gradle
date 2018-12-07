@@ -164,7 +164,7 @@ public class TransientConfigurationResultsBuilder {
                     case NODE:
                         id = decoder.readSmallLong();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(id, details, buildOperationProcessor));
+                        allDependencies.put(id, new DefaultResolvedDependency(details, buildOperationProcessor));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();

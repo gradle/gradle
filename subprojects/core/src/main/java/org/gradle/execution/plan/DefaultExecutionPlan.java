@@ -313,17 +313,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     mutations.producingNodes.add(dependency);
                 }
 
-                if (node instanceof LocalTaskNode) {
-                    LocalTaskNode taskNode = (LocalTaskNode) node;
-                    TaskInternal task = taskNode.getTask();
-                    Project project = task.getProject();
+                Project project = node.getProject();
+                if (project != null) {
                     projectLocks.put(project, getOrCreateProjectLock(project));
+                }
 
-                    // Add any finalizers to the queue
-                    for (Node finalizer : taskNode.getFinalizers()) {
-                        if (!visitingNodes.containsKey(finalizer)) {
-                            nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
-                        }
+                // Add any finalizers to the queue
+                for (Node finalizer : node.getFinalizers()) {
+                    if (!visitingNodes.containsKey(finalizer)) {
+                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
                     }
                 }
             }
@@ -574,21 +572,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            return getProjectLock((LocalTaskNode) node).tryLock();
+        if (node.getProject() != null) {
+            return getProjectLock(node.getProject()).tryLock();
         } else {
             return true;
         }
     }
 
     private void unlockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            getProjectLock((LocalTaskNode) node).unlock();
+        if (node.getProject() != null) {
+            getProjectLock(node.getProject()).unlock();
         }
     }
 
-    private ResourceLock getProjectLock(LocalTaskNode taskNode) {
-        return projectLocks.get(taskNode.getTask().getProject());
+    private ResourceLock getProjectLock(Project project) {
+        return projectLocks.get(project);
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {

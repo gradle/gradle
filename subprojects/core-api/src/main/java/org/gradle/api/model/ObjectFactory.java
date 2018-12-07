@@ -96,6 +96,7 @@ public interface ObjectFactory {
      * <ul>
      * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
      * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
+     * <li>For {@link Map} properties, you should use {@link #mapProperty(Class, Class)}.</li>
      * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
      * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
      * </ul>
@@ -107,7 +108,7 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType);
 
     /**
-     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has an empty list as its initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
      *
@@ -119,7 +120,7 @@ public interface ObjectFactory {
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has no initial value.
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has an empty list as its initial value.
      *
      * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
      *
@@ -131,7 +132,7 @@ public interface ObjectFactory {
     <T> SetProperty<T> setProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has no initial value.
+     * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has an empty map as its initial value.
      *
      * <p>The implementation will return immutable {@link Map} values from its query methods.</p>
      * @param keyType the type of key.

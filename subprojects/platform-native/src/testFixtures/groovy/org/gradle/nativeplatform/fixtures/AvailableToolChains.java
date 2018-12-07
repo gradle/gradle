@@ -62,6 +62,12 @@ import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISU
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
 
 public class AvailableToolChains {
+    private static final Comparator<ToolChainCandidate> LATEST_FIRST = Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
+        @Override
+        public int compare(ToolChainCandidate toolchain1, ToolChainCandidate toolchain2) {
+            return toolchain1.getVersion().compareTo(toolchain2.getVersion());
+        }
+    });
     private static List<ToolChainCandidate> toolChains;
 
     /**
@@ -106,12 +112,12 @@ public class AvailableToolChains {
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
             } else if (OperatingSystem.current().isMacOsX()) {
-                compilers.add(findClang());
+                compilers.addAll(findClangs(true));
                 compilers.addAll(findGccs(false));
                 compilers.addAll(findSwiftcs());
             } else {
                 compilers.addAll(findGccs(true));
-                compilers.add(findClang());
+                compilers.addAll(findClangs(false));
                 compilers.addAll(findSwiftcs());
             }
             toolChains = compilers;
@@ -119,12 +125,33 @@ public class AvailableToolChains {
         return toolChains;
     }
 
-    static private ToolChainCandidate findClang() {
-        File compilerExe = OperatingSystem.current().findInPath("clang");
-        if (compilerExe != null) {
-            return new InstalledClang();
+    static private List<ToolChainCandidate> findClangs(boolean mustFind) {
+        GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
+
+        Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
+        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        if (!clangCandidates.isEmpty()) {
+            File firstInPath = clangCandidates.iterator().next();
+            for (File candidate : clangCandidates) {
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList(), Collections.<File>emptyList());
+                if (version.isAvailable()) {
+                    InstalledClang clang = new InstalledClang(version.getComponent().getVersion());
+                    if (!candidate.equals(firstInPath)) {
+                        // Not the first g++ in the path, needs the path variable updated
+                        clang.inPath(candidate.getParentFile());
+                    }
+                    toolChains.add(clang);
+                }
+            }
         }
-        return new UnavailableToolChain(ToolFamily.CLANG);
+
+        if (mustFind && toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain(ToolFamily.CLANG));
+        }
+
+        toolChains.sort(LATEST_FIRST);
+
+        return toolChains;
     }
 
     static private boolean isTestableVisualStudioVersion(final VersionNumber version) {
@@ -155,6 +182,8 @@ public class AvailableToolChains {
         if (toolChains.isEmpty()) {
             toolChains.add(new UnavailableToolChain(ToolFamily.VISUAL_CPP));
         }
+
+        toolChains.sort(LATEST_FIRST);
 
         return toolChains;
     }
@@ -198,9 +227,12 @@ public class AvailableToolChains {
                 }
             }
         }
+
         if (mustFind && toolChains.isEmpty()) {
             toolChains.add(new UnavailableToolChain(ToolFamily.GCC));
         }
+
+        toolChains.sort(LATEST_FIRST);
 
         return toolChains;
     }
@@ -241,16 +273,11 @@ public class AvailableToolChains {
 
         if (toolChains.isEmpty()) {
             toolChains.add(new UnavailableToolChain(ToolFamily.SWIFTC));
-            return toolChains;
         } else {
-            toolChains.sort(Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
-                @Override
-                public int compare(ToolChainCandidate toolchain1, ToolChainCandidate toolchain2) {
-                    return toolchain1.getVersion().compareTo(toolchain2.getVersion());
-                }
-            }));
-            return toolChains;
+            toolChains.sort(LATEST_FIRST);
         }
+
+        return toolChains;
     }
 
     public enum ToolFamily {
@@ -470,7 +497,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.SUPPORTS_32 || requirement == ToolChainRequirement.SUPPORTS_32_AND_64;
         }
 
         @Override
@@ -539,7 +566,15 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return super.meets(requirement) || requirement == ToolChainRequirement.WINDOWS_GCC;
+            switch (requirement) {
+                case SUPPORTS_32:
+                case WINDOWS_GCC:
+                    return true;
+                case SUPPORTS_32_AND_64:
+                    return false;
+                default:
+                    return super.meets(requirement);
+            }
         }
 
         @Override
@@ -641,6 +676,8 @@ public class AvailableToolChains {
             switch (requirement) {
                 case AVAILABLE:
                 case VISUALCPP:
+                case SUPPORTS_32:
+                case SUPPORTS_32_AND_64:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2012.getVersion()) >= 0;
@@ -717,18 +754,32 @@ public class AvailableToolChains {
     }
 
     public static class InstalledClang extends GccCompatibleToolChain {
-        public InstalledClang() {
-            super(ToolFamily.CLANG, VersionNumber.UNKNOWN);
+        public InstalledClang(VersionNumber versionNumber) {
+            super(ToolFamily.CLANG, versionNumber);
         }
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            switch(requirement) {
+                case AVAILABLE:
+                case CLANG:
+                case GCC_COMPATIBLE:
+                    return true;
+                case SUPPORTS_32:
+                case SUPPORTS_32_AND_64:
+                    return (!OperatingSystem.current().isMacOsX()) || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
+                default:
+                    return false;
+            }
         }
 
         @Override
         public String getBuildScriptConfig() {
-            return "clang(Clang)";
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
+            }
+            return config;
         }
 
         @Override

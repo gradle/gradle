@@ -28,18 +28,18 @@ import java.util.List;
 class TransformationOperation implements RunnableBuildOperation {
     private final Transformation transformation;
     private final TransformationSubject subject;
-    private final ArtifactTransformDependenciesProvider dependenciesProvider;
+    private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private TransformationSubject result;
 
-    TransformationOperation(Transformation transformation, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
+    TransformationOperation(Transformation transformation, TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformation = transformation;
         this.subject = subject;
-        this.dependenciesProvider = dependenciesProvider;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject, dependenciesProvider);
+        result = transformation.transform(subject, dependenciesResolver);
     }
 
     @Override

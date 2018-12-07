@@ -22,6 +22,13 @@ import java.util.List;
 /**
  * Base class for artifact transformations.
  *
+ * <p>Implementations must provide a public constructor. The constructor may optionally be annotated with {@link javax.inject.Inject} and accept parameters. The following parameters are available:</p>
+ *
+ * <ul>
+ * <li>{@link ArtifactTransformDependencies} parameter to receive the dependencies of the file to be transformed.</li>
+ * <li>The objects provided to {@link org.gradle.api.ActionConfiguration#setParams(Object...)}.</li>
+ * </ul>
+ *
  * @since 3.4
  */
 public abstract class ArtifactTransform {

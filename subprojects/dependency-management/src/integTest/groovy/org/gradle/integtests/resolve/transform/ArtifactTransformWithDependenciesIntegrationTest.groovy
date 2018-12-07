@@ -16,56 +16,62 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
-class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+@IgnoreIf({ GradleContextualExecuter.parallel})
+class ArtifactTransformWithDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
             rootProject.name = 'transform-deps'
             include 'common', 'lib', 'app'
         """
-
-        def classContent = """
-package test;
-
-public class MyClass {
-    public static void main(String[] args) {
-        System.out.println("Hello world!");
-    }
-}
-"""
-        file('lib/src/main/java/test/MyClass.java') << classContent
-        file('common/src/main/java/test/MyClass.java') << classContent
+        mavenRepo.module("org.slf4j", "slf4j-api", "1.7.24").publish()
+        mavenRepo.module("org.slf4j", "slf4j-api", "1.7.25").publish()
+        mavenRepo.module("junit", "junit", "4.11")
+                .dependsOn("hamcrest", "hamcrest-core", "1.3")
+                .publish()
+        mavenRepo.module("hamcrest", "hamcrest-core", "1.3").publish()
 
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
     repositories {
-        mavenCentral()
+        maven { url = '${mavenRepo.uri}' }
+    }
+    configurations {
+        implementation {
+            canBeConsumed = false
+            attributes.attribute(artifactType, 'jar')
+        }
+        "default" { extendsFrom implementation }
+    }
+    task producer(type: Producer) {
+        outputFile = file("build/\${project.name}.jar")
+    }
+    artifacts {
+        implementation producer.outputFile
     }
 }
+
 project(':common') {
-    apply plugin: 'java-library'
 }
 
 project(':lib') {
-    apply plugin: 'java-library'
-
     dependencies {
         if (rootProject.hasProperty("useOldDependencyVersion")) {
-            api 'org.slf4j:slf4j-api:1.7.24'
+            implementation 'org.slf4j:slf4j-api:1.7.24'
         } else {
-            api 'org.slf4j:slf4j-api:1.7.25'
+            implementation 'org.slf4j:slf4j-api:1.7.25'
         }
-        api project(':common')
+        implementation project(':common')
     }
 }
 
 project(':app') {
-    apply plugin: 'java'
-    
     dependencies {
         implementation 'junit:junit:4.11'
         implementation project(':lib')
@@ -96,7 +102,7 @@ project(':app') {
             }
         }
 
-        //Multi step transform, without dependencies at step1
+        //Multi step transform, without dependencies at step 1
         registerTransform {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'middle')
@@ -109,12 +115,21 @@ project(':app') {
                 params('Transform step 2')
             }
         }
-
     }
 }
 
 import javax.inject.Inject
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
+
+class Producer extends DefaultTask {
+    @OutputFile
+    RegularFileProperty outputFile = project.objects.fileProperty()
+
+    @TaskAction
+    def go() {
+        outputFile.get().asFile.text = "output"
+    }
+}
 
 class TestTransform extends ArtifactTransform {
 
@@ -160,23 +175,18 @@ class SimpleTransform extends ArtifactTransform {
         buildFile << """
 project(':app') {
     task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
+        def artifacts = configurations.implementation.incoming.artifactView {
             attributes { it.attribute(artifactType, 'size') }
         }.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
-        }
     }
 }
 
 """
 
         when:
+        executer.withArgument("--parallel")
         run "resolve"
 
         then:
@@ -192,23 +202,18 @@ project(':app') {
         buildFile << """
 project(':app') {
     task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
+        def artifacts = configurations.implementation.incoming.artifactView {
             attributes { it.attribute(artifactType, 'end') }
         }.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
-        }
     }
 }
 
 """
 
         when:
+        executer.withArgument("--parallel")
         run "resolve"
 
         then:
@@ -224,23 +229,18 @@ project(':app') {
         buildFile << """
 project(':app') {
     task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
+        def artifacts = configurations.implementation.incoming.artifactView {
             attributes { it.attribute(artifactType, 'final') }
         }.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
-        }
     }
 }
 
 """
 
         when:
+        executer.withArgument("--parallel")
         run "resolve"
 
         then:
@@ -260,7 +260,7 @@ project(':app') {
     configurations {
         sizeConf {
             attributes.attribute(artifactType, 'size')
-            extendsFrom compileClasspath
+            extendsFrom implementation
         }
     }
 
@@ -268,17 +268,12 @@ project(':app') {
         def artifacts = configurations.sizeConf.incoming.artifacts
         from artifacts.artifactFiles
         into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
-        }
     }
 }
 """
 
         when:
+        executer.withArgument("--parallel")
         run "resolve"
 
         then:
@@ -292,7 +287,7 @@ project(':app') {
         buildFile << """
 project(':app') {
     task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
+        def artifacts = configurations.implementation.incoming.artifactView {
             attributes { it.attribute(artifactType, 'size') }
         }.artifacts
         from artifacts.artifactFiles

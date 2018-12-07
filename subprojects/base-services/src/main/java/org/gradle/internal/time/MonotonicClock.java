@@ -57,7 +57,7 @@ class MonotonicClock implements Clock {
 
     private final AtomicLong syncMillisRef;
     private final AtomicLong syncNanosRef;
-    private final AtomicLong max = new AtomicLong(0);
+    private final AtomicLong currentTime = new AtomicLong(0);
 
     MonotonicClock() {
         this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);
@@ -72,7 +72,7 @@ class MonotonicClock implements Clock {
         this.syncIntervalMillis = syncIntervalMillis;
         this.syncNanosRef = new AtomicLong(nanoTime);
         this.syncMillisRef = new AtomicLong(currentTimeMillis);
-        this.max.set(currentTimeMillis);
+        this.currentTime.set(currentTimeMillis);
     }
 
     public long getCurrentTime() {
@@ -93,22 +93,29 @@ class MonotonicClock implements Clock {
         return sinceSyncMillis >= syncIntervalMillis && syncNanosRef.compareAndSet(syncNanos, nowNanos);
     }
 
+    /**
+     * Syncs our internal clock with the system clock and returns the new time.
+     * Marks the current time as the last synchronization point, unless another thread already did a synchronization in the meantime.
+     */
     private long sync(long syncMillis) {
         long newSyncMillis = advance(timeSource.currentTimeMillis());
-        // CAS due to potentially a later, but overlapping, sync having already completed
         syncMillisRef.compareAndSet(syncMillis, newSyncMillis);
         return newSyncMillis;
     }
 
-    private long advance(long timestamp) {
-        long prev;
-        long next;
-        do {
-            prev = max.get();
-            next = Math.max(prev, timestamp);
-        } while (!max.compareAndSet(prev, next));
-
-        return next;
+    /**
+     * Advance the clock to the given timestamp and return the new time.
+     * The returned time may not be the one passed in, in case another thread already advanced the clock further.
+     * This ensures that all threads share a consistent time.
+     */
+    private long advance(long newTime) {
+        while (true) {
+            long current = currentTime.get();
+            if (newTime <= current) {
+                return current;
+            } else if (currentTime.compareAndSet(current, newTime)) {
+                return newTime;
+            }
+        }
     }
-
 }

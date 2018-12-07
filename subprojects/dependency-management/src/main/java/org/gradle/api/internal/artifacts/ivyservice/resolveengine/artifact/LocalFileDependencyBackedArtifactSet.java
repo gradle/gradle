@@ -94,11 +94,16 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
+    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        // Artifacts are not known until the file collection is queried
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
@@ -119,6 +124,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public ComponentIdentifier getComponentId() {
+            return artifactIdentifier.getComponentIdentifier();
+        }
+
+        @Override
         public ResolvedArtifactSet getArtifacts() {
             return this;
         }
@@ -134,7 +144,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public ImmutableAttributes getOverridenAttributes() {
+        public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
 
@@ -153,6 +163,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        }
+
+        @Override
         public void visit(ArtifactVisitor visitor) {
             visitor.visitFile(artifactIdentifier, variantName, variantAttributes, file);
         }
@@ -165,11 +179,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
-        }
-
-        @Override
-        public ComponentArtifactIdentifier getArtifactId() {
-            return artifactIdentifier;
         }
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 
 import javax.annotation.Nullable;
@@ -220,6 +221,14 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public abstract Set<Node> getFinalizers();
+
+    /**
+     * Returns the project which the node requires access to, if any.
+     *
+     * This should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
+     */
+    @Nullable
+    public abstract Project getProject();
 
     @Override
     public abstract String toString();

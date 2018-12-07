@@ -32,6 +32,8 @@ import org.gradle.language.swift.SwiftVersion;
 import javax.inject.Inject;
 import java.util.List;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
  */
@@ -45,12 +47,12 @@ public class XcodeTarget implements Named {
     private String taskName;
     private String gradleCommand;
 
+    private List<XcodeBinary> binaries = Lists.newArrayList();
     private Provider<? extends FileSystemLocation> debugOutputFile;
-    private Provider<? extends FileSystemLocation> releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
-    private String outputFileType;
     private Property<SwiftVersion> swiftSourceCompatibility;
+    private Property<String> defaultConfigurationName;
 
     @Inject
     public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -60,6 +62,8 @@ public class XcodeTarget implements Named {
         this.headerSearchPaths = fileOperations.configurableFiles();
         this.compileModules = fileOperations.configurableFiles();
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
+        this.defaultConfigurationName = objectFactory.property(String.class);
+        this.defaultConfigurationName.set(BUILD_DEBUG);
     }
 
     public String getId() {
@@ -75,16 +79,8 @@ public class XcodeTarget implements Named {
         return debugOutputFile;
     }
 
-    public Provider<? extends FileSystemLocation> getReleaseOutputFile() {
-        return releaseOutputFile;
-    }
-
     public String getOutputFileType() {
-        return outputFileType;
-    }
-
-    public void setOutputFileType(String outputFileType) {
-        this.outputFileType = outputFileType;
+        return toFileType(productType);
     }
 
     public PBXTarget.ProductType getProductType() {
@@ -147,16 +143,8 @@ public class XcodeTarget implements Named {
         return taskDependencies;
     }
 
-    public void setDebug(Provider<? extends FileSystemLocation> debugProductLocation, PBXTarget.ProductType productType) {
-        this.debugOutputFile = debugProductLocation;
-        this.productType = productType;
-        this.outputFileType = toFileType(productType);
-    }
-
-    public void setRelease(Provider<? extends FileSystemLocation> releaseProductLocation, PBXTarget.ProductType productType) {
-        this.releaseOutputFile = releaseProductLocation;
-        this.productType = productType;
-        this.outputFileType = toFileType(productType);
+    public List<XcodeBinary> getBinaries() {
+        return binaries;
     }
 
     private static String toFileType(PBXTarget.ProductType productType) {
@@ -173,5 +161,16 @@ public class XcodeTarget implements Named {
 
     public Property<SwiftVersion> getSwiftSourceCompatibility() {
         return swiftSourceCompatibility;
+    }
+
+    public void addBinary(String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
+        binaries.add(new XcodeBinary(configuration, outputFile, architectureName));
+        if (configuration.contains("Debug")) {
+            this.debugOutputFile = outputFile;
+        }
+    }
+
+    public Property<String> getDefaultConfigurationName() {
+        return defaultConfigurationName;
     }
 }

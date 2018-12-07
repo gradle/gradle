@@ -32,6 +32,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.TextUtil.escapeString
 
@@ -320,6 +321,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     def "rebuilds binary with target platform change"() {
         Assume.assumeTrue(canBuildForMultiplePlatforms)
         given:

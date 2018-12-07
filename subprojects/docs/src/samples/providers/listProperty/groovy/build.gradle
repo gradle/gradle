@@ -14,7 +14,7 @@ class Producer extends DefaultTask {
 
 class Consumer extends DefaultTask {
     @InputFiles
-    final ListProperty<RegularFile> inputFiles = project.objects.listProperty(RegularFile).empty()
+    final ListProperty<RegularFile> inputFiles = project.objects.listProperty(RegularFile)
 
     @TaskAction
     void consume() {

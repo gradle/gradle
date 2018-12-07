@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.Project;
 
-public interface BuildableSingleResolvedArtifactSet extends ResolvedArtifactSet {
-    ComponentArtifactIdentifier getArtifactId();
+import javax.annotation.Nullable;
+
+/**
+ * A self-contained action to run as a node in the work graph. Can be included in the dependencies of a {@link TaskDependencyContainer}.
+ */
+public interface WorkNodeAction {
+    /**
+     * Returns the project which the action requires access to, if any.
+     */
+    @Nullable
+    Project getProject();
+
+    /**
+     * Run the action, throwing any failure.
+     */
+    void run();
 }

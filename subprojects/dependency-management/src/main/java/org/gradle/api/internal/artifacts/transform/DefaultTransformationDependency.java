@@ -17,23 +17,19 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 @NonNullApi
 public class DefaultTransformationDependency implements TransformationDependency {
     private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
-    private final ResolvableDependencies resolvableDependencies;
-    private final ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
+    private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
     public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts,
-                                           ResolvableDependencies resolvableDependencies,
-                                           ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory) {
+                                           ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformation = transformation;
         this.artifacts = artifacts;
-        this.resolvableDependencies = resolvableDependencies;
-        this.extraExecutionGraphDependenciesResolverFactory = extraExecutionGraphDependenciesResolverFactory;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     public Transformation getTransformation() {
@@ -44,12 +40,8 @@ public class DefaultTransformationDependency implements TransformationDependency
         return artifacts;
     }
 
-    public ResolvableDependencies getResolvableDependencies() {
-        return resolvableDependencies;
-    }
-
-    public ExtraExecutionGraphDependenciesResolverFactory getExtraExecutionGraphDependenciesResolverFactory() {
-        return extraExecutionGraphDependenciesResolverFactory;
+    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
+        return dependenciesResolver;
     }
 
     @Override
