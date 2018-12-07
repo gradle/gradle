@@ -16,11 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.MachineArchitecture
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
-import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
@@ -46,106 +42,6 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
-    }
-
-    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    def "can build for current machine when multiple target machines are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.linux, machines.macOS, machines.windows]
-            }
-        """
-
-        expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
-    }
-
-    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    def "can build for multiple target machines"() {
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
-            }
-        """
-
-        expect:
-        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
-                getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
-    }
-
-    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    def "fails when no target architecture can be built"() {
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.os('${currentOsFamilyName}').architecture('foo')]
-            }
-        """
-
-        expect:
-        fails taskNameToAssembleDevelopmentBinary
-        failure.assertHasCause("No tool chain is available to build C++")
-    }
-
-    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    def "can build current architecture when other, non-buildable architectures are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}]
-            }
-        """
-
-        expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
-    }
-
-    // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    def "ignores duplicate target machines"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.host().architecture('foo'), machines.host()${currentHostArchitectureDsl}, machines.host()${currentHostArchitectureDsl}]
-            }
-        """
-
-        expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
     protected abstract String getDevelopmentBinaryCompileTask()

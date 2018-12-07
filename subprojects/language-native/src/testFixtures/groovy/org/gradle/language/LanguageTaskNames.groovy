@@ -144,6 +144,10 @@ abstract trait LanguageTaskNames {
             return new ReleaseTasks()
         }
 
+        TestTasks getTest() {
+            return new TestTasks()
+        }
+
         private withProject(String t) {
             project + ":" + t
         }
@@ -153,21 +157,34 @@ abstract trait LanguageTaskNames {
             return this
         }
 
-        class DebugTasks {
+        class AbstractTasks {
+            final String type
+
+            AbstractTasks(String type) {
+                this.type = type.capitalize()
+            }
+
             String getCompile() {
-                return withProject("compileDebug${variant}${languageTaskSuffix}")
+                return withProject("compile${type}${variant}${languageTaskSuffix}")
             }
 
             String getLink() {
-                return withProject("linkDebug${variant}")
+                return withProject("link${type}${variant}")
             }
 
             String getInstall() {
-                return withProject("installDebug${variant}")
+                return withProject("install${type}${variant}")
             }
 
             String getAssemble() {
-                return withProject("assembleDebug${variant}")
+                return withProject("assemble${type}${variant}")
+            }
+
+        }
+
+        class DebugTasks extends AbstractTasks {
+            DebugTasks() {
+                super("debug")
             }
 
             List<String> getAllToLink() {
@@ -179,21 +196,9 @@ abstract trait LanguageTaskNames {
             }
         }
 
-        class ReleaseTasks {
-            String getCompile() {
-                return withProject("compileRelease${variant}${languageTaskSuffix}")
-            }
-
-            String getLink() {
-                return withProject("linkRelease${variant}")
-            }
-
-            String getInstall() {
-                return withProject("installRelease${variant}")
-            }
-
-            String getAssemble() {
-                return withProject("assembleRelease${variant}")
+        class ReleaseTasks extends AbstractTasks {
+            ReleaseTasks() {
+                super("release")
             }
 
             List<String> getExtract() {
@@ -214,6 +219,28 @@ abstract trait LanguageTaskNames {
 
             List<String> getAllToLink() {
                 return [compile, link] + strip
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
+            }
+        }
+
+        class TestTasks extends AbstractTasks {
+            TestTasks() {
+                super("test")
+            }
+
+            List<String> getRun() {
+                return [withProject("runTest${variant}")]
+            }
+
+            List<String> getRelocate() {
+                return [withProject("relocateMainForTest${variant}")]
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link]
             }
 
             List<String> getAllToInstall() {

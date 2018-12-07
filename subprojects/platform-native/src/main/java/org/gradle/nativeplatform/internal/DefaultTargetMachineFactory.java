@@ -117,5 +117,10 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         public int hashCode() {
             return Objects.hash(operatingSystemFamily, architecture);
         }
+
+        @Override
+        public String toString() {
+            return operatingSystemFamily.getName() + ":" + architecture.getName();
+        }
     }
 }

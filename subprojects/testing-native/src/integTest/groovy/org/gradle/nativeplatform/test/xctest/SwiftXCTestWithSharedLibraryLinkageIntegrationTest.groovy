@@ -47,4 +47,9 @@ class SwiftXCTestWithSharedLibraryLinkageIntegrationTest extends AbstractSwiftXC
             apply plugin: 'swift-library'
         """
     }
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return "library"
+    }
 }
