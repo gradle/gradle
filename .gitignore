@@ -32,6 +32,7 @@
 /subprojects/*/out
 /.teamcity/*.iml
 /.teamcity/target
+!/.teamcity/Gradle_Check_dsl.iml
 
 # Eclipse
 # -------
