@@ -162,6 +162,27 @@ task thing {
         output.contains("prop = value 1")
     }
 
+    def "can use property with no value as optional ad hoc task input property"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.property(String)
+
+task thing {
+    inputs.property("prop", prop).optional(true)
+    doLast {
+        println "prop = " + prop.getOrNull()
+    }
+}
+"""
+
+        when:
+        run("thing")
+
+        then:
+        output.contains("prop = null")
+    }
+
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """

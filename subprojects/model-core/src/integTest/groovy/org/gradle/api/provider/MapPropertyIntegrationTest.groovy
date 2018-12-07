@@ -165,6 +165,28 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         output.contains('prop = [key1:value1]')
     }
 
+    def "can use property with no value as optional ad hoc task input property"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.mapProperty(String, String)
+prop.set((Map)null)
+
+task thing {
+    inputs.property("prop", prop).optional(true)
+    doLast {
+        println "prop = " + prop.getOrNull()
+    }
+}
+"""
+
+        when:
+        run("thing")
+
+        then:
+        output.contains("prop = null")
+    }
+
     @Unroll
     def "can set value for map property from DSL"() {
         given:
