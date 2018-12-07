@@ -48,8 +48,8 @@ class KotlinBuildScriptModelRepositoryTest {
     fun `cancels older requests before returning response to most recent request`() = runBlockingWithTimeout {
 
         // given:
-        val projectDir = File("/tmp/project")
-
+        // Notice the project directory is never written to by the test so its path is immaterial
+        val projectDir = File("/project-dir")
         val scriptFile = File(projectDir, "build.gradle.kts")
 
         /**
@@ -76,7 +76,7 @@ class KotlinBuildScriptModelRepositoryTest {
 
             override fun fetch(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel {
                 pendingRequest.sendBlocking(request)
-                return nextResponse.poll(5, TimeUnit.SECONDS)!!
+                return nextResponse.poll(defaultTestTimeoutMillis, TimeUnit.MILLISECONDS)!!
             }
         }
 
@@ -92,6 +92,7 @@ class KotlinBuildScriptModelRepositoryTest {
                 val request = newModelRequest()
                 request to asyncResponseTo(request).also {
                     assertThat(
+                        "Request is accepted",
                         acceptedRequest.receive(),
                         sameInstance(request)
                     )
