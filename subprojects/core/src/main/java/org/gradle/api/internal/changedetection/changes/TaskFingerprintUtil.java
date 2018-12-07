@@ -45,8 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-public class Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+public class TaskFingerprintUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskFingerprintUtil.class);
 
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAfterOutputsGenerated(
         final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous,
@@ -66,8 +66,8 @@ public class Util {
                 @SuppressWarnings("NullableProblems")
                 public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
                     CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
-                    FileCollectionFingerprint afterPreviousExecution = Util.getFingerprintAfterPreviousExecution(previous, propertyName);
-                    return Util.filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
+                    FileCollectionFingerprint afterPreviousExecution = TaskFingerprintUtil.getFingerprintAfterPreviousExecution(previous, propertyName);
+                    return TaskFingerprintUtil.filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
                 }
             }));
         }
