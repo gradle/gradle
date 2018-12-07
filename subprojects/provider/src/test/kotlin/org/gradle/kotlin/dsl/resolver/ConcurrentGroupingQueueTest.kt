@@ -21,6 +21,9 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 import kotlin.concurrent.thread
 
 
@@ -55,15 +58,16 @@ class ConcurrentGroupingQueueTest {
 
         val subject = ConcurrentGroupingQueue<Int> { false }
 
+        val pushElementSignal = CountDownLatch(1)
         thread {
-            Thread.sleep(150)
+            pushElementSignal.await(defaultTestTimeoutMillis, TimeUnit.MILLISECONDS)
             subject.push(42)
         }
-
         assertThat(
             subject.nextGroup(50),
             equalTo(emptyList())
         )
+        pushElementSignal.countDown()
 
         assertThat(
             subject.nextGroup(200),

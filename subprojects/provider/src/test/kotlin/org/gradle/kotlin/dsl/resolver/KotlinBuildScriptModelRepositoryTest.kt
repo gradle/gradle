@@ -161,8 +161,12 @@ class KotlinBuildScriptModelRepositoryTest {
 
 
 internal
-fun runBlockingWithTimeout(timeMillis: Long = 5000, block: suspend CoroutineScope.() -> Unit) {
+fun runBlockingWithTimeout(timeMillis: Long = defaultTestTimeoutMillis, block: suspend CoroutineScope.() -> Unit) {
     runBlocking {
         withTimeout(timeMillis, block)
     }
 }
+
+
+internal
+const val defaultTestTimeoutMillis = 5000L
