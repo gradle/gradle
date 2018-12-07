@@ -993,21 +993,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static class NodeMapping extends AbstractCollection<Node> {
-        private final Map<WorkIdentity, Node> nodeMapping = Maps.newLinkedHashMap();
+        private final Map<WorkIdentity, Node> nodeMapping = Maps.newHashMap();
+        private final Set<Node> nodes = Sets.newLinkedHashSet();
         private final Set<Task> tasks = Sets.newLinkedHashSet();
 
         @Override
         public boolean contains(Object o) {
-            return nodeMapping.values().contains(o);
+            return nodes.contains(o);
         }
 
         @Override
         public boolean add(Node node) {
-            WorkIdentity identity = node.getIdentity();
-            if (nodeMapping.containsKey(identity)) {
+            if (!nodes.add(node)) {
                 return false;
             }
-            nodeMapping.put(identity, node);
+            nodeMapping.put(node.getIdentity(), node);
             if (node instanceof LocalTaskNode) {
                 tasks.add(((LocalTaskNode) node).getTask());
             }
@@ -1028,28 +1028,30 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
         @Override
         public Iterator<Node> iterator() {
-            return nodeMapping.values().iterator();
+            return nodes.iterator();
         }
 
         @Override
         public void clear() {
+            nodes.clear();
             nodeMapping.clear();
             tasks.clear();
         }
 
         @Override
         public int size() {
-            return nodeMapping.size();
+            return nodes.size();
         }
 
         public void retainFirst(int count) {
-            Iterator<Node> executionPlanIterator = nodeMapping.values().iterator();
+            Iterator<Node> executionPlanIterator = nodes.iterator();
             for (int i = 0; i < count; i++) {
                 executionPlanIterator.next();
             }
             while (executionPlanIterator.hasNext()) {
                 Node removedNode = executionPlanIterator.next();
                 executionPlanIterator.remove();
+                nodeMapping.remove(removedNode.getIdentity());
                 if (removedNode instanceof LocalTaskNode) {
                     tasks.remove(((LocalTaskNode) removedNode).getTask());
                 }
