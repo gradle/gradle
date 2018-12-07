@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
 import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
 import org.gradle.api.internal.project.WorkIdentity;
-import org.gradle.execution.plan.Node;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -57,12 +56,9 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
     }
 
     @Override
-    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
-        if (isEnabled()) {
-            WorkIdentity identity = node.getIdentity();
-            if (identity instanceof TransformationIdentity) {
-                return descriptors.get(identity);
-            }
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity) {
+        if (isEnabled() && identity instanceof TransformationIdentity) {
+            return descriptors.get(identity);
         }
         return null;
     }

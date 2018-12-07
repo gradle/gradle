@@ -61,7 +61,7 @@ class OperationDependenciesResolver implements TaskExecutionGraphListener {
 
     private InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
         return lookups.stream()
-            .map(entry -> entry.lookupExistingOperationDescriptor(node))
+            .map(entry -> entry.lookupExistingOperationDescriptor(node.getIdentity()))
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(null);

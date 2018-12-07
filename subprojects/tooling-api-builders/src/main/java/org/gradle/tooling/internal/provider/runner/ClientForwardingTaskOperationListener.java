@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
-import org.gradle.execution.plan.Node;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -72,12 +71,9 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     }
 
     @Override
-    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
-        if (isEnabled()) {
-            WorkIdentity identity = node.getIdentity();
-            if (identity instanceof TaskIdentity<?>) {
-                return descriptors.get(identity);
-            }
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity) {
+        if (isEnabled() && identity instanceof TaskIdentity<?>) {
+            return descriptors.get(identity);
         }
         return null;
     }
