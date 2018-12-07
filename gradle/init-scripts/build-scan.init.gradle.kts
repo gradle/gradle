@@ -13,8 +13,11 @@ if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")
                     "publishAlways"()
                 }
                 setProperty("server", "https://e.grdev.net")
-                if (!System.getProperty("slow.internet.connection", "false").toBoolean()) {
-                    setProperty("captureTaskInputFiles", true)
+
+                if (metaClass.hasProperty(delegate, "captureTaskInputFiles") != null) {
+                    if (!System.getProperty("slow.internet.connection", "false").toBoolean()) {
+                        setProperty("captureTaskInputFiles", true)
+                    }
                 }
             }
         }
