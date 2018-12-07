@@ -28,11 +28,14 @@ tasks {
 
     withType<KotlinCompile>().configureEach {
         kotlinOptions {
+            apiVersion = "1.3"
+            languageVersion = "1.3"
             freeCompilerArgs += listOf(
                 "-java-parameters",
                 "-Xjsr305=strict",
                 "-progressive",
-                "-Xskip-runtime-version-check")
+                "-Xskip-runtime-version-check"
+            )
         }
     }
 
