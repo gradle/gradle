@@ -43,21 +43,14 @@ data class ResolutionFailure(
 
 
 internal
-data class ResolutionProgress(
-    val scriptFile: File?,
-    val description: String
-) : ResolverEvent()
-
-
-internal
-data class ResolvedToPrevious(
-    val scriptFile: File?,
-    val previousDependencies: KotlinScriptExternalDependencies?
-) : ResolverEvent()
-
-
-internal
 data class SubmittedModelRequest(
+    val scriptFile: File?,
+    val request: KotlinBuildScriptModelRequest
+) : ResolverEvent()
+
+
+internal
+data class RequestCancelled(
     val scriptFile: File?,
     val request: KotlinBuildScriptModelRequest
 ) : ResolverEvent()

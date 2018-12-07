@@ -19,15 +19,16 @@ package org.gradle.kotlin.dsl.concurrent
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
-import kotlin.concurrent.thread
-
 
 internal
-class EventLoop<T>(val loop: (() -> T?) -> Unit) {
+class EventLoop<T>(
+    name: String = "Gradle Kotlin DSL Event Loop",
+    val loop: (() -> T?) -> Unit
+) {
 
     fun accept(event: T): Boolean {
         if (q.offer(event, offerTimeoutMillis, TimeUnit.MILLISECONDS)) {
-            ensureAliveConsumer()
+            consumer.poke()
             return true
         }
         return false
@@ -37,17 +38,7 @@ class EventLoop<T>(val loop: (() -> T?) -> Unit) {
     val q = ArrayBlockingQueue<T>(64)
 
     private
-    var consumer: Thread? = null
-
-    private
-    fun ensureAliveConsumer() = synchronized(this) {
-        if (consumer?.isAlive != true) {
-            consumer = newConsumerThread()
-        }
-    }
-
-    private
-    fun newConsumerThread() = thread {
+    var consumer = ResurrectingThread(name = name) {
         loop(::poll)
     }
 
@@ -60,5 +51,5 @@ private
 const val offerTimeoutMillis = 50L
 
 
-private
+internal
 const val pollTimeoutMillis = 5_000L

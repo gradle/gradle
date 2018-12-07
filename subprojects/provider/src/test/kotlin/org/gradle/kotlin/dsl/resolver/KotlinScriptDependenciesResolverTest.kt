@@ -373,14 +373,14 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 }
 
 
-private
+internal
 fun scriptContentFor(scriptFile: File?) =
     mock<ScriptContents> {
         on { file } doReturn scriptFile
     }
 
 
-private
+internal
 class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Position?) -> Unit {
 
     data class LogEvent(
@@ -394,7 +394,10 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         val position: Position?
     )
 
+    private
     val events = mutableListOf<LogEvent>()
+
+    private
     val reports = mutableListOf<IdeReport>()
 
     override fun log(event: ResolverEvent) {

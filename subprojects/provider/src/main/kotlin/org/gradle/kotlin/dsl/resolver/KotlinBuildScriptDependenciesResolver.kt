@@ -30,9 +30,6 @@ import org.gradle.tooling.BuildException
 import java.io.File
 import java.net.URI
 
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.suspendCoroutine
-
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
@@ -135,12 +132,16 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
         environment: Environment,
         report: Report,
         previousDependencies: KotlinScriptExternalDependencies?
-    ): KotlinScriptExternalDependencies {
+    ): KotlinScriptExternalDependencies? {
 
-        val request = modelRequestFrom(scriptFile, environment)
-        logger.log(SubmittedModelRequest(scriptFile, request))
+        val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment)
+        logger.log(SubmittedModelRequest(scriptFile, scriptModelRequest))
 
-        val response = RequestQueue.post(request)
+        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest)
+        if (response == null) {
+            logger.log(RequestCancelled(scriptFile, scriptModelRequest))
+            return null
+        }
         logger.log(ReceivedModelResponse(scriptFile, response))
 
         response.editorReports.forEach { editorReport ->
@@ -164,7 +165,7 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
     }
 
     private
-    fun modelRequestFrom(scriptFile: File?, environment: Environment): KotlinBuildScriptModelRequest {
+    fun scriptModelRequestFrom(scriptFile: File?, environment: Environment): KotlinBuildScriptModelRequest {
 
         @Suppress("unchecked_cast")
         fun stringList(key: String) =
@@ -235,40 +236,9 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 }
 
 
-private
-typealias AsyncModelRequest = Pair<KotlinBuildScriptModelRequest, Continuation<KotlinBuildScriptModel>>
-
-
 /**
  * Handles all incoming [KotlinBuildScriptModelRequest]s via a single [EventLoop] to avoid spawning
  * multiple competing Gradle daemons.
  */
 private
-object RequestQueue {
-
-    suspend fun post(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel =
-        suspendCoroutine { k ->
-            require(eventLoop.accept(request to k))
-        }
-
-    private
-    val eventLoop = EventLoop<AsyncModelRequest> { poll ->
-        while (true) {
-            val (request, k) = poll() ?: break
-            try {
-                handle(request, k)
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private
-    fun handle(request: KotlinBuildScriptModelRequest, k: Continuation<KotlinBuildScriptModel>) {
-        k.resumeWith(
-            runCatching {
-                fetchKotlinBuildScriptModelFor(request)
-            }
-        )
-    }
-}
+object DefaultKotlinBuildScriptModelRepository : KotlinBuildScriptModelRepository()
