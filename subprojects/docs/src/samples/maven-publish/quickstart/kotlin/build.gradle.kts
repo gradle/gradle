@@ -1,7 +1,7 @@
 
 // tag::use-plugin[]
 plugins {
-    `maven-publish`
+    "maven-publish"
 // end::use-plugin[]
     java
 // tag::use-plugin[]
@@ -30,4 +30,3 @@ publishing {
     }
 }
 // end::repositories[]
-
