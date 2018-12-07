@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
@@ -25,6 +26,8 @@ plugins {
 }
 
 dependencies {
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${BuildEnvironment.kotlinVersion}")
+
     api(project(":baseServices"))
     api(project(":coreApi"))
     api(library("groovy"))
