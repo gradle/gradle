@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
@@ -24,7 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assume
 
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86
@@ -462,9 +462,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
     // macOS can only build 64-bit under 10.14+
     @Requires(TestPrecondition.NOT_MAC_OS_X)
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         def app = new CppApp()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 

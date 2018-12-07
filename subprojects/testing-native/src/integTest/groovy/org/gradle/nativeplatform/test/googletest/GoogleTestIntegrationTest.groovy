@@ -19,6 +19,8 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -28,6 +30,7 @@ import spock.lang.Issue
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")

@@ -175,7 +175,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     boolean isObjectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
             OperatingSystem.current().isLinux() &&
-            toolChain.displayName == "clang"
+            toolChain.displayName.startsWith("clang")
     }
 
     protected void maybeWait() {

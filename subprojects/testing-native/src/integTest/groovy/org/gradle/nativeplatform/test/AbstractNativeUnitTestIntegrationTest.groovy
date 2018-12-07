@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+
 import spock.lang.Unroll
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
