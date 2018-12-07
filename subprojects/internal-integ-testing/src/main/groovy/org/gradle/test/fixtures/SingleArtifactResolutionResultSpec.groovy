@@ -39,6 +39,10 @@ class SingleArtifactResolutionResultSpec<T extends Module> {
         expectedFileNames = fileNames.sort()
     }
 
+    void noFiles() {
+        expectedFileNames = []
+    }
+
     void shouldFail(@DelegatesTo(value = ExecutionFailure, strategy = Closure.DELEGATE_FIRST) Closure<?> onFailure) {
         expectSuccess = false
         if (onFailure == null) {

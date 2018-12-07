@@ -152,7 +152,7 @@ class DependencyManagementBuildScopeServices {
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, stringInterner),
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             projectDependencyFactory,
             attributesFactory);

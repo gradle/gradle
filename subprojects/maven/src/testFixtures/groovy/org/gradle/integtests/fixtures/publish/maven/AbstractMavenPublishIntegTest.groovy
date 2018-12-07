@@ -23,8 +23,9 @@ import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
+import org.gradle.test.fixtures.maven.MavenJavaPlatformModule
+import org.gradle.test.fixtures.maven.MavenModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
@@ -36,6 +37,10 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
         return new MavenJavaModule(mavenFileModule)
+    }
+
+    protected static MavenJavaPlatformModule javaPlatform(MavenFileModule mavenFileModule) {
+        return new MavenJavaPlatformModule(mavenFileModule)
     }
 
     void resolveArtifacts(Object dependencyNotation, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {

@@ -15,27 +15,14 @@
  */
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.ConfigurationUsageContext;
-import org.gradle.api.model.ObjectFactory;
-
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.Set;
+import org.gradle.api.internal.java.JavaPlatform;
 
 /**
  * The Java platform plugin allows building platform components
@@ -74,7 +61,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private boolean createSoftwareComponent(Project project) {
-        return project.getComponents().add(project.getObjects().newInstance(JavaPlatformComponent.class, project.getConfigurations()));
+        return project.getComponents().add(project.getObjects().newInstance(JavaPlatform.class, project.getConfigurations()));
     }
 
     private void createConfigurations(Project project) {
@@ -85,61 +72,5 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtime);
         classpath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
-    }
-
-    public static class JavaPlatformComponent implements SoftwareComponentInternal {
-        private final ObjectFactory objectFactory;
-        private final ImmutableAttributesFactory attributesFactory;
-        private final ConfigurationContainer configurations;
-        private final UsageContext api;
-        private final UsageContext runtime;
-
-        @Inject
-        public JavaPlatformComponent(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, ConfigurationContainer configurations) {
-            this.objectFactory = objectFactory;
-            this.attributesFactory = attributesFactory;
-            this.configurations = configurations;
-            this.api = createApiUsageContext();
-            this.runtime = createRuntimeUsageContext();
-        }
-
-        @Override
-        public Set<? extends UsageContext> getUsages() {
-            return ImmutableSet.of(api, runtime);
-        }
-
-        @Override
-        public String getName() {
-            return "javaPlatform";
-        }
-
-        private UsageContext createRuntimeUsageContext() {
-            return new JavaPlatformUsageContext(Usage.JAVA_RUNTIME, "runtime", RUNTIME_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
-        }
-
-        private UsageContext createApiUsageContext() {
-            return new JavaPlatformUsageContext(Usage.JAVA_API, "api", API_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
-        }
-    }
-
-    private final static class JavaPlatformUsageContext extends ConfigurationUsageContext {
-        private final AttributeContainer attributes;
-
-        private JavaPlatformUsageContext(String usageName,
-                                        String name,
-                                        String configurationName,
-                                        ConfigurationContainer configurations,
-                                        ObjectFactory objectFactory,
-                                        ImmutableAttributesFactory attributesFactory) {
-            super(usageName, name, configurationName, Collections.<PublishArtifact>emptySet(), configurations, objectFactory, attributesFactory);
-            AttributeContainerInternal attributes = (AttributeContainerInternal) super.getAttributes();
-            // Currently, "enforced" platforms are handled through special casing, so we don't need to publish the enforced version
-            this.attributes = attributesFactory.concat(attributes.asImmutable(), PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.REGULAR_PLATFORM);
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            return attributes;
-        }
     }
 }
