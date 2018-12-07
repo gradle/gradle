@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -72,5 +73,16 @@ public abstract class PlatformSupport {
             }
         }
 
+    }
+
+    public static class PreferRegularPlatform implements AttributeDisambiguationRule<String> {
+        private final static Set<String> PLATFORM_TYPES = ImmutableSet.of(REGULAR_PLATFORM, ENFORCED_PLATFORM);
+
+        @Override
+        public void execute(MultipleCandidatesDetails<String> details) {
+            if (details.getCandidateValues().equals(PLATFORM_TYPES)) {
+                details.closestMatch(REGULAR_PLATFORM);
+            }
+        }
     }
 }

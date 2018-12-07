@@ -66,7 +66,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
                 project(":platform", "org.test:platform:1.9") {
-                    variant("api", ['org.gradle.usage': 'java-api', 'org.gradle.component.category': 'platform'])
+                    variant("apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.component.category': 'platform'])
                     constraint("org:foo:1.1")
                     noArtifacts()
                 }
@@ -79,13 +79,13 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     def "can get different recommendations from a platform runtime subproject"() {
         def module1 = mavenHttpRepo.module("org", "foo", "1.1").publish()
-        def module2 = mavenHttpRepo.module("org", "foo", "1.2").publish()
+        def module2 = mavenHttpRepo.module("org", "bar", "1.2").publish()
 
         given:
         platformModule("""
             constraints {
                 api "org:foo:1.1"
-                runtime "org:foo:1.2"
+                runtime "org:bar:1.2"
             }
         """)
 
@@ -93,11 +93,14 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             dependencies {
                 api platform(project(":platform"))
                 api "org:foo"
+                runtimeOnly "org:bar"
             }
         """
         checkConfiguration("runtimeClasspath")
 
         when:
+        module1.pom.expectGet()
+        module1.artifact.expectGet()
         module2.pom.expectGet()
         module2.artifact.expectGet()
 
@@ -107,12 +110,16 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
                 project(":platform", "org.test:platform:1.9") {
-                    variant("runtime", ['org.gradle.usage': 'java-runtime', 'org.gradle.component.category': 'platform'])
-                    constraint("org:foo:1.1", "org:foo:1.2") // this is just because of the dumb test
-                    constraint("org:foo:1.2")
+                    variant("runtimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.component.category': 'platform'])
+                    constraint("org:foo:1.1")
+                    constraint("org:bar:1.2")
                     noArtifacts()
                 }
-                edge('org:foo', 'org:foo:1.2') {
+                edge('org:foo', 'org:foo:1.1') {
+                    configuration = "runtime"
+                    byConstraint()
+                }
+                edge('org:bar', 'org:bar:1.2') {
                     configuration = "runtime"
                     byConstraint()
                 }
@@ -148,12 +155,54 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
                 project(":platform", "org.test:platform:1.9") {
-                    variant("api", ['org.gradle.usage': 'java-api', 'org.gradle.component.category': 'platform'])
+                    variant("apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.component.category': 'platform'])
                     constraint("org:foo:1.1")
                     noArtifacts()
                 }
                 edge('org:foo', 'org:foo:1.1') {
                     byConstraint()
+                }
+            }
+        }
+    }
+
+    def "can enforce a local platform dependency"() {
+        def module1 = mavenHttpRepo.module("org", "foo", "1.1").publish()
+        def module2 = mavenHttpRepo.module("org", "foo", "1.2").publish()
+
+        given:
+        platformModule("""
+            constraints {
+                api "org:foo:1.1"
+            }
+        """)
+
+        buildFile << """
+            dependencies {
+                api enforcedPlatform(project(":platform"))
+                api "org:foo:1.2"
+            }
+        """
+        checkConfiguration("compileClasspath")
+
+        when:
+        module1.pom.expectGet()
+        module2.pom.expectGet()
+        module1.artifact.expectGet()
+
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                project(":platform", "org.test:platform:1.9") {
+                    variant("enforcedApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.component.category': 'enforced-platform'])
+                    constraint("org:foo:1.1")
+                    noArtifacts()
+                }
+                edge('org:foo:1.2', 'org:foo:1.1') {
+                    byConstraint()
+                    forced()
                 }
             }
         }

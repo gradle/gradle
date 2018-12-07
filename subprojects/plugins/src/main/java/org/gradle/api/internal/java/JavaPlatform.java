@@ -60,11 +60,11 @@ public class JavaPlatform implements SoftwareComponentInternal {
     }
 
     private UsageContext createRuntimeUsageContext() {
-        return new JavaPlatformUsageContext(Usage.JAVA_RUNTIME, "runtime", JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
+        return new JavaPlatformUsageContext(Usage.JAVA_RUNTIME, "runtime", JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
     }
 
     private UsageContext createApiUsageContext() {
-        return new JavaPlatformUsageContext(Usage.JAVA_API, "api", JavaPlatformPlugin.API_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
+        return new JavaPlatformUsageContext(Usage.JAVA_API, "api", JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
     }
 
     private final static class JavaPlatformUsageContext extends ConfigurationUsageContext {
