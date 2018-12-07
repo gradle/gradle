@@ -228,11 +228,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                 `create`(`name`, `type`.java, *`constructionArguments`)
             """,
             """
-            /**
-             * Kotlin extension function taking [kotlin.reflect.KClass] for [org.gradle.api.model.ObjectFactory.named].
-             *
-             * @see org.gradle.api.model.ObjectFactory.named
-             */
             @org.gradle.api.Incubating
             inline fun <T : org.gradle.api.Named> org.gradle.api.model.ObjectFactory.`named`(`type`: kotlin.reflect.KClass<T>, `name`: String): T =
                 `named`(`type`.java, `name`)
