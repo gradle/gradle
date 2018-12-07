@@ -32,6 +32,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", "/opt/android/sdk")
         param("env.JAVA_HOME", buildJavaHome)
+        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.PATH", "%env.PATH%:/opt/swift/latest/usr/bin")
     }
 

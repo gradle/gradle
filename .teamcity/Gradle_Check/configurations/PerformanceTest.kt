@@ -29,6 +29,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
         param("performance.baselines", type.defaultBaselines)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", buildJavaHome)
+        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
         param("performance.db.username", "tcagent")
         param("TC_USERNAME", "TeamcityRestBot")
