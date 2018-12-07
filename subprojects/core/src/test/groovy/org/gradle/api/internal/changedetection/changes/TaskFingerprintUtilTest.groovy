@@ -29,7 +29,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class UtilTest extends Specification {
+import static org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil.filterOutputFingerprint
+
+class TaskFingerprintUtilTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
@@ -45,7 +47,7 @@ class UtilTest extends Specification {
         outputDir.file()
 
         when:
-        def filteredOutputs = Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
         then:
         filteredOutputs.empty
 
@@ -53,7 +55,7 @@ class UtilTest extends Specification {
         def outputDirFile = outputDir.file("in-output-dir").createFile()
         fileSystemMirror.beforeBuildFinished()
         def afterExecution = fingerprintOutput(outputDir)
-        filteredOutputs = Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
+        filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
         then:
         filteredOutputs.fingerprints.keySet() == [outputDir.absolutePath, outputDirFile.absolutePath] as Set
     }
@@ -64,14 +66,14 @@ class UtilTest extends Specification {
         def beforeExecution = fingerprintOutput(outputDir)
 
         when:
-        def filteredOutputs = Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
         then:
         filteredOutputs.empty
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
         def afterExecution = fingerprintOutput(outputDir)
-        filteredOutputs = Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
+        filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
         then:
         filteredOutputs.fingerprints.keySet() == [outputDir.absolutePath, outputOfCurrent.absolutePath] as Set
     }
@@ -84,7 +86,7 @@ class UtilTest extends Specification {
         def beforeExecution = fingerprintOutput(outputDir)
 
         when:
-        def filteredOutputs = Util.filterOutputFingerprint(previousExecution, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputFingerprint(previousExecution, beforeExecution, beforeExecution)
         then:
         filteredOutputs.fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
     }
@@ -93,15 +95,15 @@ class UtilTest extends Specification {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = fingerprintOutput(missingFile)
         expect:
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution).empty
+        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution).empty
     }
 
     def "added empty dir is captured"() {
         def emptyDir = temporaryFolder.file("emptyDir").createDir()
         def afterExecution = fingerprintOutput(emptyDir)
         expect:
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), outputFingerprinter.empty(), afterExecution).fingerprints.keySet() == [emptyDir.absolutePath] as Set
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), afterExecution, afterExecution).empty
+        filterOutputFingerprint(outputFingerprinter.empty(), outputFingerprinter.empty(), afterExecution).fingerprints.keySet() == [emptyDir.absolutePath] as Set
+        filterOutputFingerprint(outputFingerprinter.empty(), afterExecution, afterExecution).empty
     }
 
     private CurrentFileCollectionFingerprint fingerprintOutput(File output) {
@@ -116,7 +118,7 @@ class UtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = fingerprintOutput(outputDir)
         expect:
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [outputDir, existingFile]*.absolutePath as Set
+        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [outputDir, existingFile]*.absolutePath as Set
     }
 
     def "updated files are part of the output"() {
@@ -125,7 +127,7 @@ class UtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = fingerprintOutput(existingFile)
         expect:
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [existingFile.absolutePath] as Set
+        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [existingFile.absolutePath] as Set
     }
 
     def "removed files are not considered outputs"() {
@@ -136,8 +138,8 @@ class UtilTest extends Specification {
         def afterExecution = fingerprintOutput(outputDir)
 
         expect:
-        Util.filterOutputFingerprint(beforeExecution, beforeExecution, afterExecution).fingerprints.keySet() == [outputDir.absolutePath] as Set
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).empty
+        filterOutputFingerprint(beforeExecution, beforeExecution, afterExecution).fingerprints.keySet() == [outputDir.absolutePath] as Set
+        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).empty
     }
 
     def "overlapping directories are not included"() {
@@ -148,6 +150,6 @@ class UtilTest extends Specification {
         def afterExecution1 = fingerprintOutput(outputDir)
 
         expect:
-        Util.filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution1).fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution1).fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
     }
 }

@@ -154,7 +154,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
             AfterPreviousExecutionState afterPreviousExecutionState = history.getAfterPreviousExecutionState();
             BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState();
-            return Util.fingerprintAfterOutputsGenerated(
+            return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
                 afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
                 beforeExecutionState.getOutputFileProperties(),
                 taskExecutionContext.getTaskProperties().getOutputFileProperties(),
