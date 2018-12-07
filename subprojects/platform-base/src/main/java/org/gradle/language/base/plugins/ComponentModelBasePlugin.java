@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -121,8 +122,8 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Hidden @Model
-        LanguageTransformContainer languageTransforms() {
-            return new DefaultLanguageTransformContainer();
+        LanguageTransformContainer languageTransforms(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+            return new DefaultLanguageTransformContainer(collectionCallbackActionDecorator);
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
@@ -145,8 +146,8 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        PlatformContainer platforms(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+        PlatformContainer platforms(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator, collectionCallbackActionDecorator);
         }
 
         @Hidden @Model

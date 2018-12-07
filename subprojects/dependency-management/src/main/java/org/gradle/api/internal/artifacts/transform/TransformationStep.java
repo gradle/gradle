@@ -52,7 +52,7 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
+    public TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
         }
@@ -60,7 +60,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependenciesInternal dependencies = dependenciesProvider.forTransformer(transformer);
+        ArtifactTransformDependenciesInternal dependencies = dependenciesResolver.forTransformer(transformer);
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File primaryInput : primaryInputs) {
             Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);

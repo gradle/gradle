@@ -19,6 +19,7 @@ package org.gradle.api.publish.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.publish.Publication
 import org.gradle.internal.reflect.Instantiator
@@ -27,7 +28,7 @@ import spock.lang.Specification
 class DefaultPublicationContainerTest extends Specification {
 
     Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    DefaultPublicationContainer container = instantiator.newInstance(DefaultPublicationContainer, instantiator)
+    DefaultPublicationContainer container = instantiator.newInstance(DefaultPublicationContainer, instantiator, CollectionCallbackActionDecorator.NOOP)
 
     def "exception is thrown on unknown access"() {
         given:

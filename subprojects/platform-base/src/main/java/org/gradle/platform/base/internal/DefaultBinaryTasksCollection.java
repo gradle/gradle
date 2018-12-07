@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -31,8 +32,8 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
     private final BinarySpecInternal binary;
     private final NamedEntityInstantiator<Task> taskInstantiator;
 
-    public DefaultBinaryTasksCollection(BinarySpecInternal binarySpecInternal, NamedEntityInstantiator<Task> taskInstantiator) {
-        super(Task.class);
+    public DefaultBinaryTasksCollection(BinarySpecInternal binarySpecInternal, NamedEntityInstantiator<Task> taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(Task.class, collectionCallbackActionDecorator);
         this.binary = binarySpecInternal;
         this.taskInstantiator = taskInstantiator;
     }

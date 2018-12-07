@@ -43,17 +43,17 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     @Override
-    public TargetMachine windows() {
+    public TargetMachine getWindows() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.WINDOWS), getDefaultArchitecture());
     }
 
     @Override
-    public TargetMachine linux() {
+    public TargetMachine getLinux() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.LINUX), getDefaultArchitecture());
     }
 
     @Override
-    public TargetMachine macOS() {
+    public TargetMachine getMacOS() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.MACOS), getDefaultArchitecture());
     }
 
@@ -86,12 +86,12 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
-        public TargetMachine x86() {
+        public TargetMachine getX86() {
             return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86));
         }
 
         @Override
-        public TargetMachine x86_64() {
+        public TargetMachine getX86_64() {
             return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86_64));
         }
 

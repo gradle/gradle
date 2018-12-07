@@ -56,9 +56,9 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        TransformationSubject intermediateSubject = first.transform(subjectToTransform, dependenciesProvider);
-        return second.transform(intermediateSubject, dependenciesProvider);
+    public TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        TransformationSubject intermediateSubject = first.transform(subjectToTransform, dependenciesResolver);
+        return second.transform(intermediateSubject, dependenciesResolver);
     }
 
     @Override

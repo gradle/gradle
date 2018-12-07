@@ -197,9 +197,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator);
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer() {
+    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {
         Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator);
     }
 
     protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {

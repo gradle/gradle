@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.net.*;
 
 public class Download implements IDownload {
+    public static final String UNKNOWN_VERSION = "0";
     private static final int PROGRESS_CHUNK = 1024 * 1024;
     private static final int BUFFER_SIZE = 10 * 1024;
     private final Logger logger;

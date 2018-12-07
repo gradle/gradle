@@ -36,7 +36,7 @@ public class DefaultMavenPomMailingList implements MavenPomMailingList {
         unsubscribe = objectFactory.property(String.class);
         post = objectFactory.property(String.class);
         archive = objectFactory.property(String.class);
-        otherArchives = objectFactory.setProperty(String.class).empty();
+        otherArchives = objectFactory.setProperty(String.class);
     }
 
     @Override

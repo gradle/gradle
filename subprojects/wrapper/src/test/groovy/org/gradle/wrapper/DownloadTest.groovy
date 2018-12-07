@@ -17,35 +17,27 @@
 package org.gradle.wrapper
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
+class DownloadTest extends Specification {
 
-class DownloadTest {
-    Download download
-    File testDir
-    File downloadFile
-    File rootDir
-    URI sourceRoot
-    File remoteFile
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    @Before public void setUp() {
-        download = new Download(new Logger(true), "gradlew", "aVersion")
-        testDir = tmpDir.testDirectory
-        rootDir = new File(testDir, 'root')
-        downloadFile = new File(rootDir, 'file')
-        (remoteFile = new File(testDir, 'remoteFile')).write('sometext')
-        sourceRoot = remoteFile.toURI()
+    def "downloads file"() {
+        given:
+        def destination = tmpDir.file('destinationDir/file')
+        def remoteFile = tmpDir.file('remoteFile') << 'sometext'
+        def sourceUrl = remoteFile.toURI()
+
+        when:
+        def download = new Download(new Logger(true), "gradlew", "aVersion")
+        download.download(sourceUrl, destination)
+
+        then:
+        destination.exists()
+        destination.text == 'sometext'
     }
 
-    @Test public void testDownload() {
-        assert !downloadFile.exists()
-        download.download(sourceRoot, downloadFile)
-        assert downloadFile.exists()
-        assertEquals('sometext', downloadFile.text)
-    }
 }

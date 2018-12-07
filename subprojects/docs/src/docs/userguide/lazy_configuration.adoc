@@ -251,6 +251,30 @@ include::{samplesPath}/providers/mapProperty/mapProperty.out[]
 include::{samplesPath}/providers/mapProperty/mapProperty.out[]
 ----
 
+[[sec:applying_conventions]]
+== Applying a convention to a property
+
+Often you want to apply some _contention_, or default value, to a property to be used if no value has been configured for the property. You can use the `convention()` method for this. This method accepts either a value or a `Provider` and this will be used as the value until some other value is configured.
+
+.Property conventions
+====
+include::sample[dir="providers/propertyConvention/groovy",files="build.gradle[]"]
+include::sample[dir="providers/propertyConvention/kotlin",files="build.gradle.kts[]"]
+====
+
+.Output of **`gradle show`**
+[.multi-language-text.lang-groovy]
+----
+> gradle show
+include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
+----
+.Output of **`gradle show`**
+[.multi-language-text.lang-kotlin]
+----
+> gradle show
+include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
+----
+
 [[sec:unmodifiable_property]]
 == Making a property unmodifiable
 

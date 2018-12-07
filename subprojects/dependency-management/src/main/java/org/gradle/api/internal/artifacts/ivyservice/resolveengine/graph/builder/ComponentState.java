@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -186,12 +187,32 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
 
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+        if (tryResolveVirtualPlatform()) {
+            return;
+        }
         resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
+
         if (result.getFailure() != null) {
             metadataResolveFailure = result.getFailure();
             return;
         }
         metadata = result.getMetadata();
+    }
+
+    private boolean tryResolveVirtualPlatform() {
+        if (module.isVirtualPlatform()) {
+            for (ComponentState version : module.getAllVersions()) {
+                if (version != this) {
+                    ComponentResolveMetadata metadata = version.getMetadata();
+                    if (metadata instanceof LenientPlatformResolveMetadata) {
+                        LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
+                        this.metadata = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public void setMetadata(ComponentResolveMetadata metaData) {

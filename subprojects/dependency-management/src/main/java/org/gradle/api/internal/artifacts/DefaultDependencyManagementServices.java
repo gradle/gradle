@@ -285,7 +285,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           MavenMutableModuleMetadataFactory metadataFactory,
                                                           IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                           IsolatableFactory isolatableFactory,
-                                                          ObjectFactory objectFactory) {
+                                                          ObjectFactory objectFactory,
+                                                          CollectionCallbackActionDecorator callbackDecorator) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -304,7 +305,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 metadataFactory,
                 ivyMetadataFactory,
                 isolatableFactory,
-                objectFactory);
+                objectFactory,
+                callbackDecorator);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {

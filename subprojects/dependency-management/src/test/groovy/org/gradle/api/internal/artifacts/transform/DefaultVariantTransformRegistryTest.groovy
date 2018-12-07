@@ -49,7 +49,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         getFiles() >> []
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
-    def dependenciesProvider = Stub(ArtifactTransformDependenciesProvider) {
+    def dependenciesProvider = Stub(ExecutionGraphDependenciesResolver) {
         forTransformer(_ as Transformer) >> dependencies
     }
     def instantiatorFactory = TestUtil.instantiatorFactory()

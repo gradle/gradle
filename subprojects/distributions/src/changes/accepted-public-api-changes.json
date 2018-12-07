@@ -79,6 +79,18 @@
            "changes": [
                "org.gradle.tooling.events.task.TaskExecutionResult"
            ]
+       },
+       {
+           "type": "org.gradle.platform.base.binary.BaseBinarySpec",
+           "member": "Method org.gradle.platform.base.binary.BaseBinarySpec.create(java.lang.Class,java.lang.Class,org.gradle.platform.base.internal.ComponentSpecIdentifier,org.gradle.model.internal.core.MutableModelNode,org.gradle.model.internal.core.MutableModelNode,org.gradle.internal.reflect.Instantiator,org.gradle.model.internal.core.NamedEntityInstantiator,org.gradle.api.internal.CollectionCallbackActionDecorator)",
+           "acceptation": "Method is not meant to be overwritten",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+           "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
+           "acceptation": "Method is not meant to be used in public API",
+           "changes": []
        }
    ]
 }

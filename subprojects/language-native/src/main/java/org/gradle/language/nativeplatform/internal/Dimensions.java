@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,9 +59,7 @@ public class Dimensions {
      * @since 5.1
      */
     public static Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> targetMachines, TargetMachineFactory targetMachineFactory) {
-        if (!targetMachines.isPresent()) {
-            targetMachines.empty().add(((DefaultTargetMachineFactory)targetMachineFactory).host());
-        }
+        targetMachines.convention(Collections.singleton(((DefaultTargetMachineFactory)targetMachineFactory).host()));
         targetMachines.finalizeValue();
         return targetMachines.get();
     }

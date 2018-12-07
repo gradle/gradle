@@ -33,6 +33,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.ReusableAction;
@@ -77,11 +78,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory) {
+    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -108,7 +111,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator, collectionCallbackActionDecorator);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);

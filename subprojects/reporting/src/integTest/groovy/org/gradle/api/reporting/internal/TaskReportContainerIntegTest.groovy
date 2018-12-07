@@ -28,12 +28,13 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         buildFile << """
             import org.gradle.api.reporting.*
             import org.gradle.api.reporting.internal.*
+            import org.gradle.api.internal.CollectionCallbackActionDecorator
             
             ext.value = "bar"
 
             class TestTaskReportContainer extends TaskReportContainer<Report> {
                 TestTaskReportContainer(Task task) {
-                    super(Report, task)
+                    super(Report, task, CollectionCallbackActionDecorator.NOOP)
                     add(TaskGeneratedSingleFileReport, "file1", task)
                     add(TaskGeneratedSingleFileReport, "file2", task)
                     add(TaskGeneratedSingleDirectoryReport, "dir1", task, null)

@@ -43,7 +43,6 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
-    private final Long id;
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
     private final BuildOperationExecutor buildOperationProcessor;
@@ -51,8 +50,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
-        this.id = id;
+    public DefaultResolvedDependency(ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
         this.buildOperationProcessor = buildOperationProcessor;
@@ -66,11 +64,6 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     public String getName() {
         return name;
-    }
-
-    @Override
-    public Long getNodeId() {
-        return id;
     }
 
     public String getModuleGroup() {

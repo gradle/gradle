@@ -100,6 +100,24 @@ public interface HasMultipleValues<T> {
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
     /**
+     * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param elements The elements
+     * @return this
+     * @since 5.1
+     */
+    HasMultipleValues<T> convention(Iterable<? extends T> elements);
+
+    /**
+     * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param provider The provider of the elements
+     * @return this
+     * @since 5.1
+     */
+    HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.
      *
      * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>

@@ -209,7 +209,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
     }
 
     abstract String getDevelopmentBinaryCompileTask()

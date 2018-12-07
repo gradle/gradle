@@ -27,8 +27,11 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.spockframework.util.CollectionUtil.mapOf
 
 class ConsumerProvidedVariantFinderTest extends Specification {
     def matcher = Mock(AttributeMatcher)
@@ -48,6 +51,20 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         List<File> transform(File input) {
             return transformer.transform(input)
+        }
+    }
+
+    /**
+     * Match all AttributeContainer that contains the same attributes.
+     *
+     * This method is for writing argument constraint in spock interaction. When search for
+     * chains, ConsumerProvidedVariantFinder may create a new instance of the AttributeContainer
+     * to call {@link AttributeMatcher#isMatching(AttributeContainerInternal, AttributeContainerInternal)}.
+     * So we cannot use the origin object instance to write method specification in spock interaction.
+     */
+    def attributesIs(AttributeContainer except, Map<Attribute<Object>, Object> vals) {
+        return except.keySet().size() == vals.size() && vals.every { entry ->
+            except.getAttribute(entry.key) == entry.value
         }
     }
 
@@ -177,14 +194,14 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         1 * matcher.isMatching(c2, requested) >> false
         1 * matcher.isMatching(c5, requested) >> true
         1 * matcher.isMatching(source, c4) >> false
-        1 * matcher.isMatching(c5, c4) >> false
-        1 * matcher.isMatching(c2, c4) >> true
-        1 * matcher.isMatching(c3, c4) >> false
+        1 * matcher.isMatching(c3, { attributesIs(it, mapOf(a1, "4")) }) >> false
+        1 * matcher.isMatching(c2, { attributesIs(it, mapOf(a1, "4")) }) >> true
         1 * matcher.isMatching(source, c1) >> true
+        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "4")) }) >> false
         0 * matcher._
 
         when:
-        def result = transformer.transformation.transform(initialSubject("in.txt"), Mock(ArtifactTransformDependenciesProvider))
+        def result = transformer.transformation.transform(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver))
 
         then:
         result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
@@ -253,15 +270,15 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         1 * matcher.isMatching(c4, requested) >> false
         1 * matcher.isMatching(c5, requested) >> true
         1 * matcher.isMatching(source, c4) >> false
-        1 * matcher.isMatching(c4, c4) >> true
-        1 * matcher.isMatching(c3, c4) >> false
-        1 * matcher.isMatching(c5, c4) >> false
+        1 * matcher.isMatching(c4, { attributesIs(it, mapOf(a1, "4")) }) >> true
+        1 * matcher.isMatching(c3, { attributesIs(it, mapOf(a1, "4")) }) >> false
+        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "4")) }) >> false
         1 * matcher.isMatching(source, c2) >> true
         1 * matcher.isMatching(source, c3) >> false
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformation.transform(initialSubject("a"), Mock(ArtifactTransformDependenciesProvider)).files
+        def files = result.matches.first().transformation.transform(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver)).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -271,6 +288,47 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         where:
         registrationsIndex << (0..3).permutations()
+    }
+
+    @Issue("gradle/gradle#7061")
+    def "selects chain of transforms that only all the attributes are satisfied"() {
+        def c1 = attributes().attribute(a1, "1").attribute(a2, 1).asImmutable()
+        def c4 = attributes().attribute(a1, "2").attribute(a2, 2).asImmutable()
+        def c5 = attributes().attribute(a1, "2").attribute(a2, 3).asImmutable()
+        def c6 = attributes().attribute(a1, "2").asImmutable()
+        def c7 = attributes().attribute(a1, "3").asImmutable()
+        def requested = attributes().attribute(a1, "3").attribute(a2, 3).asImmutable()
+        def source = c1
+        def reg1 = registration(c1, c4, {})
+        def reg2 = registration(c1, c5, {})
+        def reg3 = registration(c6, c7, {})
+
+        given:
+        transformRegistrations.transforms >> [reg1, reg2, reg3]
+
+        when:
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
+
+        then:
+        result.matches.size() == 1
+
+        and:
+        _ * schema.matcher() >> matcher
+        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(c4, requested) >> false
+        1 * matcher.isMatching(c5, requested) >> false
+        1 * matcher.isMatching(c7, requested) >> true
+        1 * matcher.isMatching(source, c6) >> false
+        1 * matcher.isMatching(c4, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> false // "2" 3 ; c5
+        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> true
+        1 * matcher.isMatching(source, c1) >> true
+        1 * matcher.isMatching(c7, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> false
+        0 * matcher._
+
+        expect:
+        result.matches.size() == 1
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
@@ -344,7 +402,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.from >> from
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {
-            transform(_ as TransformationSubject, _ as ArtifactTransformDependenciesProvider) >> { TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider ->
+            transform(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver ->
                 return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }
         }

@@ -40,8 +40,8 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     }
 
     def "Set semantics preserved if backing collection is a filtered composite set"() {
-        def c1 = new DefaultDomainObjectSet<String>(String)
-        def c2 = new DefaultDomainObjectSet<String>(String)
+        def c1 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
+        def c2 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
         given:
         def composite = CompositeDomainObjectSet.<String>create(String, c1, c2)
         def set = new DefaultDomainObjectSet<String>(String, composite.getStore(), callbackActionDecorator)

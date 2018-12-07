@@ -62,7 +62,12 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     }
 
     @Override
-    public ImmutableAttributes getOverridenAttributes() {
+    public ComponentIdentifier getComponentId() {
+        return componentIdentifier;
+    }
+
+    @Override
+    public ImmutableAttributes getOverriddenAttributes() {
         return selectionAttributes;
     }
 

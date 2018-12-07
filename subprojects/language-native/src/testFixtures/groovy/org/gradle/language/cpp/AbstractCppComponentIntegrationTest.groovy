@@ -82,11 +82,11 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     protected String getCurrentHostArchitectureDsl() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86" : ""
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
     }
 
     protected abstract SourceElement getComponentUnderTest()

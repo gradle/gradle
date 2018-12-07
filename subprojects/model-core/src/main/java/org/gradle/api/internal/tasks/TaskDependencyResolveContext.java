@@ -38,6 +38,8 @@ public interface TaskDependencyResolveContext {
      * <li>{@link TransformationDependency}</li>
      *
      * <li>{@link FinalizeAction}</li>
+     *
+     * <li>{@link WorkNodeAction}</li>
      */
     void add(Object dependency);
 

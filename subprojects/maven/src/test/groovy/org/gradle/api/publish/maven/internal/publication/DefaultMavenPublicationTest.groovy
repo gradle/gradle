@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
@@ -481,7 +482,8 @@ class DefaultMavenPublicationTest extends Specification {
     def createPublication() {
         def instantiator = DirectInstantiator.INSTANCE
         def objectFactory = TestUtil.objectFactory()
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(), featurePreviews, AttributeTestUtil.attributesFactory())
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
+            featurePreviews, AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication

@@ -40,7 +40,7 @@ class DefaultResolvedDependencyTest extends Specification {
         String someName = "someName"
         String someVersion = "someVersion"
         String someConfiguration = "someConfiguration"
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(12L, newId(someGroup, someName, someVersion, someConfiguration), buildOperationProcessor)
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(newId(someGroup, someName, someVersion, someConfiguration), buildOperationProcessor)
         
         then:
         resolvedDependency.name == someGroup + ":" + someName + ":" + someVersion
@@ -58,12 +58,12 @@ class DefaultResolvedDependencyTest extends Specification {
         ResolvedArtifact artifact2 = createArtifact("2")
 
         when:
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(12L, newId("someGroup", "someName", "someVersion", "someConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(newId("someGroup", "someName", "someVersion", "someConfiguration"), buildOperationProcessor)
 
-        DefaultResolvedDependency parent1 = new DefaultResolvedDependency(14L, newId("someGroup", "someChild", "someVersion", "p1"), buildOperationProcessor)
+        DefaultResolvedDependency parent1 = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion", "p1"), buildOperationProcessor)
         parent1.addChild(resolvedDependency)
 
-        DefaultResolvedDependency parent2 = new DefaultResolvedDependency(16L, newId("someGroup", "someChild", "someVersion", "p2"), buildOperationProcessor)
+        DefaultResolvedDependency parent2 = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion", "p2"), buildOperationProcessor)
         parent2.addChild(resolvedDependency)
 
         resolvedDependency.addParentSpecificArtifacts(parent1, TestArtifactSet.create(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)))
@@ -103,7 +103,7 @@ class DefaultResolvedDependencyTest extends Specification {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", "parent", "someVersion", "someConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", "parent", "someVersion", "someConfiguration"), buildOperationProcessor)
         resolvedDependency.getParents().add(parent)
 
         then:
@@ -114,7 +114,7 @@ class DefaultResolvedDependencyTest extends Specification {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", "parent", "someVersion", "someConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", "parent", "someVersion", "someConfiguration"), buildOperationProcessor)
         resolvedDependency.getParents().add(parent)
 
         then:
@@ -124,7 +124,7 @@ class DefaultResolvedDependencyTest extends Specification {
     def getParentArtifactsWithUnknownParent() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(10L, newId("someGroup", "parent2", "someVersion", "someConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(newId("someGroup", "parent2", "someVersion", "someConfiguration"), buildOperationProcessor)
 
         resolvedDependency.getParentArtifacts(unknownParent)
 
@@ -135,7 +135,7 @@ class DefaultResolvedDependencyTest extends Specification {
     def getArtifactsWithUnknownParent() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(10L, newId("someGroup", "parent2", "someVersion", "someConfiguration"), buildOperationProcessor);
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(newId("someGroup", "parent2", "someVersion", "someConfiguration"), buildOperationProcessor);
 
         resolvedDependency.getAllArtifacts(unknownParent)
 
@@ -152,7 +152,7 @@ class DefaultResolvedDependencyTest extends Specification {
 
         createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")))
 
-        DefaultResolvedDependency child = new DefaultResolvedDependency(10L, newId("someGroup", "someChild", "someVersion", "someChildConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency child = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion", "someChildConfiguration"), buildOperationProcessor)
         resolvedDependency.addChild(child)
 
         Set<ResolvedArtifact> childParent1SpecificArtifacts = newHashSet(createArtifact("childParent1Specific"))
@@ -168,12 +168,12 @@ class DefaultResolvedDependencyTest extends Specification {
 
     def equalsAndHashCode() {
         when:
-        DefaultResolvedDependency dependency = new DefaultResolvedDependency(1L, newId("group", "name", "version", "config"), buildOperationProcessor)
-        DefaultResolvedDependency same = new DefaultResolvedDependency(1L, newId("group", "name", "version", "config"), buildOperationProcessor)
-        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency(1L, newId("other", "name", "version", "config"), buildOperationProcessor)
-        DefaultResolvedDependency differentName = new DefaultResolvedDependency(1L, newId("group", "other", "version", "config"), buildOperationProcessor)
-        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency(1L, newId("group", "name", "other", "config"), buildOperationProcessor)
-        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency(1L, newId("group", "name", "version", "other"), buildOperationProcessor)
+        DefaultResolvedDependency dependency = new DefaultResolvedDependency(newId("group", "name", "version", "config"), buildOperationProcessor)
+        DefaultResolvedDependency same = new DefaultResolvedDependency(newId("group", "name", "version", "config"), buildOperationProcessor)
+        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency(newId("other", "name", "version", "config"), buildOperationProcessor)
+        DefaultResolvedDependency differentName = new DefaultResolvedDependency(newId("group", "other", "version", "config"), buildOperationProcessor)
+        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency(newId("group", "name", "other", "config"), buildOperationProcessor)
+        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency(newId("group", "name", "version", "other"), buildOperationProcessor)
 
         then:
         strictlyEquals(dependency, same)
@@ -184,11 +184,11 @@ class DefaultResolvedDependencyTest extends Specification {
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
-        return new DefaultResolvedDependency(12L, newId("someGroup", "someName", "someVersion", "someConfiguration"), buildOperationProcessor)
+        return new DefaultResolvedDependency(newId("someGroup", "someName", "someVersion", "someConfiguration"), buildOperationProcessor)
     }
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", parentName, "someVersion", "someConfiguration"), buildOperationProcessor)
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", parentName, "someVersion", "someConfiguration"), buildOperationProcessor)
         resolvedDependency.getParents().add(parent)
         resolvedDependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, parentSpecificArtifacts))
         return parent

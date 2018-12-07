@@ -52,6 +52,11 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
         }
 
         @Override
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+            selectedArtifacts.visitLocalArtifacts(listener);
+        }
+
+        @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
         }
     }

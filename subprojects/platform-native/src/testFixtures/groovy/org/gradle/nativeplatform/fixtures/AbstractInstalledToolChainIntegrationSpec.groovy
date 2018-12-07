@@ -57,7 +57,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
             initScript << """
                 allprojects { p ->
                     components.withType(CppComponent) { component ->
-                        component.targetMachines.set([machines.host().x86()])        
+                        component.targetMachines.set([machines.host().x86])        
                     }            
                 }
             """

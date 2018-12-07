@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implements MapProperty<K, V>, PropertyInternal<Map<K, V>>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
 
     private static final MapCollectors.EmptyMap EMPTY_MAP = new MapCollectors.EmptyMap();
     private static final MapCollectors.NoValue NO_VALUE = new MapCollectors.NoValue();
@@ -44,11 +44,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    @SuppressWarnings("unchecked")
-    private MapCollector<K, V> value = (MapCollector<K, V>) NO_VALUE;
+    private MapCollector<K, V> value;
     private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
+        applyDefaultValue();
         this.keyType = keyType;
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<K>(Set.class, keyType, ValueSanitizers.forType(keyType));
@@ -74,7 +74,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public boolean isPresent() {
-        assertReadable();
+        beforeRead();
         if (!value.present()) {
             return false;
         }
@@ -88,7 +88,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public Map<K, V> get() {
-        assertReadable();
+        beforeRead();
         Map<K, V> entries = new LinkedHashMap<K, V>(1 + collectors.size());
         value.collectInto(entryCollector, entries);
         for (MapCollector<K, V> collector : collectors) {
@@ -100,7 +100,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Nullable
     @Override
     public Map<K, V> getOrNull() {
-        assertReadable();
+        beforeRead();
         return doGetOrNull();
     }
 
@@ -150,9 +150,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public MapProperty<K, V> empty() {
-        if (assertMutable()) {
-            value = (MapCollector<K, V>) EMPTY_MAP;
-            collectors.clear();
+        if (beforeMutate()) {
+            set((MapCollector<K, V>) EMPTY_MAP);
         }
         return this;
     }
@@ -173,42 +172,46 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.clear();
         if (entries != null) {
-            value = new MapCollectors.EntriesFromMap<K, V>(entries);
+            set(new MapCollectors.EntriesFromMap<K, V>(entries));
         } else {
-            value = (MapCollector<K, V>) NO_VALUE;
+            set((MapCollector<K, V>) NO_VALUE);
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
+        set(new MapCollectors.EntriesFromMapProvider<K, V>(p));
+    }
+
+    private void set(MapCollector<K, V> collector) {
         collectors.clear();
-        value = new MapCollectors.EntriesFromMapProvider<K, V>(p);
+        value = collector;
+        afterMutate();
     }
 
     @Override
     public void put(K key, V value) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new MapCollectors.SingleEntry<K, V>(key, value));
+        addCollector(new MapCollectors.SingleEntry<K, V>(key, value));
     }
 
     @Override
     public void put(K key, Provider<? extends V> providerOfValue) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
@@ -216,24 +219,29 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
                 Map.class.getName(), valueType.getName(), p.getType().getName()));
         }
-        collectors.add(new MapCollectors.EntryWithValueFromProvider<K, V>(key, p));
+        addCollector(new MapCollectors.EntryWithValueFromProvider<K, V>(key, p));
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new MapCollectors.EntriesFromMap<K, V>(entries));
+        addCollector(new MapCollectors.EntriesFromMap<K, V>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        collectors.add(new MapCollectors.EntriesFromMapProvider<K, V>(p));
+        addCollector(new MapCollectors.EntriesFromMapProvider<K, V>(p));
+    }
+
+    private void addCollector(MapCollector<K, V> collector) {
+        collectors.add(collector);
+        afterMutate();
     }
 
     @SuppressWarnings("unchecked")
@@ -259,6 +267,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
+    public MapProperty<K, V> convention(Map<? extends K, ? extends V> value) {
+        if (shouldApplyConvention()) {
+            this.value = new MapCollectors.EntriesFromMap<K, V>(value);
+            collectors.clear();
+        }
+        return this;
+    }
+
+    @Override
+    public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
+        if (shouldApplyConvention()) {
+            this.value = new MapCollectors.EntriesFromMapProvider<K, V>(Providers.internal(valueProvider));
+            collectors.clear();
+        }
+        return this;
+    }
+
+    @Override
     public Provider<Set<K>> keySet() {
         return new KeySetProvider();
     }
@@ -274,19 +300,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
+    protected void applyDefaultValue() {
+        value = (MapCollector<K, V>) EMPTY_MAP;
+        collectors.clear();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     protected void makeFinal() {
         Map<K, V> entries = doGetOrNull();
         if (entries != null) {
             if (entries.isEmpty()) {
-                value = (MapCollector<K, V>) EMPTY_MAP;
+                set((MapCollector<K, V>) EMPTY_MAP);
             } else {
-                value = new MapCollectors.EntriesFromMap<K, V>(entries);
+                set(new MapCollectors.EntriesFromMap<K, V>(entries));
             }
         } else {
-            value = (MapCollector<K, V>) NO_VALUE;
+            set((MapCollector<K, V>) NO_VALUE);
         }
-        collectors.clear();
     }
 
     private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
@@ -300,7 +331,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
         @Override
         public Set<K> get() {
-            assertReadable();
+            beforeRead();
             Set<K> keys = new LinkedHashSet<K>(1 + collectors.size());
             value.collectKeysInto(keyCollector, keys);
             for (MapCollector<K, V> collector : collectors) {
@@ -312,7 +343,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Nullable
         @Override
         public Set<K> getOrNull() {
-            assertReadable();
+            beforeRead();
             Set<K> keys = new LinkedHashSet<K>(1 + collectors.size());
             if (!value.maybeCollectKeysInto(keyCollector, keys)) {
                 return null;

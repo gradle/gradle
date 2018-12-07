@@ -44,6 +44,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultObjectFactory implements ObjectFactory {
@@ -106,6 +107,8 @@ public class DefaultObjectFactory implements ObjectFactory {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() to create a property of type List<T>", "ObjectFactory.listProperty()");
         } else if (Set.class.isAssignableFrom(valueType)) {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Set<T>", "ObjectFactory.setProperty()");
+        } else if (Map.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Map<K, V>", "ObjectFactory.mapProperty()");
         } else if (Directory.class.isAssignableFrom(valueType)) {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Directory", "ObjectFactory.directoryProperty()");
         } else if (RegularFile.class.isAssignableFrom(valueType)) {

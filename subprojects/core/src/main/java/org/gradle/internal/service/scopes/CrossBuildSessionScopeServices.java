@@ -17,8 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -175,7 +175,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         }
 
         CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return Boolean.getBoolean(CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE) ? new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext) : CollectionCallbackActionDecorator.NOOP;
+            return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
     }
 }

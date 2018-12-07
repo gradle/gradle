@@ -30,9 +30,9 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, callbackActionDecorator)
 
-    final boolean supportsBuildOperations = false
+    final boolean supportsBuildOperations = true
 
     @Override
     final PolymorphicDomainObjectContainer<Person> getContainer() {
@@ -141,7 +141,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred")
@@ -186,7 +186,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     def "create elements with specified type based on type binding"() {
         container = new DefaultPolymorphicDomainObjectContainer<?>(Object, DirectInstantiator.INSTANCE,
-                { it instanceof Named ? it.name : "unknown" } as Named.Namer)
+                { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
 
         container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
         container.registerBinding(CtorNamedPerson, DefaultCtorNamedPerson)
@@ -235,7 +235,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred", Person)

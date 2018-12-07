@@ -44,7 +44,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
-                    targetMachines = [machines.windows().architecture('${currentArchitecture}'), machines.linux().architecture('${currentArchitecture}'), machines.macOS().architecture('${currentArchitecture}')]
+                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
             project(':deck') { 
@@ -112,7 +112,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
-                    targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                    targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
             project(':deck') { 

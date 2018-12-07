@@ -426,7 +426,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86_64()]
+                targetMachines = [machines.windows.x86, machines.linux.x86, machines.macOS.x86_64]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
@@ -477,7 +477,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()]
+                targetMachines = [machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }

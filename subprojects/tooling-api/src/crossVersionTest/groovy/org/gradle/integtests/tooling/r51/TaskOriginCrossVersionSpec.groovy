@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r51
 
 import org.gradle.api.Action
-import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -61,7 +60,7 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('build')
 
         then:
-        task(':classes').originPlugin.displayName == "org.gradle.java"
+        task(':classes').originPlugin.displayName == "org.gradle.api.plugins.JavaBasePlugin"
         task(':jar').originPlugin.displayName == "org.gradle.java"
         task(':assemble').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
         task(':test').originPlugin.displayName == "org.gradle.java"
@@ -146,9 +145,7 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        runBuild('printFoo') {
-            it.withArguments("-D${CollectionCallbackActionDecorator.CALLBACK_EXECUTION_BUILD_OPS_TOGGLE}=true")
-        }
+        runBuild('printFoo')
 
         then:
         task(':printFoo').originPlugin.displayName == "MyPlugin"

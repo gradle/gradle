@@ -134,5 +134,5 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      * @since 5.1
      */
     @Incubating
-    void mavenContent(Action<? super RepositoryContentDescriptor> configureAction);
+    void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
 }

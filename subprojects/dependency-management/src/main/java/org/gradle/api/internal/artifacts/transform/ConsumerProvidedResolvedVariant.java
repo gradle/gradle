@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -32,34 +32,39 @@ import java.util.Map;
  * Transformed artifact set that performs the transformation itself when requested.
  */
 public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+    private final ComponentIdentifier componentIdentifier;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
-    private final ResolvableDependencies resolvableDependencies;
+    private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ResolvableDependencies resolvableDependencies) {
+    public ConsumerProvidedResolvedVariant(ComponentIdentifier componentIdentifier, ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
-        this.resolvableDependencies = resolvableDependencies;
+        this.resolverFactory = dependenciesResolverFactory;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, resolvableDependencies));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver()));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
     @Override
+    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        // Cannot visit local artifacts until transform has been executed
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        ExtraExecutionGraphDependenciesResolverFactory extraExecutionGraphDependenciesResolverFactory;
-        if (context instanceof ExecutionGraphDependenciesResolverAwareContext) {
-            extraExecutionGraphDependenciesResolverFactory = ((ExecutionGraphDependenciesResolverAwareContext) context).getExecutionGraphDependenciesResolverFactory();
-        } else {
-            extraExecutionGraphDependenciesResolverFactory = ExtraExecutionGraphDependenciesResolverFactory.ALWAYS_EMPTY_RESOLVER_FACTORY;
-        }
-        context.add(new DefaultTransformationDependency(transformation, delegate, resolvableDependencies, extraExecutionGraphDependenciesResolverFactory));
+        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesResolver()));
+    }
+
+    private ExecutionGraphDependenciesResolver getDependenciesResolver() {
+        return resolverFactory.create(componentIdentifier);
     }
 }

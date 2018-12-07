@@ -16,12 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskDependencyResolver;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Companion type to {@link TransformationNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
@@ -30,19 +26,16 @@ import java.util.Set;
  * @see ExtraExecutionGraphDependenciesResolverFactory
  */
 public interface ExecutionGraphDependenciesResolver {
-    ExecutionGraphDependenciesResolver EMPTY_RESOLVER = new ExecutionGraphDependenciesResolver() {
-        @Override
-        public Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, ImmutableAttributes fromAttributes) {
-            return Collections.emptySet();
-        }
-    };
-
     /**
-     * Computes the extra dependency nodes.
+     * Computes the build dependencies for the given transformation step.
      *
-     * @param dependencyResolver the resolver
-     * @param fromAttributes the origin attributes of the transform
+     * @param transformationStep the transformation
      * @return a set of {@link Node}, can be empty
      */
-    Set<Node> computeDependencyNodes(TaskDependencyResolver dependencyResolver, ImmutableAttributes fromAttributes);
+    TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep);
+
+    /**
+     * Computes the dependency artifacts for the given transformation step.
+     */
+    ArtifactTransformDependenciesInternal forTransformer(Transformer transformer);
 }

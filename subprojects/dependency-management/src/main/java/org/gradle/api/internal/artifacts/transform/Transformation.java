@@ -32,10 +32,8 @@ public interface Transformation extends Describable {
 
     /**
      * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
-     * @param subjectToTransform
-     * @param dependenciesProvider
      */
-    TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider);
+    TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver);
 
     /**
      * Whether the transformation requires dependencies of the transformed artifact to be injected.

@@ -59,7 +59,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.linux(), machines.macOS(), machines.windows()]
+                targetMachines = [machines.linux, machines.macOS, machines.windows]
             }
         """
 
@@ -79,7 +79,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86(), machines.${currentHostOperatingSystemFamilyDsl}.x86_64()]
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
             }
         """
 

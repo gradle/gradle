@@ -1535,7 +1535,7 @@ div.screenshot {
 
     #content h2[id] {
         /* Little extra room above h2s */
-        margin-top: -44px;
+        margin-top: -1em;
     }
 
     #content h3[id], #content h4[id] {

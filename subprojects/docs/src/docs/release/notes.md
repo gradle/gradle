@@ -13,9 +13,15 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX)
 [Till Krullmann](https://github.com/tkrullmann)
 
-## Use plugins from included build using the `plugins { }` block 
+## Apply plugins from included build using `plugins { }` block 
 
-The `plugins { }` block in build scripts can now be used to refer to plugins defined in included builds.
+The [`plugins { }`](userguide/plugins.html#sec:plugins_block) block in build scripts can now be used to refer to plugins defined in included builds. In previous versions of Gradle, this was possible but required some additional boiler-plate code in the settings file. This boiler-plate is now no longer required.
+
+This change makes it super easy to add a test build for a Gradle plugin and streamlines the process of implementing a Gradle plugin. You can also use this feature to conveniently work on changes to a plugin and builds that use that plugin at the same time, to implement a plugin that is both published and used by projects in the same source repository, or to structure a complex build into a number of plugins.
+
+Using the `plugins { } ` block also makes the Gradle Kotlin DSL much more convenient to use.
+
+You can find out more about composite builds in the [user manual](userguide/composite_builds.html).
 
 ## Stricter validation with `validateTaskProperties`
 
@@ -29,16 +35,60 @@ Instead of listing all available tasks, [`gradle tasks` can now show only the ta
 
 This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
 
+## Repository content filtering
+
+It is now possible to match repositories to dependencies, so that Gradle doesn't search for a dependency in a repository if it's never going to be found there.
+
+Example:
+```
+repositories {
+    maven {
+        url "https://repo.mycompany.com"
+        content {
+           includeGroupByRegex "com\\.mycompany.*"
+        }
+    }
+}
+```
+
+This filtering can also be used to separate snapshot repositories from release repositories.
+
+Look at the [user manual](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
+
 ## Improvements for plugin authors
 
-### Conveniences for properties of type Map
+### Conveniences for Map properties
 
-This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model.
+This release includes a lazy [`MapProperty`](javadoc/org/gradle/api/provider/MapProperty.html) type which allows efficient configuration of maps in the Gradle model, for example in a project extension or task property.
+
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_maps) for more details.
+
+### Specify a convention for a property
+
+A `convention` method is now available for property types, which allows the <em>convention</em> for a property to be specified. The convention is a value that is used when no value has been explicitly configured for the property.
+
+See the [user manual](userguide/lazy_configuration.html#sec:applying_conventions) for more details.
+
+## Tooling API: Enhanced/additional progress events
+
+The following Tooling API types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:
+
+- [`TaskOperationDescriptor`](javadoc/org/gradle/tooling/events/task/TaskOperationDescriptor.html) now includes the identifier of the plugin that registered the task and its dependencies.
+- [`TaskExecutionResult`](javadoc/org/gradle/tooling/events/task/TaskExecutionResult.html) now includes the list of reasons why a task was executed and whether it was executed incrementally. 
+- [`JavaCompileTaskOperationResult`](javadoc/org/gradle/tooling/events/task/java/JavaCompileTaskOperationResult.html) is a new subinterface of [`TaskOperationResult`](javadoc/org/gradle/tooling/events/task/TaskOperationResult.html) for `JavaCompile` tasks that includes information about the used annotation processors.
+
+Additional [operation types](javadoc/org/gradle/tooling/events/OperationType.html) that were previously only available as generic progress events now use their own dedicated interfaces: 
+
+- Project configuration (see [`org.gradle.tooling.events.configuration`](javadoc/org/gradle/tooling/events/configuration/package-summary.html)), including configuration times of applied plugins in [`ProjectConfigurationOperationResult`](javadoc/org/gradle/tooling/events/configuration/ProjectConfigurationOperationResult.html)
+- Worker API work items (see [`org.gradle.tooling.events.work`](javadoc/org/gradle/tooling/events/work/package-summary.html))
+- Artifact transforms (see [`org.gradle.tooling.events.transform`](javadoc/org/gradle/tooling/events/transform/package-summary.html))
+
+The additional data and the new operation types are only available if the version of Gradle that is running the build is 5.1 or above.
 
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
@@ -93,28 +143,25 @@ Use `setFrom` instead.
     validateTaskProperties.getClasses().setFrom(fileCollection)
     validateTaskProperties.getClasspath().setFrom(fileCollection)
     
-### Breaking changes
-
-<!-- add any notable changes here in a summary -->
+## Potential breaking changes
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+
+### Collection properties default to empty collection
+
+In Gradle 5.0, the collection property instances created using `ObjectFactory` would have no value defined, requiring plugin authors to explicitly set an initial value. This proved to be awkward and error prone so `ObjectFactory` now returns instances with an empty collection as their initial value.
+
+### Worker API: working directory of a worker can no longer be set 
+
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+All workers now use the same working directory to enable reuse.
+Please pass files and directories as arguments instead.
 
 ### Changes to native linking tasks
 
 To expand our idiomatic [Provider API](userguide/lazy_configuration.html) practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
 - `getInstallName()` was changed to return a `Property`.
 - `setInstallName(String)` was removed. Use `Property.set()` instead.
-    
-## Potential breaking changes
-
-<!--
-### Example breaking change
--->
-### Worker API: working directory of a worker can no longer be set 
-
-Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
-All workers now use the same working directory to enable reuse.
-Please pass files and directories as arguments instead.
 
 ### Passing arguments to Windows Resource Compiler
 
@@ -128,6 +175,11 @@ The fix for gradle/gradle#6996 means that the list of `beforeResolve` actions ar
 Instead, a copied configuration receives a copy of the `beforeResolve` actions at the time the copy is made.
 Any `beforeResolve` actions added after copying (to either configuration) will not be shared between the original and the copy.
 This may break plugins that relied on the previous behaviour.
+
+### Changes to incubating Pom customizaton types
+
+- The type of `MavenPomDeveloper.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
+- The type of `MavenPomContributor.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
 
 ## External contributions
 
@@ -144,6 +196,7 @@ We would like to thank the following community members for making contributions 
  - [John Bennewitz](https://github.com/b-john) - Allow C++ binary to relocate on Linux (gradle/gradle#6176)
  - [Alex Saveau](https://github.com/SUPERCILEX) - Add option to display tasks from a specific group only (gradle/gradle#7788) 
  - [Till Krullmann](https://github.com/tkrullmann) - Add `MapProperty` (gradle/gradle#6863)
+ - [TO XZ](https://github.com/noproxy) - Gradle should always respect the extra attributes when selecting artifacts transforms chains (gradle/gradle#7061)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
