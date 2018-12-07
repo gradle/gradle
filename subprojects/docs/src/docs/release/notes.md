@@ -55,6 +55,19 @@ This filtering can also be used to separate snapshot repositories from release r
 
 Look at the [user manual](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
 
+## Architecture support for C++ plugins
+
+We recently announced [new plugins](https://blog.gradle.org/introducing-the-new-cpp-plugins) for building C++ components, but one missing piece was support for specifying target architectures.
+It's now possible to target multiple architectures using the [targetMachines](javadoc/org/gradle/language/cpp/CppComponent.html#getTargetMachines--) property:
+
+```
+appplication {
+    targetMachines = [machines.linux.x86, machines.linux.x86_64, machines.windows.x86_64]
+}
+```
+
+When the `build` task is executed, Gradle will build all architectures associated with the current operating system.  If a target architecture isn't specified, Gradle will target the operating system and architecture of the host machine.
+
 ## Improvements for plugin authors
 
 ### Conveniences for Map properties
@@ -180,6 +193,10 @@ This may break plugins that relied on the previous behaviour.
 
 - The type of `MavenPomDeveloper.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
 - The type of `MavenPomContributor.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
+
+### Changes to specifying operating system for native projects
+
+The incubating `operatingSystems` property on native components has been replaced with the [targetMachines](javadoc/org/gradle/language/cpp/CppComponent.html#getTargetMachines--) property.
 
 ## External contributions
 
