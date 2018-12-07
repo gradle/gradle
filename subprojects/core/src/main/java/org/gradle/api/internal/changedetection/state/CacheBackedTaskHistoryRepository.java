@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.Util;
+import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -120,9 +120,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = Util.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
 
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = Util.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
 
         return new DefaultBeforeExecutionState(
             taskImplementation,

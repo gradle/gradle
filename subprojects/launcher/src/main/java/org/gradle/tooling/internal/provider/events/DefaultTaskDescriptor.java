@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
 
@@ -29,10 +30,10 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     private final String displayName;
     private final String taskPath;
     private final Object parentId;
-    private final Set<DefaultTaskDescriptor> dependencies;
+    private final Set<InternalOperationDescriptor> dependencies;
     private final InternalPluginIdentifier originPlugin;
 
-    public DefaultTaskDescriptor(Object id, String taskIdentityPath, String taskPath, String displayName, Object parentId, Set<DefaultTaskDescriptor> dependencies, InternalPluginIdentifier originPlugin) {
+    public DefaultTaskDescriptor(Object id, String taskIdentityPath, String taskPath, String displayName, Object parentId, Set<InternalOperationDescriptor> dependencies, InternalPluginIdentifier originPlugin) {
         this.id = id;
         this.taskIdentityPath = taskIdentityPath;
         this.displayName = displayName;
@@ -68,7 +69,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     }
 
     @Override
-    public Set<DefaultTaskDescriptor> getDependencies() {
+    public Set<InternalOperationDescriptor> getDependencies() {
         return dependencies;
     }
 

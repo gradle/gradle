@@ -97,7 +97,12 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
     BinaryCollection<? extends CppBinary> getBinaries();
 
     /**
-     * Specifies the target machines this component should be built for.
+     * Specifies the target machines this component should be built for.  The "machines" extension property (see {@link org.gradle.nativeplatform.TargetMachineFactory}) can be used to construct common operating system and architecture combinations.
+     *
+     * <p>For example:</p>
+     * <pre>
+     * targetMachines = [machines.linux.x86_64, machines.windows.x86_64]
+     * </pre>
      *
      * @since 5.1
      */

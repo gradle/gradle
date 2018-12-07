@@ -16,13 +16,48 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-public interface TransformationIdentity {
+import org.gradle.api.internal.project.WorkIdentity;
 
-    /**
-     * Identity of the transformation.
-     *
-     * Allows to identify an artifact transformation between Gradle invocations.
-     * This allows to determine the previous execution of a transformation.
-     */
-    String getIdentity();
+import java.util.concurrent.atomic.AtomicLong;
+
+public final class TransformationIdentity implements WorkIdentity {
+
+    private static final AtomicLong SEQUENCE = new AtomicLong();
+
+    private final long id;
+
+    private TransformationIdentity(long id) {
+        this.id = id;
+    }
+
+    public static TransformationIdentity create() {
+        return new TransformationIdentity(SEQUENCE.getAndIncrement());
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TransformationIdentity that = (TransformationIdentity) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return "TransformationIdentity{id=" + id + '}';
+    }
+
 }

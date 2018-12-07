@@ -178,11 +178,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift4Component.writeToProject(testDirectory)
 
         and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.os('some-other-family')]
-            }
-        """
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -196,11 +192,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift4Component.writeToProject(testDirectory)
 
         and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = []
-            }
-        """
+        buildFile << configureTargetMachines('')
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
@@ -227,4 +219,12 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract String getTaskNameToAssembleDevelopmentBinary()
 
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+
+    protected configureTargetMachines(String targetMachines) {
+        return """
+            ${componentUnderTestDsl} {
+                targetMachines = [${targetMachines}]
+            }
+        """
+    }
 }

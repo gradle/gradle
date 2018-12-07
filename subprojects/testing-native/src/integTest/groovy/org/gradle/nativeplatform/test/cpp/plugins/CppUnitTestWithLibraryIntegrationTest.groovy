@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-
-class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
+class CppUnitTestWithLibraryIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
@@ -62,17 +60,19 @@ class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegr
     }
 
     @Override
-    String[] getTasksToBuildAndRunUnitTest() {
-        return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+    protected String[] getTasksToCompileComponentUnderTest(String architecture) {
+        def debugTasks = tasks.withArchitecture(architecture).debug
+        return [debugTasks.compile]
     }
 
     @Override
-    protected String[] getTasksToCompileComponentUnderTest() {
-        return [":compileDebugCpp"]
+    protected String[] getTasksToAssembleComponentUnderTest(String architecture) {
+        def debugTasks = tasks.withArchitecture(architecture).debug
+        return [debugTasks.link]
     }
 
     @Override
-    protected String[] getTasksToAssembleComponentUnderTest() {
-        return [":linkDebug"]
+    protected String getComponentUnderTestDsl() {
+        return "library"
     }
 }

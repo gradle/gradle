@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
+import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
@@ -90,10 +90,13 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         // Configure the component
         application.getBaseName().set(project.getName());
 
+        application.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(application.getTargetMachines(), targetMachineFactory);
+                application.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }

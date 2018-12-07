@@ -16,10 +16,9 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 
 import javax.annotation.Nullable;
@@ -28,13 +27,16 @@ import java.util.Set;
 
 class ActionNode extends Node {
     private final WorkNodeAction action;
+    private final ActionIdentity identity;
 
     public ActionNode(WorkNodeAction action) {
         this.action = action;
+        this.identity = ActionIdentity.create();
     }
 
     @Override
-    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+    public WorkIdentity getIdentity() {
+        return identity;
     }
 
     @Nullable

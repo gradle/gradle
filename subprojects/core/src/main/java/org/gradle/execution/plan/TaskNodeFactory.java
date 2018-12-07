@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -25,6 +24,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.Actions;
@@ -84,9 +84,14 @@ public class TaskNodeFactory {
         }
 
         @Override
-        public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+        public TaskIdentity<?> getIdentity() {
+            return task.getTaskIdentity();
+        }
+
+        @Override
+        public TaskInternal getTask() {
             // Expose the task to build logic (for now)
-            builder.add(task);
+            return task;
         }
 
         @Nullable

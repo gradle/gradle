@@ -86,6 +86,10 @@ abstract trait LanguageTaskNames {
             return new ReleaseTasks()
         }
 
+        TestTasks getTest() {
+            return new TestTasks()
+        }
+
         VariantTasks withBuildType(String buildType) {
             return new VariantTasks() {
                 @Override
@@ -195,6 +199,29 @@ abstract trait LanguageTaskNames {
 
             List<String> getAllToAssembleWithInstall() {
                 return super.allToAssembleWithInstall + extract
+            }
+        }
+
+        class TestTasks extends VariantTasks {
+            @Override
+            protected String getBuildType() {
+                return "Test"
+            }
+
+            List<String> getRun() {
+                return [withProject("runTest${variant}")]
+            }
+
+            List<String> getRelocate() {
+                return [withProject("relocateMainForTest${variant}")]
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link]
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
             }
         }
 

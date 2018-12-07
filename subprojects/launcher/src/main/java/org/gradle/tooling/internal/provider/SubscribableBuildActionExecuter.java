@@ -37,7 +37,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
+    private final List<Object> listeners = new ArrayList<Object>();
     private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
 
     public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
@@ -58,9 +58,11 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
-            for (BuildOperationListener listener : listeners) {
+            for (Object listener : listeners) {
                 listenerManager.removeListener(listener);
-                buildOperationListenerManager.removeListener(listener);
+                if (listener instanceof BuildOperationListener) {
+                    buildOperationListenerManager.removeListener((BuildOperationListener) listener);
+                }
             }
             listeners.clear();
         }
@@ -68,15 +70,17 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
 
     private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
         for (SubscribableBuildActionRunnerRegistration registration : registrations) {
-            for (BuildOperationListener listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
+            for (Object listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
                 registerListener(listener);
             }
         }
     }
 
-    private void registerListener(BuildOperationListener listener) {
+    private void registerListener(Object listener) {
         listeners.add(listener);
         listenerManager.addListener(listener);
-        buildOperationListenerManager.addListener(listener);
+        if (listener instanceof BuildOperationListener) {
+            buildOperationListenerManager.addListener((BuildOperationListener) listener);
+        }
     }
 }

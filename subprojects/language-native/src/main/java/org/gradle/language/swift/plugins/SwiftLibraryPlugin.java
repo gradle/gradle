@@ -60,7 +60,7 @@ import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
+import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -101,10 +101,13 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
+        library.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(library.getTargetMachines(), targetMachineFactory);
+                library.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = library.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the library.");
                 }

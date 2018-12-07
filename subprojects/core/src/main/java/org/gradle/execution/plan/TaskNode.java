@@ -124,4 +124,7 @@ public abstract class TaskNode extends Node {
     public abstract void appendPostAction(Action<? super Task> action);
 
     public abstract Action<? super Task> getPostAction();
+
+    public abstract Task getTask();
+
 }

@@ -47,6 +47,10 @@ class SolutionFile extends IdeWorkspaceFixture {
     }
 
     def assertHasProjects(String... names) {
+        return assertHasProjects(names as List)
+    }
+
+    def assertHasProjects(Iterable<String> names) {
         assert projects.keySet() == names as Set
         return true
     }
@@ -84,7 +88,7 @@ class SolutionFile extends IdeWorkspaceFixture {
 
         Map<String, String> getConfigurations() {
             def configurations = [:]
-            content.eachMatch(~/\{${rawUuid}\}\.(\w+)\|\w+\.ActiveCfg = (\w+)\|\w+/, {
+            content.eachMatch(~/\{${rawUuid}\}\.([\w\\-]+)\|\w+\.ActiveCfg = ([\w\\-]+)\|\w+/, {
                 configurations[it[1]] = it[2]
             })
             return configurations

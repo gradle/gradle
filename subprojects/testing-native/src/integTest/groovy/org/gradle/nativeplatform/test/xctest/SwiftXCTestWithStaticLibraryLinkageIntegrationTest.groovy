@@ -48,4 +48,9 @@ class SwiftXCTestWithStaticLibraryLinkageIntegrationTest extends AbstractSwiftXC
             library.linkage = [Linkage.STATIC]
         """
     }
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return "library"
+    }
 }

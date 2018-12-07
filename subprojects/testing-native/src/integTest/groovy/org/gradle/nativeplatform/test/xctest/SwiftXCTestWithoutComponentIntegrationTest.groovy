@@ -44,4 +44,9 @@ class SwiftXCTestWithoutComponentIntegrationTest extends AbstractSwiftXCTestInte
             apply plugin: 'xctest'
         """
     }
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return null
+    }
 }

@@ -18,7 +18,6 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
@@ -58,9 +57,7 @@ public class Dimensions {
      *
      * @since 5.1
      */
-    public static Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> targetMachines, TargetMachineFactory targetMachineFactory) {
-        targetMachines.convention(Collections.singleton(((DefaultTargetMachineFactory)targetMachineFactory).host()));
-        targetMachines.finalizeValue();
-        return targetMachines.get();
+    public static Set<TargetMachine> getDefaultTargetMachines(TargetMachineFactory targetMachineFactory) {
+        return Collections.singleton(((DefaultTargetMachineFactory)targetMachineFactory).host());
     }
 }

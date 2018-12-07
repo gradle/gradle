@@ -380,7 +380,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         if (toolChain.visualCpp) {
             return ""
         } else {
-            return configurationName == "release" ? "stripped/" : ""
+            return configurationName.startsWith("release") ? "stripped/" : ""
         }
     }
 }

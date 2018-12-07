@@ -18,11 +18,12 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.util.Path;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class TaskIdentity<T extends Task> {
+public final class TaskIdentity<T extends Task> implements WorkIdentity {
 
     private static final AtomicLong SEQUENCE = new AtomicLong();
 
@@ -70,37 +71,13 @@ public final class TaskIdentity<T extends Task> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         TaskIdentity<?> that = (TaskIdentity<?>) o;
-
-        if (uniqueId != that.uniqueId) {
-            return false;
-        }
-        if (!type.equals(that.type)) {
-            return false;
-        }
-        if (!name.equals(that.name)) {
-            return false;
-        }
-        if (!projectPath.equals(that.projectPath)) {
-            return false;
-        }
-        if (!identityPath.equals(that.identityPath)) {
-            return false;
-        }
-
-        return buildPath.equals(that.buildPath);
+        return this.uniqueId == that.uniqueId;
     }
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + name.hashCode();
-        result = 31 * result + projectPath.hashCode();
-        result = 31 * result + identityPath.hashCode();
-        result = 31 * result + buildPath.hashCode();
-        result = 31 * result + (int) (uniqueId ^ (uniqueId >>> 32));
-        return result;
+        return (int) (uniqueId ^ (uniqueId >>> 32));
     }
 
     @Override

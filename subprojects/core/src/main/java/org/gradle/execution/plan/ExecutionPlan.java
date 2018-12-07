@@ -17,8 +17,8 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
@@ -43,15 +43,11 @@ public interface ExecutionPlan extends Describable {
     void cancelExecution();
 
     /**
-     * <p>Returns the dependencies of a task which are part of the execution plan.</p>
+     * Returns the node with the supplied identity that is part of this execution plan.
      *
-     * @return The tasks. Returns an empty set if there are no dependent tasks.
-     * @throws IllegalStateException When the task is not part of the execution plan.
-     *
-     * @since 4.5
+     * @throws IllegalStateException When no node with the supplied identity is part of this execution plan.
      */
-    @Incubating
-    Set<Task> getDependencies(Task task);
+    Node getNode(WorkIdentity workIdentity);
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.

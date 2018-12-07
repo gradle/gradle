@@ -75,6 +75,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -86,7 +87,7 @@ import java.util.stream.Collectors;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
+import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -120,13 +121,25 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Create test suite component
         final DefaultSwiftXCTestSuite testComponent = createTestSuite(project);
 
+        testComponent.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        project.getComponents().withType(ProductionSwiftComponent.class, new Action<ProductionSwiftComponent>() {
+            @Override
+            public void execute(ProductionSwiftComponent component) {
+                if ("main".equals(component.getName())) {
+                    testComponent.getTargetMachines().convention(component.getTargetMachines());
+                    testComponent.getTestedComponent().set(component);
+                }
+            }
+        });
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), targetMachineFactory);
-                if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("A target machine needs to be specified for the application.");
-                }
+                final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
+
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 BuildType buildType = BuildType.DEBUG;
@@ -174,10 +187,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         testComponent.getTestBinary().set(binary);
 
                         // TODO: Publishing for test executable?
-                        final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
-                        if (mainComponent != null) {
-                            testComponent.getTestedComponent().set(mainComponent);
-                        }
                     }
                 }
 
@@ -382,5 +391,19 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
             }
         });
+    }
+
+    private void validateTargetMachines(Set<TargetMachine> testTargetMachines, @Nullable Set<TargetMachine> mainTargetMachines) {
+        if (testTargetMachines.isEmpty()) {
+            throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
+        }
+
+        if (mainTargetMachines != null) {
+            for (TargetMachine machine : testTargetMachines) {
+                if (!mainTargetMachines.contains(machine)) {
+                    throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
+                }
+            }
+        }
     }
 }

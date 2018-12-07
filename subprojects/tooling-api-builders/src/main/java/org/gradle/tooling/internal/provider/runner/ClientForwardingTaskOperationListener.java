@@ -16,19 +16,18 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
@@ -42,44 +41,41 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
-import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toCollection;
 
 /**
  * Task listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
  * @since 2.5
  */
-class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> {
+class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteTaskBuildOperationDetails> implements OperationDependencyLookup {
 
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
-    private final Map<Path, TaskExecutionGraph> taskExecutionGraphs = new HashMap<>();
     private final OperationResultPostProcessor operationResultPostProcessor;
     private final TaskOriginTracker taskOriginTracker;
+    private final OperationDependenciesResolver operationDependenciesResolver;
 
     ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker) {
+                                          OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;
         this.taskOriginTracker = taskOriginTracker;
+        this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
     @Override
-    public void graphPopulated(@Nonnull TaskExecutionGraph taskExecutionGraph) {
-        ProjectInternal rootProject = ((TaskExecutionGraphInternal) taskExecutionGraph).getRootProject();
-        taskExecutionGraphs.put(rootProject.getIdentityPath(), taskExecutionGraph);
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity) {
+        if (isEnabled() && identity instanceof TaskIdentity<?>) {
+            return descriptors.get(identity);
+        }
+        return null;
     }
 
     @Override
@@ -99,10 +95,11 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
             Object id = buildOperation.getId();
             String taskIdentityPath = buildOperation.getName();
             String displayName = buildOperation.getDisplayName();
-            String taskPath = task.getIdentityPath().toString();
+            String taskPath = taskIdentity.identityPath.getPath();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(taskIdentity.buildPath, taskIdentity);
             InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
-            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, computeTaskDependencies(task), originPlugin);
+            return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, dependencies, originPlugin);
         });
     }
 
@@ -126,16 +123,6 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
                 return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
             }
         }
-    }
-
-    private Set<DefaultTaskDescriptor> computeTaskDependencies(TaskInternal task) {
-        ProjectInternal rootProject = (ProjectInternal) task.getProject().getRootProject();
-        TaskExecutionGraph taskExecutionGraph = taskExecutionGraphs.get(rootProject.getIdentityPath());
-        return taskExecutionGraph.getDependencies(task).stream()
-            .map(dependency -> ((TaskInternal) dependency).getTaskIdentity())
-            .map(descriptors::get)
-            .filter(Objects::nonNull)
-            .collect(toCollection(LinkedHashSet::new));
     }
 
 }
