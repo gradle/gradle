@@ -16,5 +16,14 @@
 
 package org.gradle.api.internal.project;
 
+/**
+ * Marker interface for the unique identity of a unit of work that is part of
+ * the execution plan.
+ *
+ * <p>{@link org.gradle.execution.plan.Node Nodes} are considered identical if
+ * their identities are equal.
+ *
+ * @see org.gradle.execution.plan.Node#getIdentity()
+ */
 public interface WorkIdentity {
 }
