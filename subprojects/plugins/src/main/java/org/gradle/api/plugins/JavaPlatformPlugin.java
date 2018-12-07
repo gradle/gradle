@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.java.JavaPlatform;
 
@@ -77,11 +78,23 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_CONSUMABLE_CONFIGURATION);
+        declareConfigurationUsage(project, api, Usage.JAVA_API);
+        declareConfigurationCategory(api, PlatformSupport.REGULAR_PLATFORM);
         Configuration runtime = project.getConfigurations().create(RUNTIME_CONFIGURATION_NAME, AS_CONSUMABLE_CONFIGURATION);
         runtime.extendsFrom(api);
+        declareConfigurationUsage(project, runtime, Usage.JAVA_RUNTIME);
+        declareConfigurationCategory(runtime, PlatformSupport.REGULAR_PLATFORM);
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtime);
-        classpath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+        declareConfigurationUsage(project, classpath, Usage.JAVA_RUNTIME);
+    }
+
+    private void declareConfigurationCategory(Configuration configuration, String value) {
+        configuration.getAttributes().attribute(PlatformSupport.COMPONENT_CATEGORY, value);
+    }
+
+    private void declareConfigurationUsage(Project project, Configuration configuration, String usage) {
+        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, usage));
     }
 
     private void configureExtension(Project project) {
