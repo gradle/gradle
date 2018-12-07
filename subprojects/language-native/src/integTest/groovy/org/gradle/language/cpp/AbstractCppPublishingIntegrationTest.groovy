@@ -16,10 +16,13 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
 import org.gradle.language.nativeplatform.internal.Dimensions
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.language.VariantContext.dimensions
 
 abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -27,7 +30,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     abstract List<String> getLinkages()
     abstract List<String> getMainModuleArtifacts(String module, String version)
     abstract List<String> getVariantModuleArtifacts(String variantModuleNameWithVersion)
-    abstract TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext)
+    abstract TestFile getVariantSourceFile(String module, VariantContext variantContext)
     abstract Map<String, String> getVariantFileInformation(String linkage, String module, String variantModuleNameWithVersion)
     abstract boolean publishesArtifactForLinkage(String linkage)
 
@@ -64,11 +67,8 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         }
     }
 
-    void assertVariantIsPublished(String group, String module, String version, Map<String, VariantDimension> variantContext, List<String> dependencies = []) {
-        def buildType = variantContext.buildType
-        def architecture = variantContext.architecture
-        def operatingSystem = variantContext.os
-        String variantModuleName = "${module}${buildType.asPublishingName}${operatingSystem.asPublishingName}${architecture.asPublishingName}"
+    void assertVariantIsPublished(String group, String module, String version, VariantContext variantContext, List<String> dependencies = []) {
+        String variantModuleName = "${module}${variantContext.asPublishName}"
         String variantModuleNameWithVersion = "${variantModuleName}-${version}"
         def publishedModule = mavenRepo.module(group, variantModuleName, version)
         publishedModule.assertPublished()
@@ -83,7 +83,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         def publishedMetadata = publishedModule.parsedModuleMetadata
         assert publishedMetadata.variants.size() == linkages.size()
         linkages.each { linkage ->
-            def publishedVariant = publishedMetadata.variant("${buildType.name}${operatingSystem.asVariantName}${architecture.asVariantName}${linkage}")
+            def publishedVariant = publishedMetadata.variant("${variantContext.asVariantName}${linkage}")
             assert publishedVariant.dependencies.size() == dependencies.size()
             publishedVariant.dependencies.eachWithIndex { dependency, int i ->
                 assert dependency.coords == dependencies[i]
@@ -98,8 +98,8 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         }
     }
 
-    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, VariantDimension>> targetMachines, List<String> dependencies = []) {
-        toVariantContext(buildTypes.collect { VariantDimension.of("buildType", it) }, targetMachines).findAll { it.os == currentOsFamilyName }.each { variantContext ->
+    void assertVariantsArePublished(String group, String module, String version, List<String> buildTypes, List<Map<String, String>> targetMachines, List<String> dependencies = []) {
+        VariantContext.from(dimensions("buildType", buildTypes), targetMachines).findAll { it.os.name == currentOsFamilyName }.each { variantContext ->
             assertVariantIsPublished(group, module, version, variantContext, dependencies)
         }
     }
@@ -113,6 +113,6 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     }
 
     Map<String, String> machine(String os, String architecture) {
-        return ["os": os, "architecture": architecture]
+        return new LinkedHashMap<String, String>(["os": os, "architecture": architecture])
     }
 }

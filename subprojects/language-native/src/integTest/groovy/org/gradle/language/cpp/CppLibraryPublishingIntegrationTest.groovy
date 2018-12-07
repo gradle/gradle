@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -29,8 +30,11 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
-import static org.gradle.nativeplatform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
@@ -945,8 +949,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        def library = sharedLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        def library = sharedLibrary("${module}/build/lib/main/${variantContext.asPath}${module}")
         return variantContext.buildType.name == 'release' ? library.strippedRuntimeFile : library.file
     }
 
