@@ -22,10 +22,12 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeFact
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.util.Path;
 
 public class DependencyServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -58,7 +60,12 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         }
 
         TransformationNodeFactory createTransformationNodeFactory(GradleInternal gradle) {
-            return new DefaultTransformationNodeFactory(gradle);
+            return new DefaultTransformationNodeFactory(new Factory<Path>() {
+                @Override
+                public Path create() {
+                    return gradle.getIdentityPath();
+                }
+            });
         }
 
         TransformationNodeDependencyResolver createTransformationNodeDependencyResolver(TransformationNodeFactory transformationNodeFactory) {
