@@ -28,6 +28,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.RequiresNonFinalSubClasses;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -88,6 +89,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
+@RequiresNonFinalSubClasses
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
