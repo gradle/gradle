@@ -25,10 +25,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 public class OptionValueNotationParserFactory {
     public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
-        assert targetType != null : "resultingType cannot be null";
-        if (targetType == Void.TYPE) {
-            return new UnsupportedNotationParser<T>();
-        } else if (targetType.isAssignableFrom(String.class) || targetType == java.util.List.class) {
+        if (targetType.isAssignableFrom(String.class)) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})
@@ -37,18 +34,6 @@ public class OptionValueNotationParserFactory {
         }
 
         throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
-    }
-
-    private static class UnsupportedNotationParser<T> implements NotationParser<CharSequence, T> {
-
-        public T parseNotation(CharSequence notation) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void describe(DiagnosticsVisitor visitor) {
-        }
-
     }
 
     private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, String> {
@@ -60,6 +45,5 @@ public class OptionValueNotationParserFactory {
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Instances of String or CharSequence.");
         }
-
     }
 }

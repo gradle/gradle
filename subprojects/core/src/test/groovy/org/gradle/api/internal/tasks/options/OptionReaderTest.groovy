@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.options
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 import spock.lang.Specification
@@ -32,43 +33,62 @@ class OptionReaderTest extends Specification {
 
     def "can read options linked to setter methods of a task"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass1())
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithSetters())
         then:
         options[0].name == "aFlag"
         options[0].description == "simple flag"
         options[0].argumentType == Void.TYPE
-        options[0].optionElement.elementName == "setActive"
         options[0].availableValues == [] as Set
 
         options[1].name == "booleanValue"
         options[1].description == "boolean value"
         options[1].argumentType == Void.TYPE
-        options[1].optionElement.elementName == "setBooleanValue"
         options[1].availableValues == [] as Set
 
         options[2].name == "enumValue"
         options[2].description == "enum value"
-        options[2].argumentType == TestEnum
-        options[2].optionElement.elementName == "setEnumValue"
+        options[2].argumentType == String
         options[2].availableValues == ["ABC", "DEF"] as Set
 
         options[3].name == "multiString"
         options[3].description == "a list of strings"
         options[3].argumentType == List
-        options[3].optionElement.elementName == "setStringListValue"
         options[3].availableValues == [] as Set
 
         options[4].name == "objectValue"
         options[4].description == "object value"
-        options[4].argumentType == Object
-        options[4].optionElement.elementName == "setObjectValue"
+        options[4].argumentType == String
         options[4].availableValues == [] as Set
 
         options[5].name == "stringValue"
         options[5].description == "string value"
         options[5].argumentType == String
-        options[5].optionElement.elementName == "setStringValue"
         options[5].availableValues == ["dynValue1", "dynValue2"] as Set
+    }
+
+    def "can read options linked to property getter methods of a task"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithProperties())
+        then:
+        options[0].name == "booleanValue"
+        options[0].description == "boolean value"
+        options[0].argumentType == Void.TYPE
+        options[0].availableValues == [] as Set
+
+        options[1].name == "enumValue"
+        options[1].description == "enum value"
+        options[1].argumentType == String
+        options[1].availableValues == ["ABC", "DEF"] as Set
+
+        options[2].name == "objectValue"
+        options[2].description == "object value"
+        options[2].argumentType == String
+        options[2].availableValues == [] as Set
+
+        options[3].name == "stringValue"
+        options[3].description == "string value"
+        options[3].argumentType == String
+        options[3].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "fail when multiple methods define same option"() {
@@ -100,7 +120,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass5())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'fileValue' cannot be casted to type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
+        e.message == "Option 'fileValue' cannot be cast to type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
     }
 
     def "fails when method has > 1 parameter"() {
@@ -108,12 +128,12 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass4());
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
+        e.message == "Option 'stringValue' on method cannot take multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
     }
 
     def "handles field options"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass6())
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithFields())
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
@@ -126,7 +146,36 @@ class OptionReaderTest extends Specification {
 
         options[2].name == "field3"
         options[2].description == "Descr Field3"
-        options[2].argumentType == TestEnum
+        options[2].argumentType == String
+        options[2].availableValues as Set == ["ABC", "DEF"] as Set
+
+        options[3].name == "field4"
+        options[3].description == "Descr Field4"
+        options[3].argumentType == Void.TYPE
+        options[3].availableValues.isEmpty()
+
+        options[4].name == "field5"
+        options[4].description == "Descr Field5"
+        options[4].argumentType == List
+        options[4].availableValues.isEmpty()
+    }
+
+    def "handles property field options"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithPropertyField())
+        then:
+        options[0].name == "customOptionName"
+        options[0].description == "custom description"
+        options[0].argumentType == String
+
+        options[1].name == "field2"
+        options[1].description == "Descr Field2"
+        options[1].argumentType == String
+        options[1].availableValues == ["dynValue1", "dynValue2"] as Set
+
+        options[2].name == "field3"
+        options[2].description == "Descr Field3"
+        options[2].argumentType == String
         options[2].availableValues as Set == ["ABC", "DEF"] as Set
 
         options[3].name == "field4"
@@ -180,7 +229,7 @@ class OptionReaderTest extends Specification {
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
-    public static class TestClass1{
+    public static class TestClassWithSetters {
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
@@ -211,6 +260,33 @@ class OptionReaderTest extends Specification {
         }
     }
 
+    public static class TestClassWithProperties {
+        @Option(option = "stringValue", description = "string value")
+        public Property<String> getStringValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "objectValue", description = "object value")
+        public Property<Object> getObjectValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "booleanValue", description = "boolean value")
+        public Property<Boolean> getBooleanValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Option(option = "enumValue", description = "enum value")
+        public Property<TestEnum> getEnumValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @OptionValues("stringValue")
+        public Collection<CustomClass> getAvailableValues() {
+            return Arrays.asList(new CustomClass(value: "dynValue1"), new CustomClass(value: "dynValue2"))
+        }
+    }
+
     public static class CustomClass {
         String value
 
@@ -219,7 +295,7 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass2{
+    public static class TestClass2 {
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
@@ -229,30 +305,30 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass31{
+    public static class TestClass31 {
         @Option(option = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
     }
 
-    public static class TestClass32{
+    public static class TestClass32 {
         @Option(description = "staticOption")
         static String staticField
     }
 
-    public static class TestClass4{
+    public static class TestClass4 {
         @Option(option = 'stringValue', description = "string value")
         public void setStrings(String value1, String value2) {
         }
     }
 
-    public static class TestClass5{
+    public static class TestClass5 {
         @Option(option = 'fileValue', description = "file value")
         public void setStrings(File file) {
         }
     }
 
-    public static class TestClass6{
+    public static class TestClassWithFields {
         @Option(option = 'customOptionName', description = "custom description")
         String field1
 
@@ -265,6 +341,8 @@ class OptionReaderTest extends Specification {
         @Option(description = "Descr Field4")
         boolean field4
 
+        @Option(description = "Descr Field5")
+        List<String> field5
 
         @OptionValues("field2")
         List<String> getField2Options() {
@@ -272,13 +350,32 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass7{
+    public static class TestClassWithPropertyField {
+        @Option(option = 'customOptionName', description = "custom description")
+        final Property<String> field1
+
+        @Option(description = "Descr Field2")
+        final Property<String> field2
+
+        @Option(description = "Descr Field3")
+        final Property<TestEnum> field3
+
+        @Option(description = "Descr Field4")
+        final Property<Boolean> field4
+
+        @OptionValues("field2")
+        List<String> getField2Options() {
+            return Arrays.asList("dynValue1", "dynValue2")
+        }
+    }
+
+    public static class TestClass7 {
         @Option(option = 'aValue')
         public void setStrings(String value) {
         }
     }
 
-    public static class TestClass8{
+    public static class TestClass8 {
         @Option
         String field
     }
@@ -289,32 +386,32 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass10{
+    public static class TestClass10 {
         @Option(description = "some description")
         private String field
     }
 
     public static class WithInvalidSomeOptionMethod {
         @OptionValues("someOption")
-        List<String> getValues(String someParam) { return Arrays.asList("something")}
+        List<String> getValues(String someParam) { return Arrays.asList("something") }
     }
 
     public static class WithDuplicateSomeOptions {
         @OptionValues("someOption")
-        List<String> getValues() { return Arrays.asList("something")}
+        List<String> getValues() { return Arrays.asList("something") }
 
         @OptionValues("someOption")
-        List<String> getValues2() { return Arrays.asList("somethingElse")}
+        List<String> getValues2() { return Arrays.asList("somethingElse") }
     }
 
     public static class WithAnnotatedStaticMethod {
         @OptionValues("someOption")
-        static List<String> getValues(String someParam) { return Arrays.asList("something")}
+        static List<String> getValues(String someParam) { return Arrays.asList("something") }
     }
 
     public class SomeOptionValues {
         @OptionValues("someOption")
-        List<String> getValues() { return Arrays.asList("something")}
+        List<String> getValues() { return Arrays.asList("something") }
     }
 
     public static class WithCustomOrder {
