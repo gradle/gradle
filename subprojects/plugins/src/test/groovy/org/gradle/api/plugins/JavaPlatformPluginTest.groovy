@@ -16,11 +16,13 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Unroll
 
 class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
     def "applies base plugin"() {
@@ -96,6 +98,50 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, PlatformSupport.COMPONENT_CATEGORY] as Set
         apiUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
         apiUsage.attributes.getAttribute(PlatformSupport.COMPONENT_CATEGORY) == PlatformSupport.REGULAR_PLATFORM
+    }
+
+    @Unroll("cannot add a dependency to the #configuration configuration by default")
+    def "adding a dependency is not allowed by default"() {
+        given:
+        project.pluginManager.apply(JavaPlatformPlugin)
+        project.dependencies.add(JavaPlatformPlugin.API_CONFIGURATION_NAME, "org:api1:1.0")
+        project.dependencies.constraints.add(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME, "org:api2:1.0")
+
+        when:
+        project.evaluate()
+
+        then:
+        ProjectConfigurationException ex = thrown()
+
+        and:
+        ex.cause.message.contains("Found dependencies in the 'api' configuration.")
+
+        where:
+        configuration << [
+                JavaPlatformPlugin.API_CONFIGURATION_NAME,
+                JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
+        ]
+    }
+
+
+    @Unroll("can add a dependency to the #configuration configuration when extension configured")
+    def "adding a dependency is allowed when activated on the project extension"() {
+        given:
+        project.pluginManager.apply(JavaPlatformPlugin)
+        project.extensions.javaPlatform.allowDependencies()
+        project.dependencies.add(JavaPlatformPlugin.API_CONFIGURATION_NAME, "org:api1:1.0")
+
+        when:
+        project.evaluate()
+
+        then:
+        noExceptionThrown()
+
+        where:
+        configuration << [
+                JavaPlatformPlugin.API_CONFIGURATION_NAME,
+                JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
+        ]
     }
 
 }

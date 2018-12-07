@@ -15,14 +15,19 @@
  */
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.java.JavaPlatform;
+
+import java.util.Set;
 
 /**
  * The Java platform plugin allows building platform components
@@ -52,12 +57,17 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             conf.setCanBeConsumed(false);
         }
     };
+    private static final String DISALLOW_DEPENDENCIES = "Adding dependencies to platforms is not allowed by default.\n" +
+            "Most likely you want to add constraints instead.\n" +
+            "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
+            "Found dependencies in the '%s' configuration.";
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
         createSoftwareComponent(project);
+        configureExtension(project);
     }
 
     private boolean createSoftwareComponent(Project project) {
@@ -72,5 +82,33 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtime);
         classpath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+    }
+
+    private void configureExtension(Project project) {
+        final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                if (!platformExtension.isAllowDependencies()) {
+                    checkNoDependencies(project);
+                }
+            }
+        });
+    }
+
+    private void checkNoDependencies(Project project) {
+        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.<Configuration>newHashSet());
+    }
+
+    private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {
+        if (visited.add(configuration)) {
+            if (!configuration.getDependencies().isEmpty()) {
+                throw new InvalidUserCodeException(String.format(DISALLOW_DEPENDENCIES, configuration.getName()));
+            }
+            Set<Configuration> extendsFrom = configuration.getExtendsFrom();
+            for (Configuration parent : extendsFrom) {
+                checkNoDependencies(parent, visited);
+            }
+        }
     }
 }
