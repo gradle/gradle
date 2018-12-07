@@ -220,17 +220,27 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                 `filter`(mapOf(*`properties`), `filterType`.java)
             """,
             """
-            @org.gradle.api.Incubating
             inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: org.gradle.api.Action<in T>): org.gradle.api.tasks.TaskProvider<T> =
                 `register`(`name`, `type`.java, `configurationAction`)
             """,
             """
             inline fun <T : Any> org.gradle.api.plugins.ExtensionContainer.`create`(`name`: String, `type`: kotlin.reflect.KClass<T>, vararg `constructionArguments`: Any): T =
                 `create`(`name`, `type`.java, *`constructionArguments`)
+            """,
+            """
+            /**
+             * Kotlin extension function taking [kotlin.reflect.KClass] for [org.gradle.api.model.ObjectFactory.named].
+             *
+             * @see org.gradle.api.model.ObjectFactory.named
+             */
+            @org.gradle.api.Incubating
+            inline fun <T : org.gradle.api.Named> org.gradle.api.model.ObjectFactory.`named`(`type`: kotlin.reflect.KClass<T>, `name`: String): T =
+                `named`(`type`.java, `name`)
             """)
 
         assertThat(
             generatedSourceCode,
-            allOf(extensions.map { containsMultiLineString(it) }))
+            allOf(extensions.map { containsMultiLineString(it) })
+        )
     }
 }
