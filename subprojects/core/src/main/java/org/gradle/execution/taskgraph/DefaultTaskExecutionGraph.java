@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -28,8 +29,10 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
@@ -40,6 +43,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -289,8 +293,20 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
+        Node node = getNode(((TaskInternal) task).getTaskIdentity());
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (Node dependencyNode : node.getDependencySuccessors()) {
+            if (dependencyNode instanceof TaskNode) {
+                builder.add(((TaskNode) dependencyNode).getTask());
+            }
+        }
+        return builder.build();
+    }
+
+    @Override
+    public Node getNode(WorkIdentity workIdentity) {
         ensurePopulated();
-        return executionPlan.getDependencies(task);
+        return executionPlan.getNode(workIdentity);
     }
 
     private void ensurePopulated() {

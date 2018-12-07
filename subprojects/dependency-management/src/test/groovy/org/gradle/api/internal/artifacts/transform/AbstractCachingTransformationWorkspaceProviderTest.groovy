@@ -39,7 +39,7 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
         async {
             100.times {
                 start {
-                    this.workspaceProvider.withWorkspace(new TestIdentity("id")) { id, workspace ->
+                    this.workspaceProvider.withWorkspace(new TestWorkspaceIdentity("id")) { id, workspace ->
                         if (numberOfCalls.getAndIncrement() != 0) {
                             throw new IllegalStateException("Use workspace called concurrently")
                         }
@@ -57,14 +57,14 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
         when:
         async {
             start {
-                workspaceProvider.withWorkspace(new TestIdentity("first")) { id, workspace ->
+                workspaceProvider.withWorkspace(new TestWorkspaceIdentity("first")) { id, workspace ->
                     instant.first
                     thread.blockUntil.go
                     return Try.successful(ImmutableList.of())
                 }
             }
             start {
-                workspaceProvider.withWorkspace(new TestIdentity("second")) { id, workspace ->
+                workspaceProvider.withWorkspace(new TestWorkspaceIdentity("second")) { id, workspace ->
                     instant.second
                     thread.blockUntil.go
                     return Try.successful(ImmutableList.of())
@@ -83,21 +83,21 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
     
     def "has cached result works as expected"() {
         expect:
-        !workspaceProvider.hasCachedResult(new TestIdentity("first"))
+        !workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("first"))
 
         when:
-        workspaceProvider.withWorkspace(new TestIdentity("first")) { id, workspace ->
+        workspaceProvider.withWorkspace(new TestWorkspaceIdentity("first")) { id, workspace ->
             return Try.successful(ImmutableList.of())
         }
         then:
-        workspaceProvider.hasCachedResult(new TestIdentity("first"))
-        !workspaceProvider.hasCachedResult(new TestIdentity("second"))
+        workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("first"))
+        !workspaceProvider.hasCachedResult(new TestWorkspaceIdentity("second"))
     }
 
-    private static class TestIdentity implements TransformationIdentity {
+    private static class TestWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final String name
 
-        TestIdentity(String name) {
+        TestWorkspaceIdentity(String name) {
             this.name = name
         }
 
@@ -114,7 +114,7 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
                 return false
             }
 
-            TestIdentity that = (TestIdentity) o
+            TestWorkspaceIdentity that = (TestWorkspaceIdentity) o
 
             if (name != that.name) {
                 return false

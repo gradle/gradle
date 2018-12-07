@@ -43,7 +43,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String workspacePath = identity.getIdentity();
         DefaultTransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(baseDirectory.get().getAsFile(), workspacePath));
         return workspaceAction.useWorkspace(workspacePath, workspace);

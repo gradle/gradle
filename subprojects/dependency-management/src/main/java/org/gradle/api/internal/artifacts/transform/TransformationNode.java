@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -30,33 +28,40 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class TransformationNode extends Node {
-    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
-    private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
+    private final TransformationIdentity identity;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
-        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
+    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, Path buildPath) {
+        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildPath);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
+        this.identity = TransformationIdentity.create();
         this.transformationStep = transformationStep;
     }
 
+    @Override
+    public TransformationIdentity getIdentity() {
+        return identity;
+    }
+
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
+
+    protected abstract Path getBuildPath();
 
     @Override
     public String toString() {
@@ -78,10 +83,6 @@ public abstract class TransformationNode extends Node {
 
     @Override
     public void prepareForExecution() {
-    }
-
-    @Override
-    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
     }
 
     @Nullable
@@ -106,7 +107,7 @@ public abstract class TransformationNode extends Node {
             return getClass().getName().compareTo(other.getClass().getName());
         }
         TransformationNode otherTransformation = (TransformationNode) other;
-        return order - otherTransformation.order;
+        return Long.compare(identity.getId(), otherTransformation.identity.getId());
     }
 
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
@@ -119,11 +120,18 @@ public abstract class TransformationNode extends Node {
     private static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
         private final ExecutionGraphDependenciesResolver dependenciesResolver;
+        private final Path buildPath;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, Path buildPath) {
             super(transformationStep);
             this.artifact = artifact;
             this.dependenciesResolver = dependenciesResolver;
+            this.buildPath = buildPath;
+        }
+
+        @Override
+        public Path getBuildPath() {
+            return buildPath;
         }
 
         @Override
@@ -175,6 +183,11 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
+        protected Path getBuildPath() {
+            return previousTransformationNode.getBuildPath();
+        }
+
+        @Override
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation();
             buildOperationExecutor.run(chainedArtifactTransformStep);
@@ -217,7 +230,7 @@ public abstract class TransformationNode extends Node {
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName("Transforming " + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
-                .details(new OperationDetails(transformerName, subjectName));
+                .details(new ExecuteScheduledTransformationStepBuildOperationDetails(getBuildPath(), identity, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();
@@ -236,24 +249,4 @@ public abstract class TransformationNode extends Node {
         }
     }
 
-    private static class OperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
-
-        private final String transformerName;
-        private final String subjectName;
-
-        public OperationDetails(String transformerName, String subjectName) {
-            this.transformerName = transformerName;
-            this.subjectName = subjectName;
-        }
-
-        @Override
-        public String getTransformerName() {
-            return transformerName;
-        }
-
-        @Override
-        public String getSubjectName() {
-            return subjectName;
-        }
-    }
 }

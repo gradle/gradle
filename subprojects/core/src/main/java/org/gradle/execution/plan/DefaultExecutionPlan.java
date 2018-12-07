@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -38,6 +37,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -119,9 +119,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return path.toString();
     }
 
-    @VisibleForTesting
-    TaskNode getNode(Task task) {
-        return nodeMapping.get(task);
+    @Override
+    public Node getNode(WorkIdentity workIdentity) {
+        return nodeMapping.get(workIdentity);
     }
 
     public void addEntryTasks(Collection<? extends Task> tasks) {
@@ -328,16 +328,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
-    }
-
-    @Override
-    public Set<Task> getDependencies(Task task) {
-        TaskNode node = nodeMapping.get(task);
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (Node dependencyNode : node.getDependencySuccessors()) {
-            dependencyNode.collectTaskInto(builder);
-        }
-        return builder.build();
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -963,7 +953,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public int size() {
-        return nodeMapping.nodes.size();
+        return nodeMapping.size();
     }
 
     private static class GraphEdge {
@@ -1003,8 +993,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static class NodeMapping extends AbstractCollection<Node> {
-        private final Map<Task, LocalTaskNode> taskMapping = Maps.newLinkedHashMap();
+        private final Map<WorkIdentity, Node> nodeMapping = Maps.newHashMap();
         private final Set<Node> nodes = Sets.newLinkedHashSet();
+        private final Set<Task> tasks = Sets.newLinkedHashSet();
 
         @Override
         public boolean contains(Object o) {
@@ -1016,23 +1007,23 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             if (!nodes.add(node)) {
                 return false;
             }
+            nodeMapping.put(node.getIdentity(), node);
             if (node instanceof LocalTaskNode) {
-                LocalTaskNode taskNode = (LocalTaskNode) node;
-                taskMapping.put(taskNode.getTask(), taskNode);
+                tasks.add(((LocalTaskNode) node).getTask());
             }
             return true;
         }
 
-        public TaskNode get(Task task) {
-            TaskNode taskNode = taskMapping.get(task);
-            if (taskNode == null) {
-                throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
+        public Node get(WorkIdentity workIdentity) {
+            Node node = nodeMapping.get(workIdentity);
+            if (node == null) {
+                throw new IllegalStateException("Node is not part of the execution plan: " + workIdentity);
             }
-            return taskNode;
+            return node;
         }
 
         public Set<Task> getTasks() {
-            return taskMapping.keySet();
+            return tasks;
         }
 
         @Override
@@ -1043,7 +1034,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         @Override
         public void clear() {
             nodes.clear();
-            taskMapping.clear();
+            nodeMapping.clear();
+            tasks.clear();
         }
 
         @Override
@@ -1059,8 +1051,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             while (executionPlanIterator.hasNext()) {
                 Node removedNode = executionPlanIterator.next();
                 executionPlanIterator.remove();
+                nodeMapping.remove(removedNode.getIdentity());
                 if (removedNode instanceof LocalTaskNode) {
-                    taskMapping.remove(((LocalTaskNode) removedNode).getTask());
+                    tasks.remove(((LocalTaskNode) removedNode).getTask());
                 }
             }
         }

@@ -16,11 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.internal.ImmutableActionSet;
 
@@ -45,6 +45,7 @@ public class LocalTaskNode extends TaskNode {
         return task.getProject();
     }
 
+    @Override
     public TaskInternal getTask() {
         return task;
     }
@@ -60,8 +61,8 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
-        builder.add(task);
+    public TaskIdentity<?> getIdentity() {
+        return task.getTaskIdentity();
     }
 
     @Override

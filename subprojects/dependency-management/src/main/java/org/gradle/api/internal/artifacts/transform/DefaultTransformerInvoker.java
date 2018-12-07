@@ -113,7 +113,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
         FileSystemLocationSnapshot primaryInputSnapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, dependenciesFingerprint);
+        TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, dependenciesFingerprint);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -140,14 +140,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
     }
 
-    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new ImmutableTransformationIdentity(
+    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+        return new ImmutableTransformationWorkspaceIdentity(
             primaryInputSnapshot.getAbsolutePath(),
             primaryInputSnapshot.getHash(),
             transformer.getSecondaryInputHash(),
@@ -155,8 +155,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new MutableTransformationIdentity(
+    private TransformationWorkspaceIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+        return new MutableTransformationWorkspaceIdentity(
             primaryInputSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),
             dependenciesFingerprint.getHash()
@@ -448,13 +448,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    public static class ImmutableTransformationIdentity implements TransformationIdentity {
+    public static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final String primaryInputAbsolutePath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
+        public ImmutableTransformationWorkspaceIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
@@ -480,7 +480,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return false;
             }
 
-            ImmutableTransformationIdentity that = (ImmutableTransformationIdentity) o;
+            ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
 
             if (!primaryInputHash.equals(that.primaryInputHash)) {
                 return false;
@@ -503,12 +503,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    public static class MutableTransformationIdentity implements TransformationIdentity {
+    public static class MutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final String primaryInputAbsolutePath;
         private final HashCode secondaryInputsHash;
         private final HashCode dependenciesHash;
 
-        public MutableTransformationIdentity(String primaryInputAbsolutePath, HashCode secondaryInputsHash, HashCode dependenciesHash) {
+        public MutableTransformationWorkspaceIdentity(String primaryInputAbsolutePath, HashCode secondaryInputsHash, HashCode dependenciesHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.secondaryInputsHash = secondaryInputsHash;
             this.dependenciesHash = dependenciesHash;
@@ -532,7 +532,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return false;
             }
 
-            MutableTransformationIdentity that = (MutableTransformationIdentity) o;
+            MutableTransformationWorkspaceIdentity that = (MutableTransformationWorkspaceIdentity) o;
 
             if (!secondaryInputsHash.equals(that.secondaryInputsHash)) {
                 return false;
