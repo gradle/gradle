@@ -39,8 +39,17 @@ import java.util.Set;
  */
 @Incubating
 public class JavaPlatformPlugin implements Plugin<Project> {
+    // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+
+    // Consumable configurations
+    public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+    public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+    public static final String ENFORCED_API_ELEMENTS_CONFIGURATION_NAME = "enforcedApiElements";
+    public static final String ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME = "enforcedRuntimeElements";
+
+    // Resolvable configurations
     public static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
     private static final Action<Configuration> AS_CONSUMABLE_CONFIGURATION = new Action<Configuration>() {
@@ -48,6 +57,14 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         public void execute(Configuration conf) {
             conf.setCanBeResolved(false);
             conf.setCanBeConsumed(true);
+        }
+    };
+
+    private static final Action<Configuration> AS_BUCKET = new Action<Configuration>() {
+        @Override
+        public void execute(Configuration conf) {
+            conf.setCanBeResolved(false);
+            conf.setCanBeConsumed(false);
         }
     };
 
@@ -69,6 +86,15 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         createConfigurations(project);
         createSoftwareComponent(project);
         configureExtension(project);
+        addPlatformDisambiguationRule(project);
+    }
+
+    private void addPlatformDisambiguationRule(Project project) {
+        project.getDependencies()
+                .getAttributesSchema()
+                .getMatchingStrategy(PlatformSupport.COMPONENT_CATEGORY)
+                .getDisambiguationRules()
+                .add(PlatformSupport.PreferRegularPlatform.class);
     }
 
     private boolean createSoftwareComponent(Project project) {
@@ -77,16 +103,35 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_CONSUMABLE_CONFIGURATION);
-        declareConfigurationUsage(project, api, Usage.JAVA_API);
-        declareConfigurationCategory(api, PlatformSupport.REGULAR_PLATFORM);
-        Configuration runtime = project.getConfigurations().create(RUNTIME_CONFIGURATION_NAME, AS_CONSUMABLE_CONFIGURATION);
+        Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
+        Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.REGULAR_PLATFORM);
+        Configuration enforcedApiElements = createConsumableApi(project, configurations, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.ENFORCED_PLATFORM);
+
+        Configuration runtime = project.getConfigurations().create(RUNTIME_CONFIGURATION_NAME, AS_BUCKET);
         runtime.extendsFrom(api);
-        declareConfigurationUsage(project, runtime, Usage.JAVA_RUNTIME);
-        declareConfigurationCategory(runtime, PlatformSupport.REGULAR_PLATFORM);
+
+        Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.REGULAR_PLATFORM);
+        Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.ENFORCED_PLATFORM);
+
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
-        classpath.extendsFrom(runtime);
+        classpath.extendsFrom(runtimeElements);
         declareConfigurationUsage(project, classpath, Usage.JAVA_RUNTIME);
+    }
+
+    private Configuration createConsumableRuntime(Project project, Configuration apiElements, String name, String platformKind) {
+        Configuration runtimeElements = project.getConfigurations().create(name, AS_CONSUMABLE_CONFIGURATION);
+        runtimeElements.extendsFrom(apiElements);
+        declareConfigurationUsage(project, runtimeElements, Usage.JAVA_RUNTIME);
+        declareConfigurationCategory(runtimeElements, platformKind);
+        return runtimeElements;
+    }
+
+    private Configuration createConsumableApi(Project project, ConfigurationContainer configurations, Configuration api, String name, String platformKind) {
+        Configuration apiElements = configurations.create(name, AS_CONSUMABLE_CONFIGURATION);
+        apiElements.extendsFrom(api);
+        declareConfigurationUsage(project, apiElements, Usage.JAVA_API);
+        declareConfigurationCategory(apiElements, platformKind);
+        return apiElements;
     }
 
     private void declareConfigurationCategory(Configuration configuration, String value) {
@@ -124,4 +169,5 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             }
         }
     }
+
 }

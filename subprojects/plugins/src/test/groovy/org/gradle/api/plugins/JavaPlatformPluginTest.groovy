@@ -41,7 +41,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         def api = project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME)
 
         then:
-        api.canBeConsumed
+        !api.canBeConsumed
         !api.canBeResolved
         api.extendsFrom.empty
 
@@ -49,9 +49,42 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         def runtime = project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME)
 
         then:
-        runtime.canBeConsumed
+        !runtime.canBeConsumed
         !runtime.canBeResolved
         runtime.extendsFrom == [api] as Set
+
+        when:
+        def apiElements = project.configurations.getByName(JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        apiElements.canBeConsumed
+        !apiElements.canBeResolved
+        apiElements.extendsFrom == [api] as Set
+
+        when:
+        def runtimeElements = project.configurations.getByName(JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        runtimeElements.canBeConsumed
+        !runtimeElements.canBeResolved
+        runtimeElements.extendsFrom == [runtime] as Set
+
+        when:
+        def enforcedApiElements = project.configurations.getByName(JavaPlatformPlugin.ENFORCED_API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        enforcedApiElements.canBeConsumed
+        !enforcedApiElements.canBeResolved
+        enforcedApiElements.extendsFrom == [api] as Set
+
+        when:
+        def enforcedRuntimeElements = project.configurations.getByName(JavaPlatformPlugin.ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        enforcedRuntimeElements.canBeConsumed
+        !enforcedRuntimeElements.canBeResolved
+        enforcedRuntimeElements.extendsFrom == [runtime] as Set
+
 
         when:
         def classpath = project.configurations.getByName(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME)
@@ -59,7 +92,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         then:
         !classpath.canBeConsumed
         classpath.canBeResolved
-        classpath.extendsFrom == [runtime] as Set
+        classpath.extendsFrom == [runtimeElements] as Set
         def attributes = classpath.attributes.keySet()
         attributes.size() == 1
         def usage = classpath.attributes.getAttribute(attributes[0])

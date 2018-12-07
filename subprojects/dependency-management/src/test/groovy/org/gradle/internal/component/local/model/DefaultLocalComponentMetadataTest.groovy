@@ -68,8 +68,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def "configuration has no dependencies or artifacts when none have been added"() {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ImmutableSet.of("super"), false, false, null, true, true, ImmutableCapabilities.EMPTY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, null, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("super", "description", [] as Set, ImmutableSet.of("super"), false, false, ImmutableAttributes.EMPTY, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, ImmutableAttributes.EMPTY, true, true, ImmutableCapabilities.EMPTY)
 
         then:
         def conf = metadata.getConfiguration('conf')
