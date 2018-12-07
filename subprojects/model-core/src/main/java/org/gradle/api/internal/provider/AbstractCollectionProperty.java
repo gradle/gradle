@@ -40,10 +40,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
+    private Collector<T> value;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
+        applyDefaultValue();
         this.collectionType = collectionType;
         this.elementType = elementType;
         valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
@@ -57,7 +58,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new SingleElement<T>(element));
@@ -65,7 +66,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
@@ -73,7 +74,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void addAll(T... elements) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new ElementsFromArray<T>(elements));
@@ -81,7 +82,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new ElementsFromCollection<T>(elements));
@@ -89,7 +90,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
@@ -189,7 +190,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         if (elements == null) {
@@ -201,7 +202,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         if (provider == null) {
@@ -222,11 +223,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> empty() {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return this;
         }
         set((Collector<T>) EMPTY_COLLECTION);
         return this;
+    }
+
+    @Override
+    protected void applyDefaultValue() {
+        value = (Collector<T>) EMPTY_COLLECTION;
+        collectors.clear();
     }
 
     @Override

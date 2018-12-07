@@ -44,11 +44,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    @SuppressWarnings("unchecked")
-    private MapCollector<K, V> value = (MapCollector<K, V>) EMPTY_MAP;
+    private MapCollector<K, V> value;
     private final List<MapCollector<K, V>> collectors = new LinkedList<MapCollector<K, V>>();
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
+        applyDefaultValue();
         this.keyType = keyType;
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<K>(Set.class, keyType, ValueSanitizers.forType(keyType));
@@ -150,7 +150,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public MapProperty<K, V> empty() {
-        if (canMutate()) {
+        if (beforeMutate()) {
             set((MapCollector<K, V>) EMPTY_MAP);
         }
         return this;
@@ -172,7 +172,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         if (entries != null) {
@@ -184,7 +184,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
@@ -201,7 +201,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     public void put(K key, V value) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new MapCollectors.SingleEntry<K, V>(key, value));
@@ -211,7 +211,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     public void put(K key, Provider<? extends V> providerOfValue) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
@@ -224,7 +224,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         addCollector(new MapCollectors.EntriesFromMap<K, V>(entries));
@@ -232,7 +232,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
@@ -297,6 +297,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             values.add(collector.toString());
         }
         return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), values);
+    }
+
+    @Override
+    protected void applyDefaultValue() {
+        value = (MapCollector<K, V>) EMPTY_MAP;
+        collectors.clear();
     }
 
     @Override
