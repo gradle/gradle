@@ -57,10 +57,12 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.function.BooleanSupplier
 
+@Ignore
 class IncrementalExecutionTest extends Specification {
 
     @Rule
