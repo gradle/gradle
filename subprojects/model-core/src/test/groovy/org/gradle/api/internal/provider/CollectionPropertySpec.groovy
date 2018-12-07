@@ -240,7 +240,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from array #value using addAll"() {
         given:
-        property.empty()
         property.addAll(value as String[])
 
         expect:
@@ -265,7 +264,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from provider #value using addAll"() {
         given:
-        property.empty()
         property.addAll(Providers.of(value))
 
         expect:
@@ -284,7 +282,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         _ * provider.get() >>> [["abc"], ["def"]]
 
         expect:
-        property.empty()
         property.addAll(provider)
         assertValueIs(["abc"])
         assertValueIs(["def"])
@@ -302,7 +299,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from collection #value using addAll"() {
         given:
-        property.empty()
         property.addAll(value)
 
         expect:
@@ -318,7 +314,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "queries values of collection on every call to get()"() {
         expect:
         def value = ["abc"]
-        property.empty()
         property.addAll(value)
         assertValueIs(["abc"])
         value.add("added")
@@ -381,6 +376,15 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         expect:
         assertValueIs(["1", "2", "3", "4"])
+    }
+
+    def "empty collection is used as value when elements added after convention set"() {
+        given:
+        property.convention(["1", "2"])
+        property.add("3")
+
+        expect:
+        assertValueIs(["3"])
     }
 
     def "property has no value when set to null and other values appended"() {
@@ -518,7 +522,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "throws NullPointerException when provider returns list with null to property"() {
         given:
-        property.empty()
         property.addAll(Providers.of([null]))
 
         when:

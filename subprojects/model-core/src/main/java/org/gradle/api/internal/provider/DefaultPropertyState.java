@@ -23,9 +23,10 @@ import org.gradle.api.provider.Provider;
 public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private ProviderInternal<? extends T> provider = Providers.notDefined();
+    private ProviderInternal<? extends T> provider;
 
     public DefaultPropertyState(Class<T> type) {
+        applyDefaultValue();
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
     }
@@ -46,7 +47,7 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public void set(T value) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         if (value == null) {
@@ -70,7 +71,7 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public void set(Provider<? extends T> provider) {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return;
         }
         if (provider == null) {
@@ -110,6 +111,11 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
             this.provider = Providers.internal(valueProvider);
         }
         return this;
+    }
+
+    @Override
+    protected void applyDefaultValue() {
+        provider = Providers.notDefined();
     }
 
     @Override

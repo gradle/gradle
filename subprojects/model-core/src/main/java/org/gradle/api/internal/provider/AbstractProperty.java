@@ -22,12 +22,12 @@ import org.gradle.util.DeprecationLogger;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T>, ProducerAwareProperty {
     private enum State {
-        Mutable, FinalNextGet, FinalLenient, FinalStrict
+        InitialValue, Convention, Mutable, FinalLenient, FinalStrict
     }
 
-    private State state = State.Mutable;
+    private State state = State.InitialValue;
+    private boolean finalizeOnNextGet;
     private Task producer;
-    private boolean hasValue;
 
     @Override
     public void attachProducer(Task task) {
@@ -48,7 +48,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void finalizeValue() {
-        if (state == State.Mutable || state == State.FinalNextGet) {
+        if (state != State.FinalStrict) {
             makeFinal();
         }
         state = State.FinalStrict;
@@ -56,38 +56,62 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void finalizeValueOnReadAndWarnAboutChanges() {
-        if (state == State.Mutable) {
-            state = State.FinalNextGet;
-        }
+        finalizeOnNextGet = true;
     }
+
+    protected abstract void applyDefaultValue();
 
     protected abstract void makeFinal();
 
+    /**
+     * Call prior to reading the value of this property.
+     */
     protected void beforeRead() {
-        if (state == State.FinalNextGet) {
+        if (state == State.FinalLenient || state == State.FinalStrict) {
+            return;
+        }
+        if (finalizeOnNextGet) {
             makeFinal();
             state = State.FinalLenient;
         }
     }
 
-    protected boolean canMutate() {
+    /**
+     * Call prior to mutating the value of this property.
+     */
+    protected boolean beforeMutate() {
         if (state == State.FinalStrict) {
             throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
         } else if (state == State.FinalLenient) {
             DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
             return false;
+        } else if (state == State.Convention) {
+            applyDefaultValue();
+            state = State.InitialValue;
         }
         return true;
     }
 
+    /**
+     * Call immediately after mutating the value of this property.
+     */
     protected void afterMutate() {
-        hasValue = true;
+        if (state == State.InitialValue || state == State.Convention) {
+            state = State.Mutable;
+        }
     }
 
+    /**
+     * Call prior to applying a convention of this property.
+     */
     protected boolean shouldApplyConvention() {
-        if (!canMutate()) {
+        if (!beforeMutate()) {
             return false;
         }
-        return !hasValue;
+        if (state == State.InitialValue) {
+            state = State.Convention;
+            return true;
+        }
+        return state == State.Convention;
     }
 }
