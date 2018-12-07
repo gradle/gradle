@@ -34,16 +34,16 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     def "configure actions for eager creation are nested in realization build op"() {
         buildFile << """
             tasks.all {
-                logger.lifecycle 'create 1'
+                logger.lifecycle 'all'
             }
             tasks.configureEach {
-                logger.lifecycle 'create 2'
+                logger.lifecycle 'configureEach'
             }
             tasks.create('foo') {
-                logger.lifecycle 'create 3'
+                logger.lifecycle 'create'
             }
             tasks.all {
-                logger.lifecycle 'ignore'
+                logger.lifecycle 'too late'
             }
         """
 
@@ -53,25 +53,38 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.progress.size() == 3
-        realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("create 1")
-        realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("create 2")
-        realize.progress[2].detailsClassName == LogEvent.name
-        realize.progress[2].details.message.startsWith("create 3")
+        with(realize) {
+            progress.size() == 1
+            with(progress[0]) {
+                detailsClassName == LogEvent.name
+                details.message.startsWith("create")
+            }
+
+            children.size() == 2
+            with(children[0]) {
+                progress.size() == 1
+                progress[0].detailsClassName == LogEvent.name
+                progress[0].details.message.startsWith("all")
+            }
+            with(children[1]) {
+                progress.size() == 1
+                progress[0].detailsClassName == LogEvent.name
+                progress[0].details.message.startsWith("configureEach")
+            }
+
+        }
     }
 
     def "configure actions for lazy creation are nested in realization build op"() {
         buildFile << """
             tasks.configureEach {
-                logger.lifecycle 'create 1'
+                logger.lifecycle 'configureEach'
             }
             def p = tasks.register('foo') {
-                logger.lifecycle 'create 2'
+                logger.lifecycle 'register'
             }
             p.configure {
-                logger.lifecycle 'create 3'
+                logger.lifecycle 'configure'
             }
         """
 
@@ -81,13 +94,24 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.progress.size() == 3
-        realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("create 1")
-        realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("create 2")
-        realize.progress[2].detailsClassName == LogEvent.name
-        realize.progress[2].details.message.startsWith("create 3")
+        with(realize) {
+            children.size() == 3
+            with(children[0]) {
+                progress.size() == 1
+                progress[0].detailsClassName == LogEvent.name
+                progress[0].details.message.startsWith("configureEach")
+            }
+            with(children[1]) {
+                progress.size() == 1
+                progress[0].detailsClassName == LogEvent.name
+                progress[0].details.message.startsWith("register")
+            }
+            with(children[2]) {
+                progress.size() == 1
+                progress[0].detailsClassName == LogEvent.name
+                progress[0].details.message.startsWith("configure")
+            }
+        }
     }
 
     def "emits registration build ops when tasks not realized"() {
@@ -139,8 +163,10 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo')).children.empty
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
         realize.children.size() == 1
-        buildOperations.isType(realize.children[0], RealizeTaskBuildOperationType)
-        withPath(":", ":bar").isSatisfiedBy(realize.children[0])
+        def configure = realize.children[0]
+        configure.children.size() == 1
+        buildOperations.isType(configure.children[0], RealizeTaskBuildOperationType)
+        withPath(":", ":bar").isSatisfiedBy(configure.children[0])
     }
 
     def "emits registration, realization build ops when tasks later realized"() {
