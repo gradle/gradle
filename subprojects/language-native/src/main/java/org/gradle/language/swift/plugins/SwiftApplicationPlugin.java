@@ -32,6 +32,7 @@ import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.BuildType;
+import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
@@ -52,7 +53,6 @@ import java.util.stream.Collectors;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -97,10 +97,13 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         // Setup component
         application.getModule().set(GUtil.toCamelCase(project.getName()));
 
+        application.getTargetMachines().convention(Dimensions.getDefaultTargetMachines(targetMachineFactory));
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Set<TargetMachine> targetMachines = setDefaultAndGetTargetMachineValues(application.getTargetMachines(), targetMachineFactory);
+                application.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
                 if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("A target machine needs to be specified for the application.");
                 }

@@ -31,7 +31,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -46,13 +45,13 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
-import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
@@ -108,22 +107,25 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
         testComponent.getBaseName().set(project.getName() + "Test");
 
+        testComponent.getTargetMachines().convention(Dimensions.getDefaultTargetMachines(targetMachineFactory));
+        project.getComponents().withType(ProductionCppComponent.class, new Action<ProductionCppComponent>() {
+            @Override
+            public void execute(ProductionCppComponent component) {
+                if ("main".equals(component.getName())) {
+                    testComponent.getTargetMachines().convention(component.getTargetMachines());
+                    testComponent.getTestedComponent().set(component);
+                }
+            }
+        });
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
                 final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
 
-                Set<TargetMachine> targetMachines;
-                if (mainComponent != null) {
-                    testComponent.getTestedComponent().set(mainComponent);
-                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), mainComponent.getTargetMachines());
-                } else {
-                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), null);
-                }
-
-                if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
-                }
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
                 CppTestExecutable lastExecutable = null;
                 for (TargetMachine targetMachine : targetMachines) {
@@ -168,7 +170,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         }
 
                         lastExecutable = testExecutable;
-                        
+
                         // TODO: Publishing for test executable?
                     }
                 }
@@ -278,25 +280,17 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
     }
 
-    private Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> testTargetMachines, @Nullable SetProperty<TargetMachine> mainTargetMachines) {
-        if (mainTargetMachines != null && mainTargetMachines.isPresent()) {
-            if (!testTargetMachines.isPresent()) {
-                testTargetMachines.set(mainTargetMachines);
-            } else {
-                Set<TargetMachine> mainComponentTargetMachines = mainTargetMachines.get();
-                for (TargetMachine machine : testTargetMachines.get()) {
-                    if (!mainComponentTargetMachines.contains(machine)) {
-                        throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
-                    }
-                }
-            }
-        } else {
-            if (!testTargetMachines.isPresent()) {
-                testTargetMachines.empty().add(((DefaultTargetMachineFactory)targetMachineFactory).host());
-            }
+    private void validateTargetMachines(Set<TargetMachine> testTargetMachines, @Nullable Set<TargetMachine> mainTargetMachines) {
+        if (testTargetMachines.isEmpty()) {
+            throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
         }
 
-        testTargetMachines.finalizeValue();
-        return testTargetMachines.get();
+        if (mainTargetMachines != null) {
+            for (TargetMachine machine : testTargetMachines) {
+                if (!mainTargetMachines.contains(machine)) {
+                    throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
+                }
+            }
+        }
     }
 }

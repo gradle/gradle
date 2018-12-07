@@ -106,4 +106,13 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
+
+    @Override
+    protected configureTargetMachines(String targetMachines) {
+        return """
+            ${testedComponentDsl} {
+                targetMachines = [${targetMachines}]
+            }
+        """ + super.configureTargetMachines(targetMachines)
+    }
 }

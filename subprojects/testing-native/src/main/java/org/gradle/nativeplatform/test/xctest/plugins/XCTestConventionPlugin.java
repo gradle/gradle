@@ -33,7 +33,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -57,7 +56,6 @@ import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
-import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -89,7 +87,7 @@ import java.util.stream.Collectors;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
-import static org.gradle.language.nativeplatform.internal.Dimensions.setDefaultAndGetTargetMachineValues;
+import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -123,21 +121,25 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Create test suite component
         final DefaultSwiftXCTestSuite testComponent = createTestSuite(project);
 
+        testComponent.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        project.getComponents().withType(ProductionSwiftComponent.class, new Action<ProductionSwiftComponent>() {
+            @Override
+            public void execute(ProductionSwiftComponent component) {
+                if ("main".equals(component.getName())) {
+                    testComponent.getTargetMachines().convention(component.getTargetMachines());
+                    testComponent.getTestedComponent().set(component);
+                }
+            }
+        });
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
                 final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
-                Set<TargetMachine> targetMachines;
-                if (mainComponent != null) {
-                    testComponent.getTestedComponent().set(mainComponent);
-                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), mainComponent.getTargetMachines());
-                } else {
-                    targetMachines = setDefaultAndGetTargetMachineValues(testComponent.getTargetMachines(), null);
-                }
 
-                if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("A target machine needs to be specified for the application.");
-                }
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 BuildType buildType = BuildType.DEBUG;
@@ -391,25 +393,17 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Set<TargetMachine> setDefaultAndGetTargetMachineValues(SetProperty<TargetMachine> testTargetMachines, @Nullable SetProperty<TargetMachine> mainTargetMachines) {
-        if (mainTargetMachines != null && mainTargetMachines.isPresent()) {
-            if (!testTargetMachines.isPresent()) {
-                testTargetMachines.set(mainTargetMachines);
-            } else {
-                Set<TargetMachine> mainComponentTargetMachines = mainTargetMachines.get();
-                for (TargetMachine machine : testTargetMachines.get()) {
-                    if (!mainComponentTargetMachines.contains(machine)) {
-                        throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
-                    }
-                }
-            }
-        } else {
-            if (!testTargetMachines.isPresent()) {
-                testTargetMachines.empty().add(((DefaultTargetMachineFactory)targetMachineFactory).host());
-            }
+    private void validateTargetMachines(Set<TargetMachine> testTargetMachines, @Nullable Set<TargetMachine> mainTargetMachines) {
+        if (testTargetMachines.isEmpty()) {
+            throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
         }
 
-        testTargetMachines.finalizeValue();
-        return testTargetMachines.get();
+        if (mainTargetMachines != null) {
+            for (TargetMachine machine : testTargetMachines) {
+                if (!mainTargetMachines.contains(machine)) {
+                    throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
+                }
+            }
+        }
     }
 }
