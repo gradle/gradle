@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,14 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.TypeConversionException;
+import java.lang.reflect.Type;
 
-import java.util.List;
-import java.util.Set;
+public interface PropertySetter {
+    Class<?> getDeclaringClass();
 
-public interface OptionElement {
-    Set<String> getAvailableValues();
+    Class<?> getRawType();
 
-    Class<?> getOptionType();
+    Type getGenericType();
 
-    String getOptionName();
-
-    /**
-     * @throws TypeConversionException On failure to convert the supplied values to the appropriate target types.
-     */
-    void apply(Object object, List<String> parameterValues) throws TypeConversionException;
-
-    String getDescription();
+    void setValue(Object object, Object value);
 }
