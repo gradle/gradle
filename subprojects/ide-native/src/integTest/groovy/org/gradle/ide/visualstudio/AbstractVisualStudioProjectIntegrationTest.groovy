@@ -103,6 +103,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
     @Requires(TestPrecondition.MSBUILD)
     def "build generated visual studio solution with multiple target machines"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
 
         given:
