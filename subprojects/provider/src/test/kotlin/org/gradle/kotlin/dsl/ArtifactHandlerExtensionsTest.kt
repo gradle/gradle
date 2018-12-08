@@ -102,6 +102,6 @@ class ArtifactHandlerExtensionsTest {
 
         verify(artifactHandler).add(eq("string-invoke"), eq(secondNotation), any<Action<ConfigurablePublishArtifact>>())
         verify(secondConfiguredArtifact).extension = "zip"
-        assertThat(secondArtifact, sameInstance(secondArtifact as PublishArtifact))
+        assertThat(secondArtifact, sameInstance(secondConfiguredArtifact as PublishArtifact))
     }
 }
