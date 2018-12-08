@@ -174,15 +174,16 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
         fun path(key: String) =
             (environment[key] as? String)?.let(::File)
 
-        val importedProjectRoot = environment["projectRoot"] as File
+        val projectDir = environment["projectRoot"] as File
         return KotlinBuildScriptModelRequest(
-            projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
+            projectDir = projectDir,
             scriptFile = scriptFile,
             gradleInstallation = gradleInstallationFrom(environment),
             gradleUserHome = path("gradleUserHome"),
             javaHome = path("gradleJavaHome"),
             options = stringList("gradleOptions"),
-            jvmOptions = stringList("gradleJvmOptions"))
+            jvmOptions = stringList("gradleJvmOptions")
+        )
     }
 
     private
@@ -208,32 +209,6 @@ class KotlinBuildScriptDependencies(
     override val sources: Iterable<File>,
     override val imports: Iterable<String>
 ) : KotlinScriptExternalDependencies
-
-
-internal
-fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
-
-    // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
-    fun isProjectRoot(dir: File) =
-        File(dir, "settings.gradle.kts").isFile
-            || File(dir, "settings.gradle").isFile
-            || dir.name == "buildSrc"
-
-    tailrec fun test(dir: File): File =
-        when {
-            dir == importedProjectRoot -> importedProjectRoot
-            isProjectRoot(dir) -> dir
-            else -> {
-                val parentDir = dir.parentFile
-                when (parentDir) {
-                    null, dir -> scriptFile.parentFile // external project
-                    else -> test(parentDir)
-                }
-            }
-        }
-
-    return test(scriptFile.parentFile)
-}
 
 
 /**

@@ -26,3 +26,8 @@ fun userHome() = File(System.getProperty("user.home"))
 internal
 inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
     use { run(action) }
+
+
+internal
+fun File.isParentOf(child: File): Boolean =
+    child.canonicalPath.startsWith(canonicalPath)

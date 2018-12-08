@@ -117,13 +117,14 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun assertClassPathFor(
         buildScript: File,
         includes: Set<File>,
-        excludes: Set<File>
+        excludes: Set<File>,
+        importedProjectDir: File = projectRoot
     ) {
         val includeItems = hasItems(*includes.map { it.name }.toTypedArray())
         val excludeItems = not(hasItems(*excludes.map { it.name }.toTypedArray()))
         val condition = if (excludes.isEmpty()) includeItems else allOf(includeItems, excludeItems)
         assertThat(
-            classPathFor(projectRoot, buildScript).map { it.name },
+            classPathFor(importedProjectDir, buildScript).map { it.name },
             condition
         )
     }
@@ -178,8 +179,8 @@ fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
 
 
 private
-fun classPathFor(projectDir: File, scriptFile: File?) =
-    kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
+fun classPathFor(importedProjectDir: File, scriptFile: File?) =
+    kotlinBuildScriptModelFor(importedProjectDir, scriptFile).classPath
 
 
 internal
@@ -188,15 +189,17 @@ val KotlinBuildScriptModel.canonicalClassPath
 
 
 internal
-fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
+fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
     withTestDaemon {
         future {
             fetchKotlinBuildScriptModelFor(
                 KotlinBuildScriptModelRequest(
-                    projectDir = projectDir,
+                    projectDir = importedProjectDir,
                     scriptFile = scriptFile,
                     gradleInstallation = customGradleInstallation(),
-                    jvmOptions = listOf("-Xms128m", "-Xmx256m"))) {
+                    jvmOptions = listOf("-Xms128m", "-Xmx256m")
+                )
+            ) {
 
                 setStandardOutput(System.out)
                 setStandardError(System.err)

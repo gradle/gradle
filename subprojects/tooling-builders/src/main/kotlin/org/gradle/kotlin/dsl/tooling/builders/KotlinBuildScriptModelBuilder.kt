@@ -78,7 +78,8 @@ data class StandardKotlinBuildScriptModel(
     override val sourcePath: List<File>,
     override val implicitImports: List<String>,
     override val editorReports: List<EditorReport>,
-    override val exceptions: List<Exception>
+    override val exceptions: List<Exception>,
+    override val enclosingScriptProjectDir: File?
 ) : KotlinBuildScriptModel, Serializable
 
 
@@ -134,13 +135,17 @@ fun Project.findProjectWithBuildFile(file: File) =
 
 
 private
-fun Project.enclosingSourceSetOf(file: File): SourceSet? =
+fun Project.enclosingSourceSetOf(file: File): EnclosingSourceSet? =
     findSourceSetOf(file)
         ?: findSourceSetOfFileIn(subprojects, file)
 
 
 private
-fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): SourceSet? =
+data class EnclosingSourceSet(val project: Project, val sourceSet: SourceSet)
+
+
+private
+fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): EnclosingSourceSet? =
     projects
         .asSequence()
         .mapNotNull { it.findSourceSetOf(file) }
@@ -148,8 +153,10 @@ fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): SourceSet? =
 
 
 private
-fun Project.findSourceSetOf(file: File): SourceSet? =
-    sourceSets?.find { file in it.allSource }
+fun Project.findSourceSetOf(file: File): EnclosingSourceSet? =
+    sourceSets?.find { file in it.allSource }?.let {
+        EnclosingSourceSet(this, it)
+    }
 
 
 private
@@ -158,21 +165,30 @@ val Project.sourceSets
 
 
 private
-fun precompiledScriptPluginModelBuilder(scriptFile: File, enclosingSourceSet: SourceSet, modelRequestProject: Project): KotlinScriptTargetModelBuilder =
-    KotlinScriptTargetModelBuilder(
-        scriptFile = scriptFile,
-        project = modelRequestProject,
-        scriptClassPath = DefaultClassPath.of(enclosingSourceSet.compileClasspath))
+fun precompiledScriptPluginModelBuilder(
+    scriptFile: File,
+    enclosingSourceSet: EnclosingSourceSet,
+    modelRequestProject: Project
+) = KotlinScriptTargetModelBuilder(
+    scriptFile = scriptFile,
+    project = modelRequestProject,
+    scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
+    enclosingScriptProjectDir = enclosingSourceSet.project.projectDir
+)
 
 
 private
-fun projectScriptModelBuilder(scriptFile: File?, project: Project) =
-    KotlinScriptTargetModelBuilder(
-        scriptFile = scriptFile,
-        project = project,
-        scriptClassPath = project.scriptCompilationClassPath,
-        accessorsClassPath = { classPath -> projectAccessorsClassPath(project, classPath) + pluginAccessorsClassPath(project) },
-        sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project))
+fun projectScriptModelBuilder(
+    scriptFile: File?,
+    project: Project
+) = KotlinScriptTargetModelBuilder(
+    scriptFile = scriptFile,
+    project = project,
+    scriptClassPath = project.scriptCompilationClassPath,
+    accessorsClassPath = { classPath -> projectAccessorsClassPath(project, classPath) + pluginAccessorsClassPath(project) },
+    sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
+    enclosingScriptProjectDir = project.projectDir
+)
 
 
 private
@@ -202,7 +218,9 @@ fun settingsScriptModelBuilder(scriptFile: File, project: Project) = project.run
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = settings.scriptCompilationClassPath,
-        sourceLookupScriptHandlers = listOf(settings.buildscript))
+        sourceLookupScriptHandlers = listOf(settings.buildscript),
+        enclosingScriptProjectDir = rootDir
+    )
 }
 
 
@@ -242,7 +260,8 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler, buildscript))
+        sourceLookupScriptHandlers = listOf(scriptHandler, buildscript)
+    )
 }
 
 
@@ -305,7 +324,8 @@ data class KotlinScriptTargetModelBuilder(
     val project: Project,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
-    val sourceLookupScriptHandlers: List<ScriptHandler> = emptyList()
+    val sourceLookupScriptHandlers: List<ScriptHandler> = emptyList(),
+    val enclosingScriptProjectDir: File? = null
 ) {
 
     fun buildModel(): KotlinBuildScriptModel {
@@ -321,7 +341,9 @@ data class KotlinScriptTargetModelBuilder(
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports,
             buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
-            classPathModeExceptionCollector.exceptions)
+            classPathModeExceptionCollector.exceptions,
+            enclosingScriptProjectDir
+        )
     }
 
     private

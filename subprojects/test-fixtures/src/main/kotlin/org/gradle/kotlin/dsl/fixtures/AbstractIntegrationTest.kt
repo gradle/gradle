@@ -63,7 +63,9 @@ open class AbstractIntegrationTest {
 
     private
     val defaultProjectRoot
-        get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
+        get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).canonicalFile.apply {
+            mkdirs()
+        }
 
     protected
     fun <T> withProjectRoot(dir: File, action: () -> T): T {
@@ -75,6 +77,10 @@ open class AbstractIntegrationTest {
             customProjectRoot = previousProjectRoot
         }
     }
+
+    protected
+    fun withFolders(folders: FoldersDslExpression) =
+        projectRoot.withFolders(folders)
 
     protected
     fun withDefaultSettings() =

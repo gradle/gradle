@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
@@ -11,7 +12,6 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
-
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -136,41 +136,177 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
-        withSettings("include(\"foo\", \"bar\")")
+        assertCanFetchClassPathForSubProjectScriptIn(".")
+    }
+
+    @Test
+    fun `can fetch buildscript classpath for sub-project script of nested project`() {
+
+        withDefaultSettings()
+
+        assertCanFetchClassPathForSubProjectScriptIn("nested-project")
+    }
+
+    private
+    fun assertCanFetchClassPathForSubProjectScriptIn(location: String) {
+        withSettingsIn(location, "include(\"foo\", \"bar\")")
 
         fun withFixture(fixture: String) =
-            withClassJar("libs/$fixture.jar", DeepThought::class.java)
+            withClassJar("$location/libs/$fixture.jar", DeepThought::class.java)
 
         val parentJar = withFixture("parent")
         val fooJar = withFixture("foo")
         val barJar = withFixture("bar")
 
-        fun String.withBuildscriptDependencyOn(fixture: File) =
-            withFile(this, """
-                buildscript {
-                    dependencies { classpath(files("${fixture.normalisedPath}")) }
-                }
-            """)
-
-        val parentBuildScript = "build.gradle".withBuildscriptDependencyOn(parentJar)
-        val fooBuildScript = "foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
-        val barBuildScript = "bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
+        val parentBuildScript = "$location/build.gradle".withBuildscriptDependencyOn(parentJar)
+        val fooBuildScript = "$location/foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
+        val barBuildScript = "$location/bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
 
         assertClassPathFor(
             parentBuildScript,
             includes = setOf(parentJar),
-            excludes = setOf(fooJar, barJar))
+            excludes = setOf(fooJar, barJar)
+        )
 
         assertClassPathFor(
             fooBuildScript,
             includes = setOf(parentJar, fooJar),
-            excludes = setOf(barJar))
+            excludes = setOf(barJar)
+        )
 
         assertClassPathFor(
             barBuildScript,
             includes = setOf(parentJar, barJar),
-            excludes = setOf(fooJar))
+            excludes = setOf(fooJar)
+        )
     }
+
+    @Test
+    fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
+
+        withFolders {
+
+            "libs" {
+                withJar("root.jar")
+                withJar("sub.jar")
+            }
+
+            "root" {
+                withFile("settings.gradle.kts", """
+                    include("sub")
+                    project(":sub").apply {
+                        projectDir = file("../sub")
+                        buildFileName = "sub.gradle.kts"
+                    }
+                """)
+            }
+
+            "sub" {
+            }
+        }
+
+        val rootDependency = existing("libs/root.jar")
+        val subDependency = existing("libs/sub.jar")
+
+        val rootBuildScript = "root/build.gradle".withBuildscriptDependencyOn(rootDependency)
+        val subBuildScript = "sub/sub.gradle.kts".withBuildscriptDependencyOn(subDependency)
+        val rootProjectDir = rootBuildScript.parentFile
+
+        assertClassPathFor(
+            rootBuildScript,
+            includes = setOf(rootDependency),
+            excludes = setOf(subDependency),
+            importedProjectDir = rootProjectDir
+        )
+
+        assertClassPathFor(
+            subBuildScript,
+            includes = setOf(rootDependency, subDependency),
+            excludes = emptySet(),
+            importedProjectDir = rootProjectDir
+        )
+    }
+
+    @Test
+    fun `can fetch buildscript classpath for buildSrc sub-project script outside buildSrc root`() {
+
+        assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("buildSrc")
+    }
+
+    @Test(expected = AssertionError::class)
+    fun `can fetch buildscript classpath for sub-project script of nested project outside nested project root`() {
+
+        // This use-case was never supported and continues not to be supported
+        assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("nested-project")
+    }
+
+    private
+    fun assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot(nestedProjectName: String) {
+        withDefaultSettings()
+
+        withFolders {
+            "libs" {
+                withJar("root-dep.jar")
+                withJar("$nestedProjectName-root-dep.jar")
+                withJar("$nestedProjectName-sub-dep.jar")
+            }
+
+            nestedProjectName {
+                withFile("settings.gradle.kts", """
+                    include("sub")
+                    project(":sub").apply {
+                        projectDir = file("../$nestedProjectName-sub")
+                        buildFileName = "sub.gradle.kts"
+                    }
+                """)
+            }
+
+            "$nestedProjectName-sub" {
+            }
+        }
+
+        val rootDependency = existing("libs/root-dep.jar")
+        val nestedRootDependency = existing("libs/$nestedProjectName-root-dep.jar")
+        val nestedSubDependency = existing("libs/$nestedProjectName-sub-dep.jar")
+
+        val rootBuildScript = "build.gradle".withBuildscriptDependencyOn(rootDependency)
+        val nestedBuildScript = "$nestedProjectName/build.gradle.kts".withBuildscriptDependencyOn(nestedRootDependency)
+        val nestedSubBuildScript = "$nestedProjectName-sub/sub.gradle.kts".withBuildscriptDependencyOn(nestedSubDependency)
+
+        assertClassPathFor(
+            rootBuildScript,
+            includes = setOf(rootDependency),
+            excludes = setOf(nestedRootDependency, nestedSubDependency)
+        )
+
+        assertClassPathFor(
+            nestedBuildScript,
+            includes = setOf(nestedRootDependency),
+            excludes = setOf(rootDependency, nestedSubDependency)
+        )
+
+        assertClassPathFor(
+            nestedSubBuildScript,
+            includes = setOf(nestedRootDependency, nestedSubDependency),
+            excludes = setOf(rootDependency)
+        )
+    }
+
+    private
+    fun FoldersDsl.withJar(named: String): File =
+        withJar(file(named))
+
+    private
+    fun withJar(file: File): File =
+        withClassJar(file.path, DeepThought::class.java)
+
+    private
+    fun String.withBuildscriptDependencyOn(file: File) =
+        withFile(this, """
+            buildscript {
+                dependencies { classpath(files("${file.normalisedPath}")) }
+            }
+        """)
 
     @Test
     fun `can fetch classpath of script plugin`() {
