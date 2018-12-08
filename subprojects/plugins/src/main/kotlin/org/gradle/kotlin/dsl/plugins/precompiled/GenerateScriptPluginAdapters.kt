@@ -26,14 +26,15 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+import org.gradle.kotlin.dsl.support.normaliseLineSeparators
+
 import java.io.File
 
 
 @CacheableTask
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     internal
     lateinit var scripts: FileTree
 
@@ -43,6 +44,15 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:OutputDirectory
     var outputDirectory = project.objects.directoryProperty()
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @Suppress("unused")
+    internal
+    val scriptFiles: Set<File>
+        get() = scripts.matching { filterable ->
+            filterable.exclude { it.isDirectory }
+        }.files
 
     @TaskAction
     @Suppress("unused")
@@ -90,7 +100,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.replaceIndent().trim() + "\n")
+    """.normaliseLineSeparators().replaceIndent().trim() + "\n")
 }
 
 
