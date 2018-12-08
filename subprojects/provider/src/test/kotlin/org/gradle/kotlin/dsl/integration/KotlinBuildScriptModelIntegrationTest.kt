@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.internal.os.OperatingSystem
+
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
@@ -14,6 +16,7 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assume.assumeFalse
 import org.junit.Test
 
 import java.io.File
@@ -184,6 +187,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
 
+        assumeNotWindows()
+
         withFolders {
 
             "libs" {
@@ -230,11 +235,15 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for buildSrc sub-project script outside buildSrc root`() {
 
+        assumeNotWindows()
+
         assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("buildSrc")
     }
 
     @Test(expected = AssertionError::class)
     fun `can fetch buildscript classpath for sub-project script of nested project outside nested project root`() {
+
+        assumeNotWindows()
 
         // This use-case was never supported and continues not to be supported
         assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("nested-project")
@@ -526,5 +535,10 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
 
         assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
+    }
+
+    private
+    fun assumeNotWindows() {
+        assumeFalse("WIP", OperatingSystem.current().isWindows)
     }
 }
