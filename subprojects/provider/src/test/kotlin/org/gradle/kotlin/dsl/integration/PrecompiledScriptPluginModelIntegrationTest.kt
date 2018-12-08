@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
-import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.junit.Test
 
@@ -55,7 +54,7 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
         val dependencyB =
             withFile("b.jar")
 
-        projectRoot.withFolders {
+        withFolders {
 
             withFile("settings.gradle.kts", """
                 include("project-a")

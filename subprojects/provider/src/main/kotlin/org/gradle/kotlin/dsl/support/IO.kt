@@ -35,3 +35,8 @@ inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
  */
 fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable =
     append(value).append("\n")
+
+
+internal
+fun File.isParentOf(child: File): Boolean =
+    child.canonicalPath.startsWith(canonicalPath)

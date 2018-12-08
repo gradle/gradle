@@ -230,7 +230,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     @Test
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "plugins" {
 

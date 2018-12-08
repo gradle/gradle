@@ -17,6 +17,9 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.isParentOf
+import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.tooling.GradleConnector
@@ -59,9 +62,42 @@ internal
 fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}
+): KotlinBuildScriptModel {
+
+    val importedProjectDir = request.projectDir
+    val scriptFile = request.scriptFile
+        ?: return fetchKotlinBuildScriptModelFrom(importedProjectDir, request, modelBuilderCustomization)
+
+    val effectiveProjectDir = buildSrcProjectDirOf(scriptFile, importedProjectDir)
+        ?: importedProjectDir
+
+    val scriptModel = fetchKotlinBuildScriptModelFrom(effectiveProjectDir, request, modelBuilderCustomization)
+    if (scriptModel.enclosingScriptProjectDir == null && hasProjectDependentClassPath(scriptFile)) {
+        val externalProjectRoot = projectRootOf(scriptFile, importedProjectDir)
+        if (externalProjectRoot != importedProjectDir) {
+            return fetchKotlinBuildScriptModelFrom(externalProjectRoot, request, modelBuilderCustomization)
+        }
+    }
+    return scriptModel
+}
+
+
+private
+fun hasProjectDependentClassPath(scriptFile: File): Boolean =
+    when (kotlinScriptTypeFor(scriptFile)) {
+        KotlinScriptType.INIT -> false
+        else -> true
+    }
+
+
+private
+fun fetchKotlinBuildScriptModelFrom(
+    projectDir: File,
+    request: KotlinBuildScriptModelRequest,
+    modelBuilderCustomization: ModelBuilderCustomization
 ): KotlinBuildScriptModel =
 
-    projectConnectionFor(request).let { connection ->
+    projectConnectionFor(request, projectDir).let { connection ->
         @Suppress("ConvertTryFinallyToUseCall")
         try {
             connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
@@ -72,8 +108,8 @@ fun fetchKotlinBuildScriptModelFor(
 
 
 private
-fun projectConnectionFor(request: KotlinBuildScriptModelRequest): ProjectConnection =
-    connectorFor(request).connect()
+fun projectConnectionFor(request: KotlinBuildScriptModelRequest, projectDir: File): ProjectConnection =
+    connectorFor(request, projectDir).connect()
 
 
 private
@@ -95,13 +131,46 @@ val modelSpecificJvmOptions =
 const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
-internal
-fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
-    connectorFor(request.projectDir, request.gradleInstallation)
+private
+fun connectorFor(request: KotlinBuildScriptModelRequest, projectDir: File): GradleConnector =
+    connectorFor(projectDir, request.gradleInstallation)
         .useGradleUserHomeDir(request.gradleUserHome)
 
 
+private
+fun buildSrcProjectDirOf(scriptFile: File, importedProjectDir: File): File? =
+    importedProjectDir.resolve("buildSrc").takeIf { buildSrc ->
+        buildSrc.isDirectory && buildSrc.isParentOf(scriptFile)
+    }
+
+
 internal
+fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
+
+    // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
+    fun isProjectRoot(dir: File) =
+        File(dir, "settings.gradle.kts").isFile
+            || File(dir, "settings.gradle").isFile
+            || dir.name == "buildSrc"
+
+    tailrec fun test(dir: File): File =
+        when {
+            dir == importedProjectRoot -> importedProjectRoot
+            isProjectRoot(dir) -> dir
+            else -> {
+                val parentDir = dir.parentFile
+                when (parentDir) {
+                    null, dir -> scriptFile.parentFile // external project
+                    else -> test(parentDir)
+                }
+            }
+        }
+
+    return test(scriptFile.parentFile)
+}
+
+
+private
 fun connectorFor(projectDir: File, gradleInstallation: GradleInstallation): GradleConnector =
     GradleConnector
         .newConnector()

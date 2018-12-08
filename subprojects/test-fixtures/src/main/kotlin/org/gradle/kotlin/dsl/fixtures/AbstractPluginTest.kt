@@ -70,6 +70,12 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         loadPropertiesFromResource("/future-plugin-versions.properties")
     }
 
+    private
+    fun loadPropertiesFromResource(name: String): Properties? =
+        javaClass.getResourceAsStream(name)?.use {
+            Properties().apply { load(it) }
+        }
+
     protected
     open val testRepositoryPaths: List<String>
         get() = normalisedPathsOf("build/repository")
@@ -78,12 +84,6 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     fun setUpTestPluginRepository() {
         withSettings(pluginManagementBlock)
     }
-
-    private
-    fun loadPropertiesFromResource(name: String): Properties? =
-        javaClass.getResourceAsStream(name)?.use {
-            Properties().apply { load(it) }
-        }
 
     protected
     fun buildWithPlugin(vararg arguments: String) =
