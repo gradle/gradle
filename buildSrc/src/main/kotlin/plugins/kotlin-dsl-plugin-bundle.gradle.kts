@@ -29,8 +29,13 @@ afterEvaluate {
 }
 
 
-tasks.named("test").configure {
-    dependsOn(rootProject.tasks["customInstallation"])
+tasks {
+    "validateTaskProperties"(ValidateTaskProperties::class) {
+        failOnWarning = true
+    }
+    "test" {
+        dependsOn(rootProject.tasks["customInstallation"])
+    }
 }
 
 

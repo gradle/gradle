@@ -25,6 +25,10 @@ kotlinDslPluginOptions {
 
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
+tasks.validateTaskProperties {
+    failOnWarning = true
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(

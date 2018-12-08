@@ -32,16 +32,16 @@ import java.io.File
 @CacheableTask
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     internal
     lateinit var scripts: FileTree
 
-    @Internal
+    @get:Internal
     internal
     lateinit var plugins: List<ScriptPlugin>
 
-    @OutputDirectory
+    @get:OutputDirectory
     var outputDirectory = project.objects.directoryProperty()
 
     @TaskAction
