@@ -45,14 +45,14 @@ public abstract class CodeQualityExtension {
     }
 
     /**
-     * The source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
+     * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
     public Collection<SourceSet> getSourceSets() {
         return sourceSets;
     }
 
     /**
-     * The source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
+     * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
         this.sourceSets = sourceSets;

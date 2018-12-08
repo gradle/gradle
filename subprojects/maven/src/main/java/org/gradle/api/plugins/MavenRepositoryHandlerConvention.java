@@ -62,7 +62,8 @@ public interface MavenRepositoryHandlerConvention {
      *
      * The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
@@ -131,7 +132,8 @@ public interface MavenRepositoryHandlerConvention {
      *
      * The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
