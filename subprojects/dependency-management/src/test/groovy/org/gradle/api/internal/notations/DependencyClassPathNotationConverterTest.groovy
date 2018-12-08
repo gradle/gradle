@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
 import org.gradle.cache.internal.GeneratedGradleJarCache
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
@@ -59,6 +60,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def gradleTestKitFiles = [testDirectoryProvider.file('gradle-test-kit.jar')]
 
         classPathRegistry.getClassPath('GRADLE_API') >> DefaultClassPath.of(gradleApiFiles)
+        classPathRegistry.getClassPath('GRADLE_KOTLIN_DSL') >> ClassPath.EMPTY
         classPathRegistry.getClassPath('GRADLE_TEST_KIT') >> DefaultClassPath.of(gradleTestKitFiles)
         classPathRegistry.getClassPath('LOCAL_GROOVY') >> DefaultClassPath.of(localGroovyFiles)
         classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> DefaultClassPath.of(installationBeaconFiles)

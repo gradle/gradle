@@ -26,8 +26,10 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DeferredUtil {
 
+    private static Boolean kotlinFunction0CanBeLoaded = null;
+
     /**
-     * Successively unpacks a deferred value until it is resolved to null or something other than Callable
+     * Successively unpacks a deferred value until it is resolved to null or something other than Callable (including Groovy Closure) or Kotlin lambda
      * then unpacks the remaining Provider or Factory.
      */
     @Nullable
@@ -35,7 +37,7 @@ public class DeferredUtil {
         if (deferred == null) {
             return null;
         }
-        Object value = unpackCallables(deferred);
+        Object value = unpackNestableDeferred(deferred);
         if (value instanceof Provider) {
             return ((Provider<?>) value).get();
         }
@@ -46,17 +48,48 @@ public class DeferredUtil {
     }
 
     public static boolean isDeferred(Object value) {
+        return value instanceof Provider
+            || value instanceof Factory
+            || isNestableDeferred(value);
+    }
+
+    private static boolean isNestableDeferred(@Nullable Object value) {
         return value instanceof Callable
-            || value instanceof Provider
-            || value instanceof Factory;
+            || isKotlinFunction0Deferrable(value);
     }
 
     @Nullable
-    private static Object unpackCallables(Object deferred) {
+    private static Object unpackNestableDeferred(Object deferred) {
         Object current = deferred;
-        while (current instanceof Callable) {
-            current = uncheckedCall((Callable<?>) current);
+        while (isNestableDeferred(current)) {
+            if (current instanceof Callable) {
+                current = uncheckedCall((Callable<?>) current);
+            } else {
+                current = unpackKotlinFunction0(current);
+            }
         }
         return current;
+    }
+
+    private static boolean isKotlinFunction0Deferrable(@Nullable Object value) {
+        return value != null && kotlinFunction0CanBeLoaded() && value instanceof kotlin.jvm.functions.Function0;
+    }
+
+    private static boolean kotlinFunction0CanBeLoaded() {
+        if (kotlinFunction0CanBeLoaded == null) {
+            try {
+                DeferredUtil.class.getClassLoader().loadClass("kotlin.jvm.functions.Function0");
+                kotlinFunction0CanBeLoaded = true;
+            } catch (ClassNotFoundException ex) {
+                kotlinFunction0CanBeLoaded = false;
+            }
+        }
+        return kotlinFunction0CanBeLoaded;
+    }
+
+    @Nullable
+    private static Object unpackKotlinFunction0(Object value) {
+        assert kotlinFunction0CanBeLoaded;
+        return ((kotlin.jvm.functions.Function0) value).invoke();
     }
 }
