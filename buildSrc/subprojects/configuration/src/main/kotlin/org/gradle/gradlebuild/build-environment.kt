@@ -8,6 +8,7 @@ object BuildEnvironment {
     val isCiServer = "CI" in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
     val gradleKotlinDslVersion = "1.0.4"
+    val kotlinVersion = "1.3.10"
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
