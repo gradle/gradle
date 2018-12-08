@@ -174,16 +174,24 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
         fun path(key: String) =
             (environment[key] as? String)?.let(::File)
 
-        val importedProjectRoot = environment["projectRoot"] as File
+        val projectDir = environment["projectRoot"] as File
         return KotlinBuildScriptModelRequest(
-            projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
+            projectDir = projectRootFor(scriptFile, projectDir),
             scriptFile = scriptFile,
             gradleInstallation = gradleInstallationFrom(environment),
             gradleUserHome = path("gradleUserHome"),
             javaHome = path("gradleJavaHome"),
             options = stringList("gradleOptions"),
-            jvmOptions = stringList("gradleJvmOptions"))
+            jvmOptions = stringList("gradleJvmOptions")
+        )
     }
+
+    private
+    fun projectRootFor(scriptFile: File?, projectDir: File): File = scriptFile?.let {
+        projectDir.resolve("buildSrc").takeIf { buildSrc ->
+            buildSrc.isDirectory && buildSrc.isParentOf(scriptFile)
+        }
+    } ?: projectDir
 
     private
     fun gradleInstallationFrom(environment: Environment): GradleInstallation =
@@ -200,6 +208,11 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
             response.implicitImports
         )
 }
+
+
+private
+fun File.isParentOf(child: File): Boolean =
+    child.canonicalPath.startsWith(canonicalPath)
 
 
 internal

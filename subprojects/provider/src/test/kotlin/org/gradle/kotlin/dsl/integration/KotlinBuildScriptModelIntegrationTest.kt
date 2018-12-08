@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
@@ -145,13 +146,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val fooJar = withFixture("foo")
         val barJar = withFixture("bar")
 
-        fun String.withBuildscriptDependencyOn(fixture: File) =
-            withFile(this, """
-                buildscript {
-                    dependencies { classpath(files("${fixture.normalisedPath}")) }
-                }
-            """)
-
         val parentBuildScript = "build.gradle".withBuildscriptDependencyOn(parentJar)
         val fooBuildScript = "foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
         val barBuildScript = "bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
@@ -159,18 +153,79 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         assertClassPathFor(
             parentBuildScript,
             includes = setOf(parentJar),
-            excludes = setOf(fooJar, barJar))
+            excludes = setOf(fooJar, barJar)
+        )
 
         assertClassPathFor(
             fooBuildScript,
             includes = setOf(parentJar, fooJar),
-            excludes = setOf(barJar))
+            excludes = setOf(barJar)
+        )
 
         assertClassPathFor(
             barBuildScript,
             includes = setOf(parentJar, barJar),
-            excludes = setOf(fooJar))
+            excludes = setOf(fooJar)
+        )
     }
+
+    @Test
+    fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
+
+        withFolders {
+
+            "libs" {
+                withJar("root.jar")
+                withJar("sub.jar")
+            }
+
+            "root" {
+                withFile("settings.gradle.kts", """
+                    include("sub")
+                    project(":sub").apply {
+                        projectDir = file("../sub")
+                        buildFileName = "sub.gradle.kts"
+                    }
+                """)
+            }
+
+            "sub" {
+            }
+        }
+
+        val rootJar = existing("libs/root.jar")
+        val subJar = existing("libs/sub.jar")
+
+        val rootBuildScript = "root/build.gradle".withBuildscriptDependencyOn(rootJar)
+        val subBuildScript = "sub/sub.gradle.kts".withBuildscriptDependencyOn(subJar)
+        val rootProjectDir = rootBuildScript.parentFile
+
+        assertClassPathFor(
+            rootBuildScript,
+            includes = setOf(rootJar),
+            excludes = setOf(subJar),
+            projectDir = rootProjectDir
+        )
+
+        assertClassPathFor(
+            subBuildScript,
+            includes = setOf(rootJar, subJar),
+            excludes = emptySet(),
+            projectDir = rootProjectDir
+        )
+    }
+
+    private
+    fun FoldersDsl.withJar(named: String) =
+        withClassJar(named.asCanonicalFile().path, DeepThought::class.java)
+
+    private
+    fun String.withBuildscriptDependencyOn(file: File) =
+        withFile(this, """
+            buildscript {
+                dependencies { classpath(files("${file.normalisedPath}")) }
+            }
+        """)
 
     @Test
     fun `can fetch classpath of script plugin`() {

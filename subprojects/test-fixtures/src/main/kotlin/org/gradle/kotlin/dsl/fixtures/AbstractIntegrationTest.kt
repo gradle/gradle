@@ -77,6 +77,10 @@ open class AbstractIntegrationTest {
     }
 
     protected
+    fun withFolders(folders: FoldersDslExpression) =
+        projectRoot.withFolders(folders)
+
+    protected
     fun withDefaultSettings() =
         withDefaultSettingsIn(".")
 
