@@ -170,6 +170,60 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     @Test
+    fun `can fetch buildscript classpath for buildSrc sub-project script`() {
+
+        withDefaultSettings()
+
+        withFolders {
+            "libs" {
+                withJar("root-dep.jar")
+                withJar("buildSrc-root-dep.jar")
+                withJar("buildSrc-sub-dep.jar")
+            }
+
+            "buildSrc" {
+                withFile("settings.gradle.kts", """
+                    include("sub")
+                    project(":sub").apply {
+                        projectDir = file("../buildSrc-sub")
+                        buildFileName = "sub.gradle.kts"
+                    }
+                    $defaultSettingsScript
+                """)
+            }
+
+            "buildSrc-sub" {
+            }
+        }
+
+        val rootDependency = existing("libs/root-dep.jar")
+        val buildSrcDependency = existing("libs/buildSrc-root-dep.jar")
+        val buildSrcSubDependency = existing("libs/buildSrc-sub-dep.jar")
+
+        val rootBuildScript = "build.gradle".withBuildscriptDependencyOn(rootDependency)
+        val buildSrcBuildScript = "buildSrc/build.gradle.kts".withBuildscriptDependencyOn(buildSrcDependency)
+        val buildSrcSubBuildScript = "buildSrc-sub/sub.gradle.kts".withBuildscriptDependencyOn(buildSrcSubDependency)
+
+        assertClassPathFor(
+            rootBuildScript,
+            includes = setOf(rootDependency),
+            excludes = setOf(buildSrcDependency, buildSrcSubDependency)
+        )
+
+        assertClassPathFor(
+            buildSrcBuildScript,
+            includes = setOf(buildSrcDependency),
+            excludes = setOf(rootDependency, buildSrcSubDependency)
+        )
+
+        assertClassPathFor(
+            buildSrcSubBuildScript,
+            includes = setOf(buildSrcDependency, buildSrcSubDependency),
+            excludes = setOf(rootDependency)
+        )
+    }
+
+    @Test
     fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
 
         withFolders {
@@ -193,31 +247,35 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         }
 
-        val rootJar = existing("libs/root.jar")
-        val subJar = existing("libs/sub.jar")
+        val rootDependency = existing("libs/root.jar")
+        val subDependency = existing("libs/sub.jar")
 
-        val rootBuildScript = "root/build.gradle".withBuildscriptDependencyOn(rootJar)
-        val subBuildScript = "sub/sub.gradle.kts".withBuildscriptDependencyOn(subJar)
+        val rootBuildScript = "root/build.gradle".withBuildscriptDependencyOn(rootDependency)
+        val subBuildScript = "sub/sub.gradle.kts".withBuildscriptDependencyOn(subDependency)
         val rootProjectDir = rootBuildScript.parentFile
 
         assertClassPathFor(
             rootBuildScript,
-            includes = setOf(rootJar),
-            excludes = setOf(subJar),
+            includes = setOf(rootDependency),
+            excludes = setOf(subDependency),
             projectDir = rootProjectDir
         )
 
         assertClassPathFor(
             subBuildScript,
-            includes = setOf(rootJar, subJar),
+            includes = setOf(rootDependency, subDependency),
             excludes = emptySet(),
             projectDir = rootProjectDir
         )
     }
 
     private
-    fun FoldersDsl.withJar(named: String) =
-        withClassJar(named.asCanonicalFile().path, DeepThought::class.java)
+    fun FoldersDsl.withJar(named: String): File =
+        withJar(named.asCanonicalFile())
+
+    private
+    fun withJar(asCanonicalFile: File): File =
+        withClassJar(asCanonicalFile.path, DeepThought::class.java)
 
     private
     fun String.withBuildscriptDependencyOn(file: File) =

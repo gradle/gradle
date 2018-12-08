@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
+import org.gradle.kotlin.dsl.support.isParentOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.tooling.GradleConnector
@@ -95,13 +96,21 @@ val modelSpecificJvmOptions =
 const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
-internal
+private
 fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
-    connectorFor(request.projectDir, request.gradleInstallation)
+    connectorFor(projectRootFor(request.scriptFile, request.projectDir), request.gradleInstallation)
         .useGradleUserHomeDir(request.gradleUserHome)
 
 
-internal
+private
+fun projectRootFor(scriptFile: File?, projectDir: File): File = scriptFile?.let {
+    projectDir.resolve("buildSrc").takeIf { buildSrc ->
+        buildSrc.isDirectory && buildSrc.isParentOf(scriptFile)
+    }
+} ?: projectDir
+
+
+private
 fun connectorFor(projectDir: File, gradleInstallation: GradleInstallation): GradleConnector =
     GradleConnector
         .newConnector()
