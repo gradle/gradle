@@ -63,11 +63,13 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
     fun Project.configureBuildSrcSourceRootsTask() {
         plugins.withType<JavaBasePlugin> {
             tasks {
-                val generateSourceRoots by creating(GenerateSourceRootsFile::class) {
+                val generateSourceRoots by registering(GenerateSourceRootsFile::class) {
                     sourceRoots.set(projectDependenciesSourceRootsFrom("runtimeClasspath"))
                     destinationFile.set(layout.projectDirectory.file(buildSrcSourceRootsFilePath))
                 }
-                getByName("jar").finalizedBy(generateSourceRoots)
+                named("jar") {
+                    it.finalizedBy(generateSourceRoots)
+                }
             }
         }
     }
@@ -110,11 +112,15 @@ open class GenerateSourceRootsFile : DefaultTask() {
 
     @get:OutputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    @Suppress("LeakingThis")
     val destinationFile = project.objects.fileProperty()
 
     @TaskAction
     @Suppress("unused")
     fun generateSourcePathFile() =
-        destinationFile.get().asFile.printWriter().use { sourceRoots.get().forEach(it::println) }
+        destinationFile.get().asFile.printWriter().use { writer ->
+            sourceRoots.get().forEach { sourceRoot ->
+                writer.print(sourceRoot)
+                writer.print("\n")
+            }
+        }
 }
