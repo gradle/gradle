@@ -211,32 +211,6 @@ class KotlinBuildScriptDependencies(
 ) : KotlinScriptExternalDependencies
 
 
-internal
-fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
-
-    // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
-    fun isProjectRoot(dir: File) =
-        File(dir, "settings.gradle.kts").isFile
-            || File(dir, "settings.gradle").isFile
-            || dir.name == "buildSrc"
-
-    tailrec fun test(dir: File): File =
-        when {
-            dir == importedProjectRoot -> importedProjectRoot
-            isProjectRoot(dir) -> dir
-            else -> {
-                val parentDir = dir.parentFile
-                when (parentDir) {
-                    null, dir -> scriptFile.parentFile // external project
-                    else -> test(parentDir)
-                }
-            }
-        }
-
-    return test(scriptFile.parentFile)
-}
-
-
 /**
  * Handles all incoming [KotlinBuildScriptModelRequest]s via a single [EventLoop] to avoid spawning
  * multiple competing Gradle daemons.

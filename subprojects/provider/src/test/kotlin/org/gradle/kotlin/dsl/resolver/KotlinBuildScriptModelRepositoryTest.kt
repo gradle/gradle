@@ -156,7 +156,8 @@ class KotlinBuildScriptModelRepositoryTest {
         override val sourcePath: List<File> = emptyList(),
         override val implicitImports: List<String> = emptyList(),
         override val editorReports: List<EditorReport> = emptyList(),
-        override val exceptions: List<Exception> = emptyList()
+        override val exceptions: List<Exception> = emptyList(),
+        override val enclosingScriptProjectDir: File? = null
     ) : KotlinBuildScriptModel
 }
 
