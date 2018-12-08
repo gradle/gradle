@@ -44,19 +44,22 @@ class FoldersDsl(val root: File) {
         (+this).withFolders(subFolders)
 
     operator fun String.unaryPlus(): File =
-        asCanonicalFile().apply { mkdirs() }
+        canonicalFile(this).apply { mkdirs() }
 
     fun withFile(fileName: String, content: String = "") =
-        fileName.asCanonicalFile().apply {
+        canonicalFile(fileName).apply {
             parentFile.mkdirs()
             writeText(content)
         }
 
     fun existing(fileName: String): File =
-        fileName.asCanonicalFile().also {
+        canonicalFile(fileName).also {
             require(it.exists()) { "$it doesn't exist" }
         }
 
-    fun String.asCanonicalFile(): File =
-        File(root, this).canonicalFile
+    fun canonicalFile(fileName: String): File =
+        file(fileName).canonicalFile
+
+    fun file(fileName: String): File =
+        File(root, fileName)
 }

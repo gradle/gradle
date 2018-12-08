@@ -271,11 +271,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
     private
     fun FoldersDsl.withJar(named: String): File =
-        withJar(named.asCanonicalFile())
+        withJar(file(named))
 
     private
-    fun withJar(asCanonicalFile: File): File =
-        withClassJar(asCanonicalFile.path, DeepThought::class.java)
+    fun withJar(file: File): File =
+        withClassJar(file.path, DeepThought::class.java)
 
     private
     fun String.withBuildscriptDependencyOn(file: File) =
