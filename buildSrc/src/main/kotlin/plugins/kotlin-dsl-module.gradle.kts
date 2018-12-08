@@ -34,6 +34,6 @@ tasks.named<Jar>("jar") {
     from(main.allSource)
     manifest.attributes.apply {
         put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
-        put("Implementation-Version", version)
+        put("Implementation-Version", archiveVersion.get())
     }
 }
