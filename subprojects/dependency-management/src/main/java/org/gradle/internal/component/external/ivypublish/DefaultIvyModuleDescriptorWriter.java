@@ -234,9 +234,9 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
     }
 
     /**
-     * Writes the specified <tt>Map</tt> containing the extra attributes to the given <tt>PrintWriter</tt>.
+     * Writes the specified <code>Map</code> containing the extra attributes to the given <code>PrintWriter</code>.
      *
-     * @param extra the extra attributes, can be <tt>null</tt>
+     * @param extra the extra attributes, can be <code>null</code>
      * @param writer the writer to use
      */
     private static void printExtraAttributes(Map<String, ?> extra, SimpleXmlWriter writer) throws IOException {
