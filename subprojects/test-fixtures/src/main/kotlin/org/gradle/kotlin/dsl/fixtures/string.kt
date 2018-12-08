@@ -9,7 +9,3 @@ fun String.toPlatformLineSeparators() =
 
 fun <T> Iterable<T>.joinLines(transform: (T) -> String) =
     joinToString(separator = "\n", transform = transform)
-
-
-fun String.convertLineSeparators() =
-    TextUtil.normaliseLineSeparators(this)

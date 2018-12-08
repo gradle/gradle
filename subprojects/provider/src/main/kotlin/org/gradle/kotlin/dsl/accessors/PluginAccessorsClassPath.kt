@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.concurrent.writeFile
 
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 
+import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.DUP
@@ -181,15 +182,15 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 private
 fun IO.writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<PluginAccessor>) = io {
     sourceFile.bufferedWriter().useToRun {
-        appendln(fileHeader)
+        appendReproducibleNewLine(fileHeader)
 
-        appendln("""
+        appendReproducibleNewLine("""
             import ${PluginDependenciesSpec::class.qualifiedName}
             import ${PluginDependencySpec::class.qualifiedName}
         """.replaceIndent())
 
         defaultPackageTypesIn(accessors).forEach {
-            appendln("import $it")
+            appendReproducibleNewLine("import $it")
         }
 
         accessors.runEach {
@@ -199,7 +200,7 @@ fun IO.writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<Plugin
             val pluginsRef = pluginDependenciesSpecOf(extendedType)
             when (this) {
                 is PluginAccessor.ForPlugin -> {
-                    appendln("""
+                    appendReproducibleNewLine("""
                         /**
                          * The `$id` plugin implemented by [$implementationClass].
                          */
@@ -209,7 +210,7 @@ fun IO.writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<Plugin
                 }
                 is PluginAccessor.ForGroup -> {
                     val groupType = extension.returnType.sourceName
-                    appendln("""
+                    appendReproducibleNewLine("""
                         /**
                          * The `$id` plugin group.
                          */

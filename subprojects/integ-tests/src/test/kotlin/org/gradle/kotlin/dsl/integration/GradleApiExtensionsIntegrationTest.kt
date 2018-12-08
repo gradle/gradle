@@ -26,8 +26,11 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.util.GradleVersion
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
 import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -235,7 +238,12 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             generatedSourceCode,
-            allOf(extensions.map { containsMultiLineString(it) })
+            allOf(extensions.map { containsString(it.normaliseLineSeparators().trimIndent()) })
+        )
+
+        assertThat(
+            generatedSourceCode,
+            not(containsString("\r"))
         )
     }
 }
