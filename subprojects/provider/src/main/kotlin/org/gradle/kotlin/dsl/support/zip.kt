@@ -35,24 +35,26 @@ fun zipTo(zipFile: File, baseDir: File) {
 }
 
 
-private
+internal
 fun File.walkReproducibly(): Sequence<File> = sequence {
+
+    require(isDirectory)
+
     yield(this@walkReproducibly)
-    if (isDirectory) {
-        var directories: List<File> = listOf(this@walkReproducibly)
-        while (directories.isNotEmpty()) {
-            val subDirectories = mutableListOf<File>()
-            directories.forEach { dir ->
-                dir.listFiles()?.partition { it.isDirectory }?.also { (childDirectories, childFiles) ->
-                    yieldAll(childFiles.sortedBy(fileName))
-                    childDirectories.sortedBy(fileName).also {
-                        yieldAll(it)
-                        subDirectories.addAll(it)
-                    }
+
+    var directories: List<File> = listOf(this@walkReproducibly)
+    while (directories.isNotEmpty()) {
+        val subDirectories = mutableListOf<File>()
+        directories.forEach { dir ->
+            dir.listFiles()?.sortedBy(fileName)?.partition { it.isDirectory }?.also { (childDirectories, childFiles) ->
+                yieldAll(childFiles)
+                childDirectories.also {
+                    yieldAll(it)
+                    subDirectories.addAll(it)
                 }
             }
-            directories = subDirectories
         }
+        directories = subDirectories
     }
 }
 
