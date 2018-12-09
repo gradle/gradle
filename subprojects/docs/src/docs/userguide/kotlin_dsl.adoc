@@ -447,7 +447,7 @@ include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tag
 ====
 
 Note how we're using the `apply()` method to apply the plugins since the `plugins {}` block doesn't work in this context.
-We are also using standard APIs instead of type-safe accessors to configure tasks, extensions and conventions — an approach that we discussed in <<kotlin_dsl#understanding_what_to_do_when_type_safe_model_accessors_are_not_available,more detail elsewhere>>.
+We are also using standard APIs instead of type-safe accessors to configure tasks, extensions and conventions — an approach that we discussed in <<kotlin_dsl#sec:kotlin_using_standard_api,more detail elsewhere>>.
 
 [[sec:plugins_resolution_strategy]]
 == When you can't use the `plugins {}` block

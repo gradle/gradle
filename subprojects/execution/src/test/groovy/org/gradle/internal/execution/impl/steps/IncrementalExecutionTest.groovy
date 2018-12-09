@@ -57,12 +57,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.function.BooleanSupplier
 
-@Ignore
 class IncrementalExecutionTest extends Specification {
 
     @Rule
@@ -578,7 +576,7 @@ class IncrementalExecutionTest extends Specification {
     }
 
     UpToDateResult outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
-        return outOfDate(unitOfWork, ImmutableList.<String>of(expectedReasons))
+        return outOfDate(unitOfWork, ImmutableList.<String>copyOf(expectedReasons))
     }
 
     UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
@@ -615,11 +613,11 @@ class IncrementalExecutionTest extends Specification {
     }
 
     static OutputPropertySpec outputDirectorySpec(File... dirs) {
-        return new OutputPropertySpec(ImmutableList.<File> of(dirs), TreeType.DIRECTORY)
+        return new OutputPropertySpec(ImmutableList.<File>copyOf(dirs), TreeType.DIRECTORY)
     }
 
     static OutputPropertySpec outputFileSpec(File... files) {
-        return new OutputPropertySpec(ImmutableList.<File> of(files), TreeType.FILE)
+        return new OutputPropertySpec(ImmutableList.<File>copyOf(files), TreeType.FILE)
     }
 
     UnitOfWorkBuilder getBuilder() {

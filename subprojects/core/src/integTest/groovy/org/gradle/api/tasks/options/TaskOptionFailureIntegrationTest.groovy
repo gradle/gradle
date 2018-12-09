@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.options
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import spock.lang.Ignore
 
 import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOptions
 
-class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
+class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "annotation cannot be assigned to a setter method multiple times"() {
         given:
@@ -47,7 +47,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
               task someTask
             }
 
-            ${taskWithMultipleOptions()}
+            ${TaskOptionFixture.taskWithMultipleOptions()}
         """
 
         when:
@@ -65,7 +65,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
             task someTask(type: SomeTask)
             task someTask2(type: SomeTask)
 
-            ${taskWithMultipleOptions()}
+            ${TaskOptionFixture.taskWithMultipleOptions()}
         """
 
         when:
@@ -126,17 +126,40 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
     def "decent error for invalid enum value"() {
         given:
         buildFile << """
-            task someTask(type: SomeTask)
+            task someTask(type: SampleTask)
 
-            ${taskWithMultipleOptions()}
+            ${taskWithSingleOption('TestEnum')}
         """
 
         when:
-        runAndFail 'someTask', '--third', 'unsupportedValue'
+        runAndFail 'someTask', '--myProp', 'unsupportedValue'
 
         then:
-        failure.assertHasDescription("Problem configuring option 'third' on task ':someTask' from command line.")
-        failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: valid1, valid2, valid3)")
+        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
+    }
+
+    def "decent error for invalid enum list value"() {
+        given:
+        buildFile << """
+            task someTask(type: SampleTask)
+
+            ${taskWithSingleOption('List<TestEnum>')}
+        """
+
+        when:
+        runAndFail 'someTask', '--myProp', 'unsupportedValue'
+
+        then:
+        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
+
+        when:
+        runAndFail 'someTask', '--myProp', 'OPT_1,OPT_2'
+
+        then:
+        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasCause("Cannot convert string value 'OPT_1,OPT_2' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
     }
 
     @Ignore
@@ -170,7 +193,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unknown command-line option '--tests'")
     }
 
-    static String taskWithMultipleOptionsForSingleProperty(String optionType, String optionName, String optionDescription) {
+    String taskWithMultipleOptionsForSingleProperty(String optionType, String optionName, String optionDescription) {
         """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
