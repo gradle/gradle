@@ -191,7 +191,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
         val generatedJarHash = HashUtil.createHash(generatedExtensionsJarFromTestKitUserHome(), "MD5")
         assertThat(
             generatedJarHash.asZeroPaddedHexString(32),
-            equalTo("04261b4b0c42d4ffaf9aec92547776ed")
+            equalTo("dd4aa15394b1058ab8030533c2f90b14")
         )
     }
 
