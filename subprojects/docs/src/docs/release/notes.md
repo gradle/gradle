@@ -84,6 +84,10 @@ A `convention` method is now available for property types, which allows the <em>
 
 See the [user manual](userguide/lazy_configuration.html#sec:applying_conventions) for more details.
 
+### Use `@Option` on a task property of type `Property<T>`
+
+The `@Option` annotation can now be attached to a task property of type `Property<T>`, to allow the user to specify the property value using a command-line option. Curently, this support is limited to single value properties.
+
 ## Tooling API: Enhanced/additional progress events
 
 The following Tooling API types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:
