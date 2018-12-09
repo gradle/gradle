@@ -31,6 +31,7 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 
@@ -495,16 +496,16 @@ fun enabledJitAccessors(project: Project) =
 internal
 fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List<String> = emptyList()) = io {
     outputFile.bufferedWriter().useToRun {
-        appendln(fileHeaderWithImports)
+        appendReproducibleNewLine(fileHeaderWithImports)
         if (imports.isNotEmpty()) {
             imports.forEach {
-                appendln("import $it")
+                appendReproducibleNewLine("import $it")
             }
-            appendln()
+            appendReproducibleNewLine()
         }
         accessors.forEach {
-            appendln(it.replaceIndent())
-            appendln()
+            appendReproducibleNewLine(it.replaceIndent())
+            appendReproducibleNewLine()
         }
     }
 }

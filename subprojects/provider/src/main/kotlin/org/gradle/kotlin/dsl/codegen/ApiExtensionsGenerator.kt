@@ -20,6 +20,7 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 
 import java.io.File
@@ -268,15 +269,15 @@ data class KotlinExtensionFunction(
 
     fun toKotlinString(): String = StringBuilder().apply {
 
-        appendln("""
+        appendReproducibleNewLine("""
             /**
              * $description.
              *
              * @see ${targetType.sourceName}.$name
              */
         """.trimIndent())
-        if (isDeprecated) appendln("""@Deprecated("Deprecated Gradle API")""")
-        if (isIncubating) appendln("@org.gradle.api.Incubating")
+        if (isDeprecated) appendReproducibleNewLine("""@Deprecated("Deprecated Gradle API")""")
+        if (isIncubating) appendReproducibleNewLine("@org.gradle.api.Incubating")
         append("inline fun ")
         if (typeParameters.isNotEmpty()) append("${typeParameters.joinInAngleBrackets { it.toTypeParameterString() }} ")
         append(targetType.sourceName)
@@ -287,9 +288,9 @@ data class KotlinExtensionFunction(
         append(parameters.toDeclarationString())
         append("): ")
         append(returnType.toTypeArgumentString())
-        appendln(" =")
-        appendln("`$name`(${parameters.toArgumentsString()})".prependIndent())
-        appendln()
+        appendReproducibleNewLine(" =")
+        appendReproducibleNewLine("`$name`(${parameters.toArgumentsString()})".prependIndent())
+        appendReproducibleNewLine()
     }.toString()
 
     private

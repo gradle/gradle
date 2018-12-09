@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
+
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import java.io.File
@@ -29,10 +31,37 @@ import java.util.zip.ZipOutputStream
 
 
 fun zipTo(zipFile: File, baseDir: File) {
-    zipTo(zipFile, baseDir, baseDir.walkTopDown())
+    zipTo(zipFile, baseDir, baseDir.walkReproducibly())
 }
 
 
+private
+fun File.walkReproducibly(): Sequence<File> = sequence {
+    yield(this@walkReproducibly)
+    if (isDirectory) {
+        var directories: List<File> = listOf(this@walkReproducibly)
+        while (directories.isNotEmpty()) {
+            val subDirectories = mutableListOf<File>()
+            directories.forEach { dir ->
+                dir.listFiles()?.partition { it.isDirectory }?.also { (childDirectories, childFiles) ->
+                    yieldAll(childFiles.sortedBy(fileName))
+                    childDirectories.sortedBy(fileName).also {
+                        yieldAll(it)
+                        subDirectories.addAll(it)
+                    }
+                }
+            }
+            directories = subDirectories
+        }
+    }
+}
+
+
+private
+val fileName: (File) -> String = { it.name }
+
+
+private
 fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
     zipTo(zipFile, fileEntriesRelativeTo(baseDir, files))
 }
@@ -57,11 +86,15 @@ fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
 }
 
 
+private
 fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>) {
     ZipOutputStream(outputStream).use { zos ->
         entries.forEach { entry ->
             val (path, bytes) = entry
-            zos.putNextEntry(ZipEntry(path).apply { size = bytes.size.toLong() })
+            zos.putNextEntry(ZipEntry(path).apply {
+                time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+                size = bytes.size.toLong()
+            })
             zos.write(bytes)
             zos.closeEntry()
         }

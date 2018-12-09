@@ -30,8 +30,9 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
-import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
+import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -307,7 +308,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         println(generatedSourceCode)
 
         expectedExtensions.forEach { expectedExtension ->
-            assertThat(generatedSourceCode, containsMultiLineString(expectedExtension))
+            assertThat(generatedSourceCode, containsString(expectedExtension.normaliseLineSeparators().trimIndent()))
         }
     }
 
