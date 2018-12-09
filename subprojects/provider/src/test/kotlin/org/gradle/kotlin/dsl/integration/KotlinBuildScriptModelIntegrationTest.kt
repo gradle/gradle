@@ -1,10 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.internal.os.OperatingSystem
-
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
@@ -16,7 +13,6 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Assume.assumeFalse
 import org.junit.Test
 
 import java.io.File
@@ -187,14 +183,10 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
 
-        assumeNotWindows()
+        val rootDependency = withJar("libs/root.jar")
+        val subDependency = withJar("libs/sub.jar")
 
         withFolders {
-
-            "libs" {
-                withJar("root.jar")
-                withJar("sub.jar")
-            }
 
             "root" {
                 withFile("settings.gradle.kts", """
@@ -210,8 +202,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         }
 
-        val rootDependency = existing("libs/root.jar")
-        val subDependency = existing("libs/sub.jar")
 
         val rootBuildScript = "root/build.gradle".withBuildscriptDependencyOn(rootDependency)
         val subBuildScript = "sub/sub.gradle.kts".withBuildscriptDependencyOn(subDependency)
@@ -235,15 +225,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for buildSrc sub-project script outside buildSrc root`() {
 
-        assumeNotWindows()
-
         assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("buildSrc")
     }
 
     @Test(expected = AssertionError::class)
     fun `can fetch buildscript classpath for sub-project script of nested project outside nested project root`() {
-
-        assumeNotWindows()
 
         // This use-case was never supported and continues not to be supported
         assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot("nested-project")
@@ -253,13 +239,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     fun assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot(nestedProjectName: String) {
         withDefaultSettings()
 
-        withFolders {
-            "libs" {
-                withJar("root-dep.jar")
-                withJar("$nestedProjectName-root-dep.jar")
-                withJar("$nestedProjectName-sub-dep.jar")
-            }
+        val rootDependency = withJar("libs/root-dep.jar")
+        val nestedRootDependency = withJar("libs/$nestedProjectName-root-dep.jar")
+        val nestedSubDependency = withJar("libs/$nestedProjectName-sub-dep.jar")
 
+        withFolders {
             nestedProjectName {
                 withFile("settings.gradle.kts", """
                     include("sub")
@@ -274,9 +258,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         }
 
-        val rootDependency = existing("libs/root-dep.jar")
-        val nestedRootDependency = existing("libs/$nestedProjectName-root-dep.jar")
-        val nestedSubDependency = existing("libs/$nestedProjectName-sub-dep.jar")
 
         val rootBuildScript = "build.gradle".withBuildscriptDependencyOn(rootDependency)
         val nestedBuildScript = "$nestedProjectName/build.gradle.kts".withBuildscriptDependencyOn(nestedRootDependency)
@@ -302,12 +283,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     private
-    fun FoldersDsl.withJar(named: String): File =
-        withJar(file(named))
-
-    private
-    fun withJar(file: File): File =
-        withClassJar(file.path, DeepThought::class.java)
+    fun withJar(named: String): File =
+        withClassJar(named, DeepThought::class.java)
 
     private
     fun String.withBuildscriptDependencyOn(file: File) =
@@ -535,10 +512,5 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
 
         assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
-    }
-
-    private
-    fun assumeNotWindows() {
-        assumeFalse("WIP", OperatingSystem.current().isWindows)
     }
 }
