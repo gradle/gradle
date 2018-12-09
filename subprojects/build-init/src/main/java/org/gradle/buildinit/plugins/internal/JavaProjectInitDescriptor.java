@@ -54,7 +54,7 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
-            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);

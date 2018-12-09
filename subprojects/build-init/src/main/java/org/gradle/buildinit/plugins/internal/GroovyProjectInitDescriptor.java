@@ -39,7 +39,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
         buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
-            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
             .plugin("Apply the groovy plugin to add support for Groovy", "groovy")
             .implementationDependency("Use the latest Groovy version for building this library",
                 "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))

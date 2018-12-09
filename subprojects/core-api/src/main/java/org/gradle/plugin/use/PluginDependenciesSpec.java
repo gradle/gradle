@@ -69,7 +69,7 @@ package org.gradle.plugin.use;
  * Core Gradle plugins use the {@code org.gradle} namespace.
  * </p>
  * <p>
- * For the list of available core plugins for a particular Gradle version, please consult the User Guide.
+ * For the list of available core plugins for a particular Gradle version, please consult the user manual.
  * </p>
  * <h4>Community Plugins</h4>
  * <p>
