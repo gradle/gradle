@@ -18,13 +18,13 @@ project['signing.password'] = "gradle"
 project['signing.secretKeyRingFile'] = file("secKeyRingFile.gpg").absolutePath
 
 // tag::sign-archives[]
-signing {
+tasks.named("signing") {
     sign configurations.archives
 }
 // end::sign-archives[]
 
 // tag::sign-pom[]
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
         mavenDeployer {
 // end::sign-pom[]

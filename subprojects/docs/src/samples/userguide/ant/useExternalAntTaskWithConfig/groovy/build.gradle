@@ -13,7 +13,7 @@ dependencies {
 // end::define-classpath[]
 
 // tag::use-classpath[]
-task check {
+tasks.register("check") {
     doLast {
         ant.taskdef(name: 'pmd',
                     classname: 'net.sourceforge.pmd.ant.PMDTask',

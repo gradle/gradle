@@ -1,4 +1,4 @@
-task hello {
+tasks.register("hello") {
     doLast {
         println "using build file '$buildFile.name' in '$buildFile.parentFile.name'."
     }

@@ -8,14 +8,14 @@ plugins {
 // end::zip[]
 
 // tag::unpack-archive-example[]
-task unpackFiles(type: Copy) {
+tasks.register("unpackFiles", Copy) {
     from zipTree("src/resources/thirdPartyResources.zip")
     into "$buildDir/resources"
 }
 // end::unpack-archive-example[]
 
 // tag::zip[]
-task zip(type: Zip) {
+tasks.register("zip", Zip) {
     from 'src/dist'
     into('libs') {
         from configurations.runtime
@@ -24,7 +24,7 @@ task zip(type: Zip) {
 // end::zip[]
 
 // tag::tar[]
-task tar(type: Tar) {
+tasks.register("tar", Tar) {
     from 'src/dist'
     into('libs') {
         from configurations.runtime
@@ -33,7 +33,7 @@ task tar(type: Tar) {
 // end::tar[]
 
 // tag::reproducible[]
-tasks.withType(AbstractArchiveTask) {
+tasks.withType(AbstractArchiveTask).configureEach {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }

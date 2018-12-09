@@ -35,7 +35,7 @@ publishing {
 // end::configure-publishing[]
 
 // tag::configure-generate-task[]
-tasks.withType(GenerateMavenPom).all {
+tasks.withType(GenerateMavenPom).configureEach {
     def matcher = name =~ /generatePomFileFor(\w+)Publication/
     def publicationName = matcher[0][1]
     destination = "$buildDir/poms/${publicationName}-pom.xml"

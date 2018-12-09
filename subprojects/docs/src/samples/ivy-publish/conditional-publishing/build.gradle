@@ -4,7 +4,7 @@ apply plugin: 'ivy-publish'
 group = 'org.gradle.sample'
 version = '1.0'
 
-task sourcesJar(type: Jar) {
+tasks.register("sourcesJar", Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
 }
@@ -35,7 +35,7 @@ publishing {
 // end::publishing[]
 
 // tag::task-config[]
-tasks.withType(PublishToIvyRepository) {
+tasks.withType(PublishToIvyRepository).configureEach {
     onlyIf {
         if (repository == publishing.repositories.external)
             return publication == publishing.publications.binary
@@ -47,14 +47,14 @@ tasks.withType(PublishToIvyRepository) {
 // end::task-config[]
 
 // tag::shorthand-tasks[]
-task publishToExternalRepository {
+tasks.register("publishToExternalRepository") {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'external'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
         it.repository == publishing.repositories.external
     }
 }
-task publishToInternalRepository {
+tasks.register("publishToInternalRepository") {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'internal'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {

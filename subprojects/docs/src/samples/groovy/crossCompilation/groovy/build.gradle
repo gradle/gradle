@@ -13,7 +13,7 @@ dependencies {
 }
 
 // tag::groovy-cross-compilation[]
-java {
+tasks.named("java") {
     sourceCompatibility = JavaVersion.VERSION_1_6
     targetCompatibility = JavaVersion.VERSION_1_6
 }
@@ -25,19 +25,19 @@ def javaExecutables = [:].withDefault { execName ->
     assert executable.exists() : "There is no $execName executable in $javaExecutablesPath"
     executable
 }
-tasks.withType(AbstractCompile) {
+tasks.withType(AbstractCompile).configureEach {
     options.with {
         fork = true
         forkOptions.javaHome = file(java6Home)
     }
 }
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     executable = javaExecutables.javadoc
 }
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     executable = javaExecutables.java
 }
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     executable = javaExecutables.java
 }
 // end::groovy-cross-compilation[]

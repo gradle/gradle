@@ -1,4 +1,4 @@
-task show {
+tasks.register("show") {
     doLast {
         def property = objects.property(String)
 

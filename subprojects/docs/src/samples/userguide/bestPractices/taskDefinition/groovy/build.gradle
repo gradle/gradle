@@ -1,13 +1,13 @@
 import com.enterprise.DocsGenerate
 
-task generateHtmlDocs(type: DocsGenerate) {
+tasks.register("generateHtmlDocs", DocsGenerate) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = 'Generates the HTML documentation for this project.'
     title = 'Project docs'
     outputDir = file("$buildDir/docs")
 }
 
-task allDocs {
+tasks.register("allDocs") {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = 'Generates all documentation for this project.'
     dependsOn generateHtmlDocs

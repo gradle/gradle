@@ -8,12 +8,12 @@ plugins {
 group = 'com.example'
 version = '1.0'
 
-task sourcesJar(type: Jar) {
+tasks.register("sourcesJar", Jar) {
     from sourceSets.main.allJava
     classifier = 'sources'
 }
 
-task javadocJar(type: Jar) {
+tasks.register("javadocJar", Jar) {
     from javadoc
     classifier = 'javadoc'
 }
@@ -67,13 +67,13 @@ publishing {
 // end::pom-customization[]
 
 // tag::sign-publication[]
-signing {
+tasks.named("signing") {
     sign publishing.publications.mavenJava
 }
 // end::sign-publication[]
 
 
-javadoc {
+tasks.named("javadoc") {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }

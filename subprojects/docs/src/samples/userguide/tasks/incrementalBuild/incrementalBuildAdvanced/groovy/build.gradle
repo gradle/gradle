@@ -19,7 +19,7 @@ dependencies {
 }
 
 // tag::custom-task-class[]
-task processTemplates(type: ProcessTemplates) {
+tasks.register("processTemplates", ProcessTemplates) {
     templateEngine = TemplateEngineType.FREEMARKER
     templateData = new TemplateData("test", [year: 2012])
     outputDir = file("$buildDir/genOutput")
@@ -29,12 +29,12 @@ task processTemplates(type: ProcessTemplates) {
 // end::custom-task-class[]
 
 // tag::task-arg-method[]
-task copyTemplates(type: Copy) {
+tasks.register("copyTemplates", Copy) {
     into "$buildDir/tmp"
     from "src/templates"
 }
 
-task processTemplates2(type: ProcessTemplates) {
+tasks.register("processTemplates2", ProcessTemplates) {
     // ...
 // end::task-arg-method[]
     templateEngine = TemplateEngineType.FREEMARKER
@@ -47,28 +47,28 @@ task processTemplates2(type: ProcessTemplates) {
 
 // tag::failed-inferred-task-dep[]
 
-task badInstrumentClasses(type: Instrument) {
+tasks.register("badInstrumentClasses", Instrument) {
     classFiles = fileTree(compileJava.destinationDir)
     destinationDir = file("$buildDir/instrumented")
 }
 // end::failed-inferred-task-dep[]
 
 // tag::inferred-task-dep[]
-task instrumentClasses(type: Instrument) {
+tasks.register("instrumentClasses", Instrument) {
     classFiles = compileJava.outputs.files
     destinationDir = file("$buildDir/instrumented")
 }
 // end::inferred-task-dep[]
 
 // tag::inferred-task-dep-with-files[]
-task instrumentClasses2(type: Instrument) {
+tasks.register("instrumentClasses2", Instrument) {
     classFiles = layout.files(compileJava)
     destinationDir = file("$buildDir/instrumented")
 }
 // end::inferred-task-dep-with-files[]
 
 // tag::inferred-task-dep-with-builtby[]
-task instrumentClassesBuiltBy(type: Instrument) {
+tasks.register("instrumentClassesBuiltBy", Instrument) {
     classFiles = fileTree(compileJava.destinationDir) {
         builtBy compileJava
     }
@@ -77,11 +77,11 @@ task instrumentClassesBuiltBy(type: Instrument) {
 // end::inferred-task-dep-with-builtby[]
 
 // tag::up-to-date-when[]
-task alwaysInstrumentClasses(type: Instrument) {
+tasks.register("alwaysInstrumentClasses", Instrument) {
     classFiles = layout.files(compileJava)
     destinationDir = file("$buildDir/instrumented")
     outputs.upToDateWhen { false }
 }
 // end::up-to-date-when[]
 
-build.dependsOn processTemplates, processTemplates2
+tasks.named("build") { dependsOn processTemplates, processTemplates2 }

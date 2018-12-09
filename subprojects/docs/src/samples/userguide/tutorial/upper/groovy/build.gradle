@@ -1,4 +1,4 @@
-task upper {
+tasks.register("upper") {
     doLast {
         String someString = 'mY_nAmE'
         println "Original: $someString"

@@ -3,7 +3,7 @@ dependencies {
     "default" configurations.runtime
 }
 
-task jar(type: Jar) {
+tasks.register("jar", Jar) {
     from sourceSets.main.output
 }
 

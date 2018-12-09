@@ -9,7 +9,7 @@ plugins {
 // tag::builder[]
 // tag::customize-pom[]
 // tag::multiple-poms[]
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
         mavenDeployer {
             repository(url: "file://localhost/tmp/myRepo/")
@@ -62,7 +62,7 @@ dependencies {
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.2"
 }
 
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories.mavenDeployer {
         configuration = configurations.deployerJars
         repository(url: "scp://repos.mycompany.com/releases") {
@@ -73,7 +73,7 @@ uploadArchives {
 // end::upload-with-ssh[]
 
 // tag::customize-installer[]
-install {
+tasks.named("install") {
     repositories.mavenInstaller {
         pom.version = '1.0Maven'
         pom.artifactId = 'myName'
@@ -82,7 +82,7 @@ install {
 // end::customize-installer[]
 
 // tag::mappings[]
-task mappings {
+tasks.register("mappings") {
     doLast {
         println conf2ScopeMappings.mappings
     }

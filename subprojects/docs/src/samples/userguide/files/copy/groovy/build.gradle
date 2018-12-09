@@ -1,20 +1,20 @@
 version = "1.1"
 
 // tag::copy-single-file-example[]
-task copyReport(type: Copy) {
+tasks.register("copyReport", Copy) {
     from file("$buildDir/reports/my-report.pdf")
     into file("$buildDir/toArchive")
 }
 // end::copy-single-file-example[]
 
 // tag::copy-single-file-example-without-file-method[]
-task copyReport2(type: Copy) {
+tasks.register("copyReport2", Copy) {
     from "$buildDir/reports/my-report.pdf"
     into "$buildDir/toArchive"
 }
 // end::copy-single-file-example-without-file-method[]
 
-task myReportTask {
+tasks.register("myReportTask") {
     ext.outputFile = file("$buildDir/reports/my-report.pdf")
 
     outputs.files outputFile
@@ -23,27 +23,27 @@ task myReportTask {
     }
 }
 
-task archiveReportsTask {
+tasks.register("archiveReportsTask") {
     ext.dirToArchive = file("$buildDir/toArchive")
     inputs.dir dirToArchive
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-task copyReport3(type: Copy) {
+tasks.register("copyReport3", Copy) {
     from myReportTask.outputFile
     into archiveReportsTask.dirToArchive
 }
 // end::copy-single-file-example-with-task-properties[]
 
 // tag::copy-multiple-files-example[]
-task copyReportsForArchiving(type: Copy) {
+tasks.register("copyReportsForArchiving", Copy) {
     from "$buildDir/reports/my-report.pdf", "src/docs/manual.pdf"
     into "$buildDir/toArchive"
 }
 // end::copy-multiple-files-example[]
 
 // tag::copy-multiple-files-with-flat-filter-example[]
-task copyPdfReportsForArchiving(type: Copy) {
+tasks.register("copyPdfReportsForArchiving", Copy) {
     from "$buildDir/reports"
     include "*.pdf"
     into "$buildDir/toArchive"
@@ -51,7 +51,7 @@ task copyPdfReportsForArchiving(type: Copy) {
 // end::copy-multiple-files-with-flat-filter-example[]
 
 // tag::copy-multiple-files-with-deep-filter-example[]
-task copyAllPdfReportsForArchiving(type: Copy) {
+tasks.register("copyAllPdfReportsForArchiving", Copy) {
     from "$buildDir/reports"
     include "**/*.pdf"
     into "$buildDir/toArchive"
@@ -59,14 +59,14 @@ task copyAllPdfReportsForArchiving(type: Copy) {
 // end::copy-multiple-files-with-deep-filter-example[]
 
 // tag::copy-directory-example[]
-task copyReportsDirForArchiving(type: Copy) {
+tasks.register("copyReportsDirForArchiving", Copy) {
     from "$buildDir/reports"
     into "$buildDir/toArchive"
 }
 // end::copy-directory-example[]
 
 // tag::copy-directory-including-itself-example[]
-task copyReportsDirForArchiving2(type: Copy) {
+tasks.register("copyReportsDirForArchiving2", Copy) {
     from("$buildDir") {
         include "reports/**"
     }
@@ -75,7 +75,7 @@ task copyReportsDirForArchiving2(type: Copy) {
 // end::copy-directory-including-itself-example[]
 
 // tag::create-archive-example[]
-task packageDistribution(type: Zip) {
+tasks.register("packageDistribution", Zip) {
     archiveName = "my-distribution.zip"
     destinationDir = file("$buildDir/dist")
 
@@ -84,7 +84,7 @@ task packageDistribution(type: Zip) {
 // end::create-archive-example[]
 
 // tag::rename-on-copy-example[]
-task copyFromStaging(type: Copy) {
+tasks.register("copyFromStaging", Copy) {
     from "src/main/webapp"
     into "$buildDir/explodedWar"
 
@@ -93,7 +93,7 @@ task copyFromStaging(type: Copy) {
 // end::rename-on-copy-example[]
 
 // tag::truncate-names-example[]
-task copyWithTruncate(type: Copy) {
+tasks.register("copyWithTruncate", Copy) {
     from "$buildDir/reports"
     rename { String filename ->
         if (filename.size() > 10) {

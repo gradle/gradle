@@ -27,7 +27,7 @@ dependencies {
  */
 
 // tag::test-config[]
-test {
+tasks.named("test") {
     useTestNG {
         excludeGroups 'integrationTests'
         includeGroups 'unitTests'

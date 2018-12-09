@@ -41,7 +41,8 @@ dependencies {
 
 // Include a javadoc zip
 
-task javadocZip(type: Zip, dependsOn: javadoc) {
+tasks.register("javadocZip", Zip) {
+    dependsOn javadoc
     classifier = 'javadoc'
     from javadoc
 }
@@ -52,7 +53,7 @@ artifacts {
 
 // Configure the release and snapshot repositories
 
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
         mavenDeployer {
             repository(url: uri("pomRepo"))
@@ -64,6 +65,7 @@ uploadArchives {
 // Customize the contents of the pom
 
 // tag::when-configured[]
+// FIXME: Convert to lazy task
 def installer = install.repositories.mavenInstaller
 def deployer = uploadArchives.repositories.mavenDeployer
 
@@ -79,7 +81,7 @@ installer.pom.project {
 deployer.pom.groupId = 'deployGroup'
 
 // tag::new-pom[]
-task writeNewPom {
+tasks.register("writeNewPom") {
     doLast {
         pom {
             project {
@@ -97,7 +99,8 @@ task writeNewPom {
 }
 // end::new-pom[]
 
-task writeDeployerPom(dependsOn: uploadArchives) {
+tasks.register("writeDeployerPom") {
+    dependsOn uploadArchives
     doLast {
         deployer.pom.writeTo("$buildDir/deployerpom.xml")
     }

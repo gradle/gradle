@@ -11,6 +11,6 @@ class GreetingTask extends DefaultTask {
 }
 // end::define-task[]
 
-// Create a task using the task type
-task hello(type: GreetingTask)
+// Register a task using the task type
+tasks.register("hello", GreetingTask)
 // end::add-action[]

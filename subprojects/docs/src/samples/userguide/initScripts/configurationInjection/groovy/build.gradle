@@ -2,7 +2,7 @@ repositories {
     mavenCentral()
 }
 
-task showRepos {
+tasks.register("showRepos") {
     doLast {
         println "All repos:"
         println repositories.collect { it.name }

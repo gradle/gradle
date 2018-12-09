@@ -8,7 +8,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-test {
+tasks.named("test") {
     systemProperties['property'] = 'value'
     onlyIf { task ->
         compileJava.didWork

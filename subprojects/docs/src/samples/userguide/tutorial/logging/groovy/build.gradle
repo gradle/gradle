@@ -22,7 +22,7 @@ println 'A message which is logged at INFO level'
 // end::capture-stdout[]
 
 // tag::task-capture-stdout[]
-task logInfo {
+tasks.register("logInfo") {
     logging.captureStandardOutput LogLevel.INFO
     doFirst {
         println 'A task message which is logged at INFO level'

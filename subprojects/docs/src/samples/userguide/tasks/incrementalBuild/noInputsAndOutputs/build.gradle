@@ -1,4 +1,4 @@
-task transform {
+tasks.register("transform") {
     ext.srcFile = file('mountains.xml')
     ext.destDir = new File(buildDir, 'generated')
     doLast {

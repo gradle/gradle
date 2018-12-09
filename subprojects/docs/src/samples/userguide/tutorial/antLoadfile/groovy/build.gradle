@@ -1,4 +1,4 @@
-task loadfile {
+tasks.register("loadfile") {
     doLast {
         def files = file('./antLoadfileResources').listFiles().sort()
         files.each { File file ->

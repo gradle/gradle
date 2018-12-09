@@ -1,9 +1,9 @@
 def classesDir = file('build/classes')
 classesDir.mkdirs()
-task clean(type: Delete) {
+tasks.register("clean", Delete) {
     delete 'build'
 }
-task compile {
+tasks.register("compile") {
     dependsOn 'clean'
     doLast {
         if (!classesDir.isDirectory()) {

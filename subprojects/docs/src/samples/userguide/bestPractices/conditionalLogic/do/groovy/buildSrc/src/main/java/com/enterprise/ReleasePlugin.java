@@ -12,14 +12,19 @@ public class ReleasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         if (project.findProperty(RELEASE_ENG_ROLE_PROP) != null) {
-            Task task = project.getTasks().create(RELEASE_TASK_NAME);
+            TaskProvider<Task> task = project.getTasks().register(RELEASE_TASK_NAME);
 
-            task.doLast(new Action<Task>() {
+            task.configure(new Action<Task>() {
                 @Override
                 public void execute(Task task) {
-                    task.getLogger().quiet("Releasing to production...");
+                    task.doLast(new Action<Task>() {
+                        @Override
+                        public void execute(Task task) {
+                            task.getLogger().quiet("Releasing to production...");
 
-                    // release the artifact to production
+                            // release the artifact to production
+                        }
+                    });
                 }
             });
         }

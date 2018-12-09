@@ -6,7 +6,7 @@ plugins {
 group = 'org.gradle.sample'
 version = '1.0'
 
-task sourcesJar(type: Jar) {
+tasks.register("sourcesJar", Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
 }
@@ -37,7 +37,7 @@ publishing {
 // end::publishing[]
 
 // tag::task-config[]
-tasks.withType(PublishToMavenRepository) {
+tasks.withType(PublishToMavenRepository).configureEach {
     onlyIf {
         (repository == publishing.repositories.external &&
             publication == publishing.publications.binary) ||
@@ -45,7 +45,7 @@ tasks.withType(PublishToMavenRepository) {
             publication == publishing.publications.binaryAndSources)
     }
 }
-tasks.withType(PublishToMavenLocal) {
+tasks.withType(PublishToMavenLocal).configureEach {
     onlyIf {
         publication == publishing.publications.binaryAndSources
     }
@@ -53,7 +53,7 @@ tasks.withType(PublishToMavenLocal) {
 // end::task-config[]
 
 // tag::shorthand-tasks[]
-task publishToExternalRepository {
+tasks.register("publishToExternalRepository") {
     group = 'publishing'
     description = 'Publishes all Maven publications to the external Maven repository.'
     dependsOn tasks.withType(PublishToMavenRepository).matching {
@@ -61,7 +61,7 @@ task publishToExternalRepository {
     }
 }
 // end::shorthand-tasks[]
-task publishForDevelopment {
+tasks.register("publishForDevelopment") {
     group = 'publishing'
     description = 'Publishes all Maven publications to the internal Maven repository and the local Maven repository.'
     dependsOn tasks.withType(PublishToMavenRepository).matching {

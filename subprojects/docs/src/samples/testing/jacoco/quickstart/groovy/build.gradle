@@ -40,7 +40,7 @@ dependencies {
 }
 
 // tag::testtask-configuration[]
-test {
+tasks.named("test") {
     jacoco {
         destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
         classDumpDir = file("$buildDir/jacoco/classpathdumps")
@@ -50,7 +50,7 @@ test {
 
 
 // tag::report-configuration[]
-jacocoTestReport {
+tasks.named("jacocoTestReport") {
     reports {
         xml.enabled false
         csv.enabled false
@@ -60,7 +60,7 @@ jacocoTestReport {
 // end::report-configuration[]
 
 // tag::violation-rules-configuration[]
-jacocoTestCoverageVerification {
+tasks.named("jacocoTestCoverageVerification") {
     violationRules {
         rule {
             limit {

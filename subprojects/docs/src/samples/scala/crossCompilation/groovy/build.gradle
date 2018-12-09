@@ -26,19 +26,19 @@ def javaExecutables = [:].withDefault { execName ->
     executable
 }
 
-tasks.withType(AbstractCompile) {
+tasks.withType(AbstractCompile).configureEach {
     options.with {
         fork = true
         forkOptions.javaHome = file(java6Home)
     }
 }
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     executable = javaExecutables.java
 }
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     executable = javaExecutables.java
 }
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     executable = javaExecutables.javadoc
 }
 // end::scala-cross-compilation[]

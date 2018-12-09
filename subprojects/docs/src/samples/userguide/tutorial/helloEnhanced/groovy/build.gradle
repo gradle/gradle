@@ -1,8 +1,9 @@
-task hello {
+tasks.register("hello") {
     doLast {
         println 'Hello Earth'
     }
 }
+// FIXME: Find replace
 hello.doFirst {
     println 'Hello Venus'
 }

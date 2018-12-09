@@ -14,7 +14,7 @@ class Greeting extends DefaultTask {
     }
 }
 
-task greeting(type: Greeting) {
+tasks.register("greeting", Greeting) {
     // Configure the greeting
     greeting.set('Hi')
 

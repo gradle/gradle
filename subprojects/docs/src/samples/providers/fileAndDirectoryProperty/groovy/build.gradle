@@ -21,7 +21,7 @@ class GenerateSource extends DefaultTask {
 }
 
 // Create the source generation task
-task generate(type: GenerateSource) {
+tasks.register("generate", GenerateSource) {
     // Configure the locations, relative to the project and build directories
     configFile = project.layout.projectDirectory.file('src/main/config.txt')
     outputDir = project.layout.buildDirectory.dir('generated-source')

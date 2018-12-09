@@ -20,7 +20,7 @@ dependencies {
 }
 // end::dependency-constraints[]
 
-task copyLibs(type: Copy) {
+tasks.register("copyLibs", Copy) {
     from configurations.compileClasspath
     into "$buildDir/libs"
 }

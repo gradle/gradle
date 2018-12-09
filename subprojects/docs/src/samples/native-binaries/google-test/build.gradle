@@ -72,7 +72,7 @@ model {
     }
 }
 
-tasks.withType(RunTestExecutable) {
+tasks.withType(RunTestExecutable).configureEach {
     args "--gtest_output=xml:test_detail.xml"
 }
 
