@@ -42,7 +42,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "javaProject"
-        def jobArgs = ['--continue', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
+        def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
 
         def buildExperimentListeners = [
