@@ -11,9 +11,9 @@ version = "1.0-SNAPSHOT"
 extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 signing {
-    setRequired {
+    setRequired({
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
-    }
+    })
     sign(configurations.archives.get())
 }
 // end::conditional-signing[]
