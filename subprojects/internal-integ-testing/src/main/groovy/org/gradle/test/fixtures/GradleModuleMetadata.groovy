@@ -331,6 +331,7 @@ class GradleModuleMetadata {
 
             DependencyConstraint find() {
                 def depConstraint = dependencyConstraints.find { it.group == group && it.module == module && it.version == version }
+                assert depConstraint : "constraint ${group}:${module}:${version} not found in $dependencyConstraints"
                 checkedDependencyConstraints << depConstraint
                 depConstraint
             }

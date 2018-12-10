@@ -140,6 +140,57 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    def "can publish java-platform with resolved versions"() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies {
+                constraints {
+                    api "org.test:foo:+"
+                }
+                api "org.test:foo"
+            }
+            
+            javaPlatform { allowDependencies() }
+            
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaPlatform
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaPlatform.assertPublished()
+        javaPlatform.parsedModuleMetadata.variant("api") {
+            constraint("org.test:foo:1.1")
+            dependency("org.test:foo:1.1")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedModuleMetadata.variant("runtime") {
+            constraint("org.test:foo:1.1")
+            dependency("org.test:foo:1.1")
+            noMoreDependencies()
+        }
+        javaPlatform.parsedPom.scope('compile') {
+            assertDependsOn("org.test:foo:1.1")
+            assertDependencyManagement("org.test:foo:1.1")
+        }
+        javaPlatform.parsedPom.hasNoScope('runtime')
+    }
 
 
     private String createBuildScripts(def append) {
