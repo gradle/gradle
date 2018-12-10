@@ -18,7 +18,7 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="teamcity.tool.jacoco" value="%teamcity.tool.jacoco.DEFAULT%" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -i &quot;-PgitUserName=Gradleware Git Bot&quot; &quot;-PgitUserEmail=gradlewaregitbot@gradleware.com&quot; -Igradle/buildScanInit.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-i &quot;-PgitUserName=Gradleware Git Bot&quot; &quot;-PgitUserEmail=gradlewaregitbot@gradleware.com&quot; -Igradle/buildScanInit.gradle" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="uploadMissingWrapperChecksums" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
