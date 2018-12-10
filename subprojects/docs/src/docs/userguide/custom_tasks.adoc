@@ -21,7 +21,7 @@ The other type of task is the enhanced task, where the behaviour is built into t
 
 The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
 
-Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
+Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
 
 
 [[sec:packaging_a_task_class]]
@@ -33,7 +33,7 @@ Build script::
 You can include the task class directly in the build script. This has the benefit that the task class is automatically compiled and included in the classpath of the build script without you having to do anything. However, the task class is not visible outside the build script, and so you cannot reuse the task class outside the build script it is defined in.
 
 `buildSrc` project::
-You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
+You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory (or `__rootProjectDir__/buildSrc/src/main/java` or __rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer). Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
@@ -289,7 +289,7 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 
 Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
 
-Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option].
+Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option].
 
 === Example: Declaring a command line option
 
@@ -329,17 +329,17 @@ include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/taskComman
 
 Gradle limits the set of data types that can be used for declaring command line options. The use on the command line differ per type.
 
-`boolean`, `Boolean`::
-Describes an option with the value `true` or `false`. Passing the option on the command line does not require assigning a value. For example `--enabled` equates to `true`. The absence of the option uses the default values assign to the property; that is `false` for `boolean` and `null` for the complex data type.
+`boolean`, `Boolean`, `Property<Boolean>`::
+Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`. For example `--enabled` equates to `true`. The absence of the option uses the default value of the property.
 
-`String`::
-Describes an option with an arbitrary String value. Passing the option on the command line requires a key-value pair of option and value separated by an equals sign e.g. `--containerId=2x94held`.
+`String`, `Property<String>`::
+Describes an option with an arbitrary String value. Passing the option on the command line also requires a value e.g. `--container-id=2x94held` or `--container-id 2x94held`.
 
-`enum`::
-Describes an option as enum. The enum has to be passed on the command line as key-value pair similar to the String type e.g. `--log-level=DEBUG`. The provided value is not case sensitive.
+`enum`, `Property<enum>`::
+Describes an option as an enumerated type. Passing the option on the command line also requires a value e.g. `--log-level=DEBUG` or `--log-level debug`. The value is not case sensitive.
 
 `List<String>`, `List<enum>`::
-Describes an option that can takes multiple values of a given type. The values for the option have to be provided as distinct declarations e.g. `--imageId=123 --imageId=456`. Other notations like comma-separated lists or multiple values separated by a space character are currently not supported.
+Describes an option that can takes multiple values of a given type. The values for the option have to be provided as multiple declarations e.g. `--image-id=123 --image-id=456`. Other notations such as comma-separated lists or multiple values separated by a space character are currently not supported.
 
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option
