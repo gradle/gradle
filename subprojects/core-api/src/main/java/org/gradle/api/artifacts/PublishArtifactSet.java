@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -36,7 +37,7 @@ public interface PublishArtifactSet extends DomainObjectSet<PublishArtifact>, Bu
      * @since 5.1
      */
     @Incubating
-    Provider<PublishArtifact> register(Provider<? extends FileSystemLocation> artifactFile, Action<ConfigurablePublishArtifact> configuration);
+    DomainObjectProvider<PublishArtifact> register(Provider<? extends FileSystemLocation> artifactFile, Action<? super ConfigurablePublishArtifact> configuration);
 
     FileCollection getFiles();
 }
