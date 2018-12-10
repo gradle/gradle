@@ -25,7 +25,7 @@ allprojects {
 }
 
 val publishedPluginsVersion by extra { "1.0.6" }
-val futurePluginsVersion = "1.0.7"
+val futurePluginsVersion = "1.1.0"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
