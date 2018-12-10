@@ -325,4 +325,35 @@ project(':app') {
         outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
         outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar" }
     }
+
+    def "transform does not execute when dependencies cannot be found"() {
+        given:
+        buildFile << """
+            project(':app') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }        
+            
+            project(':lib') {
+                dependencies {
+                    implementation "unknown:not-found:4.3"
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--parallel")
+        fails "resolve"
+
+        then:
+        output.count('Transforming') == 1
+        output.contains('Single step transform received dependencies files [] for processing common.jar')
+        // FIXME: lib.jar is transformed without dependencies - it should no be executed if the dependencies cannot be resolved
+    }
+
 }
