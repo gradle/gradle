@@ -1,7 +1,7 @@
 println 'This is executed during the configuration phase.'
 
 tasks.register("configured") {
-    println 'This is also executed during the configuration phase.'
+    println 'This is only executed if the "configured" task is needed.'
 }
 
 tasks.register("test") {

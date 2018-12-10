@@ -12,14 +12,14 @@ tasks.register("compileTest") {
 }
 
 tasks.register("test") {
-    dependsOn [compile, compileTest]
+    dependsOn compile, compileTest
     doLast {
         println 'running unit tests'
     }
 }
 
 tasks.register("dist") {
-    dependsOn [compile, test]
+    dependsOn compile, test
     doLast {
         println 'building the distribution'
     }

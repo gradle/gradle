@@ -2,7 +2,6 @@ This is executed during the initialization phase.
 
 > Configure project :
 This is executed during the configuration phase.
-This is also executed during the configuration phase.
 This is executed during the configuration phase as well.
 
 > Task :test

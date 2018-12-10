@@ -42,6 +42,6 @@ tasks.named("war") {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 // end::customization[]
-tasks.named("gretty") {
+gretty {
     httpPort = 8080
 }

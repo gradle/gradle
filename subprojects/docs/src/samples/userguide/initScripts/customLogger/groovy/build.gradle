@@ -10,11 +10,11 @@ tasks.register("testCompile") {
     }
 }
 tasks.register("test") {
-    dependsOn [compile, testCompile]
+    dependsOn compile, testCompile
     doLast {
         println "running unit tests"
     }
 }
 tasks.register("build") {
-    dependsOn[test]
+    dependsOn test
 }
