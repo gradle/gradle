@@ -159,6 +159,31 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
     }
 
+    def "object creation fails with ObjectInstantiationException given unknown service injected"() {
+        given:
+        buildFile << """
+        interface Unknown { }
+        
+        class Thing {
+            @javax.inject.Inject
+            Thing(Unknown u) { }
+        }
+        
+        task fail {
+            doLast {
+                project.objects.newInstance(Thing) 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Thing.')
+        failure.assertHasCause('Unable to determine Thing argument #1: missing parameter value of type interface Unknown, or no service of type interface Unknown')
+    }
+
     def "object creation fails with ObjectInstantiationException when constructor throws an exception"() {
         given:
         buildFile << """
