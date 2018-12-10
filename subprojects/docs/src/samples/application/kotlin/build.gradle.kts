@@ -25,7 +25,7 @@ application {
 // end::executableDir-conf[]
 
 // tag::distribution-spec[]
-task("createDocs") {
+val createDocs by registering {
     val docs = file("$buildDir/docs")
     outputs.dir(docs)
     doLast {
@@ -37,7 +37,7 @@ task("createDocs") {
 distributions {
     main {
         contents {
-            from(tasks["createDocs"]) {
+            from(createDocs) {
                 into("docs")
             }
         }

@@ -13,7 +13,7 @@ subprojects {
 
     version = "1.0"
 
-    tasks.getByName<Jar>("jar") {
+    tasks.jar {
         manifest.attributes("provider" to "gradle")
     }
 }
