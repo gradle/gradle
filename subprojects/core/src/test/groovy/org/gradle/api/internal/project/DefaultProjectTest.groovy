@@ -39,6 +39,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
@@ -191,6 +192,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
+        serviceRegistryMock.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
