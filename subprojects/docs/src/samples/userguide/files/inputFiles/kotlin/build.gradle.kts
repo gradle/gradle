@@ -13,7 +13,7 @@ tasks.register<JavaCompile>("compile") {
     source = fileTree("src/main/java").matching { include("org/gradle/api/**") }
 
     // Using a closure to specify the source files.
-    setSource(provider {
+    setSource({
         // Use the contents of each zip file in the src dir
         file("src").listFiles().filter { it.name.endsWith(".zip") }.map { zipTree(it) }
     })
@@ -29,6 +29,6 @@ tasks.named<JavaCompile>("compile") {
     source(file("../shared/java"))
 
     // Add some source directories using a closure
-    setSource(provider { file("src/test/").listFiles() })
+    setSource({ file("src/test/").listFiles() })
 }
 // end::add-input-files[]

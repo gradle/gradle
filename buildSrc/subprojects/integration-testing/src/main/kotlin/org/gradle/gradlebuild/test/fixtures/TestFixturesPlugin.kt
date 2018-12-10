@@ -126,6 +126,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
             testFixturesApi(project(path))
             testFixturesApi(library("junit"))
+            testFixturesApi(library("groovy"))
             testFixturesApi(testLibrary("spock"))
             testFixturesRuntimeOnly(testLibrary("bytebuddy"))
             testFixturesRuntimeOnly(testLibrary("cglib"))

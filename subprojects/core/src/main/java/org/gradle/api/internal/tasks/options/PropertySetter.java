@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.file;
+package org.gradle.api.internal.tasks.options;
 
-/**
- * Visitor which can request a reproducible file order.
- *
- * @since 3.4
- */
-public interface ReproducibleFileVisitor extends FileVisitor {
-    /**
-     * Whether the {@link FileVisitor} should receive the files in a reproducible order independent of the underlying file system.
-     *
-     * @return <code>true</code> if files should be walked in a reproducible order.
-     */
-    boolean isReproducibleFileOrder();
+import java.lang.reflect.Type;
+
+public interface PropertySetter {
+    Class<?> getDeclaringClass();
+
+    Class<?> getRawType();
+
+    Type getGenericType();
+
+    void setValue(Object object, Object value);
 }

@@ -165,4 +165,36 @@ task("dumpKotlinBuildScriptModelClassPath") {
         then:
         outputContains("gradle-kotlin-dsl!")
     }
+
+    def 'can use Kotlin lambda as path notation'() {
+        given:
+        buildFile << """
+            task("listFiles") {
+                doLast {
+
+                    // via FileResolver
+                    val f = file { "cathedral" }
+                    println(f.name)
+
+                    // on FileCollection
+                    val collection = layout.files(
+                        // single lambda
+                        { "foo" },
+                        // nested deferred
+                        { { "bar" } },
+                        // nested unpacking
+                        { file({ "baz" }) },
+                        // nested both
+                        { { file({ { "bazar" } }) } }
+                    )
+                    println(collection.files.map { it.name })                    
+                }
+            }
+        """
+        when:
+        succeeds 'listFiles'
+        then:
+        outputContains 'cathedral'
+        outputContains '[foo, bar, baz, bazar]'
+    }
 }

@@ -21,7 +21,7 @@ tasks.register("list") {
     doLast {
         var srcDir: File? = null
 
-        val collection = layout.files(provider {
+        val collection = layout.files({
             srcDir?.listFiles()
         })
 

@@ -1,8 +1,3 @@
-// tag::conditional-signing[]
-import java.util.concurrent.Callable
-
-// end::conditional-signing[]
-
 plugins {
     java
     maven
@@ -16,7 +11,7 @@ version = "1.0-SNAPSHOT"
 extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 signing {
-    setRequired(Callable {
+    setRequired({
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
     })
     sign(configurations.archives.get())

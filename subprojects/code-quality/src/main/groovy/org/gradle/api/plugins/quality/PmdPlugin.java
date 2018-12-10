@@ -37,11 +37,11 @@ import java.util.concurrent.Callable;
 /**
  * A plugin for the <a href="http://pmd.sourceforge.net/">PMD</a> source code analyzer.
  * <p>
- * Declares a <tt>pmd</tt> configuration which needs to be configured with the PMD library to be used.
+ * Declares a <code>pmd</code> configuration which needs to be configured with the PMD library to be used.
  * <p>
  * For each source set that is to be analyzed, a {@link Pmd} task is created and configured to analyze all Java code.
  * <p>
- * All PMD tasks (including user-defined ones) are added to the <tt>check</tt> lifecycle task.
+ * All PMD tasks (including user-defined ones) are added to the <code>check</code> lifecycle task.
  *
  * @see PmdExtension
  * @see Pmd
