@@ -128,7 +128,9 @@ public interface MavenPublication extends Publication {
      *     <li>The dependencies declared by the component will be included in the published meta-data.</li>
      * </ul>
      *
-     * Currently 2 types of component are supported: 'components.java' (added by the JavaPlugin) and 'components.web' (added by the WarPlugin).
+     * Currently 3 types of component are supported: 'components.java' (added by the JavaPlugin), 'components.web' (added by the WarPlugin)
+     * and `components.javaPlatform` (added by the JavaPlatformPlugin).
+     * 
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
