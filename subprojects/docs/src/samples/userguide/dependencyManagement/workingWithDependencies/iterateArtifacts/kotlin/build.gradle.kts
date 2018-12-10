@@ -10,7 +10,7 @@ dependencies {
 }
 
 // tag::iteration-task[]
-task("iterateResolvedArtifacts") {
+tasks.register("iterateResolvedArtifacts") {
     val scm = configurations["scm"]
     dependsOn(scm)
 

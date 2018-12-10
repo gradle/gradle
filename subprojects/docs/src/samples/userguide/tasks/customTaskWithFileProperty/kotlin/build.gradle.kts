@@ -18,11 +18,11 @@ open class GreetingToFileTask : DefaultTask() {
 // end::task[]
 
 // tag::config[]
-task<GreetingToFileTask>("greet") {
+tasks.register<GreetingToFileTask>("greet") {
     destination = provider { project.extra["greetingFile"]!! }
 }
 
-task("sayGreeting") {
+tasks.register("sayGreeting") {
     dependsOn("greet")
     doLast {
         println(file(project.extra["greetingFile"]!!).readText())

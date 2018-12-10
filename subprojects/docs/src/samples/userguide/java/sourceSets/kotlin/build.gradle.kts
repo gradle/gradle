@@ -16,19 +16,19 @@ dependencies {
 }
 
 // tag::jar[]
-task<Jar>("intTestJar") {
+tasks.register<Jar>("intTestJar") {
     from(sourceSets["intTest"].output)
 }
 // end::jar[]
 
 // tag::javadoc[]
-task<Javadoc>("intTestJavadoc") {
+tasks.register<Javadoc>("intTestJavadoc") {
     source(sourceSets["intTest"].allJava)
 }
 // end::javadoc[]
 
 // tag::test[]
-task<Test>("intTest") {
+tasks.register<Test>("intTest") {
     testClassesDirs = sourceSets["intTest"].output.classesDirs
     classpath = sourceSets["intTest"].runtimeClasspath
 }

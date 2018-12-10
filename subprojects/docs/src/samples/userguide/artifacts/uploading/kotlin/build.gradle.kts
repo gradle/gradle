@@ -3,7 +3,7 @@ plugins {
 }
 
 // tag::archive-artifact[]
-val myJar = task<Jar>("myJar")
+val myJar by tasks.registering(Jar::class)
 
 artifacts {
     add("archives", myJar)
@@ -19,12 +19,12 @@ artifacts {
 // end::file-artifact[]
 
 // tag::customized-file-artifact[]
-val myTask = task<MyTaskType>("myTask") {
+val myTask by tasks.registering(MyTaskType::class) {
     destFile = file("$buildDir/somefile.txt")
 }
 
 artifacts {
-    add("archives", myTask.destFile!!) {
+    add("archives", myTask.map { it -> it.destFile }) {
         name = "my-artifact"
         type = "text"
         builtBy(myTask)
@@ -33,13 +33,13 @@ artifacts {
 // end::customized-file-artifact[]
 
 // tag::map-file-artifact[]
-val generate = task<MyTaskType>("generate") {
+val generate by tasks.registering(MyTaskType::class) {
     destFile = file("$buildDir/somefile.txt")
 }
 
 artifacts {
     add("archives",
-        mapOf("file" to generate.destFile, "name" to "my-artifact", "type" to "text", "builtBy" to generate))
+        mapOf("file" to generate.map { it.destFile }, "name" to "my-artifact", "type" to "text", "builtBy" to generate))
 }
 // end::map-file-artifact[]
 
@@ -55,7 +55,7 @@ repositories {
     }
 }
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         add(project.repositories["fileRepo"])
         ivy {

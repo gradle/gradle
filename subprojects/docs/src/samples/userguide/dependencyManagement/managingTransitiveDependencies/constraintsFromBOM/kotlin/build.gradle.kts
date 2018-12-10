@@ -18,7 +18,7 @@ dependencies {
 // end::dependency-on-bom[]
 
 //Note: dom4j also brings in xml-apis as transitive dependency
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

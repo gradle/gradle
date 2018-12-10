@@ -6,13 +6,13 @@ task("clean") {
     }
 }
 
-task("run") {
+tasks.register("run") {
     doLast {
         println("Default Running!")
     }
 }
 
-task("other") {
+tasks.register("other") {
     doLast {
         println("I'm not a default task!")
     }

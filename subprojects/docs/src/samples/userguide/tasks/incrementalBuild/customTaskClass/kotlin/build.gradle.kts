@@ -4,7 +4,7 @@ plugins {
     base
 }
 
-val processTemplates by tasks.creating(ProcessTemplates::class) {
+val processTemplates by tasks.registering(ProcessTemplates::class) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
     templateData = TemplateData("test", mapOf("year" to "2012"))
@@ -12,7 +12,7 @@ val processTemplates by tasks.creating(ProcessTemplates::class) {
 }
 
 // tag::ad-hoc-task[]
-task("processTemplatesAdHoc") {
+tasks.register("processTemplatesAdHoc") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.files(fileTree("src/templates"))
     inputs.property("templateData.name", "docs")
@@ -34,7 +34,7 @@ task("processTemplatesAdHoc") {
 // end::ad-hoc-task[]
 
 // tag::custom-class-runtime-api[]
-task<ProcessTemplatesNoAnnotations>("processTemplatesRuntime") {
+tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesRuntime") {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
     templateData = TemplateData("test", mapOf("year" to "2014"))
@@ -49,7 +49,7 @@ task<ProcessTemplatesNoAnnotations>("processTemplatesRuntime") {
 // end::custom-class-runtime-api[]
 
 // tag::runtime-api-conf[]
-task<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
+tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
     // ...
 // end::runtime-api-conf[]
     templateEngine = TemplateEngineType.FREEMARKER
@@ -72,20 +72,20 @@ task<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
 // end::runtime-api-conf[]
 
 // tag::inferred-task-dep-via-outputs[]
-task<Zip>("packageFiles") {
+tasks.register<Zip>("packageFiles") {
     from(processTemplates.outputs)
 }
 // end::inferred-task-dep-via-outputs[]
 
 // tag::inferred-task-dep-via-task[]
-task<Zip>("packageFiles2") {
+tasks.register<Zip>("packageFiles2") {
     from(processTemplates)
 }
 // end::inferred-task-dep-via-task[]
 
 
 // tag::adhoc-destroyable-task[]
-task("removeTempDir") {
+tasks.register("removeTempDir") {
     destroyables.register("$projectDir/tmpDir")
     doLast {
         delete("$projectDir/tmpDir")

@@ -1,4 +1,4 @@
-task("loadfile") {
+tasks.register("loadfile") {
     doLast {
         val files = file("./antLoadfileResources").listFiles().sorted()
         files.forEach { file ->

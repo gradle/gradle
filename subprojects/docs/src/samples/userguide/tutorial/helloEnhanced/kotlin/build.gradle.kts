@@ -1,8 +1,9 @@
-val hello = task("hello") {
+val hello = tasks.register("hello") {
     doLast {
         println("Hello Earth")
     }
 }
+// FIXME: Do the same as Groovy
 hello.doFirst {
     println("Hello Venus")
 }

@@ -9,7 +9,7 @@ dependencies {
     jasper("org.apache.tomcat.embed:tomcat-embed-jasper:9.0.2")
 }
 
-task("preCompileJsps") {
+tasks.register("preCompileJsps") {
     doLast {
         ant.withGroovyBuilder {
             "taskdef"("classname" to "org.apache.jasper.JspC",

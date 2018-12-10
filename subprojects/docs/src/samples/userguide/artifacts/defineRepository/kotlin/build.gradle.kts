@@ -259,7 +259,7 @@ repositories {
 }
 // end::authenticated-ivy-repo[]
 
-task("lookup") {
+tasks.register("lookup") {
     doLast {
         repositories.forEach { require(it?.name != null) }
         require(repositories[0]?.name != null)

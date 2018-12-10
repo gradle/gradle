@@ -3,7 +3,7 @@ repositories{
     mavenCentral()
 }
 
-task("showRepositories") {
+tasks.register("showRepositories") {
     doLast {
         repositories.map { it as MavenArtifactRepository }.forEach {
             println("repository: ${it.name} ('${it.url}')")
