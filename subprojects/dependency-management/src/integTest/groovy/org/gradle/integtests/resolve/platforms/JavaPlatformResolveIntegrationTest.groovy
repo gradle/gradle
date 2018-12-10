@@ -16,7 +16,10 @@
 
 package org.gradle.integtests.resolve.platforms
 
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -202,6 +205,58 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
                     byConstraint()
+                    forced()
+                }
+            }
+        }
+    }
+
+    // When publishing a platform, the Gradle metadata will _not_ contain enforced platforms
+    // as those are synthetic platforms generated at runtime. This test is here to make sure
+    // this is the case
+    def "can enforce a published platform"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata()
+                .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
+                .dependsOn("org", "foo", "1.0")
+                .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false}
+                .dependsOn("org", "foo", "1.0")
+                .publish()
+        def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
+        def foo11 = mavenHttpRepo.module("org", "foo", "1.1").withModuleMetadata().publish()
+
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+
+        buildFile << """
+            dependencies {
+                api enforcedPlatform("org:platform:1.0")
+                api "org:foo:1.1"
+            }
+        """
+        checkConfiguration("compileClasspath")
+
+        when:
+        platform.moduleMetadata.expectGet()
+        foo11.moduleMetadata.expectGet()
+        foo10.moduleMetadata.expectGet()
+        foo10.artifact.expectGet()
+
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:platform:1.0") {
+                    configuration = "enforcedApiElements"
+                    variant("enforcedApiElements", [
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.component.category': 'enforced-platform',
+                            'org.gradle.status': 'release',
+                    ])
+                    module("org:foo:1.0")
+                    noArtifacts()
+                }
+                edge('org:foo:1.1', 'org:foo:1.0') {
+                    configuration = 'api'
                     forced()
                 }
             }

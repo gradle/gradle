@@ -26,8 +26,10 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -48,6 +50,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.4";
@@ -159,6 +162,17 @@ public class ModuleMetadataParser {
         reader.endObject();
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
+        populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
+        AttributeValue<String> entry = attributes.findEntry(PlatformSupport.COMPONENT_CATEGORY);
+        if (entry.isPresent() && PlatformSupport.REGULAR_PLATFORM.equals(entry.get())) {
+            // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
+            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, attributesFactory.of(PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.ENFORCED_PLATFORM));
+            MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
+            populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
+        }
+    }
+
+    private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {
         for (ModuleFile file : files) {
             variant.addFile(file.name, file.uri);
         }

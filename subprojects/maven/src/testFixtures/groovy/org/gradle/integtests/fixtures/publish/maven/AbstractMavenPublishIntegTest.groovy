@@ -110,7 +110,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
 
-        buildFile.text = """
+        buildFile.text = """import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
@@ -128,6 +129,11 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
 
             dependencies {
+               attributesSchema { 
+                getMatchingStrategy(PlatformSupport.COMPONENT_CATEGORY)
+                   .disambiguationRules
+                   .add(PlatformSupport.PreferRegularPlatform)
+               }
                resolve($dependencyNotation) $extraArtifacts
             }
 

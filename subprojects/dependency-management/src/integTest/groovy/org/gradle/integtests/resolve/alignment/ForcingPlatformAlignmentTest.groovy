@@ -873,7 +873,7 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforced-platform' : 'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforcedPlatform' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
@@ -1112,25 +1112,23 @@ include 'other'
      * @param members
      */
     void platform(RemoteRepositorySpec repo, String platformGroup, String platformName, String platformVersion, List<String> members) {
-        ['platform', 'enforced-platform'].each { kind ->
-            repo.group(platformGroup) {
-                module(platformName) {
-                    version(platformVersion) {
-                        variant(kind) {
-                            attribute('org.gradle.component.category', kind)
-                            members.each { member ->
-                                constraint(member)
-                            }
-                        }
-                        // this is used only in BOMs
+        repo.group(platformGroup) {
+            module(platformName) {
+                version(platformVersion) {
+                    variant("platform") {
+                        attribute('org.gradle.component.category', 'platform')
                         members.each { member ->
                             constraint(member)
                         }
+                    }
+                    // this is used only in BOMs
+                    members.each { member ->
+                        constraint(member)
+                    }
 
-                        withModule(MavenHttpModule) {
-                            // make it a BOM
-                            hasPackaging('pom')
-                        }
+                    withModule(MavenHttpModule) {
+                        // make it a BOM
+                        hasPackaging('pom')
                     }
                 }
             }
