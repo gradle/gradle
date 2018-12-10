@@ -25,6 +25,6 @@
     </extension>
   </project-extensions>
   <cleanup />
-  <buildTypesOrder order="Gradle_Promotion_MasterSanityCheck,bt39,Gradle_Promotion_MasterNightlySnapshotManual,Gradle_Promotion_StartReleaseCycle,bt61,Gradle_Promotion_ReleaseSnapshotFromQuickFeedback,Gradle_Promotion_PublishBranchSnapshotFromQuickFeedback,Gradle_Promotion_MilestoneMaster,bt60,Gradle_Promotion_FinalRelease" />
+  <buildTypesOrder order="Gradle_Promotion_MasterSanityCheck,bt39,Gradle_Promotion_MasterNightlySnapshotManual,Gradle_Promotion_MissingWrapperChecksumUpload,Gradle_Promotion_StartReleaseCycle,bt61,Gradle_Promotion_ReleaseSnapshotFromQuickFeedback,Gradle_Promotion_PublishBranchSnapshotFromQuickFeedback,Gradle_Promotion_MilestoneMaster,bt60,Gradle_Promotion_FinalRelease" />
 </project>
 
