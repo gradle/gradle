@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.JavaPlatformPlugin;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
@@ -291,6 +292,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 versionMappingStrategy.usage(Usage.JAVA_RUNTIME, strategy -> {
                     DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
                     mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()));
+                });
+            });
+            plugins.withPlugin("org.gradle.java-platform", plugin -> {
+                versionMappingStrategy.allVariants(strategy -> {
+                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
+                    mapping.setTargetConfiguration(configurations.getByName(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME));
                 });
             });
         }

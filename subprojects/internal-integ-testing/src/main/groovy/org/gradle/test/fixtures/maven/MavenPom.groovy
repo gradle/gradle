@@ -161,4 +161,8 @@ class MavenPom {
             throw new AssertionError("Expected scope $scopeName but only found ${scopes.keySet()}")
         }
     }
+
+    void hasNoScope(String scopeName) {
+        assert scopes[scopeName] == null : "Didn't expect to find scope $scopeName"
+    }
 }
