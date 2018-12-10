@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
-import org.gradle.api.internal.project.WorkIdentity
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
-import org.gradle.util.Path
 import org.jetbrains.annotations.NotNull
 import spock.lang.Specification
 
@@ -35,14 +33,13 @@ class TransformationNodeSpec extends Specification {
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-    def buildPath = Path.ROOT
 
     def "initial node adds dependency on artifact node and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildPath)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -59,7 +56,7 @@ class TransformationNodeSpec extends Specification {
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver), buildPath)
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver))
 
         given:
         def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver)
@@ -78,11 +75,6 @@ class TransformationNodeSpec extends Specification {
     class TestNode extends Node {
         @Override
         Project getProject() {
-            return null
-        }
-
-        @Override
-        WorkIdentity getIdentity() {
             return null
         }
 

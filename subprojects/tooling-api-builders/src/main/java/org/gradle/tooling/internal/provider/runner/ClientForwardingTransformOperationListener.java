@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
-import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
-import org.gradle.api.internal.project.WorkIdentity;
+import org.gradle.api.internal.artifacts.transform.TransformationNode;
+import org.gradle.execution.plan.Node;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -46,7 +46,7 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  */
 class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteScheduledTransformationStepBuildOperationDetails> implements OperationDependencyLookup {
 
-    private final Map<TransformationIdentity, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
+    private final Map<TransformationNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
 
     ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
@@ -56,9 +56,9 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
     }
 
     @Override
-    public InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity) {
-        if (isEnabled() && identity instanceof TransformationIdentity) {
-            return descriptors.get(identity);
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
+        if (isEnabled() && node instanceof TransformationNode) {
+            return descriptors.get(node);
         }
         return null;
     }
@@ -74,13 +74,13 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
     }
 
     private DefaultTransformDescriptor toTransformDescriptor(BuildOperationDescriptor buildOperation, ExecuteScheduledTransformationStepBuildOperationDetails details) {
-        return descriptors.computeIfAbsent(details.getTransformationIdentity(), transformationIdentity -> {
+        return descriptors.computeIfAbsent(details.getTransformationNode(), transformationNode -> {
             OperationIdentifier id = buildOperation.getId();
             String displayName = buildOperation.getDisplayName();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
             String transformerName = details.getTransformerName();
             String subjectName = details.getSubjectName();
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getBuildPath(), transformationIdentity);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(transformationNode);
             return new DefaultTransformDescriptor(id, displayName, parentId, transformerName, subjectName, dependencies);
         });
     }

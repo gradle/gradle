@@ -20,12 +20,15 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 public interface TaskExecutionContext {
+
+    LocalTaskNode getLocalTaskNode();
 
     @Nullable
     AfterPreviousExecutionState getAfterPreviousExecution();

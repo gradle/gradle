@@ -62,9 +62,6 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, clientSubscriptions, buildListener);
             }
             OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
-            if (clientSubscriptions.isAnyRequested(OperationType.TRANSFORM, OperationType.TASK)) {
-                listeners.add(operationDependenciesResolver);
-            }
             if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM)) {
                 ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, clientSubscriptions, buildListener, operationDependenciesResolver);
                 operationDependenciesResolver.addLookup(transformOperationListener);

@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.Actions;
@@ -81,11 +80,6 @@ public class TaskNodeFactory {
             this.taskGraph = taskGraph;
             this.targetBuild = ((ProjectInternal) task.getProject()).getServices().get(BuildState.class).getBuildIdentifier();
             doNotRequire();
-        }
-
-        @Override
-        public TaskIdentity<?> getIdentity() {
-            return task.getTaskIdentity();
         }
 
         @Override

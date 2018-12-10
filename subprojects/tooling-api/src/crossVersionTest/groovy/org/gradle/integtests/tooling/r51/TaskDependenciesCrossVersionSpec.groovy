@@ -122,6 +122,33 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         task(':subproject:d').dependencies == tasks(':subproject:b', ':subproject:c')
     }
 
+    def "reports task dependencies for tasks in another build"() {
+        given:
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << """
+            apply plugin: 'java'
+            dependencies {
+                implementation 'org.example:included:0.1'
+            }
+        """
+        file('included/build.gradle') << """
+            apply plugin: 'java'
+            group = 'org.example'
+            version = '0.1'
+        """
+        file('included/settings.gradle') << """
+            rootProject.name = "included"
+        """
+
+        when:
+        runBuild(':compileJava')
+
+        then:
+        task(':compileJava').dependencies == tasks(':included:jar')
+    }
+
     @TargetGradleVersion('>=2.6 <5.1')
     def "throws UnsupportedMethodException for task dependencies when target version does not support it"() {
         when:

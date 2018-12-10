@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -27,6 +28,7 @@ import java.util.List;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
+    private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private TaskArtifactState taskArtifactState;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
@@ -38,8 +40,14 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final Timer executionTimer;
     private boolean taskExecutedIncrementally;
 
-    public DefaultTaskExecutionContext() {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode) {
+        this.localTaskNode = localTaskNode;
         this.executionTimer = Time.startTimer();
+    }
+
+    @Override
+    public LocalTaskNode getLocalTaskNode() {
+        return localTaskNode;
     }
 
     @Nullable
