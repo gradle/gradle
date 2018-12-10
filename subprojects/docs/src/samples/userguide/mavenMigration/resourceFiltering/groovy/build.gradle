@@ -1,0 +1,13 @@
+apply plugin : 'java'
+
+version = '1.0'
+
+ext {
+    currentBuildNumber = '1234'
+}
+
+// tag::process-resources[]
+processResources {
+    expand(version: version, buildNumber: currentBuildNumber)
+}
+// end::process-resources[]
