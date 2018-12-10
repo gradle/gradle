@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="6a1cee80-3665-4c4a-944b-f9d16f3501a4" paused="true" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="6a1cee80-3665-4c4a-944b-f9d16f3501a4" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
   <name>Missing Wrapper Checksum Upload</name>
   <description>One-time job to publish the missing Wrapper JAR checksums</description>
   <settings>
