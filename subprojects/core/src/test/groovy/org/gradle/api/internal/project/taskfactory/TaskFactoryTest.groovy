@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
@@ -29,13 +28,11 @@ import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
-    final ClassGenerator generator = Mock()
     final Instantiator instantiator = Mock()
     ITaskFactory taskFactory
 
     def setup() {
-        taskFactory = new TaskFactory(generator).createChild(project, instantiator)
-        _ * generator.generate(_) >> { Class type -> type }
+        taskFactory = new TaskFactory().createChild(project, instantiator)
         _ * instantiator.newInstance(_) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
     }
 
@@ -65,19 +62,6 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
         where:
         type << [Task, TaskInternal, AbstractTask, DefaultTask]
-    }
-
-    void instantiatesAnInstanceOfTheDecoratedTaskType() {
-        when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12))
-
-        then:
-        task instanceof DecoratedTask
-
-        and:
-        1 * generator.generate(TestDefaultTask) >> DecoratedTask
-        1 * instantiator.newInstance(DecoratedTask) >> { new DecoratedTask() }
-        0 * _._
     }
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {

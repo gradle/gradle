@@ -17,9 +17,8 @@ package org.gradle.util
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -67,7 +66,7 @@ class NameValidatorTest extends Specification {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskInstantiator(new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)), project).create(name, DefaultTask)
+        new TaskInstantiator(new TaskFactory(project, Mock(Instantiator)), project).create(name, DefaultTask)
 
         then:
         def exception = thrown(InvalidUserDataException)

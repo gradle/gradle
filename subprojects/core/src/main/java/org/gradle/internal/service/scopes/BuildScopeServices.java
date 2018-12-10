@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -253,12 +252,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPropertyWalker(propertyMetadataStore);
     }
 
-    protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker, ClassGenerator classGenerator) {
+    protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker) {
         return new AnnotationProcessingTaskFactory(
             taskClassInfoStore,
             new PropertyAssociationTaskFactory(
-                new TaskFactory(
-                    classGenerator),
+                new TaskFactory(),
                 propertyWalker
             ));
     }
