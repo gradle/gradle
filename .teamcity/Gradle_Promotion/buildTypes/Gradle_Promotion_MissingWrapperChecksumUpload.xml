@@ -31,12 +31,6 @@
       <contains id="RQ_27" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
-    <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_110" sourceBuildTypeId="Gradle_Check_Stage_QuickFeedback_Trigger" cleanDestination="false">
-        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="master" />
-        <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
-      </dependency>
-    </artifact-dependencies>
     <cleanup />
   </settings>
 </build-type>
