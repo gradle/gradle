@@ -327,6 +327,66 @@ project(':app') {
         outputLines.any { it == "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar" }
     }
 
+    def "transforms with different dependencies in multiple dependency graphs are executed"() {
+        given:
+        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26").publish().allowAll()
+        settingsFile << "include('app2')"
+        buildFile << """
+            project(':app') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }
+            project(':app2') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+                dependencies {
+                    implementation 'junit:junit:4.11'
+                    implementation 'org.slf4j:slf4j-api:1.7.26'
+                    implementation project(':lib')
+                }
+            
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                        artifactTransform(TestTransform) {
+                            params('Single step transform')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+        then:
+        output.count("Transforming") == 7
+        output.contains("Transforming slf4j-api-1.7.26.jar to slf4j-api-1.7.26.jar.txt")
+        output.contains("Transforming slf4j-api-1.7.25.jar to slf4j-api-1.7.25.jar.txt")
+        def lib1ResolveMessage = "Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar"
+        def lib2ResolveMessage = "Single step transform received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar"
+        output.contains(lib1ResolveMessage)
+        output.contains(lib2ResolveMessage)
+        def outputLines = output.readLines()
+        def app1Resolve = outputLines.indexOf("> Task :app:resolve")
+        def app2Resolve = outputLines.indexOf("> Task :app2:resolve")
+        def lib1Transform = outputLines.indexOf(lib1ResolveMessage)
+        def lib2Transform = outputLines.indexOf(lib2ResolveMessage)
+        ![app1Resolve, app2Resolve, lib1Transform, lib2Transform].contains(-1)
+        assert lib1Transform < app1Resolve // scheduled
+        assert lib2Transform > app2Resolve // immediate, TODO: should be scheduled as well
+    }
+
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
