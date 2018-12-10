@@ -16,32 +16,32 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.parallel})
-class ArtifactTransformWithDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
+class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
             rootProject.name = 'transform-deps'
             include 'common', 'lib', 'app'
         """
-        mavenRepo.module("org.slf4j", "slf4j-api", "1.7.24").publish()
-        mavenRepo.module("org.slf4j", "slf4j-api", "1.7.25").publish()
-        mavenRepo.module("junit", "junit", "4.11")
+        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.24").publish().allowAll()
+        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.25").publish().allowAll()
+        mavenHttpRepo.module("junit", "junit", "4.11")
                 .dependsOn("hamcrest", "hamcrest-core", "1.3")
-                .publish()
-        mavenRepo.module("hamcrest", "hamcrest-core", "1.3").publish()
+                .publish().allowAll()
+        mavenHttpRepo.module("hamcrest", "hamcrest-core", "1.3").publish().allowAll()
 
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
     repositories {
-        maven { url = '${mavenRepo.uri}' }
+        maven { url = '${mavenHttpRepo.uri}' }
     }
     configurations {
         implementation {
@@ -329,6 +329,7 @@ project(':app') {
 
     def "transform does not execute when dependencies cannot be found"() {
         given:
+        mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
         buildFile << """
             project(':app') {
                 task resolve(type: Copy) {
@@ -348,13 +349,78 @@ project(':app') {
         """
 
         when:
-        executer.withArgument("--parallel")
         fails "resolve"
 
         then:
         output.count('Transforming') == 0
-        failure.assertResolutionFailure(":app:resolve")
+        failure.assertResolutionFailure(":app:implementation")
         failure.assertThatCause(Matchers.containsString("Could not find unknown:not-found:4.3"))
+    }
+
+    def "transform does not execute when dependencies cannot be downloaded"() {
+        given:
+        def cantBeDownloaded = mavenHttpRepo.module("test", "cant-be-downloaded", "4.3").publish()
+        cantBeDownloaded.pom.allowGetOrHead()
+        cantBeDownloaded.artifact.expectDownloadBroken()
+
+        buildFile << """
+            project(':app') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }        
+            
+            project(':lib') {
+                dependencies {
+                    implementation "test:cant-be-downloaded:4.3"
+                }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        output.count('Transforming') == 4
+        failure.assertResolutionFailure(":app:implementation")
+        failure.assertThatCause(Matchers.containsString("Could not download cant-be-downloaded.jar (test:cant-be-downloaded:4.3)"))
+        output.contains("Single step transform received dependencies files [] for processing common.jar")
+        output.contains("Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar")
+        output.contains("Single step transform received dependencies files [] for processing hamcrest-core-1.3.jar")
+        output.contains("Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar")
+    }
+
+    def "transform does not execute when task from dependencies fails"() {
+        given:
+        buildFile << """
+            project(':app') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }        
+            
+            project(':common') {
+                producer.doLast {
+                    throw new RuntimeException("broken")
+                }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        output.count('Transforming') == 0
+        failure.assertHasDescription("Execution failed for task ':common:producer'")
+        failure.assertHasCause("broken")
     }
 
 }
