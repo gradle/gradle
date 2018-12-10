@@ -13,13 +13,13 @@
     <build-runners>
       <runner id="RUNNER_9" name="Promote" type="gradle-runner">
         <parameters>
-          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
+          <param name="teamcity.tool.jacoco" value="%teamcity.tool.jacoco.DEFAULT%" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -i &quot;-PgitUserName=Gradleware Git Bot&quot; &quot;-PgitUserEmail=gradlewaregitbot@gradleware.com&quot; -Igradle/buildScanInit.gradle" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="promoteNightly -s" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="tasks --all" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
