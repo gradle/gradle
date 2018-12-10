@@ -42,7 +42,7 @@ tasks.named("jar") {
     from sourceSets.impl.output
 }
 
-tasks.named("uploadArchives "){
+tasks.named("uploadArchives"){
     repositories {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))

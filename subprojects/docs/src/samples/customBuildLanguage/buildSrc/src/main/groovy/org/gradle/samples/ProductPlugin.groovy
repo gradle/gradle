@@ -37,7 +37,7 @@ class ProductPlugin implements Plugin<Project> {
             configurations {
                 runtime
             }
-            tasks.create(name: 'dist', type: Zip)
+            def dist = tasks.register(name: 'dist', type: Zip)
             artifacts {
                 archives dist
             }

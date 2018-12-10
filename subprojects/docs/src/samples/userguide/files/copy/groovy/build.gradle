@@ -112,14 +112,14 @@ tasks.register("copyWithTruncate", Copy) {
 
 
 // tag::copy-task[]
-task copyTask(type: Copy) {
+tasks.register("copyTask", Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
 }
 // end::copy-task[]
 
 // tag::copy-task-with-patterns[]
-task copyTaskWithPatterns(type: Copy) {
+tasks.register("copyTaskWithPatterns", Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     include '**/*.html'
@@ -132,7 +132,7 @@ task copyTaskWithPatterns(type: Copy) {
 // end::copy-task-with-patterns[]
 
 // tag::copy-task-2[]
-task anotherCopyTask(type: Copy) {
+tasks.register("anotherCopyTask", Copy) {
     // Copy everything under src/main/webapp
     from 'src/main/webapp'
     // Copy a single file
@@ -153,7 +153,7 @@ def getDestDir() {
 }
 
 // tag::copy-method[]
-task copyMethod {
+tasks.register("copyMethod") {
     doLast {
         copy {
             from 'src/main/webapp'
@@ -166,7 +166,7 @@ task copyMethod {
 // end::copy-method[]
 
 // tag::copy-method-with-dependency[]
-task copyMethodWithExplicitDependencies{
+tasks.register("copyMethodWithExplicitDependencies") {
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files copyTask
     outputs.dir 'some-dir' // up-to-date check for outputs
@@ -183,7 +183,7 @@ task copyMethodWithExplicitDependencies{
 configurations { runtime }
 
 // tag::rename-files[]
-task rename(type: Copy) {
+tasks.register("rename", Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     // Use a closure to convert all file names to upper case
@@ -200,7 +200,7 @@ task rename(type: Copy) {
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
-task filter(type: Copy) {
+tasks.register("filter", Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     // Substitute property tokens in files
@@ -221,7 +221,7 @@ task filter(type: Copy) {
 }
 // end::filter-files[]
 
-task test {
+tasks.register("test") {
     dependsOn tasks.withType(Copy)
     dependsOn copyMethod
     dependsOn copyMethodWithExplicitDependencies
@@ -236,12 +236,12 @@ CopySpec webAssetsSpec = copySpec {
     rename '(.+)-staging(.+)', '$1$2'
 }
 
-task copyAssets(type: Copy) {
+tasks.register("copyAssets", Copy) {
     into "$buildDir/inPlaceApp"
     with webAssetsSpec
 }
 
-task distApp(type: Zip) {
+tasks.register("distApp", Zip) {
     archiveName = 'my-app-dist.zip'
     destinationDir = file("$buildDir/dists")
 
@@ -255,12 +255,12 @@ def webAssetPatterns = {
     include '**/*.html', '**/*.png', '**/*.jpg'
 }
 
-task copyAppAssets(type: Copy) {
+tasks.register("copyAppAssets", Copy) {
     into "$buildDir/inPlaceApp"
     from 'src/main/webapp', webAssetPatterns
 }
 
-task archiveDistAssets(type: Zip) {
+tasks.register("archiveDistAssets", Zip) {
     archiveName = 'distribution-assets.zip'
     destinationDir = file("$buildDir/dists")
 
@@ -269,7 +269,7 @@ task archiveDistAssets(type: Zip) {
 // end::shared-copy-patterns[]
 
 // tag::change-default-exclusions[]
-task forcedCopy(type: Copy) {
+tasks.register("forcedCopy", Copy) {
     into "$buildDir/inPlaceApp"
     from 'src/main/webapp'
 

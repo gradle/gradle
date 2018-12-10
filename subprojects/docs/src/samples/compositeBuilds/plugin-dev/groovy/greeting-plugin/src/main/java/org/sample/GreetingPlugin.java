@@ -9,9 +9,11 @@ public class GreetingPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         GreetingExtension extension = project.getExtensions().create("greeting", GreetingExtension.class);
-        GreetingTask task = project.getTasks().create("greeting", GreetingTask.class);
+        Provider<GreetingTask> task = project.getTasks().register("greeting", GreetingTask.class);
         project.afterEvaluate(p -> {
-            task.setWho(extension.getWho());
+            task.configure {
+                setWho(extension.getWho());
+            }
         });
     }
 }
