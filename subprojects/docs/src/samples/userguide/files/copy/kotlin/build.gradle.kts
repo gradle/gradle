@@ -150,7 +150,7 @@ task<Copy>("anotherCopyTask") {
     // Copy the contents of a Zip file
     from(zipTree("src/main/assets.zip"))
     // Determine the destination directory later
-    into { getDestDir() }
+    into({ getDestDir() })
 }
 // end::copy-task-2[]
 
