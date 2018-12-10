@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.parallel})
@@ -351,9 +352,9 @@ project(':app') {
         fails "resolve"
 
         then:
-        output.count('Transforming') == 1
-        output.contains('Single step transform received dependencies files [] for processing common.jar')
-        // FIXME: lib.jar is transformed without dependencies - it should no be executed if the dependencies cannot be resolved
+        output.count('Transforming') == 0
+        failure.assertResolutionFailure(":app:resolve")
+        failure.assertThatCause(Matchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
 }
