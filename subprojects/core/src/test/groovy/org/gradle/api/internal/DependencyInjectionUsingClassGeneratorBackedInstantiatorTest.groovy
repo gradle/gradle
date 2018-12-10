@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.internal.instantiation.Jsr330ConstructorSelector
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -26,7 +27,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
     final ClassGenerator classGenerator = new AsmBackedClassGenerator()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(services, cache)
+    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
     final instantiator = new ClassGeneratorBackedInstantiator(classGenerator, dependencyInjectingInstantiator)
 
     def "injects service using getter injection"() {

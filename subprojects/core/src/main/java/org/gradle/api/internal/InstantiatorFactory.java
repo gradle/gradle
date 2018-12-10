@@ -57,4 +57,15 @@ public interface InstantiatorFactory {
      * @return The instantiator
      */
     Instantiator injectAndDecorate(ServiceRegistry registry);
+
+    /**
+     * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
+     * Is lenient when there is a missing @Inject annotation, for backwards compatibility.
+     *
+     * <p>Use for any public model types for which services or user provided constructor values need to injected.
+     *
+     * @param registry The registry of services to make available to instances.
+     * @return The instantiator
+     */
+    Instantiator injectAndDecorateLenient(ServiceRegistry registry);
 }

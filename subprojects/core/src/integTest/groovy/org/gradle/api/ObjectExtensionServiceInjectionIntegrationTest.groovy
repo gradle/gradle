@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
-    def "can create instance of extension with multiple constructors"() {
+    def "can create instance of extension with multiple constructors without @Inject annotation"() {
         buildFile << """
             class Thing {
                 String a
@@ -48,7 +48,6 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
-    // Document current behaviour
     def "fails when extension constructor does not accept provided configuration"() {
         buildFile << """
             class Thing {
@@ -61,31 +60,50 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
         expect:
         fails()
-        failure.assertHasCause("Could not create an instance of type Thing_Decorated.")
-        failure.assertHasCause("Could not find any public constructor for class Thing_Decorated which accepts parameters [java.lang.String].")
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Unable to determine Thing argument #2: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
     }
 
     // Document current behaviour
-    def "fails when extension constructor accepts service types"() {
+    def "can inject service and configuration as constructor args when constructor not annotated with @Inject"() {
         buildFile << """
             class Thing {
-                String a
-                Thing(String a, ObjectFactory objects) {
-                    this.a = a
+                Thing(String a, ObjectFactory objects, int b) {
+                    assert a == "a"
+                    assert b == 12
+                    assert objects != null
                 }
             }
             
-            extensions.create("one", Thing, "a")
+            extensions.create("one", Thing, "a", 12)
         """
 
         expect:
-        fails()
-        failure.assertHasCause("Could not create an instance of type Thing_Decorated.")
-        failure.assertHasCause("Could not find any public constructor for class Thing_Decorated which accepts parameters [java.lang.String].")
+        succeeds()
+    }
+
+    def "can inject service using getter"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class Thing {
+                Thing(String a) {
+                }
+
+                @Inject
+                ObjectFactory getObjects() { }
+            }
+            
+            def e = extensions.create("one", Thing, "a")
+            assert e.objects != null
+        """
+
+        expect:
+        succeeds()
     }
 
     // Document current behaviour
-    def "fails when service injected using getter"() {
+    def "fails when service injected using getter from constructor"() {
         buildFile << """
             import ${Inject.name}
 
@@ -103,6 +121,6 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
         expect:
         fails()
-        failure.assertHasCause("Could not create an instance of type Thing_Decorated.")
+        failure.assertHasCause("Could not create an instance of type Thing.")
     }
 }

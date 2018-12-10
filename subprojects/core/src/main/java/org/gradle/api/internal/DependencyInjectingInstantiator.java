@@ -16,48 +16,33 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.internal.instantiation.ConstructorSelector;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 
 /**
- * An {@link Instantiator} that applies JSR-330 style dependency injection.
+ * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
 public class DependencyInjectingInstantiator implements Instantiator {
-
     private final ServiceRegistry services;
-    private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
-    private final ClassGenerator classGenerator;
+    private final ConstructorSelector constructorSelector;
 
-    public DependencyInjectingInstantiator(ServiceRegistry services, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
-        this.classGenerator = new ClassGenerator() {
-            @Override
-            public <T> Class<? extends T> generate(Class<T> type) {
-                return type;
-            }
-        };
+    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ServiceRegistry services) {
         this.services = services;
-        this.constructorCache = constructorCache;
-    }
-
-    public DependencyInjectingInstantiator(ClassGenerator classGenerator, ServiceRegistry services, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
-        this.classGenerator = classGenerator;
-        this.services = services;
-        this.constructorCache = constructorCache;
+        this.constructorSelector = constructorSelector;
     }
 
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            Constructor<?> constructor = findConstructor(type);
+            Constructor<?> constructor = findConstructor(type, parameters);
             Object[] resolvedParameters = convertParameters(type, constructor, parameters, null);
             try {
                 Object instance = constructor.newInstance(resolvedParameters);
@@ -73,25 +58,12 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
     }
 
-    private <T> Constructor<?> findConstructor(final Class<? extends T> type) throws Throwable {
-        CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
-            @Override
-            public CachedConstructor transform(Class<?> aClass) {
-                try {
-                    validateType(type);
-                    Class<? extends T> implClass = classGenerator.generate(type);
-                    Constructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
-                    constructor.setAccessible(true);
-                    return CachedConstructor.of(constructor);
-                } catch (Throwable e) {
-                    return CachedConstructor.of(e);
-                }
-            }
-        });
-        if (cached.error != null) {
-            throw cached.error;
+    private <T> Constructor<?> findConstructor(Class<? extends T> type, Object[] parameters) throws Throwable {
+        CachedConstructor constructor = constructorSelector.forParams(type, parameters);
+        if (constructor.error != null) {
+            throw constructor.error;
         }
-        return cached.constructor;
+        return constructor.constructor;
     }
 
     private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters, List<Object> injectedServices) {
@@ -138,20 +110,10 @@ public class DependencyInjectingInstantiator implements Instantiator {
         return resolvedParameters;
     }
 
-    private static <T> void validateType(Class<T> type) {
-        if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
-            throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
-        }
-        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
-        }
-        if (Modifier.isAbstract(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
-        }
-    }
-
-    static class CachedConstructor {
+    public static class CachedConstructor {
+        @Nullable
         private final Constructor<?> constructor;
+        @Nullable
         private final Throwable error;
 
         private CachedConstructor(Constructor<?> constructor, Throwable error) {
@@ -166,7 +128,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         public static CachedConstructor of(Throwable err) {
             return new CachedConstructor(null, err);
         }
-
     }
 
     /**

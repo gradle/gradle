@@ -51,6 +51,7 @@ import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
@@ -241,7 +242,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).injectAndDecorateLenient(services));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
         }

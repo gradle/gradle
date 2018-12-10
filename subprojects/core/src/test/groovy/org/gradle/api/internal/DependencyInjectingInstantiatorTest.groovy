@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-
+import org.gradle.api.internal.instantiation.Jsr330ConstructorSelector
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -27,7 +27,7 @@ import javax.inject.Inject
 class DependencyInjectingInstantiatorTest extends Specification {
     def services = Mock(ServiceRegistry)
     def classGenerator = Mock(ClassGenerator)
-    def instantiator = new DependencyInjectingInstantiator(classGenerator, services, new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor>())
+    def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor>()), services)
 
     def "creates instance that has default constructor"() {
         given:

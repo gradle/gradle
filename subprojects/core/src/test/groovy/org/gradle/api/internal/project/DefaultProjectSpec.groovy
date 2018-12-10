@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileLookup
@@ -31,14 +32,12 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -156,7 +155,7 @@ class DefaultProjectSpec extends Specification {
 
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.newInstance(TaskContainerInternal) >> Stub(TaskContainerInternal)
-        _ * serviceRegistry.get(Instantiator) >> instantiator
+        _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
 
