@@ -1037,7 +1037,6 @@ The main reason for this is the slower script compilation for Kotlin DSL.
 * The Kotlin DSL will not support the `model {}` block, which is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 However, you _can_ apply model rules from scripts — see the link:{kotlin-dsl-samples}model-rules[model rules] sample for more information.
 * We recommend against enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
-* Gradle API functions that have an `Any` argument and accept lazy constructs — for example `CopySpec.from(Any)` — don't support Kotlin lambdas. Use a `Callable { .. }` or a `provider { .. }` instead. See link:{kotlin-dsl-issues}1077[gradle/kotlin-dsl#1077] for more information.
 
 If you run into trouble or discover a suspected bug, please report the issue in the Kotlin DSL link:{kotlin-dsl-issues}[issue tracker].
 
