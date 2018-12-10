@@ -168,6 +168,15 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
+    @Override
+    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+        def v = createVariant(variant, attributes)
+        variantConfiguration.delegate = v
+        variantConfiguration.resolveStrategy = Closure.DELEGATE_FIRST
+        variantConfiguration()
+        return this
+    }
+
     private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.removeAll { it.name == variant }
@@ -433,6 +442,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
             variants.collect { v ->
+                def artifacts = v.artifacts
+                if (!artifacts && v.useDefaultArtifacts) {
+                    artifacts = defaultArtifacts
+                }
                 new VariantMetadataSpec(
                     v.name,
                     v.attributes,
@@ -442,7 +455,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
-                    v.artifacts?:defaultArtifacts,
+                    artifacts,
                     v.capabilities
                 )
             },

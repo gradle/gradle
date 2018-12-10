@@ -17,10 +17,12 @@
 package org.gradle.test.fixtures.maven;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec;
 
 import java.util.Map;
 
@@ -206,6 +208,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public MavenModule variant(String variant, Map<String, String> attributes) {
         backingModule.variant(variant, attributes);
+        return t();
+    }
+
+    @Override
+    public MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value=VariantMetadataSpec.class, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+        backingModule.variant(variant, attributes, variantConfiguration);
         return t();
     }
 
