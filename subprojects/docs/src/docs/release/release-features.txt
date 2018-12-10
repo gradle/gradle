@@ -1,0 +1,3 @@
+ - Repository constraints
+ - Production-ready configuration avoidance APIs
+ - Stricter validation for custom tasks using `java-gradle-plugin`
