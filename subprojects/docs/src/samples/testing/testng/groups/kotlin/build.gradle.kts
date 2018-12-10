@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::test-config[]
-tasks.test {
+tasks.named<Test>("test") {
     useTestNG {
         val options = this as TestNGOptions
         options.excludeGroups("integrationTests")

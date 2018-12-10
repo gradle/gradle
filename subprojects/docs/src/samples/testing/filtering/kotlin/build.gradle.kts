@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::test-filtering[]
-tasks.test {
+tasks.named<Test>("test") {
     filter {
         //include specific method in any of the tests
         includeTestsMatching("*UiCheck")

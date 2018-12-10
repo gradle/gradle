@@ -25,12 +25,12 @@ signing {
 
 // Alternative to signing.required
 // tag::only-if[]
-tasks.withType<Sign> {
+tasks.withType<Sign>().configureEach {
     onlyIf { project.extra["isReleaseVersion"] as Boolean }
 }
 // end::only-if[]
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         withConvention(MavenRepositoryHandlerConvention::class) {
             mavenDeployer {

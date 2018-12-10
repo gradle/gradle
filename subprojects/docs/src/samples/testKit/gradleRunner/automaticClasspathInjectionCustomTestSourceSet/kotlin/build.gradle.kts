@@ -19,12 +19,12 @@ sourceSets {
     }
 }
 
-task<Test>("functionalTest") {
+tasks.register<Test>("functionalTest") {
     testClassesDirs = sourceSets["functionalTest"].output.classesDirs
     classpath = sourceSets["functionalTest"].runtimeClasspath
 }
 
-tasks.check { dependsOn(tasks["functionalTest"]) }
+tasks.named("check") { dependsOn(tasks["functionalTest"]) }
 
 gradlePlugin {
     testSourceSets(sourceSets["functionalTest"])

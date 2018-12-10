@@ -25,19 +25,20 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producerOne by tasks.creating(Producer::class)
-val producerTwo by tasks.creating(Producer::class)
-val consumer by tasks.creating(Consumer::class)
-
-// Connect the producer task outputs to the consumer task input
-// Don't need to add task dependencies to the consumer task. These are automatically added
-consumer.inputFiles.add(producerOne.outputFile)
-consumer.inputFiles.add(producerTwo.outputFile)
-
 // Set values for the producer tasks lazily
 // Don't need to update the consumer.inputFiles property. This is automatically updated as producer.outputFile changes
-producerOne.outputFile.set(layout.buildDirectory.file("one.txt"))
-producerTwo.outputFile.set(layout.buildDirectory.file("two.txt"))
+val producerOne = tasks.register<Producer>("producerOne") {
+    outputFile.set(layout.buildDirectory.file("one.txt"))
+}
+val producerTwo = tasks.register<Producer>("producerTwo") {
+    outputFile.set(layout.buildDirectory.file("two.txt"))
+}
+val consumer by tasks.register<Consumer>("consumer") {
+    // Connect the producer task outputs to the consumer task input
+    // Don't need to add task dependencies to the consumer task. These are automatically added
+    consumer.inputFiles.add(producerOne.get().outputFile)
+    consumer.inputFiles.add(producerTwo.get().outputFile)
+}
 
 // Change the build directory.
 // Don't need to update the task properties. These are automatically updated as the build directory changes
