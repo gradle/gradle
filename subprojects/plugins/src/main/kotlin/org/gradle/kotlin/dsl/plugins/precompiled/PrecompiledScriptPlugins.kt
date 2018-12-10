@@ -17,7 +17,6 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -113,7 +112,7 @@ fun Project.exposeScriptsAsGradlePlugins() {
 
     declareScriptPlugins(scriptPlugins)
 
-    generatePluginAdaptersFor(scriptPlugins, scriptSourceFiles)
+    generatePluginAdaptersFor(scriptPlugins)
 }
 
 
@@ -142,13 +141,12 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 
 
 private
-fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: FileTree) {
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
 
     val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
     sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
     val generateScriptPluginAdapters by tasks.registering(GenerateScriptPluginAdapters::class) {
-        scripts = scriptSourceFiles
         plugins = scriptPlugins
         outputDirectory.set(generatedSourcesDir)
     }

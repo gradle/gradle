@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -36,10 +35,6 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var scripts: FileTree
-
-    @get:Internal
-    internal
     lateinit var plugins: List<ScriptPlugin>
 
     @get:OutputDirectory
@@ -50,9 +45,7 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
     @Suppress("unused")
     internal
     val scriptFiles: Set<File>
-        get() = scripts.matching { filterable ->
-            filterable.exclude { it.isDirectory }
-        }.files
+        get() = plugins.map { it.scriptFile }.toSet()
 
     @TaskAction
     @Suppress("unused")
