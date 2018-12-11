@@ -31,7 +31,6 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceRegistry;
@@ -70,10 +69,6 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
     private static final Lock CACHE_LOCK = new ReentrantLock();
     private static final Collection<String> SKIP_PROPERTIES = Arrays.asList("class", "metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
-
-    public <T> T newInstance(Class<T> type, Object... parameters) {
-        return DirectInstantiator.instantiate(generate(type), parameters);
-    }
 
     public <T> Class<? extends T> generate(Class<T> type) {
         try {

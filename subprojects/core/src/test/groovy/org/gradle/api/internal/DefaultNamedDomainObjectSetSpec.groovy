@@ -19,12 +19,12 @@ package org.gradle.api.internal
 import org.gradle.api.Namer
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.specs.Spec
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private final Namer<Bean> namer = new Namer<Bean>() {
         String determineName(Bean bean) {
             return bean.name

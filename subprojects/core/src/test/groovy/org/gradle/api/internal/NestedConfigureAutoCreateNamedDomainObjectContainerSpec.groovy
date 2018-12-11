@@ -15,18 +15,19 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.*
-import org.gradle.internal.reflect.DirectInstantiator
+
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 
-    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    def instantiator = TestUtil.instantiatorFactory().decorate()
 
     static class Container extends FactoryNamedDomainObjectContainer {
         String parentName
         String name
         Container(String parentName, String name, Closure factory) {
-            super(Object, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE), new DynamicPropertyNamer(), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
+            super(Object, TestUtil.instantiatorFactory().decorate(), new DynamicPropertyNamer(), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
             this.parentName = parentName
             this.name = name
         }

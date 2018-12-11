@@ -29,10 +29,10 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import org.gradle.internal.Factory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultDependencyHandlerTest extends Specification {
@@ -46,7 +46,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
+    private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorate().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
 

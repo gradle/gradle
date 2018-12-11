@@ -20,21 +20,19 @@ package org.gradle.api.reporting.internal
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
 import org.gradle.internal.Factories
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {
 
-    static Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    static Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     static Project project = ProjectBuilder.builder().build()
 
     static class TestReportContainer extends DefaultReportContainer {

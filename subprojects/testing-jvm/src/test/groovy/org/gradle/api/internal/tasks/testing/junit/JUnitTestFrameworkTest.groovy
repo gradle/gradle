@@ -17,22 +17,13 @@
 package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.Action
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
-import spock.lang.Shared
 import spock.lang.Specification
 
 class JUnitTestFrameworkTest extends Specification {
-
-    @Shared
-    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
-
     private project = new ProjectBuilder().build()
     Test testTask = TestUtil.createTask(Test, project)
 
