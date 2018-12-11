@@ -11,9 +11,9 @@ public class GreetingPlugin implements Plugin<Project> {
         GreetingExtension extension = project.getExtensions().create("greeting", GreetingExtension.class);
         Provider<GreetingTask> task = project.getTasks().register("greeting", GreetingTask.class);
         project.afterEvaluate(p -> {
-            task.configure {
+            task.configure({
                 setWho(extension.getWho());
-            }
+            })
         });
     }
 }
