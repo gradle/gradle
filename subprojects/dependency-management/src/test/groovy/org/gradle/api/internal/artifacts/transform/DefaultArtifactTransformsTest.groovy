@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
+import org.gradle.internal.Try
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
@@ -169,9 +170,9 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
 
-        1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
 
-        1 * transformation.transform({ it.files == [sourceFile] }, _ as ExecutionGraphDependenciesResolver) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
+        1 * transformation.transform({ it.files == [sourceFile] }, _ as ExecutionGraphDependenciesResolver) >> Try.successful(TransformationSubject.initial(sourceFile).createSubjectFromResult(ImmutableList.of(outFile3, outFile4)))
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})

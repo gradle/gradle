@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
+import org.gradle.internal.Try
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
@@ -28,14 +29,14 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver)).files == [new File("foo/cached/non-cached")]
+        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver)).get().files == [new File("foo/cached/non-cached")]
     }
 
     class CachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "cached")))
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "cached"))))
         }
 
         @Override
@@ -67,8 +68,8 @@ class ChainedTransformerTest extends Specification {
     class NonCachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            return subjectToTransform.transformationSuccessful(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached")))
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached"))))
         }
 
         @Override

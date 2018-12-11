@@ -52,28 +52,22 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
-        if (subjectToTransform.getFailure() != null) {
-            return subjectToTransform;
-        }
+    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        Try<ArtifactTransformDependenciesInternal> dependencies = dependenciesResolver.forTransformer(transformer);
-        return dependencies.getFailure().map(failure -> {
-            return subjectToTransform.transformationFailed(failure);
-        }).orElseGet(() -> {
+        return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File primaryInput : primaryInputs) {
-                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies.get(), subjectToTransform);
+                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
 
                 if (result.getFailure().isPresent()) {
-                    return subjectToTransform.transformationFailed(result.getFailure().get());
+                    return Try.failure(result.getFailure().get());
                 }
                 builder.addAll(result.get());
             }
-            return subjectToTransform.transformationSuccessful(builder.build());
+            return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
         });
     }
 
