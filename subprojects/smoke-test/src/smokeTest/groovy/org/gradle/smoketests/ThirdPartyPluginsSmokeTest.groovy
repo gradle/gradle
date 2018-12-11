@@ -110,7 +110,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             docker {
                 javaApplication {
                     baseImage = 'dockerfile/java:openjdk-7-jre'
-                    port = 9090
+                    ports = [9090]
                     tag = 'jettyapp:1.115'
                 }
             }
