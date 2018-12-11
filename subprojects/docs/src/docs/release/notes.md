@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle 5.1.
 
-This release features [repository to dependency matching](#repository-to-dependency-matching), [stricter validation with `validateTaskProperties`](#stricter-validation-with-validatetaskproperties), [production-ready configuration avoidance APIs](#configuration-avoidance-for-tasks), [Gradle Kotlin DSL 1.1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.1.0), and more.
+This release features [repository to dependency matching](#repository-to-dependency-matching), [production-ready configuration avoidance APIs](#configuration-avoidance-for-tasks), [Gradle Kotlin DSL 1.1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.1.0), and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
@@ -15,28 +15,6 @@ We would like to thank the following community contributors to this release of G
 [Olivier Voortman](https://github.com/blop),
 [Alex Saveau](https://github.com/SUPERCILEX),
 and [Till Krullmann](https://github.com/tkrullmann).
-
-## Apply plugins from included build using `plugins { }` block 
-
-The [`plugins { }`](userguide/plugins.html#sec:plugins_block) block in build scripts can now be used to refer to plugins defined in included builds. In previous versions of Gradle, this was possible but required some additional boiler-plate code in the settings file. This boiler-plate is now no longer required.
-
-This change makes it super easy to add a test build for a Gradle plugin and streamlines the process of implementing a Gradle plugin. You can also use this feature to conveniently work on changes to a plugin and builds that use that plugin at the same time, to implement a plugin that is both published and used by projects in the same source repository, or to structure a complex build into a number of plugins.
-
-Using the `plugins { } ` block also makes the Gradle Kotlin DSL much more convenient to use.
-
-You can find out more about composite builds in the [user manual](userguide/composite_builds.html).
-
-## Stricter validation with `validateTaskProperties`
-
-Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
-For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
-This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
-
-## Filter tasks with `--group`
-
-Instead of listing all available tasks, [`gradle tasks` can now show only the tasks](userguide/command_line_interface.html#sec:listing_tasks) belonging to a particular group. This makes it easier to find tasks in builds with many available tasks.
-
-This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
 
 ## Repository to dependency matching
 
@@ -58,6 +36,12 @@ This filtering can also be used to separate snapshot repositories from release r
 
 Look at the [user manual](userguide/declaring_repositories.html#sec::matching_repositories_to_dependencies) for more details.
 
+## Filter tasks with `--group`
+
+Instead of listing all available tasks, [`gradle tasks` can now show only the tasks](userguide/command_line_interface.html#sec:listing_tasks) belonging to a particular group. This makes it easier to find tasks in builds with many available tasks.
+
+This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
+
 ## Declaring target architectures for C++ plugins
 
 Last year, we introduced [new plugins](https://blog.gradle.org/introducing-the-new-cpp-plugins) for building C++ components, but one missing piece was support for specifying target architectures.
@@ -74,6 +58,22 @@ When the `build` task is executed, Gradle will build all architectures associate
 The target architecture is used by Gradle's dependency management engine to publish and resolve artifacts that are compatible based on extra metadata (debug vs release, x86 vs x86-64, etc).
 
 ## Improvements for plugin authors
+
+### Stricter validation with `validateTaskProperties`
+
+Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
+For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
+This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
+
+## Apply plugins from included build using `plugins { }` block 
+
+The [`plugins { }`](userguide/plugins.html#sec:plugins_block) block in build scripts can now be used to refer to plugins defined in included builds. In previous versions of Gradle, this was possible but required some additional boiler-plate code in the settings file. This boiler-plate is now no longer required.
+
+This change makes it super easy to add a test build for a Gradle plugin and streamlines the process of implementing a Gradle plugin. You can also use this feature to conveniently work on changes to a plugin and builds that use that plugin at the same time, to implement a plugin that is both published and used by projects in the same source repository, or to structure a complex build into a number of plugins.
+
+Using the `plugins { }` block also makes the Gradle Kotlin DSL much more convenient to use.
+
+You can find out more about composite builds in the [user manual](userguide/composite_builds.html).
 
 ### Conveniences for Map properties
 
@@ -93,7 +93,7 @@ The `@Option` annotation can now be attached to a task property of type `Propert
 
 ## Tooling API: Enhanced/additional progress events
 
-The following Tooling API types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:
+The following [Tooling API](userguide/embedding.html) types reported as part of [`ProgressEvents`](javadoc/org/gradle/tooling/events/ProgressEvent.html) to registered [`ProgressListeners`](javadoc/org/gradle/tooling/events/ProgressListener.html) have been enhanced to include additional information:
 
 - [`TaskOperationDescriptor`](javadoc/org/gradle/tooling/events/task/TaskOperationDescriptor.html) now includes the identifier of the plugin that registered the task and its dependencies.
 - [`TaskExecutionResult`](javadoc/org/gradle/tooling/events/task/TaskExecutionResult.html) now includes the list of reasons why a task was executed and whether it was executed incrementally. 
@@ -168,6 +168,8 @@ Use `setFrom` instead.
 ## Potential breaking changes
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+
+<!-- Do not add breaking changes here! Add them to the upgrade guide instead. -->
 
 ## External contributions
 
