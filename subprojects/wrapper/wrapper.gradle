@@ -38,6 +38,8 @@ tasks.register("executableJar", Jar) {
     reproducibleFileOrder = true
     preserveFileTimestamps = false
     archiveName = 'gradle-wrapper.jar'
+    fileMode = 0644
+    dirMode = 0755
     from sourceSets.main.output
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
