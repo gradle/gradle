@@ -19,21 +19,18 @@ package org.gradle.api.publish.ivy.internal.artifact
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
-    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     def fileNotationParser = Mock(NotationParser)
     def task = Mock(Task)
     def taskDependency = new DefaultTaskDependency(null, ImmutableSet.of(task))

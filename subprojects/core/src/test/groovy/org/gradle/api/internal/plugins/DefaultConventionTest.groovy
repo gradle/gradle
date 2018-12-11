@@ -16,22 +16,26 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.reflect.HasPublicType
+
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
+import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertSame
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail
 
 class DefaultConventionTest {
     Convention convention
@@ -162,7 +166,7 @@ class DefaultConventionTest {
     }
 
     @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
-        def convention = new DefaultConvention(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE))
+        def convention = new DefaultConvention(TestUtil.instantiatorFactory().decorate())
         assert convention.create("foo", FooExtension).class != FooExtension
         assert convention.schema["foo"] == typeOf(FooExtension)
     }

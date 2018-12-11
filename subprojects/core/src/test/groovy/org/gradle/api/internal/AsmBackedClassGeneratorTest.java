@@ -33,6 +33,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -302,49 +303,49 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void canConstructInstance() throws Exception {
-        Bean bean = generator.newInstance(BeanWithConstructor.class, "value");
+        Bean bean = newInstance(BeanWithConstructor.class, "value");
         assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class)));
         assertThat(bean.getProp(), equalTo("value"));
 
-        bean = generator.newInstance(BeanWithConstructor.class);
+        bean = newInstance(BeanWithConstructor.class);
         assertThat(bean.getProp(), equalTo("default value"));
 
-        bean = generator.newInstance(BeanWithConstructor.class, 127);
+        bean = newInstance(BeanWithConstructor.class, 127);
         assertThat(bean.getProp(), equalTo("127"));
     }
 
     @Test
     public void reportsConstructionFailure() {
         try {
-            generator.newInstance(UnconstructibleBean.class);
+            newInstance(UnconstructibleBean.class);
             fail();
         } catch (ObjectInstantiationException e) {
             assertThat(e.getCause(), sameInstance(UnconstructibleBean.failure));
         }
 
         try {
-            generator.newInstance(Bean.class, "arg1", 2);
+            newInstance(Bean.class, "arg1", 2);
             fail();
         } catch (ObjectInstantiationException e) {
             // expected
         }
 
         try {
-            generator.newInstance(AbstractBean.class);
+            newInstance(AbstractBean.class);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for abstract class 'AbstractBean'."));
         }
 
         try {
-            generator.newInstance(PrivateBean.class);
+            newInstance(PrivateBean.class);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
         }
 
         try {
-            generator.newInstance(FinalBean.class);
+            newInstance(FinalBean.class);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for final class 'FinalBean'."));
@@ -377,7 +378,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void appliesConventionMappingToPropertyWithMultipleSetters() throws Exception {
-        BeanWithVariousGettersAndSetters bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
         new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
             public String call() {
                 return "conventionValue";
@@ -389,7 +390,7 @@ public class AsmBackedClassGeneratorTest {
         bean.setOverloaded("value");
         assertThat(bean.getOverloaded(), equalTo("chars = value"));
 
-        bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        bean = newInstance(BeanWithVariousGettersAndSetters.class);
         new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
             public String call() {
                 return "conventionValue";
@@ -401,7 +402,7 @@ public class AsmBackedClassGeneratorTest {
         bean.setOverloaded(12);
         assertThat(bean.getOverloaded(), equalTo("number = 12"));
 
-        bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        bean = newInstance(BeanWithVariousGettersAndSetters.class);
         new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
             public String call() {
                 return "conventionValue";
@@ -416,7 +417,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void appliesConventionMappingToPropertyWithGetterCovariantType() throws Exception {
-        CovariantPropertyTypes bean = generator.newInstance(CovariantPropertyTypes.class);
+        CovariantPropertyTypes bean = newInstance(CovariantPropertyTypes.class);
 
         new DslObject(bean).getConventionMapping().map("value", new Callable<String>() {
             public String call() {
@@ -432,7 +433,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void appliesConventionMappingToProtectedMethods() throws Exception {
-        BeanWithNonPublicProperties bean = generator.newInstance(BeanWithNonPublicProperties.class);
+        BeanWithNonPublicProperties bean = newInstance(BeanWithNonPublicProperties.class);
 
         assertThat(bean.getPackageProtected(), equalTo("package-protected"));
         assertThat(bean.getProtected(), equalTo("protected"));
@@ -673,7 +674,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void constructorCanCallGetter() throws Exception {
-        BeanUsesPropertiesInConstructor bean = generator.newInstance(BeanUsesPropertiesInConstructor.class);
+        BeanUsesPropertiesInConstructor bean = newInstance(BeanUsesPropertiesInConstructor.class);
 
         assertThat(bean.name, equalTo("default-name"));
     }
@@ -858,7 +859,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void addsSetterMethodsForPropertyWhoseTypeIsProperty() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
+        BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -879,7 +880,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void addsSetterMethodsForPropertyWhoseTypeIsPropertyAndCapitalizedProperly() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
+        BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -900,7 +901,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
+        BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -919,6 +920,10 @@ public class AsmBackedClassGeneratorTest {
         }));
         assertEquals("[1]", bean.getProp2().get());
         assertEquals("[2]", bean.getProp2().get());
+    }
+
+    private <T> T newInstance(Class<T> type, Object... parameters) {
+        return DirectInstantiator.instantiate(generator.generate(type), parameters);
     }
 
     public static class Bean {
