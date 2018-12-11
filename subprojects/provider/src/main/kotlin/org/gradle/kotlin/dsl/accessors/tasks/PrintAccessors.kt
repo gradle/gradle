@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@
 package org.gradle.kotlin.dsl.accessors.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.accessible
-import org.gradle.kotlin.dsl.accessors.forEachAccessor
+import org.gradle.kotlin.dsl.accessors.accessorsFor
+import org.gradle.kotlin.dsl.accessors.fragmentsFor
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -36,14 +39,34 @@ open class PrintAccessors : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun printExtensions() {
-        projectSchemaProvider.schemaFor(project).map(::accessible).forEachAccessor {
-            println()
-            println(it)
-            println()
-        }
+        printAccessorsFor(schemaOf(project))
     }
+
+    private
+    fun schemaOf(project: Project) =
+        projectSchemaProvider.schemaFor(project)
 
     private
     val projectSchemaProvider: ProjectSchemaProvider
         get() = project.serviceOf()
 }
+
+
+internal
+fun printAccessorsFor(schema: TypedProjectSchema) {
+    for (sourceFragment in accessorSourceFragmentsFor(schema)) {
+        println()
+        println(sourceFragment.replaceIndent("    "))
+        println()
+    }
+}
+
+
+private
+fun accessorSourceFragmentsFor(schema: TypedProjectSchema): Sequence<String> =
+    accessorsFor(schema.map(::accessible)).flatMap { accessor ->
+        val (_, fragments) = fragmentsFor(accessor)
+        fragments
+            .map { it.source }
+            .filter { it.isNotBlank() }
+    }

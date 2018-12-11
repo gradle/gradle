@@ -39,7 +39,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -49,14 +48,12 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
-import org.gradle.kotlin.dsl.typeOf
 
 import org.gradle.nativeplatform.BuildType
 
@@ -67,7 +64,7 @@ import org.mockito.ArgumentMatchers.anyMap
 import java.io.File
 
 
-class ProjectAccessorsClassPathTest : AbstractDslTest() {
+class ProjectAccessorsClassPathTest : ProjectSchemaBasedTest() {
 
     @Test
     fun `#buildAccessorsFor (Kotlin types)`() {
@@ -181,10 +178,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             )
         }
     }
-
-    private
-    fun namedDomainObjectContainerOf(elementType: SchemaType) =
-        SchemaType(parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType.value))
 
     private
     fun buildAccessorsFromSourceFor(
@@ -446,7 +439,4 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             buildAccessorsFor(schema, classPath, srcDir, binDir)
         }
     }
-
-    inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
-        ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
 }
