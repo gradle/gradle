@@ -52,6 +52,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_{previous-gradle-version}.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
 
+<!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
