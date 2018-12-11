@@ -33,7 +33,7 @@ dependencies {
     moreLibs(":otherLib:1.0")
 }
 
-tasks.named<War>("war") {
+tasks.war {
     from("src/rootContent") // adds a file-set to the root of the archive
     webInf { from("src/additionalWebInf") } // adds a file-set to the WEB-INF dir.
     classpath(fileTree("additionalLibs")) // adds a file-set to the WEB-INF/lib dir.

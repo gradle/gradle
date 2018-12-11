@@ -3,7 +3,6 @@ tasks.register("hello") {
         println 'Hello world!'
     }
 }
-// FIXME: Figure out the lazy alternative
 hello.doLast {
     println "Greetings from the $hello.name task."
 }

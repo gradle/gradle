@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::test-categories[]
-tasks.named<Test>("test") {
+tasks.test {
     useJUnit {
         includeCategories("org.gradle.junit.CategoryA")
         excludeCategories("org.gradle.junit.CategoryB")

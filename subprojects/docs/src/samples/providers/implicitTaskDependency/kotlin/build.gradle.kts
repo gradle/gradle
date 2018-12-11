@@ -23,12 +23,12 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producer = tasks.register<Producer>("producer") {
+val producer by tasks.registering(Producer::class) {
     // Set values for the producer lazily
     // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
     outputFile.set(layout.buildDirectory.file("file.txt"))
 }
-val consumer = tasks.register<Consumer>("consumer") {
+val consumer by tasks.registering(Consumer::class) {
     // Connect the producer task output to the consumer task input
     // Don't need to add a task dependency to the consumer task. This is automatically added
     inputFile.set(producer.get().outputFile)

@@ -21,6 +21,5 @@ class CustomTask extends DefaultTask {
 // end::inject-task-constructor[]
 
 // tag::on-project[]
-// FIXME: Figure out lazy equivalent
 task myTask(type: CustomTask, constructorArgs: ['hello', 42])
 // end::on-project[]
