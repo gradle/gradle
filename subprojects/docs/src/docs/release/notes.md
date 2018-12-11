@@ -169,44 +169,6 @@ Use `setFrom` instead.
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
 
-### Collection properties default to empty collection
-
-In Gradle 5.0, the collection property instances created using `ObjectFactory` would have no value defined, requiring plugin authors to explicitly set an initial value. This proved to be awkward and error prone so `ObjectFactory` now returns instances with an empty collection as their initial value.
-
-### Worker API: working directory of a worker can no longer be set 
-
-Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
-All workers now use the same working directory to enable reuse.
-Please pass files and directories as arguments instead.
-
-### Changes to native linking tasks
-
-To expand our idiomatic [Provider API](userguide/lazy_configuration.html) practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
-- `getInstallName()` was changed to return a `Property`.
-- `setInstallName(String)` was removed. Use `Property.set()` instead.
-
-### Passing arguments to Windows Resource Compiler
-
-To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
-
-Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
-
-### Copied configuration no longer shares a list of `beforeResolve` actions with original
-
-The fix for gradle/gradle#6996 means that the list of `beforeResolve` actions are no longer shared between a copied configuration and the original.
-Instead, a copied configuration receives a copy of the `beforeResolve` actions at the time the copy is made.
-Any `beforeResolve` actions added after copying (to either configuration) will not be shared between the original and the copy.
-This may break plugins that relied on the previous behaviour.
-
-### Changes to incubating Pom customizaton types
-
-- The type of `MavenPomDeveloper.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
-- The type of `MavenPomContributor.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
-
-### Changes to specifying operating system for native projects
-
-The incubating `operatingSystems` property on native components has been replaced with the [targetMachines](javadoc/org/gradle/language/cpp/CppComponent.html#getTargetMachines--) property.
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
