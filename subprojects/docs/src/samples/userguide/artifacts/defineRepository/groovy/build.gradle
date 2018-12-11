@@ -1,6 +1,3 @@
-import sun.net.www.protocol.http.BasicAuthentication
-import sun.net.www.protocol.http.DigestAuthentication
-
 // tag::maven-ivy-repository-no-auth[]
 repositories {
     maven {

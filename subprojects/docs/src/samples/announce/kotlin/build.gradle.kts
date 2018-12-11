@@ -12,7 +12,7 @@ announce {
 // end::announce-plugin-conf[]
 
 // tag::announce-usage[]
-val helloWorld by registering {
+val helloWorld by tasks.registering {
     doLast {
         println("Hello, world!")
     }

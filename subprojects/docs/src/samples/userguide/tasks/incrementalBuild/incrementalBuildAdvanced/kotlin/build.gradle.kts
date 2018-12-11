@@ -42,7 +42,7 @@ tasks.register<ProcessTemplates>("processTemplates2") {
     templateData = TemplateData("test", mapOf("year" to "2012"))
     outputDir = file("$buildDir/genOutput")
 // tag::task-arg-method[]
-    sources(copyTemplates)
+    sources(copyTemplates.get())
 }
 // end::task-arg-method[]
 

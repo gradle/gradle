@@ -39,7 +39,7 @@ val generate by tasks.registering(MyTaskType::class) {
 
 artifacts {
     add("archives",
-        mapOf("file" to generate.map { it.destFile }, "name" to "my-artifact", "type" to "text", "builtBy" to generate))
+        mapOf("file" to generate.get().destFile, "name" to "my-artifact", "type" to "text", "builtBy" to generate))
 }
 // end::map-file-artifact[]
 

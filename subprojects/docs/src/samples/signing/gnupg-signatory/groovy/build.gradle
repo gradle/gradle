@@ -7,7 +7,7 @@ group = 'gradle'
 version = '1.0'
 
 // tag::configure-signatory[]
-tasks.named("signing") {
+signing {
     useGpgCmd()
     sign configurations.archives
 }

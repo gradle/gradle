@@ -67,7 +67,7 @@ publishing {
 // end::pom-customization[]
 
 // tag::sign-publication[]
-tasks.named("signing") {
+signing {
     sign publishing.publications.mavenJava
 }
 // end::sign-publication[]

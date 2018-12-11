@@ -73,7 +73,7 @@ tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
 
 // tag::inferred-task-dep-via-outputs[]
 tasks.register<Zip>("packageFiles") {
-    from(processTemplates.outputs)
+    from(processTemplates.get().outputs)
 }
 // end::inferred-task-dep-via-outputs[]
 

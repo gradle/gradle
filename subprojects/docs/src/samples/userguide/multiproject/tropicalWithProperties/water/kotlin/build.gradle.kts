@@ -6,10 +6,15 @@ allprojects {
     }
 }
 subprojects {
-    tasks.named("hello") {
+    val hello by tasks.existing
+
+    hello {
         doLast { println("- I depend on water") }
-        afterEvaluate {
-            if (extra["arctic"] as Boolean) {
+    }
+
+    afterEvaluate { Project project ->
+        if (extra["arctic"] as Boolean) {
+            hello {
                 doLast {
                     println("- I love to spend time in the arctic waters.")
                 }

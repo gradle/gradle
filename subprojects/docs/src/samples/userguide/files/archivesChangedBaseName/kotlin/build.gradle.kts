@@ -18,7 +18,7 @@ val myOtherZip by tasks.registering(Zip::class) {
 tasks.register("echoNames") {
     doLast {
         println("Project name: ${project.name}")
-        println(myZip.archiveName)
-        println(myOtherZip.archiveName)
+        println(myZip.get().archiveName)
+        println(myOtherZip.get().archiveName)
     }
 }

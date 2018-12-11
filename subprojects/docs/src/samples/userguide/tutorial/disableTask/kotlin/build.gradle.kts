@@ -3,4 +3,6 @@ val disableMe by tasks.registering {
         println("This should not be printed if the task is disabled.")
     }
 }
-disableMe.enabled = false
+disableMe {
+    enabled = false
+}

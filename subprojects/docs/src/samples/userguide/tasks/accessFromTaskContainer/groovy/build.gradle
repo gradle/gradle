@@ -5,4 +5,4 @@ println tasks.hello.name
 println tasks.named('hello').get().name
 
 println tasks.copy.destinationDir
-println tasks.named('copy').get()destinationDir
+println tasks.named('copy').get().destinationDir

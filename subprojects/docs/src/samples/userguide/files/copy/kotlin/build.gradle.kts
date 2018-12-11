@@ -35,8 +35,8 @@ val archiveReportsTask by tasks.registering {
 
 // tag::copy-single-file-example-with-task-properties[]
 tasks.register<Copy>("copyReport3") {
-    val outputFile: File by myReportTask.extra
-    val dirToArchive: File by archiveReportsTask.extra
+    val outputFile: File by myReportTask.get().extra
+    val dirToArchive: File by archiveReportsTask.get().extra
     from(outputFile)
     into(dirToArchive)
 }

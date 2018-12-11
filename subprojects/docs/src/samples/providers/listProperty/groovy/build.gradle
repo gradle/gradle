@@ -29,10 +29,10 @@ class Consumer extends DefaultTask {
 def producerOne = tasks.register("producerOne", Producer)
 def producerTwo = tasks.register("producerTwo", Producer)
 tasks.register("consumer", Consumer) {
-// Connect the producer task outputs to the consumer task input
-// Don't need to add task dependencies to the consumer task. These are automatically added
-    consumer.inputFiles.add(producerOne.get().outputFile)
-    consumer.inputFiles.add(producerTwo.get().outputFile)
+    // Connect the producer task outputs to the consumer task input
+    // Don't need to add task dependencies to the consumer task. These are automatically added
+    inputFiles.add(producerOne.get().outputFile)
+    inputFiles.add(producerTwo.get().outputFile)
 }
 
 // Set values for the producer tasks lazily

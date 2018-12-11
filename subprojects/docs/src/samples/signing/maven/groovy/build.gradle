@@ -18,7 +18,7 @@ project['signing.password'] = "gradle"
 project['signing.secretKeyRingFile'] = file("secKeyRingFile.gpg").absolutePath
 
 // tag::sign-archives[]
-tasks.named("signing") {
+signing {
     sign configurations.archives
 }
 // end::sign-archives[]
