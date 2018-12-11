@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.internal.execution.ExecutionOutcome;
+
+import javax.annotation.Nullable;
+
 public enum TaskExecutionOutcome {
     FROM_CACHE(true, true, "FROM-CACHE"),
     UP_TO_DATE(true, true, "UP-TO-DATE"),
@@ -27,7 +31,7 @@ public enum TaskExecutionOutcome {
     private final boolean upToDate;
     private final String message;
 
-    TaskExecutionOutcome(boolean skipped, boolean upToDate, String message) {
+    TaskExecutionOutcome(boolean skipped, boolean upToDate, @Nullable String message) {
         this.skipped = skipped;
         this.upToDate = upToDate;
         this.message = message;
@@ -36,10 +40,26 @@ public enum TaskExecutionOutcome {
     public boolean isSkipped() {
         return skipped;
     }
+
     public boolean isUpToDate() {
         return upToDate;
     }
+
+    @Nullable
     public String getMessage() {
         return message;
+    }
+
+    public static TaskExecutionOutcome valueOf(ExecutionOutcome outcome) {
+        switch (outcome) {
+            case FROM_CACHE:
+                return FROM_CACHE;
+            case UP_TO_DATE:
+                return UP_TO_DATE;
+            case EXECUTED:
+                return EXECUTED;
+            default:
+                throw new AssertionError();
+        }
     }
 }
