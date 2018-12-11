@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
@@ -67,9 +69,9 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     }
 
     @Override
-    public ArtifactTransformDependenciesInternal forTransformer(Transformer transformer) {
+    public Try<ArtifactTransformDependenciesInternal> forTransformer(Transformer transformer) {
         if (!transformer.requiresDependencies()) {
-            return EMPTY_DEPENDENCIES;
+            return Try.successful(EMPTY_DEPENDENCIES);
         }
         ResolverResults results = artifactResults.create();
         if (dependencies == null) {
@@ -81,7 +83,13 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }, true);
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         artifacts.visitArtifacts(visitor, false);
-        return new DefaultArtifactTransformDependencies(ImmutableFileCollection.of(visitor.getFiles()));
+        if (!visitor.getFailures().isEmpty()) {
+            if (visitor.getFailures().size() == 1) {
+                return Try.failure(visitor.getFailures().iterator().next());
+            }
+            return Try.failure(new DefaultLenientConfiguration.ArtifactResolveException("transform dependencies", transformer.getDisplayName(), "artifact transform dependencies", visitor.getFailures()));
+        }
+        return Try.successful(new DefaultArtifactTransformDependencies(ImmutableFileCollection.of(visitor.getFiles())));
     }
 
     @Override

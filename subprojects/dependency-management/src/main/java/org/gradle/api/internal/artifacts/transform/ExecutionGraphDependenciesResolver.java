@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.execution.plan.Node;
+import org.gradle.internal.Try;
 
 /**
  * Companion type to {@link TransformationNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
@@ -37,5 +38,5 @@ public interface ExecutionGraphDependenciesResolver {
     /**
      * Computes the dependency artifacts for the given transformation step.
      */
-    ArtifactTransformDependenciesInternal forTransformer(Transformer transformer);
+    Try<ArtifactTransformDependenciesInternal> forTransformer(Transformer transformer);
 }
