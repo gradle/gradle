@@ -1295,7 +1295,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("broken")
 
         and:
@@ -1421,7 +1421,8 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform ToNullTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
         failure.assertHasCause("Transform returned null result.")
     }
 
@@ -1449,7 +1450,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
 
         when:
@@ -1488,7 +1489,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform SomewhereElseTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
     }
 
@@ -1519,7 +1520,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
@@ -1575,10 +1576,10 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Failed to transform file 'broken-2.0.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform artifact 'broken.jar (test:broken:2.0)' to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:
@@ -1885,7 +1886,6 @@ Found the following transforms:
 
         and:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            it.failure.contains("TransformationException")
             displayName == "Transform artifact lib.jar (project :lib) with BrokenTransform"
             details.transformerName == "BrokenTransform"
             details.subjectName == "artifact lib.jar (project :lib)"

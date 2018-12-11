@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
-import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -51,7 +50,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         TransformationOperation operation = artifactResults.get(artifact.getId());
         if (operation.getFailure() != null) {
-            visitFailureWithContext(operation.getFailure());
+            visitor.visitFailure(new ArtifactTransformException(artifact.getId(), target, operation.getFailure()));
             return;
         }
 
@@ -86,7 +85,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
         TransformationOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
-            visitFailureWithContext(operation.getFailure());
+            visitor.visitFailure(new ArtifactTransformException(file, target, operation.getFailure()));
             return;
         }
 
@@ -94,15 +93,6 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
         assert result != null;
         for (File outputFile : result) {
             visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
-        }
-    }
-
-    private void visitFailureWithContext(Throwable failure) {
-        if (failure instanceof TransformationException) {
-            TransformationException invocationException = (TransformationException) failure;
-            visitor.visitFailure(new ArtifactTransformException(invocationException.getInput(), target, invocationException.getTransformerImplementation(), failure.getCause()));
-        } else {
-            visitor.visitFailure(failure);
         }
     }
 }

@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.TransformationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -133,11 +131,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
-        }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
-    }
-
-    private Exception wrapInTransformInvocationException(Class<? extends ArtifactTransform> transformerType, File primaryInput, Throwable originalFailure) {
-        return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
+        });
     }
 
     private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {

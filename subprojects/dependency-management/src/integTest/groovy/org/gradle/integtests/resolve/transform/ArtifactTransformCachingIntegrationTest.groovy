@@ -635,8 +635,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
-        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size, usage=api} using transform FileSizer")
+        failure.assertHasCause("Failed to transform artifact 'lib1.jar (project :lib)' to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform artifact 'lib2.jar (project :lib)' to match attributes {artifactType=size, usage=api}")
         def outputDir1 = projectOutputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = projectOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
