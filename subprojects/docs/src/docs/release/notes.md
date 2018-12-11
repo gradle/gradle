@@ -17,6 +17,12 @@ details of 2
 ## n
 -->
 
+## The Java Platform plugin
+
+A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) allows the declaration and publication of platforms for the Java ecosystem.
+A platform is typically published as a bill-of-material (BOM) file, and can be used as a source of recommendations for versions, between projects or externally.
+Read the [Java Platform plugin section of the userguide](userguide/java_platform_plugin.html) for more details.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
