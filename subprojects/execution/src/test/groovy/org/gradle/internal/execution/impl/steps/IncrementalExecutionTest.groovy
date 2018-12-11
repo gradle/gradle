@@ -714,9 +714,9 @@ class IncrementalExecutionTest extends Specification {
                 }
 
                 @Override
-                void visitOutputs(UnitOfWork.OutputVisitor outputVisitor) {
+                void visitOutputProperties(UnitOfWork.OutputPropertyVisitor visitor) {
                     outputs.forEach { name, spec ->
-                        outputVisitor.visitOutput(name, spec.treeType, spec.roots)
+                        visitor.visitOutputProperty(name, spec.treeType, spec.roots)
                     }
                 }
 
@@ -726,7 +726,7 @@ class IncrementalExecutionTest extends Specification {
                 }
 
                 @Override
-                FileCollection getLocalState() {
+                void visitLocalState(CacheableEntity.LocalStateVisitor visitor) {
                     throw new UnsupportedOperationException()
                 }
 
@@ -765,7 +765,7 @@ class IncrementalExecutionTest extends Specification {
                 }
 
                 @Override
-                void visitTrees(CacheableEntity.CacheableTreeVisitor visitor) {
+                void visitOutputTrees(CacheableEntity.CacheableTreeVisitor visitor) {
                     throw new UnsupportedOperationException()
                 }
 

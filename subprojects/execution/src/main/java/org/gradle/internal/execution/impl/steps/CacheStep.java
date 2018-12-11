@@ -94,7 +94,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
     private BuildCacheCommandFactory.LoadMetadata load(UnitOfWork work, BuildCacheKey cacheKey) {
         try {
             return buildCache.load(
-                    commandFactory.createLoad(cacheKey, work, work.getLocalState(), new BuildCacheLoadListener() {
+                    commandFactory.createLoad(cacheKey, work, new BuildCacheLoadListener() {
                         @Override
                         public void beforeLoad() {
                             Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();

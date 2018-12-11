@@ -337,8 +337,8 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
     def entity(TreeDefinition... treeDefs) {
         Stub(CacheableEntity) {
-            visitTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
-                treeDefs.each { visitor.visitTree(it.tree.name, it.tree.type, it.tree.root) }
+            visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+                treeDefs.each { visitor.visitOutputTree(it.tree.name, it.tree.type, it.tree.root) }
             }
         }
     }

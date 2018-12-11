@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -302,9 +301,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitOutputs(OutputVisitor outputVisitor) {
-            outputVisitor.visitOutput(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
-            outputVisitor.visitOutput(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
+        public void visitOutputProperties(OutputPropertyVisitor visitor) {
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
         }
 
         @Override
@@ -314,8 +313,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public FileCollection getLocalState() {
-            return ImmutableFileCollection.of();
+        public void visitLocalState(LocalStateVisitor visitor) {
         }
 
         @Override
@@ -388,7 +386,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitTrees(CacheableTreeVisitor visitor) {
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
             throw new UnsupportedOperationException("we don't cache yet");
         }
 

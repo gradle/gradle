@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
@@ -151,14 +150,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitOutputs(OutputVisitor outputVisitor) {
+        public void visitOutputProperties(OutputPropertyVisitor visitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                outputVisitor.visitOutput(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
+                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
             }
         }
 
         @Override
-        public void visitTrees(CacheableTreeVisitor visitor) {
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 if (!(property instanceof CacheableTaskOutputFilePropertySpec)) {
                     throw new IllegalStateException("Non-cacheable property: " + property);
@@ -168,13 +167,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     continue;
                 }
 
-                visitor.visitTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
+                visitor.visitOutputTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
             }
         }
 
         @Override
-        public FileCollection getLocalState() {
-            return context.getTaskProperties().getLocalStateFiles();
+        public void visitLocalState(LocalStateVisitor visitor) {
+            for (File localStateFile : context.getTaskProperties().getLocalStateFiles()) {
+                visitor.visitLocalStateRoot(localStateFile);
+            }
         }
 
         @Override

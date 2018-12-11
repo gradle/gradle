@@ -42,6 +42,7 @@ import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,8 +67,8 @@ public class BuildCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
-        return new LoadCommand(cacheKey, entity, localState, loadListener);
+    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity, BuildCacheLoadListener loadListener) {
+        return new LoadCommand(cacheKey, entity, loadListener);
     }
 
     public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
@@ -83,13 +84,11 @@ public class BuildCacheCommandFactory {
 
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
-        private final Iterable<File> localState;
         private final BuildCacheLoadListener loadListener;
 
-        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity, BuildCacheLoadListener loadListener) {
             this.cacheKey = cacheKey;
             this.entity = entity;
-            this.localState = localState;
             this.loadListener = loadListener;
         }
 
@@ -144,7 +143,7 @@ public class BuildCacheCommandFactory {
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
-            entity.visitTrees((treeName, type, root) -> {
+            entity.visitOutputTrees((treeName, type, root) -> {
                 if (root == null) {
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
@@ -182,17 +181,17 @@ public class BuildCacheCommandFactory {
         }
 
         private void cleanLocalState() {
-            for (File localStateFile : localState) {
+            entity.visitLocalState(localStateFile -> {
                 try {
                     remove(localStateFile);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", entity.getDisplayName(), localStateFile), ex);
                 }
-            }
+            });
         }
 
         private void cleanupTreesAfterUnpackFailure() {
-            entity.visitTrees((name, type, root) -> {
+            entity.visitOutputTrees((name, type, root) -> {
                 try {
                     remove(root);
                 } catch (IOException ex) {
@@ -201,7 +200,7 @@ public class BuildCacheCommandFactory {
             });
         }
 
-        private void remove(File file) throws IOException {
+        private void remove(@Nullable File file) throws IOException {
             if (file != null && file.exists()) {
                 if (file.isDirectory()) {
                     FileUtils.cleanDirectory(file);
