@@ -161,6 +161,9 @@ class SimpleTransform extends ArtifactTransform {
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
         println "Transforming without dependencies \${input.name} to \${output.name}"
+        if (input.name == System.getProperty("failTransformOf")) {
+            throw new RuntimeException("Cannot transform")
+        }
         output.text = String.valueOf(input.length())
         return [output]
     }
@@ -452,6 +455,39 @@ project(':app') {
         output.contains("Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar")
         output.contains("Single step transform received dependencies files [] for processing hamcrest-core-1.3.jar")
         output.contains("Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar")
+    }
+
+    def "transform does not execute when dependencies cannot be transformed"() {
+        given:
+        buildFile << """
+            project(':app') {
+                task resolve(type: Copy) {
+                    def artifacts = configurations.implementation.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'end') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }        
+        """
+
+        when:
+        fails "resolve", '-DfailTransformOf=slf4j-api-1.7.25.jar'
+
+        then:
+        output.count('Transforming') == 8
+        failure.assertResolutionFailure(":app:implementation")
+        failure.assertThatCause(Matchers.containsString("Failed to transform file 'slf4j-api-1.7.25.jar'"))
+        ['lib.jar', 'common.jar', 'hamcrest-core-1.3.jar', 'junit-4.11.jar', 'slf4j-api-1.7.25.jar'].each {
+            assert output.contains("Transforming without dependencies ${it} to ${it}.txt")
+        }
+        [
+                'common.jar': [],
+                'hamcrest-core-1.3.jar': [],
+                'junit-4.11.jar': ['hamcrest-core-1.3.jar'],
+        ].each { artifact, dependencies ->
+            assert output.contains("Transform step 2 received dependencies files [${dependencies.collect { it + '.txt'}.join(', ')}] for processing ${artifact}.txt")
+        }
     }
 
     def "transform does not execute when task from dependencies fails"() {
