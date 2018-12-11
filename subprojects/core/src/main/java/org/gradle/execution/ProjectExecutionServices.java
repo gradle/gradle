@@ -25,9 +25,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -165,25 +163,14 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
-    TaskHistoryRepository createTaskHistoryRepository(
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ValueSnapshotter valueSnapshotter,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-
-        return new CacheBackedTaskHistoryRepository(
-            classLoaderHierarchyHasher,
-            valueSnapshotter,
-            fingerprinterRegistry
-        );
-    }
-
     TaskArtifactStateRepository createTaskArtifactStateRepository(
         Instantiator instantiator,
         StartParameter startParameter,
-        TaskHistoryRepository taskHistoryRepository,
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository taskOutputsRepository,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry
+        OutputFilesRepository taskOutputsRepository
     ) {
         TaskCacheKeyCalculator taskCacheKeyCalculator = new TaskCacheKeyCalculator(startParameter.isBuildCacheDebugLogging());
 
@@ -192,7 +179,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             instantiator,
             new DefaultTaskArtifactStateRepository(
                 fingerprinterRegistry,
-                taskHistoryRepository,
+                classLoaderHierarchyHasher,
+                valueSnapshotter,
                 executionHistoryStore,
                 instantiator,
                 taskOutputsRepository,
