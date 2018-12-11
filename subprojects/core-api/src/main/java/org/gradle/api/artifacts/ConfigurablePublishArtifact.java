@@ -15,12 +15,19 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.provider.Property;
+
 import javax.annotation.Nullable;
 
 /**
  * A {@link PublishArtifact} whose properties can be modified.
  */
 public interface ConfigurablePublishArtifact extends PublishArtifact {
+    Property<String> getArtifactName();
+    Property<String> getArtifactExtension();
+    Property<String> getArtifactType();
+    Property<String> getArtifactClassifier();
+
     /**
      * Sets the name of this artifact.
      *

@@ -22,13 +22,13 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import java.io.File;
 import java.util.Date;
 
-public class DefaultPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
-    private String name;
-    private String extension;
-    private String type;
-    private String classifier;
-    private Date date;
-    private File file;
+public class DefaultPublishArtifact extends AbstractPublishArtifact {
+    private final String name;
+    private final String extension;
+    private final String type;
+    private final String classifier;
+    private final Date date;
+    private final File file;
 
     public DefaultPublishArtifact(TaskResolver resolver,
                                   String name, String extension, String type,
@@ -81,29 +81,5 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
 
     public Date getDate() {
         return date;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setExtension(String extension) {
-        this.extension = extension;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
     }
 }

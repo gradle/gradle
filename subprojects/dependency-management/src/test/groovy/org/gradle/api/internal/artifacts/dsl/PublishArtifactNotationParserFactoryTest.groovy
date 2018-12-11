@@ -24,8 +24,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
-import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact
+import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -59,7 +58,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(original)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
     }
 
     def createArtifactFromConfigurablePublishArtifactInstance() {
@@ -80,7 +79,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(archiveTask)
 
         then:
-        publishArtifact instanceof ArchivePublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.archiveTask == archiveTask
     }
 
@@ -130,7 +129,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(value)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.file == file
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
@@ -148,7 +147,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(value)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == 'dir'
@@ -167,7 +166,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
@@ -195,7 +194,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
@@ -223,7 +222,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
 
         then:
-        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact instanceof ConfigurablePublishArtifact
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "dir"

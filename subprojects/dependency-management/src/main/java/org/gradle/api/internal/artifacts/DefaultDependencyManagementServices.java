@@ -323,7 +323,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
-                                                                    UserCodeApplicationContext userCodeApplicationContext) {
+                                                                    UserCodeApplicationContext userCodeApplicationContext,
+                                                                    ObjectFactory objectFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -346,7 +347,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 projectStateRegistry,
                 documentationRegistry,
                 callbackDecorator,
-                userCodeApplicationContext
+                userCodeApplicationContext,
+                objectFactory
             );
         }
 
@@ -397,8 +399,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
-        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
-            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context)).create();
+        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context, ObjectFactory objectFactory) {
+            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context), objectFactory).create();
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
