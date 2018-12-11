@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.WorkResults
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.WorkspaceTest
+import org.gradle.util.TestUtil
 
 class CopyActionExecuterTest extends WorkspaceTest {
 
@@ -36,7 +36,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
         }
 
         def resolver = TestFiles.resolver(testDirectory)
-        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, DirectInstantiator.INSTANCE))
+        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, TestUtil.instantiatorFactory().decorate()))
         copySpec.with {
             into "out"
             from "a", {
@@ -56,7 +56,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
                 WorkResults.didWork(workResult)
             }
         }
-        def executer = new CopyActionExecuter(DirectInstantiator.INSTANCE, TestFiles.fileSystem(), false)
+        def executer = new CopyActionExecuter(TestUtil.instantiatorFactory().decorate(), TestFiles.fileSystem(), false)
 
         when:
         executer.execute(copySpec, copyAction)

@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.InstantiatorFactory
@@ -190,8 +191,9 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(projectRegistryType) >> projectRegistry
         serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
+        serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
-        serviceRegistryMock.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
+        serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
@@ -986,13 +988,10 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        when:
-        def container = Stub(FactoryNamedDomainObjectContainer)
-        instantiatorMock.newInstance(FactoryNamedDomainObjectContainer, _) >> container
-        then:
-        project.container(String).is(container)
-        project.container(String, Stub(NamedDomainObjectFactory)).is(container)
-        project.container(String, {}).is(container)
+        expect:
+        project.container(String) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
     }
 
 }

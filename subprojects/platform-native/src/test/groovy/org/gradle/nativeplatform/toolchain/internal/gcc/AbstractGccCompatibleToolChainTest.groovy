@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.internal.work.WorkerLeaseService
@@ -43,6 +42,7 @@ import org.gradle.platform.base.internal.toolchain.ComponentFound
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import org.gradle.util.TreeVisitor
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -69,7 +69,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def workerLeaseService = Stub(WorkerLeaseService)
     def systemLibraryDiscovery = Stub(SystemLibraryDiscovery)
 
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorate()
     def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, systemLibraryDiscovery, instantiator, workerLeaseService)
     def platform = Stub(NativePlatformInternal)
 

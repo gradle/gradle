@@ -17,14 +17,14 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CreateDefaultFlavorsTest extends Specification {
-    def flavorContainer = new DefaultFlavorContainer(DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+    def flavorContainer = new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
     def rule = new NativeComponentModelPlugin.Rules()
 
     def "has a single default flavor when not configured"() {

@@ -18,13 +18,14 @@ package org.gradle.api.internal
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
-import spock.lang.Specification
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
-    final Instantiator instantiator = Mock()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     final namer = { it } as Namer
 
     def usesFactoryToCreateContainerElements() {
@@ -36,17 +37,6 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         then:
         result == 'element a'
         1 * factory.create('a') >> 'element a'
-        0 * _._
-    }
-
-    def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
-
-        when:
-        def result = container.create('a')
-
-        then:
-        result == 'a'
         0 * _._
     }
 
@@ -73,7 +63,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs), CollectionCallbackActionDecorator.NOOP).create(name)
+        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, instantiator, *extraArgs), CollectionCallbackActionDecorator.NOOP).create(name)
     }
 
     static class JustName implements Named {

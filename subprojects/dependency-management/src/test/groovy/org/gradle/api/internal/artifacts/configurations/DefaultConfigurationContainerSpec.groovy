@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -36,17 +36,17 @@ import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
-    private Instantiator instantiator = DirectInstantiator.INSTANCE
+    private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()

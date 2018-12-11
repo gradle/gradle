@@ -37,12 +37,12 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -149,7 +149,7 @@ class DefaultProjectSpec extends Specification {
     }
 
     def project(String name, ProjectInternal parent, GradleInternal build) {
-        def instantiator = DirectInstantiator.INSTANCE
+        def instantiator = TestUtil.instantiatorFactory().decorate()
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 

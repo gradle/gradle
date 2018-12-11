@@ -18,13 +18,13 @@ package org.gradle.internal.authentication
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.authentication.Authentication
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultAuthenticationContainerTest extends Specification {
     @Subject
-    def container = new DefaultAuthenticationContainer(DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+    def container = new DefaultAuthenticationContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         container.registerBinding(TestAuthentication, DefaultTestAuthentication)

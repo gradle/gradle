@@ -29,15 +29,14 @@ import java.lang.reflect.Constructor;
 import java.util.List;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final ClassGenerator classGenerator;
     private final Instantiator decoratingInstantiator;
     private final Instantiator undecoraredInjectingInstantiator;
+    private final Instantiator undecoratedLenientInjectingInstantiator;
     private final ConstructorSelector undecoratedJsr330Selector;
     private final ConstructorSelector decoratedJsr330Selector;
     private final ConstructorSelector decoratedLenientSelector;
 
     public DefaultInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
-        this.classGenerator = classGenerator;
         this.decoratingInstantiator = new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
         ServiceRegistry noServices = new DefaultServiceRegistry();
         ClassGenerator undecorated = new ClassGenerator() {
@@ -50,6 +49,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         decoratedJsr330Selector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<DependencyInjectingInstantiator.CachedConstructor>newClassCache());
         decoratedLenientSelector = new ParamsMatchingConstructorSelector(classGenerator, cacheFactory.<List<Constructor<?>>>newClassCache());
         undecoraredInjectingInstantiator = new DependencyInjectingInstantiator(undecoratedJsr330Selector, noServices);
+        undecoratedLenientInjectingInstantiator = DirectInstantiator.INSTANCE;
     }
 
     @Override
@@ -60,6 +60,11 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     @Override
     public Instantiator inject() {
         return undecoraredInjectingInstantiator;
+    }
+
+    @Override
+    public Instantiator injectLenient() {
+        return undecoratedLenientInjectingInstantiator;
     }
 
     @Override

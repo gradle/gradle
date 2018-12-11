@@ -24,14 +24,13 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 public class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
-    Instantiator instantiator = DirectInstantiator.INSTANCE
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     def task = Mock(Task)
     def dependencies = ImmutableSet.of(task)
     def taskDependency = new DefaultTaskDependency(null, dependencies)

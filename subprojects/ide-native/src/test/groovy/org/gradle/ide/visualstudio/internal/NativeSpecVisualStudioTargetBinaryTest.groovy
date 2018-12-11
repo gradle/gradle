@@ -24,7 +24,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.rc.WindowsResourceSet
@@ -44,15 +43,19 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
-import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.*
+import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.DLL
+import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.EXE
+import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.LIB
+import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.NONE
 
 @UsesNativeServices
 class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
-    def flavors = new DefaultFlavorContainer(DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+    def flavors = new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
     def exe = Mock(NativeExecutableSpec) {
         getFlavors() >> flavors
     }

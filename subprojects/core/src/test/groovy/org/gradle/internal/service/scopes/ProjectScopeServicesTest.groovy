@@ -59,7 +59,6 @@ import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistration
@@ -71,6 +70,7 @@ import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -107,7 +107,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(Instantiator) >> DirectInstantiator.INSTANCE
+        parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)

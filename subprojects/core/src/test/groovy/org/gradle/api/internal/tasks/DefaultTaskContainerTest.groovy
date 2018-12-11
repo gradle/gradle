@@ -41,6 +41,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
@@ -1492,7 +1493,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         thrown(UnsupportedOperationException)
     }
 
-    def factory = new TaskInstantiator(new TaskFactory().createChild(project, DirectInstantiator.INSTANCE), project)
+    def factory = new TaskInstantiator(new TaskFactory().createChild(project, TestUtil.instantiatorFactory().decorate()), project)
     final SomeTask a = factory.create("a", SomeTask)
     final SomeTask b = factory.create("b", SomeTask)
     final SomeTask c = factory.create("c", SomeTask)

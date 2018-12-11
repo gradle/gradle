@@ -18,15 +18,15 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.TaskCollection
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultRealizableTaskCollectionTest extends Specification {
 
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorate()
     
     def "realizes a nodes link of a given type when task dependencies visited"() {
         given:

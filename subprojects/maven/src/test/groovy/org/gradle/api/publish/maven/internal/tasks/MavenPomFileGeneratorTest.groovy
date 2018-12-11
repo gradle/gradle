@@ -35,7 +35,6 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectM
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
@@ -55,7 +54,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiator = TestUtil.instantiatorFactory().decorate()
     def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {

@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PolymorphicDomainObjectContainer
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 
 class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
     def fred = new DefaultPerson(name: "fred")
@@ -30,7 +30,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, callbackActionDecorator)
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), callbackActionDecorator)
 
     final boolean supportsBuildOperations = true
 
@@ -141,7 +141,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred")
@@ -185,7 +185,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "create elements with specified type based on type binding"() {
-        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, DirectInstantiator.INSTANCE,
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, TestUtil.instantiatorFactory().decorate(),
                 { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
 
         container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
@@ -199,10 +199,10 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         container.size() == 2
         !container.findByName("fred")
         with(container.findByName("unknown")) {
-            it.getClass() == DefaultUnnamedPerson
+            DefaultUnnamedPerson.isInstance(it)
         }
         with(container.findByName("barney")) {
-            it.getClass() == DefaultCtorNamedPerson
+            DefaultCtorNamedPerson.isInstance(it)
             name == "barney"
         }
         container.createableTypes == Sets.newHashSet(UnnamedPerson, CtorNamedPerson)
@@ -235,7 +235,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE, CollectionCallbackActionDecorator.NOOP)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred", Person)
