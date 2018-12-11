@@ -24,9 +24,12 @@ import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class CacheStepTest extends Specification {
 
@@ -34,13 +37,8 @@ class CacheStepTest extends Specification {
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
     def outputChangeListener = Mock(OutputChangeListener)
     def currentBuildId = UniqueId.generate()
-    def cacheStep = new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-        new SnapshotOutputStep<CachingContext>(currentBuildId,
-            new CatchExceptionStep<Context>(
-                new ExecuteStep(outputChangeListener)
-            )
-        )
-    )
+    Step<Context, CurrentSnapshotResult> delegateStep = Mock(Step)
+    def cacheStep = new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegateStep)
     def cacheHandler = Mock(CacheHandler)
     def unitOfWork = Mock(UnitOfWork)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
@@ -51,7 +49,7 @@ class CacheStepTest extends Specification {
     }
 
     def "loads from cache"() {
-        def outputsFromCache = ImmutableSortedMap.naturalOrder().put("test", new EmptyCurrentFileCollectionFingerprint()).build()
+        def outputsFromCache = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
 
         when:
         def result = cacheStep.execute(context)
@@ -70,50 +68,49 @@ class CacheStepTest extends Specification {
     }
 
     def "executes work and stores in cache on cache miss"() {
-        def snapshottedOutputs = ImmutableSortedMap.naturalOrder().put("test", new EmptyCurrentFileCollectionFingerprint()).build()
+        def executionResult = new TestCurrentSnapshotResult()
 
         when:
         def result = cacheStep.execute(context)
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure == null
-        result.originMetadata.buildInvocationId == currentBuildId
-        result.finalOutputs == snapshottedOutputs
+        result == executionResult
 
         1 * cacheHandler.load(_) >> Optional.empty()
-        1 * unitOfWork.changingOutputs >> Optional.empty()
-        1 * outputChangeListener.beforeOutputChange()
-        1 * unitOfWork.execute() >> true
-        1 * unitOfWork.snapshotAfterOutputsGenerated() >> snapshottedOutputs
-        1 * unitOfWork.markExecutionTime() >> 0
+        1 * delegateStep.execute(_) >> executionResult
         1 * cacheHandler.store(_)
         0 * _
     }
 
     def "failures are not stored in the cache"() {
-        def snapshottedOutputs = ImmutableSortedMap.naturalOrder().put("test", new EmptyCurrentFileCollectionFingerprint()).build()
         def failure = new RuntimeException("failed")
+        def failedResult = new TestCurrentSnapshotResult(failure)
 
         when:
         def result = cacheStep.execute(context)
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure.cause == failure
-        result.originMetadata.buildInvocationId == currentBuildId
-        result.finalOutputs == snapshottedOutputs
+        result == failedResult
 
         1 * cacheHandler.load(_) >> Optional.empty()
-        1 * unitOfWork.changingOutputs >> Optional.empty()
-        1 * outputChangeListener.beforeOutputChange()
-        1 * unitOfWork.execute() >> {
-            throw failure
-        }
-        1 * unitOfWork.snapshotAfterOutputsGenerated() >> snapshottedOutputs
-        1 * unitOfWork.markExecutionTime() >> 0
+        1 * delegateStep.execute(_) >> failedResult
         _ * unitOfWork.displayName >> "Display name"
         0 * cacheHandler.store(_)
         0 * _
+    }
+
+    class TestCurrentSnapshotResult implements CurrentSnapshotResult {
+        TestCurrentSnapshotResult(Throwable failure = null) {
+            this.failure = failure
+        }
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
+        OriginMetadata getOriginMetadata() {
+            OriginMetadata.fromCurrentBuild(currentBuildId, 0)
+        }
+        ExecutionOutcome getOutcome() {
+            ExecutionOutcome.EXECUTED
+        }
+        @Nullable
+        final Throwable failure
     }
 }
