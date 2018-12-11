@@ -16,28 +16,23 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.util.Path;
+import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
-public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details {
+public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
-    private final Path buildPath;
-    private final TransformationIdentity transformationIdentity;
+    private final TransformationNode transformationNode;
     private final String transformerName;
     private final String subjectName;
 
-    public ExecuteScheduledTransformationStepBuildOperationDetails(Path buildPath, TransformationIdentity transformationIdentity, String transformerName, String subjectName) {
-        this.buildPath = buildPath;
-        this.transformationIdentity = transformationIdentity;
+    public ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode transformationNode, String transformerName, String subjectName) {
+        this.transformationNode = transformationNode;
         this.transformerName = transformerName;
         this.subjectName = subjectName;
     }
 
-    public Path getBuildPath() {
-        return buildPath;
-    }
-
-    public TransformationIdentity getTransformationIdentity() {
-        return transformationIdentity;
+    public TransformationNode getTransformationNode() {
+        return transformationNode;
     }
 
     @Override
@@ -48,6 +43,14 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     @Override
     public String getSubjectName() {
         return subjectName;
+    }
+
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+        builder.put("transformerName", transformerName);
+        builder.put("subjectName", subjectName);
+        return builder.build();
     }
 
 }

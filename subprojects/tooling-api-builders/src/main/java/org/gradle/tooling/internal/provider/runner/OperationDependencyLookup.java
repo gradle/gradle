@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.project.WorkIdentity;
+import org.gradle.execution.plan.Node;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 interface OperationDependencyLookup {
 
-    InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity);
+    InternalOperationDescriptor lookupExistingOperationDescriptor(Node node);
 
 }

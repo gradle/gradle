@@ -29,10 +29,8 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
@@ -293,7 +291,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
-        Node node = getNode(((TaskInternal) task).getTaskIdentity());
+        ensurePopulated();
+        Node node = executionPlan.getNode(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node dependencyNode : node.getDependencySuccessors()) {
             if (dependencyNode instanceof TaskNode) {
@@ -301,12 +300,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             }
         }
         return builder.build();
-    }
-
-    @Override
-    public Node getNode(WorkIdentity workIdentity) {
-        ensurePopulated();
-        return executionPlan.getNode(workIdentity);
     }
 
     private void ensurePopulated() {

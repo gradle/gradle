@@ -19,7 +19,7 @@ open class GreetingToFileTask : DefaultTask() {
 
 // tag::config[]
 task<GreetingToFileTask>("greet") {
-    destination = provider { project.extra["greetingFile"]!! }
+    destination = { project.extra["greetingFile"]!! }
 }
 
 task("sayGreeting") {

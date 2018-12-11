@@ -16,44 +16,27 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toCollection;
 
-class OperationDependenciesResolver implements TaskExecutionGraphListener {
+class OperationDependenciesResolver {
 
-    private final Map<Path, TaskExecutionGraphInternal> taskExecutionGraphs = new HashMap<>();
     private final List<OperationDependencyLookup> lookups = new ArrayList<>();
 
     void addLookup(OperationDependencyLookup lookup) {
         lookups.add(lookup);
     }
 
-    @Override
-    public void graphPopulated(@Nonnull TaskExecutionGraph taskExecutionGraph) {
-        Path buildPath = ((TaskExecutionGraphInternal) taskExecutionGraph).getRootProject().getGradle().getIdentityPath();
-        taskExecutionGraphs.put(buildPath, (TaskExecutionGraphInternal) taskExecutionGraph);
-    }
-
-    Set<InternalOperationDescriptor> resolveDependencies(Path buildPath, WorkIdentity workIdentity) {
-        return taskExecutionGraphs.get(buildPath)
-            .getNode(workIdentity)
-            .getDependencySuccessors().stream()
+    Set<InternalOperationDescriptor> resolveDependencies(Node node) {
+        return node.getDependencySuccessors().stream()
             .map(this::lookupExistingOperationDescriptor)
             .filter(Objects::nonNull)
             .collect(toCollection(LinkedHashSet::new));
@@ -61,7 +44,7 @@ class OperationDependenciesResolver implements TaskExecutionGraphListener {
 
     private InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
         return lookups.stream()
-            .map(entry -> entry.lookupExistingOperationDescriptor(node.getIdentity()))
+            .map(entry -> entry.lookupExistingOperationDescriptor(node))
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(null);

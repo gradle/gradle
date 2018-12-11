@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.WorkIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -71,33 +72,34 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     }
 
     @Override
-    public InternalOperationDescriptor lookupExistingOperationDescriptor(WorkIdentity identity) {
-        if (isEnabled() && identity instanceof TaskIdentity<?>) {
-            return descriptors.get(identity);
+    public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
+        if (isEnabled() && node instanceof TaskNode) {
+            TaskNode taskNode = (TaskNode) node;
+            return descriptors.get(taskNode.getTask().getTaskIdentity());
         }
         return null;
     }
 
     @Override
     protected InternalOperationStartedProgressEvent toStartedEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent, ExecuteTaskBuildOperationDetails details) {
-        return new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, details.getTask()));
+        return new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, details));
     }
 
     @Override
     protected InternalOperationFinishedProgressEvent toFinishedEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent, ExecuteTaskBuildOperationDetails details) {
         TaskInternal task = details.getTask();
         AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), buildOperation.getId());
-        return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), taskResult);
+        return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, details), taskResult);
     }
 
-    private DefaultTaskDescriptor toTaskDescriptor(BuildOperationDescriptor buildOperation, TaskInternal task) {
-        return descriptors.computeIfAbsent(task.getTaskIdentity(), taskIdentity -> {
+    private DefaultTaskDescriptor toTaskDescriptor(BuildOperationDescriptor buildOperation, ExecuteTaskBuildOperationDetails details) {
+        return descriptors.computeIfAbsent(details.getTask().getTaskIdentity(), taskIdentity -> {
             Object id = buildOperation.getId();
             String taskIdentityPath = buildOperation.getName();
             String displayName = buildOperation.getDisplayName();
             String taskPath = taskIdentity.identityPath.getPath();
             Object parentId = eventConsumer.findStartedParentId(buildOperation);
-            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(taskIdentity.buildPath, taskIdentity);
+            Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTaskNode());
             InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(taskIdentity);
             return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId, dependencies, originPlugin);
         });
