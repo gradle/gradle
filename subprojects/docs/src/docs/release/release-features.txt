@@ -1,0 +1,3 @@
+ - Control which dependencies can be retrieved from which repositories
+ - Production-ready configuration avoidance APIs
+ - Stricter validation for custom tasks using `java-gradle-plugin`
