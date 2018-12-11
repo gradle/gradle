@@ -17,11 +17,15 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.groovy.scripts.CachingScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.resource.UriTextResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -35,7 +39,7 @@ import static org.junit.Assert.assertEquals
 class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher())
+    final ScriptSourceHasher scriptHasher = new DefaultScriptSourceHasher(new DefaultFileHasher(new DefaultStreamHasher()))
 
     @Rule public final HttpServer server = new HttpServer()
 
@@ -71,7 +75,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        def hash = HashUtil.compactStringFor(fileHasher.hash(buildFile))
+        def hash = HashUtil.compactStringFor(scriptHasher.hash(CachingScriptSource.of(new TextResourceScriptSource(new UriTextResource("build file", buildFile)))))
         String dirName = userHomeDir.file("caches/$version/scripts/$hash/proj").list()[0]
         String baseDir = "caches/$version/scripts/$hash/proj/$dirName"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")
