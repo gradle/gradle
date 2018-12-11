@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.internal.work.WorkerLeaseService
@@ -33,6 +32,7 @@ import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
@@ -46,7 +46,7 @@ class VisualCppToolChainTest extends Specification {
     final SearchResult<WindowsSdkInstall> windowsSdkLookup = Stub(SearchResult)
 	final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
-    final Instantiator instantiator = DirectInstantiator.INSTANCE
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {

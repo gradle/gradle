@@ -55,6 +55,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.DefaultProjectLayout;
@@ -1313,19 +1314,22 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
+        InstantiatorFactory instantiatorFactory = getServices().get(InstantiatorFactory.class);
+        // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
+        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(type, instantiatorFactory.injectLenient());
+        Instantiator instantiator = instantiatorFactory.decorate();
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), objectFactory, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
+        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorate();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        Instantiator instantiator = getServices().get(Instantiator.class);
+        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorate();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 

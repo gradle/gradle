@@ -29,31 +29,6 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     private final MutationGuard crossProjectConfiguratorMutationGuard;
 
     /**
-     * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
-     *
-     * <p>The type must implement the {@link Named} interface as a {@link Namer} will be created based on this type.</p>
-     *
-     * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param instantiator The instantiator to use to create any other collections based on this one
-     * @param collectionCallbackActionDecorator the decorator for collection callback action execution
-     */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this(type, instantiator, Named.Namer.forType(type), MutationGuards.identity(), collectionCallbackActionDecorator);
-    }
-
-    /**
-     * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
-     *
-     * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param instantiator The instantiator to use to create any other collections based on this one
-     * @param namer The naming strategy to use
-     * @param collectionCallbackActionDecorator the decorator for collection callback action execution
-     */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, MutationGuard crossProjectConfiguratorMutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this(type, instantiator, namer, new ReflectiveNamedDomainObjectFactory<T>(type), crossProjectConfiguratorMutationGuard, collectionCallbackActionDecorator);
-    }
-
-    /**
      * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})

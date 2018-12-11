@@ -23,14 +23,14 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
     def startParameter = new StartParameter()
     def delegate = Mock(TaskArtifactStateRepository)
-    def repository = new ShortCircuitTaskArtifactStateRepository(startParameter, DirectInstantiator.INSTANCE, delegate)
+    def repository = new ShortCircuitTaskArtifactStateRepository(startParameter, TestUtil.instantiatorFactory().decorate(), delegate)
     def taskArtifactState = Mock(TaskArtifactState)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)

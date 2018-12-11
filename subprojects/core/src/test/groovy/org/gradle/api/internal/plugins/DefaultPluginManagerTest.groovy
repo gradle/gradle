@@ -23,10 +23,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ class DefaultPluginManagerTest extends Specification {
     }
     def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoaderScope)
     def target = Mock(PluginTarget)
-    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP)
+    def manager = new DefaultPluginManager(registry, TestUtil.instantiatorFactory().inject(), target, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP)
 
     Class<?> rulesClass
     Class<? extends Plugin> hybridClass

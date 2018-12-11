@@ -40,6 +40,16 @@ public interface InstantiatorFactory {
     Instantiator inject();
 
     /**
+     * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
+     * The return {@link Instantiator} is lenient when there is a missing @Inject annotation, for backwards compatibility.
+     *
+     * <p>Use for any public types for which user provided values, but no services, need to be injected.
+     *
+     * @return The instantiator
+     */
+    Instantiator injectLenient();
+
+    /**
      * Creates an {@link Instantiator} that decorates the instances created.
      *
      * <p>Use for any public model types for which no user provided constructor values or services need to be injected.
@@ -60,7 +70,7 @@ public interface InstantiatorFactory {
 
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
-     * Is lenient when there is a missing @Inject annotation, for backwards compatibility.
+     * The return {@link Instantiator} is lenient when there is a missing @Inject annotation, for backwards compatibility.
      *
      * <p>Use for any public model types for which services or user provided constructor values need to injected.
      *

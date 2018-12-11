@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
 public class ReflectiveNamedDomainObjectFactory<T> implements NamedDomainObjectFactory<T> {
@@ -24,10 +23,6 @@ public class ReflectiveNamedDomainObjectFactory<T> implements NamedDomainObjectF
     private final Object[] extraArgs;
     private final Instantiator instantiator;
 
-    public ReflectiveNamedDomainObjectFactory(Class<? extends T> type, Object... extraArgs) {
-        this(type, DirectInstantiator.INSTANCE, extraArgs);
-    }
-    
     public ReflectiveNamedDomainObjectFactory(Class<? extends T> type, Instantiator instantiator, Object... extraArgs) {
         this.type = type;
         this.instantiator = instantiator;

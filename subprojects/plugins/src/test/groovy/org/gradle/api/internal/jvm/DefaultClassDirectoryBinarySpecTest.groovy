@@ -18,11 +18,11 @@ package org.gradle.api.internal.jvm
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.SourceSet
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
 import org.gradle.model.internal.core.NamedEntityInstantiator
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultClassDirectoryBinarySpecTest extends Specification {
@@ -35,6 +35,6 @@ class DefaultClassDirectoryBinarySpecTest extends Specification {
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
         new DefaultClassDirectoryBinarySpec(new DefaultComponentSpecIdentifier(":", name), Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform),
-            DirectInstantiator.INSTANCE, Mock(NamedEntityInstantiator), CollectionCallbackActionDecorator.NOOP)
+                TestUtil.instantiatorFactory().decorate(), Mock(NamedEntityInstantiator), CollectionCallbackActionDecorator.NOOP)
     }
 }

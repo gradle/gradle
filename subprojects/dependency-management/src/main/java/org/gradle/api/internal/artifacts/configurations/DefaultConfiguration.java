@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -1241,6 +1242,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void setCanBeResolved(boolean allowed) {
         validateMutation(MutationType.ROLE);
         canBeResolved = allowed;
+    }
+
+    @VisibleForTesting
+    ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
+        return dependencyResolutionListeners;
     }
 
     /**
