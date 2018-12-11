@@ -503,7 +503,7 @@ project(':app') {
         then:
         output.count('Transforming') == 8
         failure.assertResolutionFailure(":app:implementation")
-        failure.assertThatCause(Matchers.containsString("Failed to transform file 'slf4j-api-1.7.25.jar'"))
+        failure.assertThatCause(Matchers.containsString("Failed to transform artifact 'slf4j-api.jar (org.slf4j:slf4j-api:1.7.25)'"))
         ['lib.jar', 'common.jar', 'hamcrest-core-1.3.jar', 'junit-4.11.jar', 'slf4j-api-1.7.25.jar'].each {
             assert output.contains("Transforming without dependencies ${it} to ${it}.txt")
         }
