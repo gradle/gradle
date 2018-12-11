@@ -175,33 +175,33 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
     }
 
     static class BackgroundColor {
-        // https://www.w3schools.com/colors/colors_picker.asp
-        private static final String RED = "#ff0000";
-        private static final String ORANGE = "#ff8000";
-        private static final String LIGHT_GREEN = "#80ff00";
-        private static final String GREEN = "#00ff00";
+        private static final int THRESHOLD = 80;
         private Map xaxis;
         private String color;
 
-        private static BackgroundColor ofConfidence(List<Number> xy) {
+        static BackgroundColor ofConfidence(List<Number> xy) {
             double index = xy.get(0).doubleValue();
             double confidencePercentage = xy.get(1).doubleValue();
-            if (confidencePercentage > 90) {
-                return new BackgroundColor(index, RED);
-            } else if (confidencePercentage > 80) {
-                return new BackgroundColor(index, ORANGE);
-            } else if (confidencePercentage > -80) {
-                return null;
-            } else if (confidencePercentage > -90) {
-                return new BackgroundColor(index, LIGHT_GREEN);
+
+            if (Math.abs(confidencePercentage) >= THRESHOLD) {
+                return new BackgroundColor(index, redComponent(confidencePercentage), greenComponent(confidencePercentage));
             } else {
-                return new BackgroundColor(index, GREEN);
+                return null;
             }
         }
 
-        private BackgroundColor(double index, String color) {
+        // See TestDataGeneratorTest for examples
+        private static int redComponent(double confidencePercentage) {
+            return (int) (128 + (THRESHOLD + confidencePercentage) * 128 / (100 - THRESHOLD));
+        }
+
+        private static int greenComponent(double confidencePercentage) {
+            return (int) (128 - (confidencePercentage - THRESHOLD) * 128 / (100 - THRESHOLD));
+        }
+
+        private BackgroundColor(double index, int redComponent, int greenComponent) {
             this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
-            this.color = color;
+            this.color = String.format("#%02x%02x00", redComponent > 255 ? 255 : redComponent, greenComponent > 255 ? 255 : greenComponent);
         }
 
         public Map getXaxis() {
