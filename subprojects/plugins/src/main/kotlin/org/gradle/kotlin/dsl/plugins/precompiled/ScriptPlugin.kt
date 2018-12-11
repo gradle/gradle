@@ -36,7 +36,7 @@ import java.io.File
 internal
 data class ScriptPlugin(internal val scriptFile: File) {
 
-    val scriptFileName = scriptFile.name
+    val scriptFileName: String = scriptFile.name
 
     /**
      * Gradle plugin id inferred from the script file name and package declaration (if any).
@@ -162,7 +162,10 @@ fun CharSequence.kebabCaseToCamelCase() =
 
 private
 fun CharSequence.asJavaIdentifier() =
-    replaceBy { if (it.isJavaIdentifierPart()) it else '_' }
+    replaceBy { if (it.isJavaIdentifierPart()) it else '_' }.let {
+        if (it.first().isJavaIdentifierStart()) it
+        else "_$it"
+    }
 
 
 private

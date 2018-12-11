@@ -42,13 +42,22 @@ class ScriptPluginTest : TestWithTempFiles() {
     @Test
     fun `implementationClass is a valid Java identifier`() {
 
-        val script =
-            newFile("my-script.with invalid characters.gradle.kts")
+        assertThat(
+            "Invalid Java identifier characters are escaped",
+            implementationClassForScriptNamed("42-my-script.with 8 invalid characters.gradle.kts"),
+            equalTo("_42MyScript_with_8_invalid_charactersPlugin")
+        )
 
         assertThat(
-            ScriptPlugin(script).implementationClass,
-            equalTo("MyScript_with_invalid_charactersPlugin"))
+            "Invalid starting character is escaped once",
+            implementationClassForScriptNamed(" .gradle.kts"),
+            equalTo("_Plugin")
+        )
     }
+
+    private
+    fun implementationClassForScriptNamed(fileName: String) =
+        ScriptPlugin(newFile(fileName)).implementationClass
 
     @Test
     fun `plugin adapter is written to package sub-dir and starts with correct package declaration`() {
