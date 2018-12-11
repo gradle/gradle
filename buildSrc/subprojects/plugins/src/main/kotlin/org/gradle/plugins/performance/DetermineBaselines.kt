@@ -48,12 +48,7 @@ open class DetermineBaselines : DefaultTask() {
     }
 
     private
-    fun currentBranchIsMasterOrRelease() =
-        when (project.stringPropertyOrNull(PropertyNames.branchName)) {
-            "master" -> true
-            "release" -> true
-            else -> false
-        }
+    fun currentBranchIsMasterOrRelease() = project.determineCurrentBranch() in listOf("master", "release")
 
     private
     fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline, Config.baseLineList)
