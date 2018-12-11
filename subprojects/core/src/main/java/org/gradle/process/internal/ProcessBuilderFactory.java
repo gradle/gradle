@@ -34,7 +34,6 @@ public class ProcessBuilderFactory {
         processBuilder.redirectErrorStream(processSettings.getRedirectErrorStream());
 
         Map<String, String> environment = processBuilder.environment();
-        environment.clear();
         environment.putAll(processSettings.getEnvironment());
 
         return processBuilder;
