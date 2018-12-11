@@ -38,21 +38,49 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-The changes in this section have the potential to break your build, but the vast majority have been deprecated for quite some time and few builds will be affected by a large number of them.
-
 The following changes were not previously deprecated:
 
-* Passing arguments to Windows Resource Compiler
+==== Signing API changes
+Input and output files of `Sign` tasks are now tracked via `Signature.getToSign()` and `Signature.getFile()`, respectively.
 
-+
-To follow idiomatic <<#lazy_configuration.adoc, Provider API>> practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
-+
-Passing additional compiler arguments now follow the same pattern as `CppCompile` and other tasks.
-* Input and output files of `Sign` tasks are now tracked via `Signature.getToSign()` and `Signature.getFile()`, respectively.
-* The list of `beforeResolve` actions are no longer shared between a copied configuration and the original.
+==== Collection properties default to empty collection
+
+In Gradle 5.0, the collection property instances created using `ObjectFactory` would have no value defined, requiring plugin authors to explicitly set an initial value. This proved to be awkward and error prone so `ObjectFactory` now returns instances with an empty collection as their initial value.
+
+==== Worker API: working directory of a worker can no longer be set
+
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+All workers now use the same working directory to enable reuse.
+Please pass files and directories as arguments instead. See examples in the <<custom_tasks.adoc#worker_api, Worker API documentation>>.
+
+==== Changes to native linking tasks
+
+To expand our idiomatic <<lazy_configuration.adoc#, Provider API>> practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
+
+- `getInstallName()` was changed to return a `Property`.
+- `setInstallName(String)` was removed. Use `Property.set()` instead.
+
+==== Passing arguments to Windows Resource Compiler
+
+To expand our idiomatic <<lazy_configuration.adoc#, Provider API>> practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
+
+Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
+
+==== Copied configuration no longer shares a list of `beforeResolve` actions with original
+
+The list of `beforeResolve` actions are no longer shared between a copied configuration and the original.
 Instead, a copied configuration receives a copy of the `beforeResolve` actions at the time the copy is made.
 Any `beforeResolve` actions added after copying (to either configuration) will not be shared between the original and the copy.
 This may break plugins that relied on the previous behaviour.
+
+==== Changes to incubating POM customization types
+
+- The type of `MavenPomDeveloper.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
+- The type of `MavenPomContributor.properties` has changed from `Property<Map<String, String>>` to `MapProperty<String, String>`.
+
+==== Changes to specifying operating system for native projects
+
+The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
 ////
 The following breaking changes will appear as deprecation warnings with Gradle 5.X:
