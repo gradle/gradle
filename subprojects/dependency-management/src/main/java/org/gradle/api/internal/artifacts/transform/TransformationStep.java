@@ -60,17 +60,21 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
-        ArtifactTransformDependenciesInternal dependencies = dependenciesResolver.forTransformer(transformer);
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File primaryInput : primaryInputs) {
-            Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
+        Try<ArtifactTransformDependenciesInternal> dependencies = dependenciesResolver.forTransformer(transformer);
+        return dependencies.getFailure().map(failure -> {
+            return subjectToTransform.transformationFailed(failure);
+        }).orElseGet(() -> {
+            ImmutableList.Builder<File> builder = ImmutableList.builder();
+            for (File primaryInput : primaryInputs) {
+                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies.get(), subjectToTransform);
 
-            if (result.getFailure().isPresent()) {
-                return subjectToTransform.transformationFailed(result.getFailure().get());
+                if (result.getFailure().isPresent()) {
+                    return subjectToTransform.transformationFailed(result.getFailure().get());
+                }
+                builder.addAll(result.get());
             }
-            builder.addAll(result.get());
-        }
-        return subjectToTransform.transformationSuccessful(builder.build());
+            return subjectToTransform.transformationSuccessful(builder.build());
+        });
     }
 
     @Override

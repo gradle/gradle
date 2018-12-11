@@ -50,7 +50,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
     def dependenciesProvider = Stub(ExecutionGraphDependenciesResolver) {
-        forTransformer(_ as Transformer) >> dependencies
+        forTransformer(_ as Transformer) >> Try.successful(dependencies)
     }
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
