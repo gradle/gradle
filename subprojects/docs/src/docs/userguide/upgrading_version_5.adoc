@@ -80,7 +80,7 @@ This may break plugins that relied on the previous behaviour.
 
 ==== Changes to specifying operating system for native projects
 
-The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines--[targetMachines] property.
+The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
 ////
 The following breaking changes will appear as deprecation warnings with Gradle 5.X:
