@@ -403,7 +403,8 @@ project(':app') {
             assert output.contains("Transform step 2 received dependencies files [${dependencies.collect { it + ".txt" }.join(", ")}] for processing ${artifact}.txt")
         }
 
-        // TODO wolfs: Looks like we execute this second step once with the first step having dependencies slf4j-api-1.7.26.jar and once with dependencies slf4j-api-1.7.25.jar
+        // Looks like we execute this second step once with the first step having dependencies slf4j-api-1.7.26.jar and once with dependencies slf4j-api-1.7.25.jar
+        // TODO wolfs: Schedule only the right transformations, not transformations with mixed dependencies which cannot be re-used by anything.
         output.count("Transform step 2 received dependencies files [slf4j-api-1.7.26.jar.txt, common.jar.txt] for processing lib.jar.txt") == 2
 
         def outputLines = output.readLines()
@@ -412,8 +413,11 @@ project(':app') {
         def lib1Transform = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar")
         def lib2Transform = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar")
         ![app1Resolve, app2Resolve, lib1Transform, lib2Transform].contains(-1)
-        assert lib1Transform < app1Resolve // scheduled
-        assert lib2Transform > app2Resolve // immediate, TODO wolfs: should be scheduled as well
+        // scheduled transformation, executed before the resolve task
+        assert lib1Transform < app1Resolve
+        // immediate transformation, we do not distinguish between transformations with different dependency graphs, so we only schedule the transformation once.
+        // TODO wolfs: should be scheduled as well
+        assert lib2Transform > app2Resolve
     }
 
     def "transform does not execute when dependencies cannot be found"() {
