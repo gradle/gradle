@@ -69,13 +69,13 @@ allprojects {
         // Multi step transform
         registerTransform {
             from.attribute(artifactType, 'jar')
-            to.attribute(artifactType, 'inter')
+            to.attribute(artifactType, 'intermediate')
             artifactTransform(TestTransform) {
                 params('Transform step 1')
             }
         }
         registerTransform {
-            from.attribute(artifactType, 'inter')
+            from.attribute(artifactType, 'intermediate')
             to.attribute(artifactType, 'final')
             artifactTransform(TestTransform) {
                 params('Transform step 2')
@@ -345,10 +345,10 @@ project(':app') {
                 }
                 task resolveInter(type: Copy) {
                     def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'inter') }
+                        attributes { it.attribute(artifactType, 'intermediate') }
                     }.artifacts
                     from artifacts.artifactFiles
-                    into "\${buildDir}/libs/inter"
+                    into "\${buildDir}/libs/intermediate"
                 }         
             }
             project(':app2') {
