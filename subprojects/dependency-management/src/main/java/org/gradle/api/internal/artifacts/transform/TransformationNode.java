@@ -28,40 +28,33 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class TransformationNode extends Node {
+    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
+    private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
-    private final TransformationIdentity identity;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, Path buildPath) {
-        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildPath);
+    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
     }
 
     protected TransformationNode(TransformationStep transformationStep) {
-        this.identity = TransformationIdentity.create();
         this.transformationStep = transformationStep;
     }
 
-    @Override
-    public TransformationIdentity getIdentity() {
-        return identity;
-    }
-
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
-
-    protected abstract Path getBuildPath();
 
     @Override
     public String toString() {
@@ -107,7 +100,7 @@ public abstract class TransformationNode extends Node {
             return getClass().getName().compareTo(other.getClass().getName());
         }
         TransformationNode otherTransformation = (TransformationNode) other;
-        return Long.compare(identity.getId(), otherTransformation.identity.getId());
+        return order - otherTransformation.order;
     }
 
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
@@ -120,18 +113,11 @@ public abstract class TransformationNode extends Node {
     private static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
         private final ExecutionGraphDependenciesResolver dependenciesResolver;
-        private final Path buildPath;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, Path buildPath) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep);
             this.artifact = artifact;
             this.dependenciesResolver = dependenciesResolver;
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public Path getBuildPath() {
-            return buildPath;
         }
 
         @Override
@@ -183,11 +169,6 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
-        protected Path getBuildPath() {
-            return previousTransformationNode.getBuildPath();
-        }
-
-        @Override
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation();
             buildOperationExecutor.run(chainedArtifactTransformStep);
@@ -230,7 +211,7 @@ public abstract class TransformationNode extends Node {
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName("Transforming " + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
-                .details(new ExecuteScheduledTransformationStepBuildOperationDetails(getBuildPath(), identity, transformerName, subjectName));
+                .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();

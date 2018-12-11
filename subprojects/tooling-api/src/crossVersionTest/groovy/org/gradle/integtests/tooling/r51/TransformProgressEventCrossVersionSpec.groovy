@@ -141,6 +141,40 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    def "reports transform progress events for included builds"() {
+        given:
+        withFileSizerTransform()
+        settingsFile.moveToDirectory(file('included'))
+        buildFile.moveToDirectory(file('included'))
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << """
+            task run {
+                dependsOn gradle.includedBuild('included').task(':app:resolve')
+            }
+        """
+
+        when:
+        runBuild("run")
+
+        then:
+        def taskOperation = events.operation("Task :included:lib:jar")
+        def transformOperation = events.operation("Transform artifact lib.jar (project :included:lib) with FileSizer")
+        with(transformOperation) {
+            transform
+            descriptor.transformer.displayName == "FileSizer"
+            descriptor.subject.displayName == "artifact lib.jar (project :included:lib)"
+            descriptor.dependencies == [taskOperation.descriptor] as Set
+            successful
+        }
+        with(events.operation("Task :included:app:resolve")) {
+            task
+            successful
+            descriptor.dependencies == [transformOperation.descriptor] as Set
+        }
+    }
+
     private TestFile withFileSizerTransform() {
         buildFile << """
             $fileSizer

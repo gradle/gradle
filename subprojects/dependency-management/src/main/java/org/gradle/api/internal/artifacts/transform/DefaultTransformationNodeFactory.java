@@ -22,8 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.Factory;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,11 +30,6 @@ import java.util.function.Function;
 
 public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
-    private final Factory<Path> buildPathFactory;
-
-    public DefaultTransformationNodeFactory(Factory<Path> buildPathFactory) {
-        this.buildPathFactory = buildPathFactory;
-    }
 
     @Override
     public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
@@ -64,7 +57,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, dependenciesResolver, buildPathFactory.create());
+                transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, dependenciesResolver);
             } else {
                 TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
                 transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous, dependenciesResolver);

@@ -89,7 +89,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(task);
+                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
                 return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                     .name(task.getIdentityPath().toString())
                     .progressDisplayName(task.getIdentityPath().toString())
