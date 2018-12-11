@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution
 
-import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -25,19 +24,14 @@ import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
-import org.gradle.caching.internal.command.BuildCacheLoadListener
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.id.UniqueId
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Ignore
 
@@ -63,85 +57,6 @@ class SkipCachedTaskExecuterTest extends Specification {
     def outputFingerprints = [:]
 
     // def executer = new SkipCachedTaskExecuter(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
-
-    def "skip task when cached results exist"() {
-        def originId = UniqueId.generate()
-        def originalExecutionTime = 1234L
-        def metadata = new OriginMetadata(originId, originalExecutionTime)
-        def resultingSnapshots = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
-        def loadResult = new BuildCacheCommandFactory.LoadMetadata() {
-            @Override
-            OriginMetadata getOriginMetadata() {
-                metadata
-            }
-
-            @Override
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
-                resultingSnapshots
-            }
-        }
-
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskContext.taskProperties >> taskProperties
-        1 * taskContext.buildCacheKey >> cacheKey
-        interaction { cachingEnabled() }
-
-        then:
-        1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
-        1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
-
-        then:
-        1 * buildCacheController.load(loadCommand) >> loadResult
-
-        then:
-        1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
-        1 * taskContext.setOriginMetadata(metadata)
-        0 * _
-    }
-
-    def "executes task and stores result when no cached result is available"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskContext.taskProperties >> taskProperties
-        1 * taskContext.buildCacheKey >> cacheKey
-        interaction { cachingEnabled() }
-
-        then:
-        1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
-        1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
-
-        then:
-        1 * buildCacheController.load(loadCommand) >> null
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.getFailure() >> null
-
-        then:
-        1 * taskContext.getExecutionTime() >> 1
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
-        1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
-
-        then:
-        1 * buildCacheController.store(storeCommand)
-        0 * _
-    }
 
     def "executes task and stores result when use of cached result is not allowed"() {
         when:
@@ -171,33 +86,6 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
-        0 * _
-    }
-
-    def "does not cache results when executed task fails"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskContext.taskProperties >> taskProperties
-        1 * taskContext.buildCacheKey >> cacheKey
-        interaction { cachingEnabled() }
-
-        then:
-        1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
-        1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_)
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskState.getFailure() >> new RuntimeException()
         0 * _
     }
 

@@ -115,7 +115,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
             // garbage among the task's outputs, thus we must fail the build
             throw e;
         } catch (Exception e) {
-            // There was a failure during downloading, previous task outputs should bu unaffected
+            // There was a failure during downloading, previous task outputs should be unaffected
             LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", work.getDisplayName(), e);
             return null;
         }
