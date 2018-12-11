@@ -12,7 +12,7 @@ subprojects {
         doLast { println("- I depend on water") }
     }
 
-    afterEvaluate { Project project ->
+    afterEvaluate {
         if (extra["arctic"] as Boolean) {
             hello {
                 doLast {
