@@ -209,10 +209,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def outputDir = new File("build/generated-sources")
         spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
 
-        when:
-        def args = builder.build()
-        then:
-        args == ["-s", outputDir.path] + defaultOptions
+        expect:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.path, USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
     }
 
     def "adds custom compiler args last"() {

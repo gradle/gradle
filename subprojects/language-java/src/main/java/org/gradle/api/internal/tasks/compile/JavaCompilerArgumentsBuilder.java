@@ -163,10 +163,6 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
-        if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
-            args.add("-s");
-            args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
-        }
         if (compileOptions.getHeaderOutputDirectory() != null) {
             args.add("-h");
             args.add(compileOptions.getHeaderOutputDirectory().getPath());
@@ -191,6 +187,10 @@ public class JavaCompilerArgumentsBuilder {
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+            }
+            if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+                args.add("-s");
+                args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
             }
         }
 
