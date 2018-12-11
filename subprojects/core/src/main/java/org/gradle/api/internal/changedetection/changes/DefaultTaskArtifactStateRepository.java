@@ -33,6 +33,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -52,14 +53,16 @@ import java.util.function.Supplier;
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final TaskHistoryRepository taskHistoryRepository;
+    private final ExecutionHistoryStore executionHistoryStore;
     private final Instantiator instantiator;
     private final OutputFilesRepository outputFilesRepository;
     private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
-    public DefaultTaskArtifactStateRepository(FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
+    public DefaultTaskArtifactStateRepository(FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskHistoryRepository taskHistoryRepository, ExecutionHistoryStore executionHistoryStore, Instantiator instantiator,
                                               OutputFilesRepository outputFilesRepository, TaskCacheKeyCalculator taskCacheKeyCalculator) {
         this.fingerprinterRegistry = fingerprinterRegistry;
         this.taskHistoryRepository = taskHistoryRepository;
+        this.executionHistoryStore = executionHistoryStore;
         this.instantiator = instantiator;
         this.outputFilesRepository = outputFilesRepository;
         this.taskCacheKeyCalculator = taskCacheKeyCalculator;
@@ -162,7 +165,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), newOutputFingerprints)) {
-                history.persist(afterPreviousExecutionState, newOutputFingerprints, successful, originMetadata);
+                BeforeExecutionState execution = history.getBeforeExecutionState(afterPreviousExecutionState);
+                executionHistoryStore.store(
+                    task.getPath(),
+                    OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
+                    execution.getImplementation(),
+                    execution.getAdditionalImplementations(),
+                    execution.getInputProperties(),
+                    execution.getInputFileProperties(),
+                    newOutputFingerprints,
+                    successful
+                );
+
                 outputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
         }

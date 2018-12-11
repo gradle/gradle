@@ -166,13 +166,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
-        ExecutionHistoryStore executionHistoryStore,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry) {
 
         return new CacheBackedTaskHistoryRepository(
-            executionHistoryStore,
             classLoaderHierarchyHasher,
             valueSnapshotter,
             fingerprinterRegistry
@@ -183,6 +181,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         Instantiator instantiator,
         StartParameter startParameter,
         TaskHistoryRepository taskHistoryRepository,
+        ExecutionHistoryStore executionHistoryStore,
         OutputFilesRepository taskOutputsRepository,
         FileCollectionFingerprinterRegistry fingerprinterRegistry
     ) {
@@ -194,6 +193,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             new DefaultTaskArtifactStateRepository(
                 fingerprinterRegistry,
                 taskHistoryRepository,
+                executionHistoryStore,
                 instantiator,
                 taskOutputsRepository,
                 taskCacheKeyCalculator

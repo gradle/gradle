@@ -23,11 +23,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -47,18 +45,15 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
 
-    private final ExecutionHistoryStore executionHistoryStore;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
 
     public CacheBackedTaskHistoryRepository(
-        ExecutionHistoryStore executionHistoryStore,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry
     ) {
-        this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
@@ -75,21 +70,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState);
                 }
                 return beforeExecutionState;
-            }
-
-            @Override
-            public void persist(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-                BeforeExecutionState execution = getBeforeExecutionState(afterPreviousExecutionState);
-                executionHistoryStore.store(
-                    task.getPath(),
-                    OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
-                    execution.getImplementation(),
-                    execution.getAdditionalImplementations(),
-                    execution.getInputProperties(),
-                    execution.getInputFileProperties(),
-                    newOutputFingerprints,
-                    successful
-                );
             }
         };
     }
