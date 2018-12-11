@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -37,17 +38,17 @@ public interface TaskArtifactState {
     /**
      * Returns changes since the previous execution, if any.
      */
-    Optional<ExecutionStateChanges> getExecutionStateChanges();
+    Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns the incremental task inputs for the current execution.
      */
-    IncrementalTaskInputs getInputChanges();
+    IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns fingerprints of all the current input files.
      */
-    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints();
+    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
@@ -57,7 +58,7 @@ public interface TaskArtifactState {
     /**
      * Returns the calculated cache key for the task's current state.
      */
-    TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties);
+    TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties);
 
     /**
      * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
@@ -72,16 +73,16 @@ public interface TaskArtifactState {
     /**
      * Called when outputs were generated.
      */
-    void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
+    void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
 
     /**
      * Returns the current output file fingerprints indexed by property name.
      */
-    Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints();
+    Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns if overlapping outputs were detected
      */
     @Nullable
-    OverlappingOutputs getOverlappingOutputs();
+    OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 }

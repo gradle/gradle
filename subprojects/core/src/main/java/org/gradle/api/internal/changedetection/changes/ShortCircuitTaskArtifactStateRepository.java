@@ -94,7 +94,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
                 @Override
                 public void visitAllChanges(ChangeVisitor visitor) {
@@ -119,13 +119,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
+        public IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints(afterPreviousExecutionState));
         }
 
         @Override
-        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
-            return delegate.getCurrentInputFileFingerprints();
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return delegate.getCurrentInputFileFingerprints(afterPreviousExecutionState);
         }
 
         @Override
@@ -134,13 +134,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
-            return delegate.calculateCacheKey(taskProperties);
+        public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
+            return delegate.calculateCacheKey(afterPreviousExecutionState, taskProperties);
         }
 
         @Override
-        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
-            return delegate.getOutputFingerprints();
+        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return delegate.getOutputFingerprints(afterPreviousExecutionState);
         }
 
         @Override
@@ -154,14 +154,14 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-            delegate.persistNewOutputs(newOutputFingerprints, successful, originMetadata);
+        public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+            delegate.persistNewOutputs(afterPreviousExecutionState, newOutputFingerprints, successful, originMetadata);
         }
 
         @Nullable
         @Override
-        public OverlappingOutputs getOverlappingOutputs() {
-            return delegate.getOverlappingOutputs();
+        public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return delegate.getOverlappingOutputs(afterPreviousExecutionState);
         }
     }
 }

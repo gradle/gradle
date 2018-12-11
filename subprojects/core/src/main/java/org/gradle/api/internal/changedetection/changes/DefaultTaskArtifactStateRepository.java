@@ -82,19 +82,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges() {
-            return getExecutionStateChanges()
+        public IncrementalTaskInputs getInputChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return getExecutionStateChanges(afterPreviousExecutionState)
                 .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
                      @Override
                      public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
                          return changes.isRebuildRequired()
-                             ? createRebuildInputs()
+                             ? createRebuildInputs(afterPreviousExecutionState)
                              : createIncrementalInputs(changes.getInputFilesChanges());
                      }
                 }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
                     @Override
                     public StatefulIncrementalTaskInputs get() {
-                        return createRebuildInputs();
+                        return createRebuildInputs(afterPreviousExecutionState);
                     }
                 });
         }
@@ -103,13 +103,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
         }
 
-        private RebuildIncrementalTaskInputs createRebuildInputs() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
+        private RebuildIncrementalTaskInputs createRebuildInputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints(afterPreviousExecutionState));
         }
 
         @Override
-        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
-            return history.getBeforeExecutionState().getInputFileProperties().values();
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return history.getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
         }
 
         @Override
@@ -119,9 +119,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Nullable
         @Override
-        public OverlappingOutputs getOverlappingOutputs() {
-            BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState();
-            AfterPreviousExecutionState afterPreviousExecutionState = history.getAfterPreviousExecutionState();
+        public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState(afterPreviousExecutionState);
             return OverlappingOutputs.detect(
                 afterPreviousExecutionState == null
                     ? null
@@ -131,13 +130,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
-            return taskCacheKeyCalculator.calculate(task, history.getBeforeExecutionState(), taskProperties);
+        public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
+            return taskCacheKeyCalculator.calculate(task, history.getBeforeExecutionState(afterPreviousExecutionState), taskProperties);
         }
 
         @Override
-        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
-            return history.getBeforeExecutionState().getOutputFileProperties();
+        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return history.getBeforeExecutionState(afterPreviousExecutionState).getOutputFileProperties();
         }
 
         @Override
@@ -147,24 +146,23 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
-            AfterPreviousExecutionState afterPreviousExecutionState = history.getAfterPreviousExecutionState();
-            BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState();
+            AfterPreviousExecutionState afterPreviousExecutionState = taskExecutionContext.getAfterPreviousExecution();
+            BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState(afterPreviousExecutionState);
             return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
                 afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
                 beforeExecutionState.getOutputFileProperties(),
                 taskExecutionContext.getTaskProperties().getOutputFileProperties(),
-                getOverlappingOutputs() != null,
+                getOverlappingOutputs(afterPreviousExecutionState) != null,
                 task,
                 fingerprinterRegistry
             );
         }
 
         @Override
-        public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-            AfterPreviousExecutionState afterPreviousExecutionState = history.getAfterPreviousExecutionState();
+        public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), newOutputFingerprints)) {
-                history.persist(newOutputFingerprints, successful, originMetadata);
+                history.persist(afterPreviousExecutionState, newOutputFingerprints, successful, originMetadata);
                 outputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
         }
@@ -175,13 +173,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             if (!statesCalculated) {
                 statesCalculated = true;
-                AfterPreviousExecutionState afterPreviousExecutionState = history.getAfterPreviousExecutionState();
                 // Calculate initial state - note this is potentially expensive
                 // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-                BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState();
+                BeforeExecutionState beforeExecutionState = history.getBeforeExecutionState(afterPreviousExecutionState);
                 if (afterPreviousExecutionState == null || outputsRemoved) {
                     states = null;
                 } else {

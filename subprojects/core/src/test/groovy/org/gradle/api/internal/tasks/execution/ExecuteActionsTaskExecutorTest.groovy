@@ -88,7 +88,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskArtifactState() >> taskArtifactState
         taskArtifactState.snapshotAfterTaskExecution(executionContext) >> ImmutableSortedMap.of()
-        taskArtifactState.getExecutionStateChanges() >> Optional.empty()
+        taskArtifactState.getExecutionStateChanges(_) >> Optional.empty()
     }
 
     void noMoreInteractions() {

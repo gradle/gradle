@@ -67,30 +67,19 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     @Override
     public History getHistory(final TaskInternal task, final TaskProperties taskProperties) {
         return new History() {
-            private boolean afterPreviousExecutionStateLoadAttempted;
-            private AfterPreviousExecutionState afterPreviousExecutionState;
             private BeforeExecutionState beforeExecutionState;
 
             @Override
-            public AfterPreviousExecutionState getAfterPreviousExecutionState() {
-                if (!afterPreviousExecutionStateLoadAttempted) {
-                    afterPreviousExecutionStateLoadAttempted = true;
-                    afterPreviousExecutionState = loadPreviousExecution(task);
-                }
-                return afterPreviousExecutionState;
-            }
-
-            @Override
-            public BeforeExecutionState getBeforeExecutionState() {
+            public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
                 if (beforeExecutionState == null) {
-                    beforeExecutionState = createExecution(task, taskProperties, getAfterPreviousExecutionState());
+                    beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState);
                 }
                 return beforeExecutionState;
             }
 
             @Override
-            public void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-                BeforeExecutionState execution = getBeforeExecutionState();
+            public void persist(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+                BeforeExecutionState execution = getBeforeExecutionState(afterPreviousExecutionState);
                 executionHistoryStore.store(
                     task.getPath(),
                     OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
@@ -164,10 +153,5 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         return builder.build();
-    }
-
-    @Nullable
-    private AfterPreviousExecutionState loadPreviousExecution(TaskInternal task) {
-        return executionHistoryStore.load(task.getPath());
     }
 }

@@ -29,11 +29,8 @@ public interface TaskHistoryRepository {
     History getHistory(TaskInternal task, TaskProperties taskProperties);
 
     interface History {
-        @Nullable
-        AfterPreviousExecutionState getAfterPreviousExecutionState();
+        BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
-        BeforeExecutionState getBeforeExecutionState();
-
-        void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
+        void persist(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
     }
 }

@@ -113,10 +113,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.afterPreviousExecution >> afterPreviousExecution
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         1 * afterPreviousExecution.outputFileProperties >> outputFiles
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.overlappingOutputs >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -153,10 +153,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.afterPreviousExecution >> afterPreviousExecution
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         1 * afterPreviousExecution.outputFileProperties >> outputFiles
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.overlappingOutputs >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -206,9 +206,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskContext.getAfterPreviousExecution() >> afterPreviousExecutionState
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.naturalOrder().put("outputProperty", fingerprint).build()
-        1 * taskArtifactState.overlappingOutputs >> new OverlappingOutputs("outputProperty", overlappingFile.absolutePath)
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState) >> new OverlappingOutputs("outputProperty", overlappingFile.absolutePath)
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -251,9 +251,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskContext.getAfterPreviousExecution() >> afterPreviousExecutionState
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         1 * afterPreviousExecutionState.outputFileProperties >> previousOutputFingerprints
-        1 * taskArtifactState.overlappingOutputs >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'

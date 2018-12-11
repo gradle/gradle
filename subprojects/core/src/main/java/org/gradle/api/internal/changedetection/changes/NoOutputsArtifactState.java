@@ -33,6 +33,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +101,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+    public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
             @Override
             public void visitAllChanges(ChangeVisitor visitor) {
@@ -125,12 +126,12 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public IncrementalTaskInputs getInputChanges() {
+    public IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
+    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         throw new UnsupportedOperationException();
     }
 
@@ -140,7 +141,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
+    public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
         return NO_CACHE_KEY;
     }
 
@@ -154,16 +155,16 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+    public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
     }
 
     @Override
-    public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
+    public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         return Collections.emptyMap();
     }
 
     @Override
-    public OverlappingOutputs getOverlappingOutputs() {
+    public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         return null;
     }
 
