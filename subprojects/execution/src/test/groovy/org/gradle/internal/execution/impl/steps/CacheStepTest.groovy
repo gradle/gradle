@@ -29,8 +29,6 @@ import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprin
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
-import javax.annotation.Nullable
-
 class CacheStepTest extends Specification {
 
     def buildCacheController = Mock(BuildCacheController)
@@ -43,9 +41,13 @@ class CacheStepTest extends Specification {
     def unitOfWork = Mock(UnitOfWork)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def cachedOriginMetadata = Mock(OriginMetadata)
-    def context = Stub(CachingContext) {
-        getCacheHandler() >> cacheHandler
-        getWork() >> unitOfWork
+    def context = new CachingContext() {
+        CacheHandler getCacheHandler() {
+            CacheStepTest.this.cacheHandler
+        }
+        UnitOfWork getWork() {
+            unitOfWork
+        }
     }
 
     def "loads from cache"() {
@@ -68,7 +70,12 @@ class CacheStepTest extends Specification {
     }
 
     def "executes work and stores in cache on cache miss"() {
-        def executionResult = new TestCurrentSnapshotResult()
+        def executionResult = new CurrentSnapshotResult() {
+            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
+            final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
+            final ExecutionOutcome outcome = ExecutionOutcome.EXECUTED
+            final Throwable failure = null
+        }
 
         when:
         def result = cacheStep.execute(context)
@@ -83,8 +90,12 @@ class CacheStepTest extends Specification {
     }
 
     def "failures are not stored in the cache"() {
-        def failure = new RuntimeException("failed")
-        def failedResult = new TestCurrentSnapshotResult(failure)
+        def failedResult = new CurrentSnapshotResult() {
+            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
+            final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
+            final ExecutionOutcome outcome = ExecutionOutcome.EXECUTED
+            final Throwable failure = new RuntimeException("failed")
+        }
 
         when:
         def result = cacheStep.execute(context)
@@ -97,20 +108,5 @@ class CacheStepTest extends Specification {
         _ * unitOfWork.displayName >> "Display name"
         0 * cacheHandler.store(_)
         0 * _
-    }
-
-    class TestCurrentSnapshotResult implements CurrentSnapshotResult {
-        TestCurrentSnapshotResult(Throwable failure = null) {
-            this.failure = failure
-        }
-        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
-        OriginMetadata getOriginMetadata() {
-            OriginMetadata.fromCurrentBuild(currentBuildId, 0)
-        }
-        ExecutionOutcome getOutcome() {
-            ExecutionOutcome.EXECUTED
-        }
-        @Nullable
-        final Throwable failure
     }
 }
