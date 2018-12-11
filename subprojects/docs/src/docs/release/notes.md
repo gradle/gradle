@@ -3,9 +3,7 @@ The Gradle team is excited to announce Gradle 5.2.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-<!-- 
- [Some person](https://github.com/some-person), // name only, details in separate section
--->
+[Thomas Broyer](https://github.com/tbroyer).
 
 <!-- 
 ## 1
@@ -56,9 +54,7 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn 
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
+ - [Thomas Broyer](https://github.com/tbroyer) - Provide default value for annotationProcessorGeneratedSourcesDirectory (gradle/gradle#7551)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
