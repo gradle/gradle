@@ -24,9 +24,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED;
-import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE;
-
 public class ExecuteStep implements Step<Context, Result> {
 
     private final OutputChangeListener outputChangeListener;
@@ -46,10 +43,7 @@ public class ExecuteStep implements Step<Context, Result> {
         if (!changingOutputs.isPresent()) {
             outputChangeListener.beforeOutputChange();
         }
-        boolean didWork = work.execute();
-        ExecutionOutcome outcome = didWork
-            ? EXECUTED
-            : UP_TO_DATE;
+        ExecutionOutcome outcome = work.execute();
         return new Result() {
             @Override
             public ExecutionOutcome getOutcome() {

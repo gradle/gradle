@@ -34,6 +34,7 @@ import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -239,14 +240,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean execute() {
+        public ExecutionOutcome execute() {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
             writeResultsFile(outputDir, resultsFile, result);
-            return true;
+            return ExecutionOutcome.EXECUTED;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {

@@ -31,10 +31,8 @@ public interface UnitOfWork extends CacheableEntity {
 
     /**
      * Executes the work synchronously.
-     *
-     * @return Whether any work has been performed.
      */
-    boolean execute();
+    ExecutionOutcome execute();
 
     Optional<Duration> getTimeout();
 

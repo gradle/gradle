@@ -40,6 +40,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -136,13 +137,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean execute() {
+        public ExecutionOutcome execute() {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
                 executeActions(task, context);
-                return task.getState().getDidWork();
+                return task.getState().getDidWork()
+                    ? ExecutionOutcome.EXECUTED
+                    : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);

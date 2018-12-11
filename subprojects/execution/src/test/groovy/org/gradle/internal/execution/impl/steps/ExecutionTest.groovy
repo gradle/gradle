@@ -135,9 +135,10 @@ class ExecutionTest extends Specification {
 
         boolean executed
 
-        boolean execute() {
+        @Override
+        ExecutionOutcome execute() {
             executed = true
-            return work.asBoolean
+            return work.asBoolean ? ExecutionOutcome.EXECUTED : ExecutionOutcome.UP_TO_DATE
         }
 
         @Override
