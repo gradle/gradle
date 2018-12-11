@@ -60,11 +60,6 @@ public interface TaskArtifactState {
     TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties);
 
     /**
-     * Ensure snapshot is taken of the task's inputs and outputs before it is executed.
-     */
-    void ensureSnapshotBeforeTask();
-
-    /**
      * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
      */
     void afterOutputsRemovedBeforeTask();

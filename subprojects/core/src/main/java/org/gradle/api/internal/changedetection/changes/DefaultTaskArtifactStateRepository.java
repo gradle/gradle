@@ -141,11 +141,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void ensureSnapshotBeforeTask() {
-            history.getBeforeExecutionState();
-        }
-
-        @Override
         public void afterOutputsRemovedBeforeTask() {
             outputsRemoved = true;
         }

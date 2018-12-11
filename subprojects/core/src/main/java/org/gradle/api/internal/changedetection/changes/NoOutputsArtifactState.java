@@ -145,10 +145,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public void ensureSnapshotBeforeTask() {
-    }
-
-    @Override
     public void afterOutputsRemovedBeforeTask() {
     }
 
