@@ -3,7 +3,7 @@
 tasks.addRule("Pattern: ping<ID>") {
     val taskName = this
     if (startsWith("ping")) {
-        tasks.register(taskName) {
+        task(taskName) {
             doLast {
                 println("Pinging: " + (taskName.replace("ping", "")))
             }
@@ -12,7 +12,7 @@ tasks.addRule("Pattern: ping<ID>") {
 }
 // end::task-rule[]
 
-tasks.register("groupPing") {
+task("groupPing") {
     dependsOn("pingServer1", "pingServer2")
 }
 // end::all[]
