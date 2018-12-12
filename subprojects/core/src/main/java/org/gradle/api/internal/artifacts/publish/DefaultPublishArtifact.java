@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.io.File;
