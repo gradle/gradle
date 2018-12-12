@@ -193,6 +193,12 @@ include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/groovy",files
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
 ====
 
+[NOTE]
+.Prefer creating a task with constructor arguments using the TaskContainer
+====
+It's recommended to use the <<task_configuration_avoidance.adoc,Task Configuration Avoidance>> APIs instead to improve configuration time.
+====
+
 In all circumstances, the values passed as constructor arguments must be non-null.
 If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
 
