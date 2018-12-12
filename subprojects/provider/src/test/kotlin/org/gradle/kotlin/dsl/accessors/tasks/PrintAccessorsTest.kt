@@ -24,8 +24,8 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 
-import org.gradle.kotlin.dsl.accessors.ProjectSchemaBasedTest
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+import org.gradle.kotlin.dsl.accessors.entry
 import org.gradle.kotlin.dsl.fixtures.standardOutputOf
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -34,7 +34,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class PrintAccessorsTest : ProjectSchemaBasedTest() {
+class PrintAccessorsTest {
 
     @Test
     fun `prints accessors for all schema entries`() {
