@@ -43,6 +43,7 @@ import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -238,6 +239,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public long markExecutionTime() {
             return context.markExecutionTime();
+        }
+
+        @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return Optional.ofNullable(context.getAfterPreviousExecution());
+        }
+
+        @Override
+        public boolean deleteOutputsBeforeExecution() {
+            return context.isDeleteOutputsBeforeExecution();
+        }
+
+        @Override
+        public boolean hasOverlappingOutputs() {
+            return context.getTaskArtifactState().getOverlappingOutputs(context.getAfterPreviousExecution()) != null;
         }
 
         @Override

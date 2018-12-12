@@ -87,4 +87,8 @@ public interface TaskExecutionContext {
     boolean isTaskExecutedIncrementally();
 
     void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
+
+    boolean isDeleteOutputsBeforeExecution();
+
+    void setDeleteOutputsBeforeExecution(boolean deleteOutputsBeforeExecution);
 }

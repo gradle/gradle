@@ -22,6 +22,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
@@ -89,12 +90,23 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = new BuildOutputCleanupRegistry() {
+            @Override
+            public void registerOutputs(Object files) {
+            }
+
+            @Override
+            public boolean isOutputOwnedByBuild(File file) {
+                return true;
+            }
+        };
         workExecutor = new ExecutionServices().createWorkExecutor(
             buildCacheController,
             buildCacheCommandFactory,
             buildInvocationScopeId,
             cancellationToken,
             outputChangeListener,
+            buildOutputCleanupRegistry,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)
         );

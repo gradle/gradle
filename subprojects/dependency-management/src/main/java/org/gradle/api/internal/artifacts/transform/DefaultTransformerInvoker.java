@@ -393,6 +393,21 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean deleteOutputsBeforeExecution() {
+            return false;
+        }
+
+        @Override
+        public boolean hasOverlappingOutputs() {
+            return false;
+        }
+
+        @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + primaryInput;
         }

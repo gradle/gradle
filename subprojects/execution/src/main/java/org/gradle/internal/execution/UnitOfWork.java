@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -69,4 +70,19 @@ public interface UnitOfWork extends CacheableEntity {
     }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
+
+    /**
+     * Returns the execution state after the previous execution if available.
+     */
+    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
+
+    /**
+     * Returns whether the outputs from the previous execution should be deleted before execution.
+     */
+    boolean deleteOutputsBeforeExecution();
+
+    /**
+     * Returns whether there are
+     */
+    boolean hasOverlappingOutputs();
 }

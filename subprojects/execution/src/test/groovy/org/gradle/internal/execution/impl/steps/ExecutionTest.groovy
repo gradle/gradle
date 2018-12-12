@@ -25,6 +25,7 @@ import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
@@ -201,6 +202,20 @@ class ExecutionTest extends Specification {
         String getDisplayName() {
             "Test unit of work"
         }
-    }
 
+        @Override
+        Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return Optional.empty()
+        }
+
+        @Override
+        boolean deleteOutputsBeforeExecution() {
+            return false
+        }
+
+        @Override
+        boolean hasOverlappingOutputs() {
+            return false
+        }
+    }
 }

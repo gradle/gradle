@@ -35,6 +35,7 @@ import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
@@ -772,6 +773,20 @@ class IncrementalExecutionTest extends Specification {
                     "Test unit of work"
                 }
 
+                @Override
+                Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                    return Optional.empty()
+                }
+
+                @Override
+                boolean deleteOutputsBeforeExecution() {
+                    return false
+                }
+
+                @Override
+                boolean hasOverlappingOutputs() {
+                    return false
+                }
                 ImplementationSnapshot implementationSnapshot = implementation
 
 

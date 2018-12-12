@@ -36,6 +36,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskProperties taskProperties;
     private boolean taskCachingEnabled;
     private Long executionTime;
+    private boolean deleteOutputsBeforeExecution;
 
     private final Timer executionTimer;
     private boolean taskExecutedIncrementally;
@@ -137,5 +138,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
         this.taskExecutedIncrementally = taskExecutedIncrementally;
+    }
+
+    @Override
+    public boolean isDeleteOutputsBeforeExecution() {
+        return deleteOutputsBeforeExecution;
+    }
+
+    @Override
+    public void setDeleteOutputsBeforeExecution(boolean deleteOutputsBeforeExecution) {
+        this.deleteOutputsBeforeExecution = deleteOutputsBeforeExecution;
     }
 }
