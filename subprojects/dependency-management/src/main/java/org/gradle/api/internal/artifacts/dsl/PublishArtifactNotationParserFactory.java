@@ -38,6 +38,7 @@ import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -196,7 +197,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             configurablePublishArtifact.getArtifactClassifier().set(artifactFile.map(new Transformer<String, ArtifactFile>() {
                 @Override
                 public String transform(ArtifactFile artifactFile) {
-                    return artifactFile.getClassifier();
+                    return GUtil.elvis(artifactFile.getClassifier(), "");
                 }
             }));
             return configurablePublishArtifact;
