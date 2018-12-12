@@ -50,7 +50,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 <!-- summary and links -->
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_{previous-gradle-version}.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_{gradleVersion}) to learn about breaking changes and considerations when upgrading to Gradle {gradleVersion}.
 
 <!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
