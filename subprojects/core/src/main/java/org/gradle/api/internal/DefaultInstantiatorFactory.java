@@ -20,24 +20,21 @@ import org.gradle.api.internal.instantiation.ConstructorSelector;
 import org.gradle.api.internal.instantiation.Jsr330ConstructorSelector;
 import org.gradle.api.internal.instantiation.ParamsMatchingConstructorSelector;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final Instantiator decoratingInstantiator;
-    private final Instantiator undecoraredInjectingInstantiator;
-    private final Instantiator undecoratedLenientInjectingInstantiator;
     private final ConstructorSelector undecoratedJsr330Selector;
     private final ConstructorSelector decoratedJsr330Selector;
     private final ConstructorSelector decoratedLenientSelector;
+    private final Instantiator decoratingLenientInstantiator;
+    private final Instantiator undecoraredInjectingInstantiator;
+    private final Instantiator undecoratedLenientInjectingInstantiator;
 
     public DefaultInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
-        this.decoratingInstantiator = new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
         ServiceRegistry noServices = new DefaultServiceRegistry();
         ClassGenerator undecorated = new ClassGenerator() {
             @Override
@@ -45,11 +42,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
                 return type;
             }
         };
-        undecoratedJsr330Selector = new Jsr330ConstructorSelector(undecorated, cacheFactory.<DependencyInjectingInstantiator.CachedConstructor>newClassCache());
-        decoratedJsr330Selector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<DependencyInjectingInstantiator.CachedConstructor>newClassCache());
-        decoratedLenientSelector = new ParamsMatchingConstructorSelector(classGenerator, cacheFactory.<List<Constructor<?>>>newClassCache());
+        undecoratedJsr330Selector = new Jsr330ConstructorSelector(undecorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+        decoratedJsr330Selector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+        decoratedLenientSelector = new ParamsMatchingConstructorSelector(classGenerator, cacheFactory.<List<ParamsMatchingConstructorSelector.CachedConstructor>>newClassCache());
+        decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
         undecoraredInjectingInstantiator = new DependencyInjectingInstantiator(undecoratedJsr330Selector, noServices);
-        undecoratedLenientInjectingInstantiator = DirectInstantiator.INSTANCE;
+        undecoratedLenientInjectingInstantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(undecorated, cacheFactory.<List<ParamsMatchingConstructorSelector.CachedConstructor>>newClassCache()), noServices);
     }
 
     @Override
@@ -69,7 +67,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator decorate() {
-        return decoratingInstantiator;
+        return decoratingLenientInstantiator;
     }
 
     @Override

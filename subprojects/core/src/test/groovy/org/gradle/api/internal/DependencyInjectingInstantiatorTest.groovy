@@ -26,13 +26,12 @@ import javax.inject.Inject
 
 class DependencyInjectingInstantiatorTest extends Specification {
     def services = Mock(ServiceRegistry)
-    def classGenerator = Mock(ClassGenerator)
-    def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor>()), services)
+    def classGenerator = Mock(ClassGenerator) {
+        generate(_) >> { Class<?> c -> c }
+    }
+    def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache()), services)
 
     def "creates instance that has default constructor"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(HasDefaultConstructor)
 
@@ -41,9 +40,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "injects provided parameters into constructor"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(HasInjectConstructor, "string", 12)
 
@@ -54,7 +50,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "injects missing parameters from provided service registry"() {
         given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
         services.find(String) >> "string"
 
         when:
@@ -66,9 +61,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "unboxes primitive types"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(AcceptsPrimitiveTypes, 12, true)
 
@@ -78,25 +70,16 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "constructors do not need to be public but do need to be annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         expect:
         instantiator.newInstance(HasPrivateConstructor, "param") != null
     }
 
     def "class can be package scoped"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         expect:
         instantiator.newInstance(PackageScopedClass) != null
     }
 
     def "selects annotated constructor when class has multiple constructors and only one is annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(HasOneInjectConstructor, 12)
 
@@ -105,9 +88,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "class can have private constructor with args and annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(HasPrivateArgsInjectConstructor, "param")
 
@@ -116,9 +96,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "class can be private and have public constructor"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(PrivateWithValidConstructor, "param")
 
@@ -127,9 +104,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "wraps constructor failure"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasBrokenConstructor)
 
@@ -152,9 +126,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when too many constructor parameters provided"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasOneInjectConstructor, 12, "param2")
 
@@ -165,7 +136,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails when supplied parameters cannot be used to call constructor"() {
         given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
         services.find(Number) >> 12
 
         when:
@@ -173,12 +143,11 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Unexpected parameter provided for constructor for class $HasOneInjectConstructor.name."
+        e.cause.message == "Unable to determine $HasOneInjectConstructor.name argument #1: value string not assignable to type class java.lang.Number"
     }
 
     def "fails on missing service"() {
         given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
         services.find(String) >> null
 
         when:
@@ -191,9 +160,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasNoInjectConstructor, new StringBuilder("param"))
 
@@ -203,9 +169,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructors with different visibilities and none are annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasMixedConstructors, new StringBuilder("param"))
 
@@ -215,9 +178,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructors that are annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasMultipleInjectConstructors, new StringBuilder("param"))
 
@@ -227,9 +187,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has multiple constructors with different visibilities that are annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasMixedInjectConstructors, new StringBuilder("param"))
 
@@ -263,9 +220,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when class has private constructor with args and that is not annotated"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         instantiator.newInstance(HasPrivateArgsConstructor, new StringBuilder("param"))
 
@@ -276,11 +230,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails when null passed as constructor argument value"() {
         given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
         services.find(String) >> null
 
         when:
-        instantiator.newInstance(HasInjectConstructor, null, null)
+        instantiator.newInstance(HasInjectConstructor, null, 12)
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String"
+    }
+
+    def "fails when null passed as constructor argument value and services expected"() {
+        given:
+        services.find(String) >> null
+
+        when:
+        instantiator.newInstance(HasInjectConstructor, [null] as Object[])
 
         then:
         ObjectInstantiationException e = thrown()
@@ -289,9 +255,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "selects @Inject constructor over no-args constructor"() {
-        given:
-        classGenerator.generate(_) >> { Class<?> c -> c }
-
         when:
         def result = instantiator.newInstance(HasDefaultAndInjectConstructors, "ignored")
 
@@ -299,21 +262,21 @@ class DependencyInjectingInstantiatorTest extends Specification {
         result.message == "injected"
     }
 
-    public static class HasDefaultConstructor {
+    static class HasDefaultConstructor {
     }
 
-    public static class HasNonPublicNoArgsConstructor {
+    static class HasNonPublicNoArgsConstructor {
         protected HasNonPublicNoArgsConstructor() {
         }
     }
 
-    public static class HasPrivateArgsInjectConstructor {
+    static class HasPrivateArgsInjectConstructor {
         @Inject
         private HasPrivateArgsInjectConstructor(String param) {
         }
     }
 
-    public static class HasPrivateArgsConstructor {
+    static class HasPrivateArgsConstructor {
         private HasPrivateArgsConstructor(String param) {
         }
     }
@@ -324,23 +287,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasNonPublicNoArgsConstructorSub extends HasNonPublicNoArgsConstructor {
+    static class HasNonPublicNoArgsConstructorSub extends HasNonPublicNoArgsConstructor {
         protected HasNonPublicNoArgsConstructorSub() {
         }
     }
 
-    public static class HasSingleConstructorWithArgsAndNoAnnotation {
+    static class HasSingleConstructorWithArgsAndNoAnnotation {
         HasSingleConstructorWithArgsAndNoAnnotation(String arg) {
         }
     }
 
-    public static class HasSingleConstructorWithArgsAndNoAnnotationSub extends HasSingleConstructorWithArgsAndNoAnnotation {
+    static class HasSingleConstructorWithArgsAndNoAnnotationSub extends HasSingleConstructorWithArgsAndNoAnnotation {
         HasSingleConstructorWithArgsAndNoAnnotationSub(String arg) {
             super(arg)
         }
     }
 
-    public static class HasBrokenConstructor {
+    static class HasBrokenConstructor {
         static def failure = new RuntimeException()
 
         HasBrokenConstructor() {
@@ -348,10 +311,10 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasBrokenConstructorSub extends HasBrokenConstructor {
+    static class HasBrokenConstructorSub extends HasBrokenConstructor {
     }
 
-    public static class HasInjectConstructor {
+    static class HasInjectConstructor {
         String param1
         Number param2
 
@@ -362,7 +325,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class AcceptsPrimitiveTypes {
+    static class AcceptsPrimitiveTypes {
         int param1
         boolean param2
 
@@ -373,7 +336,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasOneInjectConstructor {
+    static class HasOneInjectConstructor {
         HasOneInjectConstructor(String param1) {
         }
 
@@ -382,7 +345,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasNoInjectConstructor {
+    static class HasNoInjectConstructor {
         HasNoInjectConstructor(String param1) {
         }
 
@@ -395,7 +358,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasMixedConstructors {
+    static class HasMixedConstructors {
         HasMixedConstructors(String param1) {
         }
 
@@ -408,13 +371,13 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasPrivateConstructor {
+    static class HasPrivateConstructor {
         @Inject
         private HasPrivateConstructor(String param1) {
         }
     }
 
-    public static class HasMultipleInjectConstructors {
+    static class HasMultipleInjectConstructors {
         @Inject
         HasMultipleInjectConstructors(String param1) {
         }
@@ -430,7 +393,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasMixedInjectConstructors {
+    static class HasMixedInjectConstructors {
         @Inject
         public HasMixedInjectConstructors(String param1) {
         }
@@ -446,7 +409,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
-    public static class HasDefaultAndInjectConstructors {
+    static class HasDefaultAndInjectConstructors {
         final String message
 
         @Inject

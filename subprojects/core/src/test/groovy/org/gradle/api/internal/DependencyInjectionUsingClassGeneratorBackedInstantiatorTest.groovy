@@ -40,7 +40,6 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         then:
         result instanceof DependencyInjectingInstantiator.WithServiceRegistry
         result.someService == 'string'
-
     }
 
     def "class generation doesn't prevent injection of missing parameters from provided service registry"() {

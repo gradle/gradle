@@ -18,10 +18,10 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -63,6 +63,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
@@ -143,7 +144,8 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesAnInstantiator() {
-        assertThat(registry().get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+        ServiceRegistry registry = registry();
+        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), is(registry.get(InstantiatorFactory.class).decorate()));
     }
 
     @Test

@@ -18,35 +18,35 @@ package org.gradle.api.internal.instantiation;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.InjectUtil;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 
 public class Jsr330ConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> constructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> constructorCache) {
+    public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }
 
     @Override
-    public DependencyInjectingInstantiator.CachedConstructor forParams(final Class<?> type, Object[] params) {
-        return constructorCache.get(type, new Transformer<DependencyInjectingInstantiator.CachedConstructor, Class<?>>() {
+    public SelectedConstructor forParams(final Class<?> type, Object[] params) {
+        return constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
             @Override
-            public DependencyInjectingInstantiator.CachedConstructor transform(Class<?> aClass) {
+            public CachedConstructor transform(Class<?> aClass) {
                 try {
                     validateType(type);
                     Class<?> implClass = classGenerator.generate(type);
                     Constructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
                     constructor.setAccessible(true);
-                    return DependencyInjectingInstantiator.CachedConstructor.of(constructor);
+                    return CachedConstructor.of(constructor);
                 } catch (Throwable e) {
-                    return DependencyInjectingInstantiator.CachedConstructor.of(e);
+                    return CachedConstructor.of(e);
                 }
             }
         });
@@ -61,6 +61,40 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
         }
         if (Modifier.isAbstract(type.getModifiers())) {
             throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
+        }
+    }
+
+    public static class CachedConstructor implements SelectedConstructor {
+        private final Constructor<?> constructor;
+        private final Throwable error;
+
+        private CachedConstructor(Constructor<?> constructor, Throwable error) {
+            this.constructor = constructor;
+            this.error = error;
+        }
+
+        @Override
+        public boolean allowsNullParameters() {
+            return false;
+        }
+
+        @Override
+        public Constructor<?> getConstructor() {
+            return constructor;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return error;
+        }
+
+        public static CachedConstructor of(Constructor<?> ctor) {
+            return new CachedConstructor(ctor, null);
+        }
+
+        public static CachedConstructor of(Throwable err) {
+            return new CachedConstructor(null, err);
         }
     }
 }
