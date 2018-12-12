@@ -24,7 +24,6 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
