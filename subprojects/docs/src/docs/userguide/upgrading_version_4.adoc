@@ -17,7 +17,7 @@
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes since 4.4, 4.5, etc.
 
-TIP: If you are using Gradle for Android, you need to move to version 3.4 or higher of both the Android Gradle Plugin and Android Studio.
+TIP: If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
 
 == For all users
 
