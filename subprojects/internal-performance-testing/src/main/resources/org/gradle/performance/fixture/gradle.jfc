@@ -347,16 +347,6 @@
       <setting name="period">everyChunk</setting>
     </event>
 
-    <event path="os/system_process">
-      <setting name="enabled">true</setting>
-      <setting name="period">everyChunk</setting>
-    </event>
-
-    <event path="os/initial_environment_variable">
-      <setting name="enabled">true</setting>
-      <setting name="period">everyChunk</setting>
-    </event>
-
     <event path="os/memory/physical_memory">
       <setting name="enabled">true</setting>
       <setting name="period">everyChunk</setting>
