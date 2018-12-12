@@ -17,6 +17,7 @@ dependencies {
 }
 
 checkstyle {
+    toolVersion = "8.15"
     configFile = file("config/checkstyle/sun_checks.xml")
     isIgnoreFailures = true
 }
@@ -34,7 +35,7 @@ jdepend {
 }
 
 jacoco {
-    toolVersion = "0.7.9"
+    toolVersion = "0.8.2"
 }
 
 tasks {
