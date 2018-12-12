@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
@@ -56,13 +55,13 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushOneDependencyWithClosure() {
-        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        def artifact = Mock(ConfigurablePublishArtifact)
 
         when:
         artifactHandler.someConf("someNotation") { type = 'source' }
 
         then:
-        artifact.type == 'source'
+        1 * artifact.setType('source')
 
         and:
         1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
@@ -114,13 +113,13 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependencyWithClosure() {
-        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        def artifact = Mock(ConfigurablePublishArtifact)
 
         when:
         artifactHandler.add('someConf', "someNotation") { type = 'source' }
 
         then:
-        artifact.type == 'source'
+        1 * artifact.setType('source')
 
         and:
         1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
@@ -128,18 +127,16 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependencyWithAction() {
-        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        def artifact = Mock(ConfigurablePublishArtifact)
         Action action = Mock(Action)
 
         when:
         artifactHandler.add('someConf', "someNotation", action)
 
         then:
-        artifact.type == 'source'
-
-        and:
         1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
-        1 * action.execute(_) >> { PublishArtifact a -> a.type = 'source' }
+        1 * action.execute(_) >> { ConfigurablePublishArtifact a -> a.type = 'source' }
+        1 * artifact.setType('source')
         1 * artifactsMock.add(artifact)
     }
 

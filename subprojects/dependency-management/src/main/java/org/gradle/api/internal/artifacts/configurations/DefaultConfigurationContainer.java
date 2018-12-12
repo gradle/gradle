@@ -42,6 +42,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
@@ -95,7 +97,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          ProjectStateRegistry projectStateRegistry,
                                          DocumentationRegistry documentationRegistry,
                                          CollectionCallbackActionDecorator callbackDecorator,
-                                         UserCodeApplicationContext userCodeApplicationContext) {
+                                         UserCodeApplicationContext userCodeApplicationContext,
+                                         ObjectFactory objectFactory,
+                                         ProviderFactory providerFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -107,7 +111,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
+        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver, objectFactory, providerFactory).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory().create();
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;

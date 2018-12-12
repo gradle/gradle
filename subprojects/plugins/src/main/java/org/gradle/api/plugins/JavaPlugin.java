@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -31,15 +32,17 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -290,7 +293,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
-        TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+        final TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jar) {
                 jar.setDescription("Assembles a jar archive containing the main classes.");
@@ -298,8 +301,17 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
         });
+
         // TODO: Allow this to be added lazily
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
+        // TODO: TaskResolver should be a service somewhere?
+        TaskResolver taskResolver = ((ProjectInternal) project).getTasks();
+        PublishArtifact jarArtifact = new DefaultConfigurablePublishArtifact(project.getObjects(), taskResolver, jar.flatMap(new Transformer<Provider<? extends FileSystemLocation>, Jar>() {
+            @Override
+            public Provider<? extends FileSystemLocation> transform(Jar jar) {
+                return jar.getArchiveFile();
+            }
+        })).configureFor(jar);
+
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);

@@ -22,14 +22,15 @@ import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -218,20 +219,18 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 });
                 apiElements.getOutgoing().artifact(publicHeaders);
 
-                project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
-                    @Override
-                    public void execute(AppliedPlugin appliedPlugin) {
-                        final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, new Action<Zip>() {
-                            @Override
-                            public void execute(Zip headersZip) {
-                                headersZip.from(library.getPublicHeaderFiles());
-                                headersZip.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
-                                headersZip.getArchiveClassifier().set("cpp-api-headers");
-                                headersZip.getArchiveFileName().set("cpp-api-headers.zip");
-                            }
-                        });
-                        mainVariant.addArtifact(new LazyPublishArtifact(headersZip));
-                    }
+                project.getPluginManager().withPlugin("maven-publish", appliedPlugin -> {
+                    final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, task -> {
+                        task.from(library.getPublicHeaderFiles());
+                        task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
+                        task.getArchiveClassifier().set("cpp-api-headers");
+                        task.getArchiveFileName().set("cpp-api-headers.zip");
+                    });
+                    // TODO: TaskResolver should be a service somewhere?
+                    TaskResolver taskResolver = ((ProjectInternal) project).getTasks();
+                    PublishArtifact headersArtifact = new DefaultConfigurablePublishArtifact(project.getObjects(), taskResolver,
+                            headersZip.flatMap(task -> task.getArchiveFile())).configureFor(headersZip);
+                    mainVariant.addArtifact(headersArtifact);
                 });
 
                 library.getBinaries().realizeNow();

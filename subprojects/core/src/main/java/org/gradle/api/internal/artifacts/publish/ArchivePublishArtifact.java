@@ -15,14 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Date;
 
-public class ArchivePublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
+// TODO: Remove this once the plugin publish plugin is updated to not use it
+// and there's been sufficient time for people to migrate.
+public class ArchivePublishArtifact extends AbstractPublishArtifact implements PublishArtifact {
     private String name;
     private String extension;
     private String type;
