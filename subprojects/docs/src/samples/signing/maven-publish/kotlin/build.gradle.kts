@@ -19,14 +19,26 @@ tasks.register<Jar>("javadocJar") {
 }
 
 // tag::pom-customization[]
+// tag::versions-resolved[]
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            // end::pom-customization[]
+// end::versions-resolved[]
+// end::pom-customization[]
             artifactId = "my-library"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
+// tag::versions-resolved[]
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionOf("runtimeClasspath")
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
+// end::versions-resolved[]
 // tag::pom-customization[]
             pom {
                 name.set("My Library")
@@ -51,8 +63,10 @@ publishing {
                     url.set("http://example.com/my-library/")
                 }
             }
+// tag::versions-resolved[]
         }
     }
+// end::versions-resolved[]
 // end::pom-customization[]
     repositories {
         maven {
@@ -63,7 +77,9 @@ publishing {
         }
     }
 // tag::pom-customization[]
+// tag::versions-resolved[]
 }
+// end::versions-resolved[]
 // end::pom-customization[]
 
 // tag::sign-publication[]

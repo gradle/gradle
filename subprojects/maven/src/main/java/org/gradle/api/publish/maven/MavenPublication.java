@@ -287,7 +287,27 @@ public interface MavenPublication extends Publication {
     void setVersion(String version);
 
     /**
-     * Configures the version mapping strategy
+     * Configures the version mapping strategy.
+     *
+     * For example, to use resolved versions for runtime dependencies:
+     * <pre class='autoTested'>
+     * apply plugin: "java"
+     * apply plugin: "maven-publish"
+     *
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       from components.java
+     *       versionMapping {
+     *         usage('java-runtime'){
+     *           fromResolutionResult()
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
      * @param configureAction the configuration
      *
      * @since 5.2
