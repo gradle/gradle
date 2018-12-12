@@ -326,8 +326,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
                                                                     ObjectFactory objectFactory,
-                                                                    ProviderFactory providerFactory,
-                                                                    ProjectLayout projectLayout) {
+                                                                    ProviderFactory providerFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -352,8 +351,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     userCodeApplicationContext,
                     objectFactory,
-                    providerFactory,
-                    projectLayout
+                    providerFactory
             );
         }
 
@@ -404,8 +402,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
-        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context, ObjectFactory objectFactory, ProviderFactory providerFactory, ProjectLayout projectLayout) {
-            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context), objectFactory, providerFactory, projectLayout).create();
+        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context, ObjectFactory objectFactory, ProviderFactory providerFactory) {
+            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context), objectFactory, providerFactory).create();
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 

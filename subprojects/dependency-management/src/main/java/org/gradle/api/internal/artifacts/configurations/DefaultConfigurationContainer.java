@@ -100,8 +100,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          CollectionCallbackActionDecorator callbackDecorator,
                                          UserCodeApplicationContext userCodeApplicationContext,
                                          ObjectFactory objectFactory,
-                                         ProviderFactory providerFactory,
-                                         ProjectLayout projectLayout) {
+                                         ProviderFactory providerFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -113,7 +112,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver, objectFactory, providerFactory, projectLayout).create();
+        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver, objectFactory, providerFactory).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory().create();
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;

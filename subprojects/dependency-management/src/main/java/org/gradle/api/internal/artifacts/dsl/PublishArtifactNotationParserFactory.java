@@ -49,15 +49,13 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     private final TaskResolver taskResolver;
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
-    private final ProjectLayout projectLayout;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver, ObjectFactory objectFactory, ProviderFactory providerFactory, ProjectLayout projectLayout) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
         this.taskResolver = taskResolver;
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
-        this.projectLayout = projectLayout;
     }
 
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
@@ -81,14 +79,13 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(PublishArtifact notation) {
             // TODO: Introduce providers in PublishArtifact
-            Provider<? extends FileSystemLocation> file = projectLayout.file(providerFactory.provider(new Callable<File>() {
+            ConfigurablePublishArtifact configurablePublishArtifact = instantiator.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, Providers.of(new FileSystemLocation() {
                 @Override
-                public File call() throws Exception {
+                public File getAsFile() {
                     return notation.getFile();
                 }
             }));
 
-            ConfigurablePublishArtifact configurablePublishArtifact = instantiator.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, file);
             configurablePublishArtifact.getArtifactName().set(providerFactory.provider(new Callable<String>() {
                 @Override
                 public String call() throws Exception {
@@ -240,15 +237,14 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(File notation) {
             Module module = metaDataProvider.getModule();
-            Provider<? extends FileSystemLocation> file = projectLayout.file(providerFactory.provider(new Callable<File>() {
+
+            ArtifactFile artifactFile = new ArtifactFile(notation, module.getVersion());
+            DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, Providers.of(new FileSystemLocation() {
                 @Override
-                public File call() throws Exception {
+                public File getAsFile() {
                     return notation;
                 }
             }));
-
-            ArtifactFile artifactFile = new ArtifactFile(notation, module.getVersion());
-            DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, file);
             configurablePublishArtifact.getArtifactName().set(artifactFile.getName());
             configurablePublishArtifact.getArtifactExtension().set(artifactFile.getExtension());
             configurablePublishArtifact.getArtifactType().set(artifactFile.getExtension());
