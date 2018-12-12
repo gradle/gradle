@@ -29,7 +29,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
