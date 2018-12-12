@@ -23,6 +23,11 @@ A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) al
 A platform is typically published as a bill-of-material (BOM) file, and can be used as a source of recommendations for versions, between projects or externally.
 Read the [Java Platform plugin section of the userguide](userguide/java_platform_plugin.html) for more details.
 
+## Maven publication: expose resolved versions
+
+When using the [`maven-publish` plugin](userguide/publishing_maven.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
+For details, have a look at the [dedicated section](userguide/publishing_maven.html#publishing_maven:resolved_dependencies) in the plugin documentation.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
