@@ -165,7 +165,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider notation) {
             Module module = metaDataProvider.getModule();
-            Provider<ArtifactFile> artifactFile = notation.<ArtifactFile>flatMap(new Transformer<ArtifactFile, Object>() {
+            Provider<ArtifactFile> artifactFile = notation.map(new Transformer<ArtifactFile, Object>() {
                 @Override
                 public ArtifactFile transform(Object value) {
                     ArtifactFile artifactFile;
