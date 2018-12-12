@@ -183,10 +183,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     }
 
     private
-    fun namedDomainObjectContainerOf(elementType: SchemaType) =
-        SchemaType(parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType.value))
-
-    private
     fun buildAccessorsFromSourceFor(
         schema: TypedProjectSchema,
         classPath: ClassPath,
@@ -446,7 +442,14 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             buildAccessorsFor(schema, classPath, srcDir, binDir)
         }
     }
-
-    inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
-        ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
 }
+
+
+internal
+fun namedDomainObjectContainerOf(elementType: SchemaType) =
+    SchemaType(parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType.value))
+
+
+internal
+inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
+    ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())

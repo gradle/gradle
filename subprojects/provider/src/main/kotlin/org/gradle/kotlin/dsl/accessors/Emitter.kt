@@ -122,7 +122,7 @@ sealed class Accessor {
 }
 
 
-private
+internal
 fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> = sequence {
     schema.run {
         AccessorScope().run {
