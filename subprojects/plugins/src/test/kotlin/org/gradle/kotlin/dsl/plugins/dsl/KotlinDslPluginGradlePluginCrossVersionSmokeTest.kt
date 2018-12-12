@@ -41,7 +41,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @JvmStatic
         fun testedKotlinVersions() = listOf(
             embeddedKotlinVersion,
-            "1.3.10",
             "1.2.71",
             "1.2.20"
         )
