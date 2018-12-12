@@ -110,6 +110,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                     return notation.getExtension();
                 }
             }));
+            configurablePublishArtifact.builtBy(notation.getBuildDependencies());
 
             return configurablePublishArtifact;
         }
