@@ -42,7 +42,6 @@ import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -144,10 +143,6 @@ public class BuildCacheCommandFactory {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             entity.visitOutputTrees((treeName, type, root) -> {
-                if (root == null) {
-                    builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
-                    return;
-                }
                 FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
                 List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
@@ -200,8 +195,8 @@ public class BuildCacheCommandFactory {
             });
         }
 
-        private void remove(@Nullable File file) throws IOException {
-            if (file != null && file.exists()) {
+        private void remove(File file) throws IOException {
+            if (file.exists()) {
                 if (file.isDirectory()) {
                     FileUtils.cleanDirectory(file);
                 } else {
