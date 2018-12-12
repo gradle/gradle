@@ -44,8 +44,7 @@ This feature was contributed by [Alex Saveau](https://github.com/SUPERCILEX).
 
 ## Declaring target architectures for C++ plugins
 
-Last year, we introduced [new plugins](https://blog.gradle.org/introducing-the-new-cpp-plugins) for building C++ components, but one missing piece was support for specifying target architectures.
-It's now possible to target multiple architectures using the [targetMachines](javadoc/org/gradle/language/cpp/CppComponent.html#getTargetMachines--) property:
+It's now possible to target multiple architectures when [building C++ projects](https://blog.gradle.org/introducing-the-new-cpp-plugins) using the [targetMachines](javadoc/org/gradle/language/cpp/CppComponent.html#getTargetMachines--) property:
 
 ```
 application {
@@ -53,9 +52,9 @@ application {
 }
 ```
 
-When the `build` task is executed, Gradle will build all architectures associated with the current operating system.  If a target architecture isn't specified, Gradle will target the operating system and architecture of the host machine.
+When the `build` task is executed, Gradle will build all architectures associated with the current operating system.  If a target machine isn't specified, Gradle will target the operating system and architecture of the host machine.
 
-The target architecture is used by Gradle's dependency management engine to publish and resolve artifacts that are compatible based on extra metadata (debug vs release, x86 vs x86-64, etc).
+The target operating system and architecture is also used by Gradle's dependency management engine to publish and resolve compatible artifacts when C++ projects utilize binary dependencies.
 
 ## Improvements for plugin authors
 
