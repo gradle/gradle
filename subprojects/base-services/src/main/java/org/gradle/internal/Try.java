@@ -44,6 +44,8 @@ public abstract class Try<T> {
 
     public abstract T get();
 
+    public abstract T orElseMapFailure(Function<Throwable, T> f);
+
     public abstract Optional<Throwable> getFailure();
 
     public abstract <U> Try<U> flatMap(Function<? super T, Try<U>> f);
@@ -61,6 +63,8 @@ public abstract class Try<T> {
 
     public abstract void ifSuccessful(Consumer<T> consumer);
 
+    public abstract void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer);
+
     private static class Success<T> extends Try<T> {
         private final T value;
 
@@ -70,6 +74,11 @@ public abstract class Try<T> {
 
         @Override
         public T get() {
+            return value;
+        }
+
+        @Override
+        public T orElseMapFailure(Function<Throwable, T> f) {
             return value;
         }
 
@@ -95,6 +104,11 @@ public abstract class Try<T> {
         @Override
         public void ifSuccessful(Consumer<T> consumer) {
             consumer.accept(value);
+        }
+
+        @Override
+        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+            successConsumer.accept(value);
         }
 
         @Override
@@ -130,6 +144,11 @@ public abstract class Try<T> {
         }
 
         @Override
+        public T orElseMapFailure(Function<Throwable, T> f) {
+            return f.apply(failure);
+        }
+
+        @Override
         public Optional<Throwable> getFailure() {
             return Optional.of(failure);
         }
@@ -146,6 +165,11 @@ public abstract class Try<T> {
 
         @Override
         public void ifSuccessful(Consumer<T> consumer) {
+        }
+
+        @Override
+        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+            failureConsumer.accept(failure);
         }
 
         @Override

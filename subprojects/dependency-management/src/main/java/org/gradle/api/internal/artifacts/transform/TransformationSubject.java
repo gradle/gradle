@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
@@ -30,10 +29,6 @@ import java.util.Optional;
  * Subject which is transformed or the result of a transformation.
  */
 public abstract class TransformationSubject implements Describable {
-
-    public static TransformationSubject failure(String displayName, Throwable failure) {
-        return new TransformationFailedSubject(displayName, failure);
-    }
 
     public static TransformationSubject initial(File file) {
         return new InitialFileTransformationSubject(file);
@@ -56,54 +51,10 @@ public abstract class TransformationSubject implements Describable {
     public abstract Optional<ProjectComponentIdentifier> getProducer();
 
     /**
-     * Records the failure to transform a previous subject.
+     * Creates a subsequent subject by having transformed this subject.
      */
-    @Nullable
-    public abstract Throwable getFailure();
-
-
-    public TransformationSubject transformationFailed(Throwable failure) {
-        return failure(getDisplayName(), failure);
-    }
-
-    public TransformationSubject transformationSuccessful(ImmutableList<File> result) {
+    public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
         return new SubsequentTransformationSubject(this, result);
-    }
-
-    private static class TransformationFailedSubject extends TransformationSubject {
-        private final String displayName;
-        private final Throwable failure;
-
-        public TransformationFailedSubject(String displayName, Throwable failure) {
-            this.displayName = displayName;
-            this.failure = failure;
-        }
-
-        @Override
-        public ImmutableList<File> getFiles() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            return Optional.empty();
-        }
-
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return failure;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        @Override
-        public String toString() {
-            return getDisplayName();
-        }
     }
 
     private static abstract class AbstractInitialTransformationSubject extends TransformationSubject {
@@ -120,12 +71,6 @@ public abstract class TransformationSubject implements Describable {
 
         public File getFile() {
             return file;
-        }
-
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return null;
         }
 
         @Override
@@ -191,11 +136,6 @@ public abstract class TransformationSubject implements Describable {
         @Override
         public Optional<ProjectComponentIdentifier> getProducer() {
             return previous.getProducer();
-        }
-
-        @Override
-        public Throwable getFailure() {
-            return null;
         }
 
         @Override

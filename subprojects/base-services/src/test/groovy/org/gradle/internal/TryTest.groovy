@@ -74,4 +74,35 @@ class TryTest extends Specification {
         Try.failure(new RuntimeException("other failure")).mapFailure { finalFailure } == Try.failure(finalFailure)
     }
 
+    def "successful or else does not map failure"() {
+        expect:
+        Try.successful(10).orElseMapFailure({ assert false })
+    }
+
+    def "failed or else maps failure"() {
+        def failure = new RuntimeException("failure")
+        boolean failureInvoked = false
+        when:
+        Try.failure(failure).orElseMapFailure({ failureInvoked = true; assert it == failure })
+        then:
+        failureInvoked
+    }
+
+    def "successful or else processes value"() {
+        def value = "10"
+        boolean successInvoked = false
+        when:
+        Try.successful(value).ifSuccessfulOrElse({ successInvoked = true; assert it == value }, { assert false })
+        then:
+        successInvoked
+    }
+
+    def "failed or else processes failure"() {
+        def failure = new RuntimeException("failure")
+        boolean failureInvoked = false
+        when:
+        Try.failure(failure).ifSuccessfulOrElse({ assert false }, { failureInvoked = true; assert it == failure })
+        then:
+        failureInvoked
+    }
 }
