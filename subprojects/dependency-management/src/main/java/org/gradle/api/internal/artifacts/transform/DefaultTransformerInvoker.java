@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -35,6 +34,7 @@ import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -240,14 +240,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean execute() {
+        public ExecutionOutcome execute() {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
             writeResultsFile(outputDir, resultsFile, result);
-            return true;
+            return ExecutionOutcome.EXECUTED;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -272,8 +272,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
-            return outcome.getFailure() == null ? Try.successful(loadResultsFile()) : Try.failure(outcome.getFailure());
+        private Try<ImmutableList<File>> getResult(UpToDateResult result) {
+            return result.getOutcome()
+                .map(outcome -> loadResultsFile());
         }
 
         private ImmutableList<File> loadResultsFile() {
@@ -302,9 +303,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitOutputs(OutputVisitor outputVisitor) {
-            outputVisitor.visitOutput(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
-            outputVisitor.visitOutput(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
+        public void visitOutputProperties(OutputPropertyVisitor visitor) {
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
         }
 
         @Override
@@ -314,8 +315,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public FileCollection getLocalState() {
-            return ImmutableFileCollection.of();
+        public void visitLocalState(LocalStateVisitor visitor) {
         }
 
         @Override
@@ -388,7 +388,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitTrees(CacheableTreeVisitor visitor) {
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
             throw new UnsupportedOperationException("we don't cache yet");
         }
 

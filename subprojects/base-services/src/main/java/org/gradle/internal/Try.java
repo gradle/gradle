@@ -42,6 +42,8 @@ public abstract class Try<T> {
         return new Failure<U>(e);
     }
 
+    public abstract boolean isSuccessful();
+
     public abstract T get();
 
     public abstract T orElseMapFailure(Function<Throwable, T> f);
@@ -70,6 +72,11 @@ public abstract class Try<T> {
 
         public Success(T value) {
             this.value = value;
+        }
+
+        @Override
+        public boolean isSuccessful() {
+            return true;
         }
 
         @Override
@@ -136,6 +143,11 @@ public abstract class Try<T> {
 
         public Failure(Throwable failure) {
             this.failure = failure;
+        }
+
+        @Override
+        public boolean isSuccessful() {
+            return false;
         }
 
         @Override

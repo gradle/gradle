@@ -20,6 +20,16 @@ import spock.lang.Specification
 
 class TryTest extends Specification {
 
+    def "successful is successful"() {
+        expect:
+        Try.successful(10).successful
+    }
+
+    def "failure is mot successful"() {
+        expect:
+        !Try.failure(new RuntimeException()).successful
+    }
+    
     def "converts failing callable"() {
         def failure = new Exception("Failure")
         def runtimeFailure = new RuntimeException("Runtime exception")

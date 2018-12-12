@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
@@ -41,6 +40,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -87,32 +87,24 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
         final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
-        Throwable failure = result.getFailure();
-        if (failure != null) {
-            TaskExecutionException taskFailure = (failure instanceof ExecutionException)
-                    ? new TaskExecutionException(task, failure.getCause())
-                    : new TaskExecutionException(task, failure);
-            state.setOutcome(taskFailure);
-        } else {
-            switch (result.getOutcome()) {
-                case EXECUTED:
-                    state.setOutcome(TaskExecutionOutcome.EXECUTED);
-                    break;
-                case UP_TO_DATE:
-                    state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-                    break;
-                case FROM_CACHE:
-                    state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                    break;
-                case NO_SOURCE:
-                    state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
-                    break;
-                default:
-                    throw new AssertionError();
+        result.getOutcome().ifSuccessfulOrElse(
+            new Consumer<ExecutionOutcome>() {
+                @Override
+                public void accept(ExecutionOutcome outcome) {
+                    state.setOutcome(TaskExecutionOutcome.valueOf(outcome));
+                }
+            },
+            new Consumer<Throwable>() {
+                @Override
+                public void accept(Throwable failure) {
+                    state.setOutcome(failure instanceof ExecutionException
+                        ? new TaskExecutionException(task, failure.getCause())
+                        : new TaskExecutionException(task, failure));
+                }
             }
-        }
+        );
         context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
@@ -137,13 +129,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean execute() {
+        public ExecutionOutcome execute() {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
                 executeActions(task, context);
-                return task.getState().getDidWork();
+                return task.getState().getDidWork()
+                    ? ExecutionOutcome.EXECUTED
+                    : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
@@ -151,14 +145,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitOutputs(OutputVisitor outputVisitor) {
+        public void visitOutputProperties(OutputPropertyVisitor visitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                outputVisitor.visitOutput(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
+                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
             }
         }
 
         @Override
-        public void visitTrees(CacheableTreeVisitor visitor) {
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 if (!(property instanceof CacheableTaskOutputFilePropertySpec)) {
                     throw new IllegalStateException("Non-cacheable property: " + property);
@@ -168,18 +162,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     continue;
                 }
 
-                visitor.visitTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
+                visitor.visitOutputTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
             }
         }
 
         @Override
-        public FileCollection getLocalState() {
-            return context.getTaskProperties().getLocalStateFiles();
+        public void visitLocalState(LocalStateVisitor visitor) {
+            for (File localStateFile : context.getTaskProperties().getLocalStateFiles()) {
+                visitor.visitLocalStateRoot(localStateFile);
+            }
         }
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return context.getTaskArtifactState().getExecutionStateChanges();
+            return context.getTaskArtifactState().getExecutionStateChanges(context.getAfterPreviousExecution());
         }
 
         @Override
@@ -236,7 +232,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            context.getTaskArtifactState().persistNewOutputs(finalOutputs, successful, originMetadata);
+            context.getTaskArtifactState().persistNewOutputs(context.getAfterPreviousExecution(), finalOutputs, successful, originMetadata);
         }
 
         @Override

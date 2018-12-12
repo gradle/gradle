@@ -31,18 +31,14 @@ public interface UnitOfWork extends CacheableEntity {
 
     /**
      * Executes the work synchronously.
-     *
-     * @return Whether any work has been performed.
      */
-    boolean execute();
+    ExecutionOutcome execute();
 
     Optional<Duration> getTimeout();
 
-    void visitOutputs(OutputVisitor outputVisitor);
+    void visitOutputProperties(OutputPropertyVisitor visitor);
 
     long markExecutionTime();
-
-    FileCollection getLocalState();
 
     /**
      * Loading from cache failed and all outputs were removed.
@@ -67,8 +63,9 @@ public interface UnitOfWork extends CacheableEntity {
      */
     Optional<? extends Iterable<String>> getChangingOutputs();
 
-    interface OutputVisitor {
-        void visitOutput(String name, TreeType type, FileCollection roots);
+    @FunctionalInterface
+    interface OutputPropertyVisitor {
+        void visitOutputProperty(String name, TreeType type, FileCollection roots);
     }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();

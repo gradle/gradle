@@ -35,7 +35,7 @@ class SkipUpToDateStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outcome == ExecutionOutcome.UP_TO_DATE
+        result.outcome.get() == ExecutionOutcome.UP_TO_DATE
         result.outOfDateReasons.empty
 
         _ * context.work >> work

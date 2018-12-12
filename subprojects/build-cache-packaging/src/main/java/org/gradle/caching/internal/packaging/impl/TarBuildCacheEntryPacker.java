@@ -128,10 +128,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private long pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
         MutableLong entries = new MutableLong();
-        entity.visitTrees((treeName, type, root) -> {
-            if (root == null) {
-                return;
-            }
+        entity.visitOutputTrees((treeName, type, root) -> {
             CurrentFileCollectionFingerprint fingerprint = fingerprints.get(treeName);
             try {
                 entries.increment(packTree(treeName, type, fingerprint, tarOutput));
@@ -164,10 +161,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private UnpackResult unpack(CacheableEntity entity, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
         ImmutableMap.Builder<String, CacheableTree> treesBuilder = ImmutableMap.builder();
-        entity.visitTrees((name, type, root) -> {
-            if (root != null) {
-                treesBuilder.put(name, new CacheableTree(type, root));
-            }
+        entity.visitOutputTrees((name, type, root) -> {
+            treesBuilder.put(name, new CacheableTree(type, root));
         });
         ImmutableMap<String, CacheableTree> treesByName = treesBuilder.build();
 

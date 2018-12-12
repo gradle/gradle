@@ -19,7 +19,6 @@ package org.gradle.caching.internal.command
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
@@ -63,7 +62,6 @@ class BuildCacheCommandFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def localStateFile = temporaryFolder.file("local-state.txt").createFile()
-    def localStateFiles = ImmutableFileCollection.of(localStateFile)
 
     def "load invokes unpacker and fingerprints trees"() {
         def outputFile = temporaryFolder.file("output.txt")
@@ -74,7 +72,7 @@ class BuildCacheCommandFactoryTest extends Specification {
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile)
         )
-        def load = commandFactory.createLoad(key, entity, localStateFiles, loadListener)
+        def load = commandFactory.createLoad(key, entity, loadListener)
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
         def fileSnapshots = ImmutableMap.of(
@@ -121,7 +119,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
         def entity = this.entity(prop("output", FILE, outputFile))
-        def command = commandFactory.createLoad(key, entity, localStateFiles, loadListener)
+        def command = commandFactory.createLoad(key, entity, loadListener)
 
         when:
         command.load(input)
@@ -153,7 +151,7 @@ class BuildCacheCommandFactoryTest extends Specification {
     def "error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
         def entity = entity()
-        def command = commandFactory.createLoad(key, entity, localStateFiles, loadListener)
+        def command = commandFactory.createLoad(key, entity, loadListener)
 
         when:
         command.load(input)
@@ -168,7 +166,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         }
 
         then:
-        entity.visitTrees(_) >> { throw new RuntimeException("cleanup error") }
+        entity.visitOutputTrees(_) >> { throw new RuntimeException("cleanup error") }
 
         then:
         def ex = thrown UnrecoverableUnpackingException
@@ -201,8 +199,11 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     def entity(TestCacheableTree... trees) {
         return Stub(CacheableEntity) {
-            visitTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
-                trees.each { visitor.visitTree(it.name, it.type, it.root) }
+            visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+                trees.each { visitor.visitOutputTree(it.name, it.type, it.root) }
+            }
+            visitLocalState(_) >> { CacheableEntity.LocalStateVisitor visitor ->
+                visitor.visitLocalStateRoot(localStateFile)
             }
         }
     }
