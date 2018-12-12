@@ -38,6 +38,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
 def usage = Attribute.of('usage', String)
 def artifactType = Attribute.of('artifactType', String)
+def extraAttribute = Attribute.of('extra', String)
     
 allprojects {
 
@@ -900,11 +901,15 @@ $fileSizer
                     registerTransform {
                         from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
+                        from.attribute(extraAttribute, 'foo')
+                        to.attribute(extraAttribute, 'bar')
                         artifactTransform(BrokenTransform)
                     }
                     registerTransform {
                         from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
+                        from.attribute(extraAttribute, 'foo')
+                        to.attribute(extraAttribute, 'baz')
                         artifactTransform(BrokenTransform)
                     }
                 }
@@ -1023,6 +1028,11 @@ Found the following transforms:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
+  - Transform from configuration ':lib:compile' variant variant1:
+      - artifactType 'jar'
+      - buildType 'release'
+      - flavor 'free'
+      - usage 'api'
   - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'
