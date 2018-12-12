@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.instantiation;
 
-public interface ConstructorSelector {
-    SelectedConstructor forParams(Class<?> type, Object[] params);
+import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+
+public interface SelectedConstructor {
+    // For backwards compatibility
+    boolean allowsNullParameters();
+
+    Constructor<?> getConstructor();
+
+    @Nullable
+    Throwable getFailure();
 }
