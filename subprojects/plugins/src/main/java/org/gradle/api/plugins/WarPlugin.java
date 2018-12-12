@@ -98,10 +98,10 @@ public class WarPlugin implements Plugin<Project> {
 
         // TODO: TaskResolver should be a service somewhere?
         TaskResolver taskResolver = ((ProjectInternal) project).getTasks();
-        PublishArtifact warArtifact = new DefaultConfigurablePublishArtifact(project.getObjects(), taskResolver, war.flatMap(new Transformer<Provider<? extends FileSystemLocation>, Jar>() {
+        PublishArtifact warArtifact = new DefaultConfigurablePublishArtifact(project.getObjects(), taskResolver, war.flatMap(new Transformer<Provider<? extends FileSystemLocation>, War>() {
             @Override
-            public Provider<? extends FileSystemLocation> transform(Jar jar) {
-                return jar.getArchiveFile();
+            public Provider<? extends FileSystemLocation> transform(War war) {
+                return war.getArchiveFile();
             }
         })).configureFor(war);
         configureConfigurations(project.getConfigurations());
