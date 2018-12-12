@@ -82,6 +82,12 @@ This may break plugins that relied on the previous behaviour.
 
 The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
+### Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`) 
+
+The `AbstractArchiveTask` has several new properties using the [Provider API](userguide/lazy_configuration.html). Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties. 
+
+If your plugin/build only uses these types (and does not extend them), nothing has changed.
+
 ////
 The following breaking changes will appear as deprecation warnings with Gradle 5.X:
  *
