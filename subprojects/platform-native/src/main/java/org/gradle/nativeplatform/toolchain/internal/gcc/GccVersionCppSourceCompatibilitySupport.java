@@ -19,8 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.util.VersionNumber;
 
-import javax.annotation.Nullable;
-
 public class GccVersionCppSourceCompatibilitySupport {
     private static final String STD_CPP_2A = "-std=c++2a";
     private static final String STD_CPP_GNU_2A = "-std=gnu++2a";
@@ -45,15 +43,13 @@ public class GccVersionCppSourceCompatibilitySupport {
      * Returns the language standard command-line option for GCC based on the version of GCC being
      * used and the requested language standard.
      *
-     * <p>If the requested standard is not supported by the GCC version, then {@code null} is
-     * returned.</p>
-     *
      * @param version GCC version.
      * @param compat C++ source compatibility.
-     * @return GCC language standard option or {@code null}.
+     * @return GCC language standard option.
      */
-    @Nullable
     public static String getSourceCompatibilityOption(VersionNumber version, CppSourceCompatibility compat) {
+        IllegalArgumentException exception = new IllegalArgumentException(String.format(
+            "gcc %s does not support %s", version, compat));
         switch (compat) {
             case Cpp2a:
             case Cpp2aExtended:
@@ -61,7 +57,7 @@ public class GccVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
                 } else {
                     // toolchain does not support C++2a
-                    return null;
+                    throw exception;
                 }
             case Cpp17:
             case Cpp17Extended:
@@ -71,7 +67,7 @@ public class GccVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
                 } else {
                     // toolchain does not support C++17
-                    return null;
+                    throw exception;
                 }
             case Cpp14:
             case Cpp14Extended:
@@ -81,7 +77,7 @@ public class GccVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
                 } else {
                     // toolchain does not support C++14
-                    return null;
+                    throw exception;
                 }
             case Cpp11:
             case Cpp11Extended:
@@ -91,7 +87,7 @@ public class GccVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_0X : STD_CPP_GNU_0X;
                 } else {
                     // toolchain does not support C++11
-                    return null;
+                    throw exception;
                 }
             case Cpp03:
             case Cpp03Extended:

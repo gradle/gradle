@@ -101,22 +101,10 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
             CppSourceCompatibility compat = cppSpec.getSourceCompatibility();
             // If compat == null, then don't add an arg (i.e., use the compiler's default source compatibility)
             if (compat != null) {
-                String arg;
-                switch (compilerType) {
-                    case GCC:
-                        arg = GccVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat);
-                        if (arg != null) {
-                            args.add(arg);
-                        }
-                        // TODO: if arg == null, then throw error? users should know they can't get what they want
-                        break;
-                    case CLANG:
-                        arg = ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat);
-                        if (arg != null) {
-                            args.add(arg);
-                        }
-                        // TODO: if arg == null, then throw error? users should know they can't get what they want
-                        break;
+                if (compilerType == GccCompilerType.GCC) {
+                    args.add(GccVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat));
+                } else {
+                    args.add(ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat));
                 }
             }
         }

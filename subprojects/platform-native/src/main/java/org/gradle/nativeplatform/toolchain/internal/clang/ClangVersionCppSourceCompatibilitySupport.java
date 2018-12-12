@@ -19,8 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.clang;
 import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.util.VersionNumber;
 
-import javax.annotation.Nullable;
-
 public class ClangVersionCppSourceCompatibilitySupport {
     private static final String STD_CPP_2A = "-std=c++2a";
     private static final String STD_CPP_GNU_2A = "-std=gnu++2a";
@@ -43,15 +41,14 @@ public class ClangVersionCppSourceCompatibilitySupport {
      * Returns the language standard command-line option for Clang based on the version of Clang
      * being used and the requested language standard.
      *
-     * <p>If the requested standard is not supported by the Clang version, then {@code null} is
-     * returned.</p>
-     *
      * @param version Clang version.
      * @param compat C++ source compatibility.
-     * @return Clang language standard option or {@code null}.
+     * @return Clang language standard option.
+     * @throws IllegalArgumentException If {@code compat} is not supported by the Clang version.
      */
-    @Nullable
     public static String getSourceCompatibilityOption(VersionNumber version, CppSourceCompatibility compat) {
+        IllegalArgumentException exception = new IllegalArgumentException(String.format(
+            "clang %s does not support %s", version, compat));
         switch (compat) {
             case Cpp2a:
             case Cpp2aExtended:
@@ -59,7 +56,7 @@ public class ClangVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
                 } else {
                     // toolchain does not support C++2a
-                    return null;
+                    throw exception;
                 }
             case Cpp17:
             case Cpp17Extended:
@@ -69,7 +66,7 @@ public class ClangVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
                 } else {
                     // toolchain does not support C++17
-                    return null;
+                    throw exception;
                 }
             case Cpp14:
             case Cpp14Extended:
@@ -79,7 +76,7 @@ public class ClangVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
                 } else {
                     // toolchain does not support C++14
-                    return null;
+                    throw exception;
                 }
             case Cpp11:
             case Cpp11Extended:
@@ -87,7 +84,7 @@ public class ClangVersionCppSourceCompatibilitySupport {
                     return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_11 : STD_CPP_GNU_11;
                 } else {
                     // toolchain does not support C++11
-                    return null;
+                    throw exception;
                 }
             case Cpp03:
             case Cpp03Extended:
@@ -97,7 +94,7 @@ public class ClangVersionCppSourceCompatibilitySupport {
                     return STD_CPP_03;
                 } else {
                     // toolchain does not support C++03
-                    return null;
+                    throw exception;
                 }
             case Cpp98Extended:
                 return STD_CPP_GNU_98;
