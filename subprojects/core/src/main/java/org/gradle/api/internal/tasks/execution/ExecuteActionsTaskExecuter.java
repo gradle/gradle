@@ -106,9 +106,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 case FROM_CACHE:
                     state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                     break;
-                case NO_SOURCE:
-                    state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
-                    break;
                 default:
                     throw new AssertionError();
             }
