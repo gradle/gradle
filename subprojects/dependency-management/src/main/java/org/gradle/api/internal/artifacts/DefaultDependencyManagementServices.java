@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
@@ -91,6 +91,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -324,31 +325,35 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
-                                                                    ObjectFactory objectFactory) {
+                                                                    ObjectFactory objectFactory,
+                                                                    ProviderFactory providerFactory,
+                                                                    ProjectLayout projectLayout) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
-                configurationResolver,
-                instantiator,
-                domainObjectContext,
-                listenerManager,
-                metaDataProvider,
-                projectAccessListener,
-                projectFinder,
-                metaDataBuilder,
-                fileCollectionFactory,
-                globalDependencyResolutionRules.getDependencySubstitutionRules(),
-                vcsMappingsStore,
-                componentIdentifierFactory,
-                buildOperationExecutor,
-                taskResolverFor(domainObjectContext),
-                attributesFactory,
-                moduleIdentifierFactory,
-                componentSelectorConverter,
-                dependencyLockingProvider,
-                projectStateRegistry,
-                documentationRegistry,
-                callbackDecorator,
-                userCodeApplicationContext,
-                objectFactory
+                    configurationResolver,
+                    instantiator,
+                    domainObjectContext,
+                    listenerManager,
+                    metaDataProvider,
+                    projectAccessListener,
+                    projectFinder,
+                    metaDataBuilder,
+                    fileCollectionFactory,
+                    globalDependencyResolutionRules.getDependencySubstitutionRules(),
+                    vcsMappingsStore,
+                    componentIdentifierFactory,
+                    buildOperationExecutor,
+                    taskResolverFor(domainObjectContext),
+                    attributesFactory,
+                    moduleIdentifierFactory,
+                    componentSelectorConverter,
+                    dependencyLockingProvider,
+                    projectStateRegistry,
+                    documentationRegistry,
+                    callbackDecorator,
+                    userCodeApplicationContext,
+                    objectFactory,
+                    providerFactory,
+                    projectLayout
             );
         }
 
@@ -399,8 +404,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
-        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context, ObjectFactory objectFactory) {
-            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context), objectFactory).create();
+        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context, ObjectFactory objectFactory, ProviderFactory providerFactory, ProjectLayout projectLayout) {
+            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context), objectFactory, providerFactory, projectLayout).create();
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
