@@ -40,14 +40,19 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun testedKotlinVersions() = listOf(
-            "1.3.10",
             embeddedKotlinVersion,
-            "1.2.71"
+            "1.3.10",
+            "1.2.71",
+            "1.2.20"
         )
     }
 
     @Test
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
+
+        if (kotlinVersion == "1.2.20") {
+            assumeJavaLessThan11()
+        }
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """

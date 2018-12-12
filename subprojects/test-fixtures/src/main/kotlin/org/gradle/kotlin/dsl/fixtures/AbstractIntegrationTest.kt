@@ -207,6 +207,11 @@ open class AbstractIntegrationTest {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
     }
 
+    protected
+    fun assumeJavaLessThan11() {
+        assumeTrue("Test disabled under JDK 11 and higher", JavaVersion.current() < JavaVersion.VERSION_11)
+    }
+
     private
     fun withGradleProperties(vararg gradleProperties: Pair<String, String>) =
         mergePropertiesInto(gradlePropertiesFile, gradleProperties.asIterable())
