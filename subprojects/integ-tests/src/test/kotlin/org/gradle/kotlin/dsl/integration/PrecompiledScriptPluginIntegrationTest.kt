@@ -5,6 +5,7 @@ import org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 import org.gradle.kotlin.dsl.fixtures.gradleRunnerFor
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
@@ -46,7 +47,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             $pluginManagementBlock
             buildCache {
                 local<DirectoryBuildCache> {
-                    directory = file("${escapedPathOf(cacheDir)}")
+                    directory = file("${cacheDir.normalisedPath}")
                 }
             }
         """)

@@ -226,10 +226,6 @@ open class AbstractIntegrationTest {
 
     private
     val gradlePropertiesFile by lazy { existing("gradle.properties") }
-
-    protected
-    fun escapedPathOf(file: File) =
-        file.absolutePath.replace("\\", "\\\\")
 }
 
 
