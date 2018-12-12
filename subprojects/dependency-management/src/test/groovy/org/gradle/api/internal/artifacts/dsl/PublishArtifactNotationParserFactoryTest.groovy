@@ -21,16 +21,14 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory
+import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.provider.DefaultProviderFactory
-import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
@@ -193,11 +191,12 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
     def "create artifact from buildable RegularFile provider"() {
         def task1 = Stub(Task)
-        def task2 = Stub(Task)
         def value = Mock(RegularFile)
-        def provider = Providers.of(value)
-        def file1 = new File("classes-1.zip")
+        def provider = new DefaultPropertyState(RegularFile)
+        provider.attachProducer(task1)
+        provider.value(value)
 
+        def file1 = new File("classes-1.zip")
         _ * value.getAsFile() >> file1
 
         when:
@@ -214,16 +213,17 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def deps = publishArtifact.buildDependencies
 
         then:
-        deps.getDependencies(null) == [task1, task2] as Set
+        deps.getDependencies(null) == [task1] as Set
     }
 
     def "create artifact from buildable Directory provider"() {
         def task1 = Stub(Task)
-        def task2 = Stub(Task)
         def value = Mock(Directory)
-        def provider = Providers.of(value)
-        def file1 = new File("classes-1.dir")
+        def provider = new DefaultPropertyState(Directory)
+        provider.attachProducer(task1)
+        provider.value(value)
 
+        def file1 = new File("classes-1.dir")
         _ * value.getAsFile() >> file1
 
         when:
@@ -240,7 +240,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def deps = publishArtifact.buildDependencies
 
         then:
-        deps.getDependencies(null) == [task1, task2] as Set
+        deps.getDependencies(null) == [task1] as Set
     }
 
     def "fails when provider returns an unsupported type"() {
