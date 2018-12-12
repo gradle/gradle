@@ -210,6 +210,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                     return GUtil.elvis(artifactFile.getClassifier(), "");
                 }
             }));
+            configurablePublishArtifact.getArtifactType().set(configurablePublishArtifact.getArtifactExtension());
+
             configurablePublishArtifact.builtBy(notation);
             return configurablePublishArtifact;
         }
@@ -234,6 +236,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, Providers.of(notation));
             configurablePublishArtifact.getArtifactName().set(artifactFile.getName());
             configurablePublishArtifact.getArtifactExtension().set(artifactFile.getExtension());
+            configurablePublishArtifact.getArtifactType().set(configurablePublishArtifact.getArtifactExtension());
             configurablePublishArtifact.getArtifactClassifier().set(artifactFile.getClassifier());
             return configurablePublishArtifact;
 

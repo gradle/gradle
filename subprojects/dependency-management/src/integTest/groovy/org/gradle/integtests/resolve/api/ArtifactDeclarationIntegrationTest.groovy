@@ -317,6 +317,97 @@ task checkArtifacts {
         result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
     }
 
+    def "can define artifact using flatMap of Task provider"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            class Producer extends DefaultTask {
+                @OutputFile
+                RegularFileProperty outputFile = project.objects.fileProperty()
+                
+                @TaskAction
+                void makeFile() {
+                    outputFile.get().asFile.text = "foobar"
+                }
+            }
+            
+            project(':a') {
+                def producer = tasks.register("producer", Producer) {
+                    outputFile = layout.buildDirectory.file("foobar.txt")
+                }
+                
+                artifacts {
+                    compile producer.flatMap { it.outputFile }
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["foobar.txt"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:producer", ":b:checkArtifacts")
+    }
+
+
+    def "can define artifact using flatMap of Task provider with configuration"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            class Producer extends DefaultTask {
+                @OutputFile
+                RegularFileProperty outputFile = project.objects.fileProperty()
+                
+                @TaskAction
+                void makeFile() {
+                    outputFile.get().asFile.text = "foobar"
+                }
+            }
+            
+            project(':a') {
+                def producer = tasks.register("producer", Producer) {
+                    outputFile = layout.buildDirectory.file("foobar.txt")
+                }
+                
+                artifacts {
+                    compile(producer.flatMap { it.outputFile }) {
+                        artifactName.set("fubar.text")
+                    }
+                }
+                
+                assert configurations.compile.outgoing.artifacts.any {
+                    it.name == "fubar.text"
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["foobar.txt"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:producer", ":b:checkArtifacts")
+    }
+
     def "can define artifact using File provider"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """

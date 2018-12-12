@@ -29,6 +29,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -156,13 +157,13 @@ public class DefaultConfigurablePublishArtifact implements ConfigurablePublishAr
             public String transform(AbstractArchiveTask archiveTask) {
                 String baseName = archiveTask.getArchiveBaseName().getOrNull();
                 String appendix = archiveTask.getArchiveAppendix().getOrNull();
-                if (baseName != null && appendix != null) {
+                if (GUtil.isTrue(baseName) && GUtil.isTrue(appendix)) {
                     return baseName + "-" + appendix;
                 }
-                if (baseName != null) {
+                if (GUtil.isTrue(baseName)) {
                     return baseName;
                 }
-                if (appendix != null) {
+                if (GUtil.isTrue(appendix)) {
                     return appendix;
                 }
                 return archiveTask.getArchiveFileName().get();
