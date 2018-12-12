@@ -16,11 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
-import org.gradle.nativeplatform.CppLanguageStandard;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public interface CppCompileSpec extends NativeCompileSpec {
-    CppLanguageStandard getLanguageStandard();
+    CppSourceCompatibility getSourceCompatibility();
 
-    void setLanguageStandard(CppLanguageStandard cppStandard);
+    void setSourceCompatibility(CppSourceCompatibility cppSrcCompat);
 }

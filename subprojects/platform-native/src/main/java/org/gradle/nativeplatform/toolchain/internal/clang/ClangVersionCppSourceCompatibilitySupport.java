@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.clang;
 
-import org.gradle.nativeplatform.CppLanguageStandard;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;
 
-public class ClangVersionCppLanguageStandardSupport {
+public class ClangVersionCppSourceCompatibilitySupport {
     private static final String STD_CPP_2A = "-std=c++2a";
     private static final String STD_CPP_GNU_2A = "-std=gnu++2a";
     private static final String STD_CPP_17 = "-std=c++17";
@@ -47,16 +47,16 @@ public class ClangVersionCppLanguageStandardSupport {
      * returned.</p>
      *
      * @param version Clang version.
-     * @param standard C++ language standard
+     * @param compat C++ source compatibility.
      * @return Clang language standard option or {@code null}.
      */
     @Nullable
-    public static String getLanguageStandardOption(VersionNumber version, CppLanguageStandard standard) {
-        switch (standard) {
+    public static String getSourceCompatibilityOption(VersionNumber version, CppSourceCompatibility compat) {
+        switch (compat) {
             case Cpp2a:
             case Cpp2aExtended:
                 if (version.getMajor() >= 5) {
-                    return standard == CppLanguageStandard.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
+                    return compat == CppSourceCompatibility.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
                 } else {
                     // toolchain does not support C++2a
                     return null;
@@ -64,9 +64,9 @@ public class ClangVersionCppLanguageStandardSupport {
             case Cpp17:
             case Cpp17Extended:
                 if (version.getMajor() >= 5) {
-                    return standard == CppLanguageStandard.Cpp17 ? STD_CPP_17 : STD_CPP_GNU_17;
+                    return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_17 : STD_CPP_GNU_17;
                 } else if (version.getMajor() >= 3 && version.getMinor() <= 5) {
-                    return standard == CppLanguageStandard.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
+                    return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
                 } else {
                     // toolchain does not support C++17
                     return null;
@@ -74,9 +74,9 @@ public class ClangVersionCppLanguageStandardSupport {
             case Cpp14:
             case Cpp14Extended:
                 if (version.getMajor() >= 3 && version.getMinor() >= 5) {
-                    return standard == CppLanguageStandard.Cpp14 ? STD_CPP_14 : STD_CPP_GNU_14;
+                    return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_14 : STD_CPP_GNU_14;
                 } else if (version.getMajor() >= 3 && version.getMinor() >= 2) {
-                    return standard == CppLanguageStandard.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
+                    return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
                 } else {
                     // toolchain does not support C++14
                     return null;
@@ -84,7 +84,7 @@ public class ClangVersionCppLanguageStandardSupport {
             case Cpp11:
             case Cpp11Extended:
                 if (version.getMajor() >= 3) {
-                    return standard == CppLanguageStandard.Cpp11 ? STD_CPP_11 : STD_CPP_GNU_11;
+                    return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_11 : STD_CPP_GNU_11;
                 } else {
                     // toolchain does not support C++11
                     return null;
@@ -92,7 +92,7 @@ public class ClangVersionCppLanguageStandardSupport {
             case Cpp03:
             case Cpp03Extended:
                 if (version.getMajor() >= 5) {
-                    return standard == CppLanguageStandard.Cpp03 ? STD_CPP_03 : STD_CPP_GNU_03;
+                    return compat == CppSourceCompatibility.Cpp03 ? STD_CPP_03 : STD_CPP_GNU_03;
                 } else if (version.getMajor() >= 3) {
                     return STD_CPP_03;
                 } else {

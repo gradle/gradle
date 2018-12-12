@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Lists;
-import org.gradle.nativeplatform.CppLanguageStandard;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.clang.ClangVersionCppLanguageStandardSupport;
+import org.gradle.nativeplatform.toolchain.internal.clang.ClangVersionCppSourceCompatibilitySupport;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType;
 import org.gradle.util.VersionNumber;
@@ -43,7 +43,7 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
         addUserArgs(spec, args);
         addIncludeArgs(spec, args);
         // TODO: need to acquire toolchain name and version
-        //addLanguageStandardArgs(spec, compilerType, version, args);
+        //addSourceCompatibilityArgs(spec, compilerType, version, args);
         return args;
     }
 
@@ -95,23 +95,23 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
 
     protected abstract String getLanguage();
 
-    protected void addLanguageStandardArgs(T spec, GccCompilerType compilerType, VersionNumber version, List<String> args) {
+    protected void addSourceCompatibilityArgs(T spec, GccCompilerType compilerType, VersionNumber version, List<String> args) {
         if (spec instanceof CppCompileSpec) {
             CppCompileSpec cppSpec = (CppCompileSpec) spec;
-            CppLanguageStandard standard = cppSpec.getLanguageStandard();
-            // If standard == null, then don't add an arg (i.e., use the compiler's default language standard)
-            if (standard != null) {
+            CppSourceCompatibility compat = cppSpec.getSourceCompatibility();
+            // If compat == null, then don't add an arg (i.e., use the compiler's default source compatibility)
+            if (compat != null) {
                 String arg;
                 switch (compilerType) {
                     case GCC:
-                        arg = GccVersionCppLanguageStandardSupport.getLanguageStandardOption(version, standard);
+                        arg = GccVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat);
                         if (arg != null) {
                             args.add(arg);
                         }
                         // TODO: if arg == null, then throw error? users should know they can't get what they want
                         break;
                     case CLANG:
-                        arg = ClangVersionCppLanguageStandardSupport.getLanguageStandardOption(version, standard);
+                        arg = ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat);
                         if (arg != null) {
                             args.add(arg);
                         }

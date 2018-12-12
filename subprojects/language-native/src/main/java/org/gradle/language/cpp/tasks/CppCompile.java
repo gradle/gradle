@@ -21,7 +21,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.language.cpp.tasks.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
-import org.gradle.nativeplatform.CppLanguageStandard;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import javax.inject.Inject;
@@ -32,15 +32,15 @@ import javax.inject.Inject;
 @Incubating
 @CacheableTask
 public class CppCompile extends AbstractNativeSourceCompileTask {
-    private final Property<CppLanguageStandard> langStandard;
+    private final Property<CppSourceCompatibility> srcCompat;
 
     @Inject
     public CppCompile(ObjectFactory objectFactory) {
-        langStandard = objectFactory.property(CppLanguageStandard.class);
+        srcCompat = objectFactory.property(CppSourceCompatibility.class);
     }
 
-    public Property<CppLanguageStandard> getLanguageStandard() {
-        return langStandard;
+    public Property<CppSourceCompatibility> getSourceCompatibility() {
+        return srcCompat;
     }
 
     @Override

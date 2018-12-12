@@ -19,12 +19,12 @@ package org.gradle.nativeplatform;
 import org.gradle.api.Incubating;
 
 /**
- * Configures the C++ standard that is to be used when compiling the C++ source files.
+ * Configures the C++ source compatibility that is to be used when compiling the C++ source files.
  *
  * @since 5.1
  */
 @Incubating
-public enum CppLanguageStandard {
+public enum CppSourceCompatibility {
     /**
      * Configures the source to be compatible with the 1998 C++ standard.
      *

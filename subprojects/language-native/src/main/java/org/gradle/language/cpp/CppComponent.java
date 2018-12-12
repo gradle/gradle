@@ -27,7 +27,7 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithDependencies;
-import org.gradle.nativeplatform.CppLanguageStandard;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
@@ -110,9 +110,9 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
     SetProperty<TargetMachine> getTargetMachines();
 
     /**
-     * Returns the C++ language standard for this component.
+     * Returns the C++ source compatibility for this component.
      *
      * @since 5.1
      */
-    Property<CppLanguageStandard> getLanguageStandard();
+    Property<CppSourceCompatibility> getSourceCompatibility();
 }
