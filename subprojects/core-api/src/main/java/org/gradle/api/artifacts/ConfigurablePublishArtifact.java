@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 import javax.annotation.Nullable;
@@ -23,9 +24,37 @@ import javax.annotation.Nullable;
  * A {@link PublishArtifact} whose properties can be modified.
  */
 public interface ConfigurablePublishArtifact extends PublishArtifact {
+
+    /**
+     * The name of the artifact.
+     * @return name property
+     * @since 5.1
+     */
+    @Incubating
     Property<String> getArtifactName();
+
+    /**
+     * The extension of the artifact.
+     * @return extension property
+     * @since 5.1
+     */
+    @Incubating
     Property<String> getArtifactExtension();
+
+    /**
+     * The type of the artifact.
+     * @return type property
+     * @since 5.1
+     */
+    @Incubating
     Property<String> getArtifactType();
+
+    /**
+     * The classifier of the artifact.
+     * @return classifier property
+     * @since 5.1
+     */
+    @Incubating
     Property<String> getArtifactClassifier();
 
     /**

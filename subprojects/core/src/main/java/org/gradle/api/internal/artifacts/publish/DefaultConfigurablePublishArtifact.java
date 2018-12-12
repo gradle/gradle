@@ -107,7 +107,7 @@ public class DefaultConfigurablePublishArtifact implements ConfigurablePublishAr
 
     @Override
     public ConfigurablePublishArtifact builtBy(Object... tasks) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("builtBy", "Dependency information for a published artifact should be dervied from the Provider");
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("builtBy", "Dependency information for a published artifact should be derived from the Provider of the published file");
         taskDependency.add(tasks);
         return this;
     }
