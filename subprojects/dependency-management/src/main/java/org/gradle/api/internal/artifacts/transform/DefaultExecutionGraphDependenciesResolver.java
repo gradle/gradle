@@ -80,7 +80,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
         SelectedArtifactSet artifacts = visitedArtifacts.select(Specs.satisfyAll(), transformer.getFromAttributes(), element -> {
             return dependencies.contains(element);
-        }, true);
+        }, false);
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         artifacts.visitArtifacts(visitor, false);
         if (!visitor.getFailures().isEmpty()) {
