@@ -25,7 +25,7 @@ import java.util.Properties
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.0" apply false
 }
 
 subprojects {
@@ -215,7 +215,7 @@ fun Project.applyGroovyProjectConventions() {
 
 fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-    apply(plugin = "org.gradle.kotlin.ktlint-convention")
+    apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
