@@ -2,12 +2,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments by extra(
-        "org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.0"
-    )
+    val kotlinDslConventions by extra("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.0")
 
     dependencies {
-        classpath(pluginsExperiments)
+        classpath(kotlinDslConventions)
     }
 
     configure(listOf(repositories, project.repositories)) {
@@ -39,10 +37,10 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-val pluginsExperiments: String by extra
+val kotlinDslConventions: String by extra
 
 dependencies {
-    compile(pluginsExperiments)
+    compile(kotlinDslConventions)
 
     compileOnly(gradleKotlinDsl())
 
