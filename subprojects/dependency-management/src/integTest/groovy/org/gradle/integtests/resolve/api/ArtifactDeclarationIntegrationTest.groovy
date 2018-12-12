@@ -408,6 +408,40 @@ task checkArtifacts {
         result.assertTasksExecuted(":a:producer", ":b:checkArtifacts")
     }
 
+    def "can define artifact using AbstractArchiveTask provider"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                def producer = tasks.register("producer", Jar) {
+                    archiveFileName = "myjar.jar"
+                    destinationDirectory = layout.buildDirectory
+                }
+                
+                artifacts {
+                    compile producer
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["myjar.jar"]
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':b:checkArtifacts'
+
+        then:
+        result.assertTasksExecuted(":a:producer", ":b:checkArtifacts")
+    }
+
+
     def "can define artifact using File provider"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """

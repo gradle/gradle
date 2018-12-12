@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -181,14 +180,10 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                                 return (File) value;
                             }
                         };
-                    } else if (value instanceof Task) {
+                    } else if (value instanceof AbstractArchiveTask) {
+                        // TODO: Deprecate this behavior?
                         // This used to work for some builds (e.g., Android), even though it wasn't documented as something we supported.
-                        return new FileSystemLocation() {
-                            @Override
-                            public File getAsFile() {
-                                return ((Task)value).getOutputs().getFiles().getSingleFile();
-                            }
-                        };
+                        return ((AbstractArchiveTask)value).getArchiveFile().get();
                     } else {
                         throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
                     }
