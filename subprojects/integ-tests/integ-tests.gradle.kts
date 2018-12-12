@@ -11,8 +11,7 @@ dependencies {
 }
 
 val pluginBundles = listOf(
-    ":plugins",
-    ":plugins-experiments")
+    ":plugins")
 
 pluginBundles.forEach {
     evaluationDependsOn(it)

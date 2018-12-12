@@ -14,7 +14,6 @@ include(
     "tooling-models",
     "tooling-builders",
     "plugins",
-    "plugins-experiments",
     "test-fixtures",
     "samples-tests",
     "integ-tests"

@@ -2,12 +2,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments by extra(
-        "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.15"
-    )
+    val kotlinDslConventions by extra("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.0")
 
     dependencies {
-        classpath(pluginsExperiments)
+        classpath(kotlinDslConventions)
     }
 
     configure(listOf(repositories, project.repositories)) {
@@ -23,7 +21,7 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
-apply(plugin = "org.gradle.kotlin.ktlint-convention")
+apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
 tasks.validateTaskProperties {
     failOnWarning = true
@@ -39,10 +37,10 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-val pluginsExperiments: String by extra
+val kotlinDslConventions: String by extra
 
 dependencies {
-    compile(pluginsExperiments)
+    compile(kotlinDslConventions)
 
     compileOnly(gradleKotlinDsl())
 
