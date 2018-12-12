@@ -40,6 +40,22 @@ public class GccVersionCppSourceCompatibilitySupport {
     private static final String STD_CPP_GNU_98 = "-std=gnu++98";
 
     /**
+     * Returns the default source compatibility for provided GCC version number.
+     *
+     * <p>GCC versions 6.1 and above use {@link CppSourceCompatibility#Cpp14}. Prior versions use
+     * {@link CppSourceCompatibility#Cpp98}.</p>
+     *
+     * @param version GCC version.
+     * @return Default GCC source compatibility.
+     */
+    public static CppSourceCompatibility getDefaultSourceCompatibility(VersionNumber version) {
+        if (version.getMajor() >= 6 && version.getMinor() >= 1) {
+            return CppSourceCompatibility.Cpp14;
+        }
+        return CppSourceCompatibility.Cpp98;
+    }
+
+    /**
      * Returns the language standard command-line option for GCC based on the version of GCC being
      * used and the requested language standard.
      *

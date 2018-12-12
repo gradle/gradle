@@ -42,9 +42,14 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.clang.ClangVersionCppSourceCompatibilitySupport;
+import org.gradle.nativeplatform.toolchain.internal.gcc.GccVersionCppSourceCompatibilitySupport;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -113,13 +118,11 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         compile.getTargetPlatform().set(currentPlatform);
                         compile.getToolChain().set(toolChain);
                         compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                        compile.getSourceCompatibility().set(binary.getSourceCompatibility());
 
                         if (binary instanceof CppSharedLibrary) {
                             compile.setPositionIndependentCode(true);
                         }
-
-                        // default to using the compiler's default source compatibility
-                        compile.getSourceCompatibility().set((CppSourceCompatibility) null);
                     }
                 });
 
@@ -130,6 +133,39 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     }
                 }));
                 binary.getCompileTask().set(compile);
+            }
+        });
+
+        project.getComponents().withType(DefaultCppComponent.class, new Action<DefaultCppComponent>() {
+            @Override
+            public void execute(DefaultCppComponent component) {
+                component.getBinaries().whenElementKnown(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
+                    @Override
+                    public void execute(DefaultCppBinary binary) {
+                        Provider<CppSourceCompatibility> cppSourceCompatibilityProvider = project.provider(new Callable<CppSourceCompatibility>() {
+                            @Override
+                            public CppSourceCompatibility call() throws Exception {
+                                component.getSourceCompatibility().finalizeValue();
+                                CppSourceCompatibility cppSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                                if (cppSourceCompatibility == null) {
+                                    CompilerMetadata compilerMetadata = binary.getPlatformToolProvider().getCompilerMetadata(ToolType.CPP_COMPILER);
+                                    if (compilerMetadata instanceof GccMetadata) {
+                                        VersionNumber version = compilerMetadata.getVersion();
+                                        String vendor = compilerMetadata.getVendor().toLowerCase();
+                                        if (vendor.contains("clang")) {
+                                            return ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility();
+                                        }
+                                        return GccVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(version);
+                                    }
+                                    // TODO: VisualStudio support for CppSourceCompatibility
+                                }
+                                return cppSourceCompatibility;
+                            }
+                        });
+
+                        binary.getSourceCompatibility().set(cppSourceCompatibilityProvider);
+                    }
+                });
             }
         });
 

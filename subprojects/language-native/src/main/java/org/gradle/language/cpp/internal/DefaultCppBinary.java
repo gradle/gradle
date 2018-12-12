@@ -37,6 +37,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -59,6 +60,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
+    private final Property<CppSourceCompatibility> sourceCompatibility;
 
     public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objects, componentImplementation);
@@ -69,6 +71,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
         this.identity = identity;
+        this.sourceCompatibility = objects.property(CppSourceCompatibility.class);
 
         // TODO - reduce duplication with Swift binary
 
@@ -176,6 +179,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     @Override
     public Property<CppCompile> getCompileTask() {
         return compileTaskProperty;
+    }
+
+    @Override
+    public Property<CppSourceCompatibility> getSourceCompatibility() {
+        return sourceCompatibility;
     }
 
     public PlatformToolProvider getPlatformToolProvider() {

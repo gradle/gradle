@@ -38,6 +38,18 @@ public class ClangVersionCppSourceCompatibilitySupport {
     private static final String STD_CPP_GNU_98 = "-std=gnu++98";
 
     /**
+     * Returns the default source compatibility for provided Clang version number.
+     *
+     * <p>By default, Clang builds C++ code according to the C++98 standard, so
+     * {@link CppSourceCompatibility#Cpp98} is always returned</p>
+     *
+     * @return Default Clang source compatibility.
+     */
+    public static CppSourceCompatibility getDefaultSourceCompatibility() {
+        return CppSourceCompatibility.Cpp98;
+    }
+
+    /**
      * Returns the language standard command-line option for Clang based on the version of Clang
      * being used and the requested language standard.
      *

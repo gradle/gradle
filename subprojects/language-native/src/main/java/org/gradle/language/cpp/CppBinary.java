@@ -18,12 +18,13 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.component.BuildableComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.component.BuildableComponent;
 import org.gradle.language.ComponentWithDependencies;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -85,4 +86,11 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
      * @since 4.5
      */
     Provider<CppCompile> getCompileTask();
+
+    /**
+     * Returns the C++ source compatibility to use to compile the source files.
+     *
+     * @since 5.1
+     */
+    Provider<CppSourceCompatibility> getSourceCompatibility();
 }
