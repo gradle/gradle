@@ -165,23 +165,31 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider notation) {
             Module module = metaDataProvider.getModule();
-            Provider<ArtifactFile> artifactFile = notation.map(new Transformer<ArtifactFile, Object>() {
+            Provider<FileSystemLocation> file = notation.map(new Transformer<FileSystemLocation, Object>() {
                 @Override
-                public ArtifactFile transform(Object value) {
-                    ArtifactFile artifactFile;
+                public FileSystemLocation transform(Object value) {
                     if (value instanceof FileSystemLocation) {
-                        FileSystemLocation location = (FileSystemLocation) value;
-                        artifactFile = new ArtifactFile(location.getAsFile(), module.getVersion());
+                        return (FileSystemLocation) value;
                     } else if (value instanceof File) {
-                        artifactFile = new ArtifactFile((File)value, module.getVersion());
+                        return new FileSystemLocation() {
+                            @Override
+                            public File getAsFile() {
+                                return (File)value;
+                            }
+                        };
                     } else {
                         throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
                     }
-                    return artifactFile;
+                }
+            });
+            Provider<ArtifactFile> artifactFile = file.map(new Transformer<ArtifactFile, FileSystemLocation>() {
+                @Override
+                public ArtifactFile transform(FileSystemLocation value) {
+                    return new ArtifactFile(value.getAsFile(), module.getVersion());
                 }
             });
 
-            DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, Providers.of(notation));
+            DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, file);
             configurablePublishArtifact.getArtifactName().set(artifactFile.map(new Transformer<String, ArtifactFile>() {
                 @Override
                 public String transform(ArtifactFile artifactFile) {
