@@ -157,13 +157,17 @@ public class DefaultConfigurablePublishArtifact implements ConfigurablePublishAr
             public String transform(AbstractArchiveTask archiveTask) {
                 String baseName = archiveTask.getArchiveBaseName().getOrNull();
                 String appendix = archiveTask.getArchiveAppendix().getOrNull();
-                if (baseName == null) {
-                    return appendix;
+                if (baseName != null && appendix != null) {
+                    return baseName + "-" + appendix;
                 }
-                if (appendix == null) {
+                if (baseName != null) {
                     return baseName;
                 }
-                return baseName + "-" + appendix;
+                if (appendix != null) {
+                    return appendix;
+                }
+                return archiveTask.getArchiveFileName().get();
+
             }
         }));
         getArtifactExtension().set(archiveTask.flatMap(new Transformer<Provider<String>, AbstractArchiveTask>() {
