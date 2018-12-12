@@ -139,9 +139,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             import org.gradle.testkit.runner.GradleRunner
 
-            import org.hamcrest.CoreMatchers.containsString
-            import org.junit.Assert.assertThat
-
             import org.junit.Rule
             import org.junit.Test
             import org.junit.rules.TemporaryFolder
@@ -176,7 +173,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     val result = runner.withArguments("help").build()
 
                     // then:
-                    assertThat(result.output, containsString("Plugin Using Embedded Kotlin "))
+                    assert("Plugin Using Embedded Kotlin " in result.output)
                 }
             }
 
