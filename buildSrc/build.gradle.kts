@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 buildscript {
 
     val pluginsExperiments by extra(
-        "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.15"
+        "org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.0"
     )
 
     dependencies {
@@ -23,7 +23,7 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
-apply(plugin = "org.gradle.kotlin.ktlint-convention")
+apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
 tasks.validateTaskProperties {
     failOnWarning = true
