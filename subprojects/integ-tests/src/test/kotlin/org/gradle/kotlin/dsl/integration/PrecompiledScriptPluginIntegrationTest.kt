@@ -19,7 +19,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin.ktlint-convention")
+                id("org.gradle.kotlin.ktlint-convention") version "0.1.15"
             }
 
             repositories { jcenter() }
