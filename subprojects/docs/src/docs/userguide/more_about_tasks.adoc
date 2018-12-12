@@ -61,7 +61,7 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-This API is likely to be replaced in the near future. See the <<task_configuration_avoidance#sec:what_is_new_task_configuration,task configuration avoidance chapter>> for more information.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance,task configuration avoidance chapter>>.
 ====
 
 .Defining tasks using strings for task names
@@ -78,7 +78,7 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
 
 And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
@@ -157,7 +157,7 @@ include::sample[dir="userguide/tasks/configureUsingBlock/groovy",files="build.gr
 include::sample[dir="userguide/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This works for _any_ task. Task access is just a shortcut for the `tasks.getByName()` method. It is important to note that if you pass a block to the `getByName()` method, this block is applied to _configure_ the task, not when the task executes.
+This works for _any_ task. Task access is just a shortcut for the `tasks.named()` method. It is important to note that if you pass a block to the `named()` method, this block is applied to _configure_ the task, not when the task executes.
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 

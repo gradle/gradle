@@ -15,35 +15,18 @@
 [[task_configuration_avoidance]]
 = Task Configuration Avoidance
 
-We are asking early adopters to try out a new API for creating and configuring tasks to iron out any issues and gather feedback. This chapter provides a quick introduction to the feature and explains some guidelines for migrating your build to use the new API. We intend for this new API to eventually replace the existing API through our usual deprecation process over several major releases. As of Gradle 5.0, we believe the API will become the recommended approach to creating tasks in the next minor release. The core part of the API is identical back to Gradle 4.9. There may be some convenience methods added in later versions of Gradle that do not exist in older releaes.
+This chapter provides an introduction to "configuration avoidance" when dealing with tasks and explains some guidelines for migrating your build to use the configuration avoidance APIs effectively. The API described here co-exists with an existing API that will be replaced with our usual deprecation process over several major releases. 
 
-[NOTE]
-====
-The new Task configuration API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL or API may change in minor Gradle versions.
-====
+The core part of the API is identical back to Gradle 4.9. As of Gradle 5.1, we now recommend that the API be used when creating tasks in all new development/builds. Keep in mind that there may be some convenience methods added in later versions of Gradle that do not exist in older releases.
 
-[[sec:what_is_new_task_configuration]]
-== What is the new API good for?
+[[sec:how_does_it_work]]
+== How does the configuration avoidance API work?
 
-In a nutshell, the new API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed. https://blog.gradle.org/preview-avoiding-task-configuration-time[This is part of our approach to evolving the Gradle API to reduce configuration time.] We identified task configuration as a contributor to overall configuration time. Configuration time affects every build, so making it faster is good for everyone. For example, if you're only compiling, Gradle doesn't need to also configure code quality, testing and publishing tasks. For tasks that aren't used often by developers, configuration can be expensive (e.g., running `git status` or querying a webservice) and can slow down builds that do not need to execute them. This new API avoids configuring those tasks if they are not needed.
+In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed. https://blog.gradle.org/preview-avoiding-task-configuration-time[This is part of our approach to evolving the Gradle API to reduce configuration time.] We identified task configuration as a contributor to overall configuration time. Configuration time affects every build, so making it faster is good for everyone. For example, if you're only compiling, Gradle doesn't need to also configure code quality, testing and publishing tasks. For tasks that aren't used often by developers, configuration can be expensive (e.g., running `git status` or querying a webservice) and can slow down builds that do not need to execute them. This API avoids configuring those tasks if they are not needed.
 
-This feature is designed to be backwards compatible when mixed with the old and new APIs, so you can gradually migrate your plugins and build scripts to the new API. Instead of immediately creating a task and running all configuration actions, Gradle exposes a link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] to a task. A task will only be created and configured when the task is required. If at any point, a task registered with the new API is accessed through the old API, the task will be created and configured just as if it had been created with the old API.
+In Gradle, you register a task with some variation of link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)]. You can supply a type or use the default task type. You may also provide a configuration action for tinkering with the task's configuration. Instead of returning an task instance, the `register(...)` API returns a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider], which allows you to pass around references to a task or configure it further.
 
-Many built-in Gradle plugins have been converted to use this new API already, so you may see some benefits without changing anything.
-
-[[sec:what_do_we_want]]
-== What do we want you to do?
-
-We've been using this feature in many of the built-in Gradle plugins, internal Gradle projects and the Gradle build itself. Now we would appreciate your help in evaluating it with your builds as well.
-
-We'd like for you to take a few steps:
-
-- Try your build with the latest nightly (see the version number at the top of this page).
-- How many tasks do you see registered with the new API?  See <<#sec:how_do_i_know_its_working,How do I know it's working?>> for how to find this.
-- Which task types are most numerous? Which ones are created with the old API? Which ones are registered with the new API, but have been created/configured anyways?
-- Following <<#sec:task_configuration_avoidance_migration_guidelines,Pitfalls and migration guidelines>>, change your build scripts to use the new API to avoid creating/configuring tasks that are from the built-in Gradle plugins. Is there an impact to the number of tasks that are created?
-- Convert some of your custom plugins/tasks to use the new API.  Is there an impact to the number of tasks using the new API and the number of new API tasks that are created?
-- Run the https://github.com/gradle/gradle-profiler[gradle-profiler] to measure the difference between a build with less task configuration and a build where all tasks are configured. What do you see? Use <<#sec:new_task_gradle_profiler_scenario,the scenario file below>>.
+Gradle will not create or execute any configuration actions for the task unless it's needed. Tasks are considered needed when something requires a Task instance.
 
 [[sec:task_configuration_avoidance_guidelines]]
 == Guidelines
@@ -51,21 +34,23 @@ We'd like for you to take a few steps:
 [[sec:how_do_i_defer_creation]]
 === How do I defer task creation?
 
-This feature requires build authors to opt-in by migrating task creation from the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)] APIs to the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)] APIs. The `register(...)` API registers a task to be created at a later time if and only if the task is needed. The `create(...)` API continues to eagerly create and configure tasks when it is called.
+Effective task configuration avoidance requires build authors to use the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)] APIs to the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)] APIs. 
 
-Using the new creation API may not be enough to avoid all task configuration completely. You may need to change other code that configures tasks by name or by type, as explained in the following sections.
+Older versions of Gradle only support the `create(...)` API. The `create(...)` API eagerly creates and configures tasks when it is called and should be avoided.
+
+Using `register(...)` alone may not be enough to avoid all task configuration completely. You may need to change other code that configures tasks by name or by type, as explained in the following sections.
 
 [[sec:how_do_i_defer_configuration]]
 === How do I defer task configuration?
 
-Existing APIs like link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)] will immediately create and configure any registered tasks. To defer task configuration, you will need to migrate to a new API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
+Eager APIs like link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)] will immediately create and configure any registered tasks. To defer task configuration, you will need to migrate to a configuration avoidance API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
 
 [[sec:how_do_i_reference_a_task]]
 === How do I reference a task without creating/configuring it?
 
 Calling link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] or looking up a task by name with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)] will cause the task to be created and configured. Methods like link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object...)] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy-java.lang.Object++...++-[ConfigurableFileCollection.builtBy(java.lang.Object++...++)] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] in the same way as link:{groovyDslPath}/org.gradle.api.Task.html[Task], so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
 
-If you are configuring a task by name, you will need to use the new API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
+If you are configuring a task by name, you will need to use the configuration avoidance equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
 
 [[sec:how_do_i_get_a_task]]
 === How to get an instance of a Task?
@@ -73,56 +58,6 @@ If you are configuring a task by name, you will need to use the new API equivale
 In the event you still need to get access to a Task instance, you can use link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] and call link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()].  This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
 
 Please https://github.com/gradle/gradle/issues/5664[contact us] if you find tricky build logic that requires you to get a Task instance.
-
-[[sec:how_do_i_know_its_working]]
-=== How do I know if it's working?
-
-We provide a couple of internal flags to print out information after a build.  This will eventually be captured and displayed in an easier to digest form.
-
-.gradle -Dorg.gradle.internal.tasks.stats help
-----
-Task counts: Old API 188, New API 587, total 775 # 1
-Task counts: created 613, avoided 162, %-lazy 21 # 2
-
-Task types that were created with the old API # 3
-class org.gradle.api.DefaultTask 31
-class org.jetbrains.kotlin.gradle.tasks.KotlinCompile 28
-class org.gradle.api.tasks.JavaExec 24
-class org.jlleitschuh.gradle.ktlint.KtlintCheck 24
-class org.gradle.api.tasks.bundling.Jar 16
-class org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors 16
-class org.gradle.plugin.devel.tasks.ValidateTaskProperties 15
-class org.gradle.another.CoolTask 13
-class org.gradle.plugin.devel.tasks.GeneratePluginDescriptors 10
-class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata 10
-class org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema 1
-
-Task types that were registered with the new API but were created anyways # 4
-class org.gradle.api.DefaultTask 142
-class org.gradle.api.tasks.Delete 106
-class org.gradle.api.tasks.compile.JavaCompile 32
-class org.gradle.language.jvm.tasks.ProcessResources 32
-class org.gradle.api.tasks.testing.Test 16
-class org.gradle.api.tasks.javadoc.Javadoc 16
-class org.gradle.plugins.ide.idea.GenerateIdeaModule 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseJdt 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseProject 15
-class org.gradle.api.tasks.compile.GroovyCompile 10
-class org.gradle.api.tasks.javadoc.Groovydoc 5
-class org.gradle.api.plugins.quality.Checkstyle 4
-class org.gradle.api.plugins.quality.CodeNarc 2
-----
-1. 188 tasks are created with the old API and 587 tasks are registered with the new API for a total of 775 tasks.
-2. 613 tasks were created and configured and only 162 tasks were avoided (never created or configured). 21% of all tasks were avoided (higher is better).
-3. Lists of the type of tasks that were created with the old API. This is a good list to work down to increase the amount of possible avoidable task configuration.
-4. Lists of the type of tasks that were created with the new API but were created/configured anyways. This is a good list to work down to increase the amount of task configuration that is avoided.
-
-These statistics are printed out once per build. Projects with buildSrc and composite builds will display this information multiple times. In a build that uses the new APIs perfectly, we should see 0 tasks created with the old API and only 1 created/configured task because we are only executing the `help` task. If you run other tasks (like `build`), you should expect many more tasks to be created and configured.
-
-You can use the list of task types to guide which tasks would provide the biggest bang for your buck when you migrate to the new API.
-
-To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`. Please use the Gradle Profiler to measure your build as described <<#sec:new_task_gradle_profiler_scenario,further on>>.
 
 [[sec:task_configuration_avoidance_migration_guidelines]]
 == Migration Guide
@@ -580,8 +515,60 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 |===
 
+== Digging deeper
+
+[[sec:how_do_i_know_its_working]]
+=== How do I know if it's working?
+
+We provide a couple of internal flags to print out information after a build.  
+
+.gradle -Dorg.gradle.internal.tasks.stats help
+----
+Task counts: Old API 188, New API 587, total 775 # 1
+Task counts: created 613, avoided 162, %-lazy 21 # 2
+
+Task types that were created with the old API # 3
+class org.gradle.api.DefaultTask 31
+class org.jetbrains.kotlin.gradle.tasks.KotlinCompile 28
+class org.gradle.api.tasks.JavaExec 24
+class org.jlleitschuh.gradle.ktlint.KtlintCheck 24
+class org.gradle.api.tasks.bundling.Jar 16
+class org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors 16
+class org.gradle.plugin.devel.tasks.ValidateTaskProperties 15
+class org.gradle.another.CoolTask 13
+class org.gradle.plugin.devel.tasks.GeneratePluginDescriptors 10
+class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata 10
+class org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema 1
+
+Task types that were registered with the new API but were created anyways # 4
+class org.gradle.api.DefaultTask 142
+class org.gradle.api.tasks.Delete 106
+class org.gradle.api.tasks.compile.JavaCompile 32
+class org.gradle.language.jvm.tasks.ProcessResources 32
+class org.gradle.api.tasks.testing.Test 16
+class org.gradle.api.tasks.javadoc.Javadoc 16
+class org.gradle.plugins.ide.idea.GenerateIdeaModule 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseJdt 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseProject 15
+class org.gradle.api.tasks.compile.GroovyCompile 10
+class org.gradle.api.tasks.javadoc.Groovydoc 5
+class org.gradle.api.plugins.quality.Checkstyle 4
+class org.gradle.api.plugins.quality.CodeNarc 2
+----
+1. 188 tasks are created with the old API and 587 tasks are registered with the new API for a total of 775 tasks.
+2. 613 tasks were created and configured and only 162 tasks were avoided (never created or configured). 21% of all tasks were avoided (higher is better).
+3. Lists of the type of tasks that were created with the old API. This is a good list to work down to increase the amount of possible avoidable task configuration.
+4. Lists of the type of tasks that were created with the new API but were created/configured anyways. This is a good list to work down to increase the amount of task configuration that is avoided.
+
+These statistics are printed out once per build. Projects with buildSrc and composite builds will display this information multiple times. In a build that uses the new APIs perfectly, we should see 0 tasks created with the old API and only 1 created/configured task because we are only executing the `help` task. If you run other tasks (like `build`), you should expect many more tasks to be created and configured.
+
+You can use the list of task types to guide which tasks would provide the biggest bang for your buck when you migrate to the new API.
+
+To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`. Please use the Gradle Profiler to measure your build as described <<#sec:new_task_gradle_profiler_scenario,further on>>.
+
 [[sec:new_task_gradle_profiler_scenario]]
-== Profiling with a Gradle Profiler Scenario File
+=== Profiling with a Gradle Profiler Scenario File
 
 The https://github.com/gradle/gradle-profiler[Gradle Profiler] is a tool to measure build times for Gradle builds in a predictable and reproducible manner. The tool automates collecting profiling and benchmark information from a Gradle build and mitigates environmental impacts to measuring build time (like JIT warmups and cached dependencies). Clone and build `gradle-profiler` locally.
 
