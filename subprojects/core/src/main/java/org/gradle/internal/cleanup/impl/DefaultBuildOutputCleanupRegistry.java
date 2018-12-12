@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cleanup;
+package org.gradle.internal.cleanup.impl;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 
 import java.io.File;
 import java.util.LinkedHashSet;

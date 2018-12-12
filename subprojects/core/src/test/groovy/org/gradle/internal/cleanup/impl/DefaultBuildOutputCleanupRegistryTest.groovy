@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cleanup
+package org.gradle.internal.cleanup.impl
 
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
