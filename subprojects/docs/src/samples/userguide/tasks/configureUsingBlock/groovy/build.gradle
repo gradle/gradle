@@ -3,10 +3,9 @@ tasks.register("myCopy", Copy)
 // end::declare-task[]
 
 // tag::configure[]
-// Configure task using Groovy dynamic task configuration block
-tasks.named("myCopy") {
+def myCopy = tasks.named("myCopy") {
    from 'resources'
    into 'target'
 }
-tasks.named("myCopy") { include('**/*.txt', '**/*.xml', '**/*.properties') }
+myCopy.configure { include('**/*.txt', '**/*.xml', '**/*.properties') }
 // end::configure[]
