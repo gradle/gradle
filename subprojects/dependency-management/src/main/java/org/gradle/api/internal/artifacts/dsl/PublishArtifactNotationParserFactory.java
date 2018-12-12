@@ -166,7 +166,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider notation) {
             Module module = metaDataProvider.getModule();
-            Provider<FileSystemLocation> file = notation.map(new Transformer<FileSystemLocation, Object>() {
+            // Don't know what kind of Provider this is
+            // Try to convert it into a FileSystemLocation
+            final Provider<FileSystemLocation> file = notation.map(new Transformer<FileSystemLocation, Object>() {
                 @Override
                 public FileSystemLocation transform(Object value) {
                     if (value instanceof FileSystemLocation) {
@@ -175,7 +177,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                         return new FileSystemLocation() {
                             @Override
                             public File getAsFile() {
-                                return (File)value;
+                                return (File) value;
                             }
                         };
                     } else {
@@ -189,7 +191,6 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                     return new ArtifactFile(value.getAsFile(), module.getVersion());
                 }
             });
-
             DefaultConfigurablePublishArtifact configurablePublishArtifact = objectFactory.newInstance(DefaultConfigurablePublishArtifact.class, objectFactory, taskResolver, file);
             configurablePublishArtifact.getArtifactName().set(artifactFile.map(new Transformer<String, ArtifactFile>() {
                 @Override
@@ -209,6 +210,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                     return GUtil.elvis(artifactFile.getClassifier(), "");
                 }
             }));
+            configurablePublishArtifact.builtBy(notation);
             return configurablePublishArtifact;
         }
     }

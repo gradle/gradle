@@ -24,10 +24,15 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -41,7 +46,10 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final TaskResolver taskResolver = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver)
+    final ObjectFactory objectFactory = new InstantiatorBackedObjectFactory(instantiator)
+    final ProviderFactory providerFactory = new DefaultProviderFactory()
+
+    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver, objectFactory, providerFactory)
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {
@@ -89,12 +97,12 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(file)
 
         then:
-        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact instanceof DefaultConfigurablePublishArtifact
         publishArtifact.file == file
         publishArtifact.name == 'some'
         publishArtifact.type == 'zip'
         publishArtifact.extension == 'zip'
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
 
         when:
         def deps = publishArtifact.buildDependencies
@@ -110,12 +118,12 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(file)
 
         then:
-        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact instanceof DefaultConfigurablePublishArtifact
         publishArtifact.file == file
         publishArtifact.name == 'someFile'
         publishArtifact.type == ''
         publishArtifact.extension == ''
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
     }
 
     def "create artifact from RegularFile"() {
@@ -132,7 +140,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
         publishArtifact.buildDependencies.getDependencies(null).isEmpty()
     }
 
@@ -150,7 +158,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == 'dir'
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
         publishArtifact.buildDependencies.getDependencies(null).isEmpty()
     }
 
@@ -169,7 +177,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
 
         when:
         def deps = publishArtifact.buildDependencies
@@ -197,7 +205,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
 
         when:
         def deps = publishArtifact.buildDependencies
@@ -225,7 +233,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "dir"
-        publishArtifact.classifier == null
+        publishArtifact.classifier == ''
 
         when:
         def deps = publishArtifact.buildDependencies
@@ -257,7 +265,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def publishArtifact = publishArtifactNotationParser.parseNotation(file: file, type: 'someType', builtBy: task)
 
         then:
-        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact instanceof DefaultConfigurablePublishArtifact
         publishArtifact.file == file
         publishArtifact.type == 'someType'
         publishArtifact.name == 'some-file'
