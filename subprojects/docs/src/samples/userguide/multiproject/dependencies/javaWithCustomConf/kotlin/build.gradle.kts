@@ -11,7 +11,7 @@ project(":api") {
     dependencies {
         "implementation"(project(":shared"))
     }
-    task<Jar>("spiJar") {
+    tasks.register<Jar>("spiJar") {
         baseName = "api-spi"
         from(project.the<SourceSetContainer>()["main"].output)
         include("org/gradle/sample/api/**")

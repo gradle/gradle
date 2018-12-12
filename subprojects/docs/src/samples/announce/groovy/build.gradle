@@ -13,14 +13,16 @@ announce {
 
 
 // tag::announce-usage[]
-task helloWorld {
+def helloWorld = tasks.register("helloWorld") {
     doLast {
         println "Hello, world!"
     }
 }
 
-helloWorld.doLast {
-    announce.announce("helloWorld completed!", "twitter")
-    announce.announce("helloWorld completed!", "local")
+helloWorld.configure {
+    doLast {
+        announce.announce("helloWorld completed!", "twitter")
+        announce.announce("helloWorld completed!", "local")
+    }
 }
 // end::announce-usage[]

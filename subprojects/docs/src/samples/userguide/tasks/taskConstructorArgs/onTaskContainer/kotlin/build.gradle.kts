@@ -14,5 +14,5 @@ open class CustomTask @Inject constructor(
 }
 
 // tag::on-task-container[]
-tasks.create<CustomTask>("myTask", "hello", 42)
+tasks.register<CustomTask>("myTask", "hello", 42)
 // end::on-task-container[]

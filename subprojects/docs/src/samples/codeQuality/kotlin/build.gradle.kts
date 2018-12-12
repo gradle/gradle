@@ -45,7 +45,7 @@ dependencies {
 }
 
 // tag::customize-checkstyle-report[]
-tasks.withType<Checkstyle> {
+tasks.withType<Checkstyle>().configureEach {
     reports {
         xml.isEnabled = false
         html.isEnabled = true
@@ -55,7 +55,7 @@ tasks.withType<Checkstyle> {
 // end::customize-checkstyle-report[]
 
 // tag::customize-findbugs-report[]
-tasks.withType<FindBugs> {
+tasks.withType<FindBugs>().configureEach {
     reports {
         xml.isEnabled = false
         html.isEnabled = true

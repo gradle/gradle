@@ -1,4 +1,4 @@
-tasks.create("show") {
+tasks.register("show") {
     doLast {
         val property = objects.property(String::class)
 

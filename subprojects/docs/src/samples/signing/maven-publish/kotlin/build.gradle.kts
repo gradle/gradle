@@ -8,12 +8,12 @@ plugins {
 group = "com.example"
 version = "1.0"
 
-task<Jar>("sourcesJar") {
+tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allJava)
     classifier = "sources"
 }
 
-task<Jar>("javadocJar") {
+tasks.register<Jar>("javadocJar") {
     from(tasks.javadoc)
     classifier = "javadoc"
 }

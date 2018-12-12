@@ -19,7 +19,7 @@ configurations.all {
 }
 // end::changing-module-cache-control[]
 
-task copyLibs(type: Copy) {
+tasks.register("copyLibs", Copy) {
     from configurations.compileClasspath
     into "$buildDir/libs"
 }

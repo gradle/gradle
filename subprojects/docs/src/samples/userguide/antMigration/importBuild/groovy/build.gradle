@@ -22,7 +22,7 @@ sourceSets {
 // end::source-sets[]
 
 // tag::task-dependencies[]
-compileJava.dependsOn 'prepare'  // <1>
-package.dependsOn = [ 'compileJava' ]  // <2>
-assemble.dependsOn = [ 'package' ]  // <3>
+tasks.named("compileJava") { dependsOn 'prepare' }  // <1>
+tasks.named("package") { dependsOn = [ 'compileJava' ] }  // <2>
+tasks.named("assemble") { dependsOn = [ 'package' ] }  // <3>
 // end::task-dependencies[]

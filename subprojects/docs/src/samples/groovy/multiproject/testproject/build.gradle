@@ -20,17 +20,17 @@ sourceSets {
     }
 }
 
-compileGroovy {
+tasks.named("compileGroovy") {
     groovyOptions.fork(memoryMaximumSize: '128M')
 }
 
-jar {
+tasks.named("jar") {
     manifest.attributes(myprop: 'myvalue')
     metaInf {
         from 'src/metaInfFiles'
     }
 }
 
-test {
+tasks.named("test") {
 	systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath
 }

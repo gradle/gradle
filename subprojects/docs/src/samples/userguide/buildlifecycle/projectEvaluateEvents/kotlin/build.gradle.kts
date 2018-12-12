@@ -3,7 +3,7 @@ allprojects {
     afterEvaluate {
         if (extra["hasTests"] as Boolean) {
             println("Adding test task to $project")
-            task("test") {
+            tasks.register("test") {
                 doLast {
                     println("Running tests for $project")
                 }

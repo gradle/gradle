@@ -1,18 +1,18 @@
-val taskX by tasks.creating {
+val taskX by tasks.registering {
     doLast {
         println("taskX")
     }
 }
-val taskY by tasks.creating {
+val taskY by tasks.registering {
     doLast {
         println("taskY")
     }
 }
-val taskZ by tasks.creating {
+val taskZ by tasks.registering {
     doLast {
         println("taskZ")
     }
 }
-taskX.dependsOn(taskY)
-taskY.dependsOn(taskZ)
-taskZ.shouldRunAfter(taskX)
+taskX { dependsOn(taskY) }
+taskY { dependsOn(taskZ) }
+taskZ { shouldRunAfter(taskX) }

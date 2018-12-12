@@ -7,7 +7,7 @@ dependencies {
     }
 }
 
-task testDeps {
+tasks.register("testDeps") {
     doLast {
         Assert.assertEquals(['commons-lang-2.4.jar', 'commons-io-1.2.jar'] as Set,
                 configurations.runtime.collect { it.name } as Set)

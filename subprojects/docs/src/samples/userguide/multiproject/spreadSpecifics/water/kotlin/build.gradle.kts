@@ -1,12 +1,12 @@
 allprojects {
-    task("hello") {
+    tasks.register("hello") {
         doLast {
             println("I'm ${this.project.name}")
         }
     }
 }
 subprojects {
-    tasks.getByName("hello") {
+    tasks.named("hello") {
         doLast {
             println("- I depend on water")
         }

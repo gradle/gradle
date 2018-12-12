@@ -1,11 +1,11 @@
-task taskX {
+tasks.register("taskX") {
     doLast {
         println 'taskX'
     }
 }
-task taskY {
+tasks.register("taskY") {
     doLast {
         println 'taskY'
     }
 }
-taskY.mustRunAfter taskX
+tasks.named("taskY") { mustRunAfter taskX }

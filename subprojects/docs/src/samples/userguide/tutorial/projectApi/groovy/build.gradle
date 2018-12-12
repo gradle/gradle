@@ -3,7 +3,7 @@ println name
 println project.name
 // end::project-name[]
 
-task check {
+tasks.register("check") {
     doLast {
     }
 }

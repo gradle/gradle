@@ -13,7 +13,7 @@ dependencies {
     implementation("com.google.guava:guava:18.0")
 }
 
-task("printGuavaMetadata") {
+tasks.register("printGuavaMetadata") {
     dependsOn(configurations.compileClasspath)
 
     doLast {

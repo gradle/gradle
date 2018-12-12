@@ -1,5 +1,5 @@
 // tag::declare-inputs-and-outputs[]
-task transform {
+tasks.register("transform") {
     ext.srcFile = file('mountains.xml')
     ext.destDir = new File(buildDir, 'generated')
     inputs.file srcFile

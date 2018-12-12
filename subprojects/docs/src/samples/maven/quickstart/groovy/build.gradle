@@ -12,7 +12,7 @@ version = '1.0'
 
 // Configure the repository
 
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
         mavenDeployer {
             repository(url: uri("pomRepo"))

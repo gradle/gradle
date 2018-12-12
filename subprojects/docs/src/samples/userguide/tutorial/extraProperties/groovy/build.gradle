@@ -5,11 +5,11 @@ plugins {
 // end::extraProperties[]
 
 // tag::taskProperties[]
-task myTask {
+tasks.register("myTask") {
     ext.myProperty = "myValue"
 }
 
-task printTaskProperties {
+tasks.register("printTaskProperties") {
     doLast {
         println myTask.myProperty
     }
@@ -37,7 +37,7 @@ sourceSets {
     }
 }
 
-task printProperties {
+tasks.register("printProperties") {
     doLast {
         println springVersion
         println emailNotification

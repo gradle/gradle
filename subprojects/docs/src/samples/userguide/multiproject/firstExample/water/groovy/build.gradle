@@ -1,5 +1,5 @@
 Closure cl = { task -> println "I'm $task.project.name" }
-task('hello').doLast(cl)
+tasks.register('hello') { doLast(cl) }
 project(':bluewhale') {
-    task('hello').doLast(cl)
+    tasks.register('hello') { doLast(cl) }
 }

@@ -14,7 +14,7 @@ dependencies {
 }
 // end::transitive-per-dependency[]
 
-task copyLibs(type: Copy) {
+tasks.register("copyLibs", Copy) {
     from configurations.compileClasspath
     into "$buildDir/libs"
 }

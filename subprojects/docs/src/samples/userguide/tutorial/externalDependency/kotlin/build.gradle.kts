@@ -12,7 +12,7 @@ buildscript {
 }
 // end::declare-classpath[]
 
-task("encode") {
+tasks.register("encode") {
     doLast {
         val encodedString = Base64().encode("hello world\n".toByteArray())
         println(String(encodedString))

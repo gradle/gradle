@@ -8,14 +8,14 @@ plugins {
 // end::zip[]
 
 // tag::unpack-archive-example[]
-task<Copy>("unpackFiles") {
+tasks.register<Copy>("unpackFiles") {
     from(zipTree("src/resources/thirdPartyResources.zip"))
     into("$buildDir/resources")
 }
 // end::unpack-archive-example[]
 
 // tag::zip[]
-task<Zip>("zip") {
+tasks.register<Zip>("zip") {
     from("src/dist")
     into("libs") {
         from(configurations.runtime)
@@ -24,7 +24,7 @@ task<Zip>("zip") {
 // end::zip[]
 
 // tag::tar[]
-task<Tar>("tar") {
+tasks.register<Tar>("tar") {
     from("src/dist")
     into("libs") {
         from(configurations.runtime)
@@ -35,7 +35,7 @@ task<Tar>("tar") {
 // TODO why can't we use properties instead of setters here?
 // when using them, we get "Cannot access 'preserveFileTimestamps': it is private in 'AbstractArchiveTask'"
 // tag::reproducible[]
-tasks.withType<AbstractArchiveTask>() {
+tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }

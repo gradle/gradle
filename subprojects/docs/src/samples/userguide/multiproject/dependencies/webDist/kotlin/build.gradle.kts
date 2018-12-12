@@ -14,7 +14,7 @@ subprojects {
     }
 }
 
-task<Copy>("explodedDist") {
+tasks.register<Copy>("explodedDist") {
     into("$buildDir/explodedDist")
     subprojects {
         from(tasks.withType<War>())

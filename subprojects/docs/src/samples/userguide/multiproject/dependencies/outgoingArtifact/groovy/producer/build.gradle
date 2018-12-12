@@ -1,4 +1,4 @@
-task buildInfo(type: BuildInfo) {
+tasks.register("buildInfo", BuildInfo) {
     version = project.version
     outputFile = file("$buildDir/generated-resources/build-info.properties")
 }

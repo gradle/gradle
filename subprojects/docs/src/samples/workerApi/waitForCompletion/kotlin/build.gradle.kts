@@ -33,7 +33,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     }
 }
 
-task<ReverseFiles>("reverseFiles") {
+tasks.register<ReverseFiles>("reverseFiles") {
     outputDir = file("$buildDir/reversed")
     source("sources")
 }
