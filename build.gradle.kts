@@ -31,13 +31,6 @@ project(":plugins") {
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.15" }
-val futurePluginsExperimentsVersion = "0.1.16"
-project(":plugins-experiments") {
-    group = "org.gradle.kotlin"
-    version = futurePluginsExperimentsVersion
-}
-
 // --- Configure publications ------------------------------------------
 val distributionProjects =
     listOf(
