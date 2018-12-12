@@ -16,12 +16,12 @@
 
 package org.gradle.internal.execution.impl.steps;
 
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ExecuteStep implements Step<Context, Result> {
@@ -46,14 +46,8 @@ public class ExecuteStep implements Step<Context, Result> {
         ExecutionOutcome outcome = work.execute();
         return new Result() {
             @Override
-            public ExecutionOutcome getOutcome() {
-                return outcome;
-            }
-
-            @Nullable
-            @Override
-            public Throwable getFailure() {
-                return null;
+            public Try<ExecutionOutcome> getOutcome() {
+                return Try.successful(outcome);
             }
         };
     }

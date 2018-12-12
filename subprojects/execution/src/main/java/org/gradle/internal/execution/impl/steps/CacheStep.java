@@ -23,6 +23,7 @@ import org.gradle.caching.internal.command.BuildCacheLoadListener;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
@@ -59,8 +60,8 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
             .load(cacheKey -> load(context.getWork(), cacheKey))
             .map(loadResult -> (CurrentSnapshotResult) new CurrentSnapshotResult() {
                 @Override
-                public ExecutionOutcome getOutcome() {
-                    return ExecutionOutcome.FROM_CACHE;
+                public Try<ExecutionOutcome> getOutcome() {
+                    return Try.successful(ExecutionOutcome.FROM_CACHE);
                 }
 
                 @Override
@@ -72,20 +73,13 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
                 public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
                     return loadResult.getResultingSnapshots();
                 }
-
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return null;
-                }
             })
             .orElseGet(() -> {
                 CurrentSnapshotResult executionResult = executeWithoutCache(context);
-                if (executionResult.getFailure() == null) {
-                    context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult));
-                } else {
-                    LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName());
-                }
+                executionResult.getOutcome().ifSuccessfulOrElse(
+                    outcome -> context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
+                    failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
+                );
                 return executionResult;
             });
     }

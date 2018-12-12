@@ -164,15 +164,14 @@ class IncrementalExecutionTest extends Specification {
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id
         afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
     }
 
     def "work unit is up-to-date if nothing changes"() {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        !result.failure
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         def origin = result.originMetadata.buildInvocationId
         def finalOutputs = result.finalOutputs
 
@@ -191,8 +190,8 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        !result.failure
+        result.outcome.successful
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         def origin = result.originMetadata.buildInvocationId
 
         when:
@@ -208,8 +207,7 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(builder.withWork { -> throw new RuntimeException() }.build())
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure
+        !result.outcome.successful
         def origin = result.originMetadata.buildInvocationId
 
         when:
@@ -224,7 +222,7 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["No history is available."]
     }
 
@@ -232,13 +230,13 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputFile.delete()
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["Output property 'file' file ${outputFile.absolutePath} has been removed."]
     }
 
@@ -246,13 +244,13 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputDirFile.delete()
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has been removed."]
     }
 
@@ -260,14 +258,14 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputFile.delete()
         outputFile.createDir()
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.failure.get().message == "Execution failed for Test unit of work."
         result.outOfDateReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
 
@@ -275,14 +273,14 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputDirFile.delete()
         outputDirFile.createDir()
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.failure.get().message == "Execution failed for Test unit of work."
         result.outOfDateReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
 
@@ -290,13 +288,13 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputFile << "new content"
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
 
@@ -304,13 +302,13 @@ class IncrementalExecutionTest extends Specification {
         when:
         def result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         when:
         outputDirFile << "new content"
         result = execute(unitOfWork)
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
 
@@ -330,7 +328,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(outputFilesRemovedUnitOfWork)
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED
         result.outOfDateReasons == ["Output property 'file' has been removed for ${outputFilesRemovedUnitOfWork.displayName}"]
     }
 
@@ -581,15 +579,14 @@ class IncrementalExecutionTest extends Specification {
 
     UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
-        assert result.outcome == ExecutionOutcome.EXECUTED
+        assert result.outcome.get() == ExecutionOutcome.EXECUTED
         assert result.outOfDateReasons == expectedReasons
         return result
     }
 
     UpToDateResult upToDate(UnitOfWork unitOfWork) {
         def result = execute(unitOfWork)
-        assert result.outcome == ExecutionOutcome.UP_TO_DATE
-        assert result.failure == null
+        assert result.outcome.get() == ExecutionOutcome.UP_TO_DATE
         return result
     }
 

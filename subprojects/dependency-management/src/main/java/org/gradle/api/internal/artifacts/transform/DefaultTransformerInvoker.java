@@ -272,8 +272,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
-            return outcome.getFailure() == null ? Try.successful(loadResultsFile()) : Try.failure(outcome.getFailure());
+        private Try<ImmutableList<File>> getResult(UpToDateResult result) {
+            return result.getOutcome()
+                .map(outcome -> loadResultsFile());
         }
 
         private ImmutableList<File> loadResultsFile() {

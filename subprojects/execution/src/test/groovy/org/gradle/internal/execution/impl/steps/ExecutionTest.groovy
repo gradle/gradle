@@ -51,8 +51,7 @@ class ExecutionTest extends Specification {
 
         then:
         unitOfWork.executed
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure == null
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _
@@ -67,7 +66,7 @@ class ExecutionTest extends Specification {
         }
 
         then:
-        result.outcome == ExecutionOutcome.UP_TO_DATE
+        result.outcome.get() == ExecutionOutcome.UP_TO_DATE
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _
@@ -83,10 +82,9 @@ class ExecutionTest extends Specification {
         def result = executionStep.execute { -> unitOfWork }
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure instanceof ExecutionException
-        result.failure.cause == failure
-        result.failure.message.contains(unitOfWork.displayName)
+        result.outcome.failure.get() instanceof ExecutionException
+        result.outcome.failure.get().cause == failure
+        result.outcome.failure.get().message.contains(unitOfWork.displayName)
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _
@@ -100,8 +98,7 @@ class ExecutionTest extends Specification {
         def result = executionStep.execute { -> unitOfWork }
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure == null
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
@@ -115,9 +112,8 @@ class ExecutionTest extends Specification {
         def result = executionStep.execute { -> unitOfWork }
 
         then:
-        result.outcome == ExecutionOutcome.EXECUTED
-        result.failure instanceof ExecutionException
-        result.failure.cause instanceof BuildCancelledException
+        result.outcome.failure.get() instanceof ExecutionException
+        result.outcome.failure.get().cause instanceof BuildCancelledException
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _

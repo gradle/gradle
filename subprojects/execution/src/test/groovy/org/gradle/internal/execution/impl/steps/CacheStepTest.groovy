@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.origin.OriginMetadata
+import org.gradle.internal.Try
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
@@ -58,8 +59,7 @@ class CacheStepTest extends Specification {
         def originMetadata = result.originMetadata
         def finalOutputs = result.finalOutputs
         then:
-        result.outcome == ExecutionOutcome.FROM_CACHE
-        result.failure == null
+        result.outcome.get() == ExecutionOutcome.FROM_CACHE
         originMetadata == cachedOriginMetadata
         finalOutputs == outputsFromCache
 
@@ -73,8 +73,7 @@ class CacheStepTest extends Specification {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
-            final ExecutionOutcome outcome = ExecutionOutcome.EXECUTED
-            final Throwable failure = null
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
         }
 
         when:
@@ -93,8 +92,7 @@ class CacheStepTest extends Specification {
         def failedResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
-            final ExecutionOutcome outcome = ExecutionOutcome.EXECUTED
-            final Throwable failure = new RuntimeException("failed")
+            final Try<ExecutionOutcome> outcome = Try.failure(new RuntimeException("failed"))
         }
 
         when:

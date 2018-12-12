@@ -87,17 +87,24 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
         final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
-        Throwable failure = result.getFailure();
-        if (failure != null) {
-            TaskExecutionException taskFailure = (failure instanceof ExecutionException)
-                    ? new TaskExecutionException(task, failure.getCause())
-                    : new TaskExecutionException(task, failure);
-            state.setOutcome(taskFailure);
-        } else {
-            state.setOutcome(TaskExecutionOutcome.valueOf(result.getOutcome()));
-        }
+        result.getOutcome().ifSuccessfulOrElse(
+            new Consumer<ExecutionOutcome>() {
+                @Override
+                public void accept(ExecutionOutcome outcome) {
+                    state.setOutcome(TaskExecutionOutcome.valueOf(outcome));
+                }
+            },
+            new Consumer<Throwable>() {
+                @Override
+                public void accept(Throwable failure) {
+                    state.setOutcome(failure instanceof ExecutionException
+                        ? new TaskExecutionException(task, failure.getCause())
+                        : new TaskExecutionException(task, failure));
+                }
+            }
+        );
         context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
