@@ -280,7 +280,7 @@ class Main {
 
         then:
         succeeds("compileJava")
-        javaClassFile('Java$$Generated.java').exists()
+        javaGeneratedSourceFile('Java$$Generated.java').exists()
     }
 
     def writeAnnotationProcessorProject() {

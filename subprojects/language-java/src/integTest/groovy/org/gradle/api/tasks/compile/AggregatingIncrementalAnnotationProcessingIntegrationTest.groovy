@@ -150,14 +150,14 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/ServiceRegistry.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         when:
         a.delete()
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/ServiceRegistry.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
     }
 
     def "generated files and classes are deleted when processor is removed"() {
@@ -168,14 +168,14 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/ServiceRegistry.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/ServiceRegistry.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         and:
         outputs.deletedClasses("ServiceRegistry")
@@ -253,7 +253,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     private boolean serviceRegistryReferences(String... services) {
-        def registry = file("build/classes/java/main/ServiceRegistry.java").text
+        def registry = file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").text
         services.every() {
             registry.contains("get$it")
         }

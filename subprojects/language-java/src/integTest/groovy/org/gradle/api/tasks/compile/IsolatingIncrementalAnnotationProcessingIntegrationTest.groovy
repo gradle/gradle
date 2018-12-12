@@ -125,14 +125,14 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         when:
         a.delete()
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
     }
 
     def "generated files and classes are deleted when processor is removed"() {
@@ -143,14 +143,14 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         and:
         outputs.deletedClasses("AHelper")
@@ -202,7 +202,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         when:
-        file("build/classes/java/main/AHelper.java").delete()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").delete()
         run "compileJava"
 
         then:

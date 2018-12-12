@@ -176,7 +176,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getCompileClasspath();
                     }
                 });
-                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
+                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
                 compileTask.setDestinationDir(target.provider(new Callable<File>() {
                     @Override
                     public File call() {
