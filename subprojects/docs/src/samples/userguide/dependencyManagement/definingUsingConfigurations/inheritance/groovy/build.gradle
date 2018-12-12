@@ -17,7 +17,7 @@ dependencies {
 }
 // end::configuration-definition[]
 
-task copyLibs(type: Copy) {
+tasks.register("copyLibs", Copy) {
     from configurations.smokeTest
     into "$buildDir/libs"
 }

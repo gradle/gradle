@@ -2,7 +2,8 @@ buildscript {
   repositories.mavenCentral()
   dependencies.classpath 'junit:junit:4.+'
 }
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
 
 apply plugin: 'java'
 repositories.mavenCentral()
@@ -42,17 +43,19 @@ class MyListener implements org.gradle.api.tasks.testing.TestListener
 gradle.addListener(new MyListener(events: events))
 // end::testListenerRegister[]
 
-test.doLast {
-    def expectedEvents = []
-    expectedEvents << 'suiteStarting: DoNothingTest'
-    expectedEvents << 'testStarting: doNothing(DoNothingTest)'
-    expectedEvents << 'testFinished: doNothing(DoNothingTest), result: SUCCESS'
-    expectedEvents << 'testStarting: doNothingButFail(DoNothingTest)'
-    expectedEvents << 'testFinished: doNothingButFail(DoNothingTest), result: FAILURE'
-    expectedEvents << 'testStarting: doNothingButError(DoNothingTest)'
-    expectedEvents << 'testFinished: doNothingButError(DoNothingTest), result: FAILURE'
-    expectedEvents << 'suiteFinished: DoNothingTest'
+tasks.named("test") {
+    doLast {
+        def expectedEvents = []
+        expectedEvents << 'suiteStarting: DoNothingTest'
+        expectedEvents << 'testStarting: doNothing(DoNothingTest)'
+        expectedEvents << 'testFinished: doNothing(DoNothingTest), result: SUCCESS'
+        expectedEvents << 'testStarting: doNothingButFail(DoNothingTest)'
+        expectedEvents << 'testFinished: doNothingButFail(DoNothingTest), result: FAILURE'
+        expectedEvents << 'testStarting: doNothingButError(DoNothingTest)'
+        expectedEvents << 'testFinished: doNothingButError(DoNothingTest), result: FAILURE'
+        expectedEvents << 'suiteFinished: DoNothingTest'
 
-    assertEquals(expectedEvents, events)
+        assertEquals(expectedEvents, events)
+    }
 }
 

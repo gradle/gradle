@@ -1,6 +1,6 @@
 // tag::all[]
 // tag::no-description[]
-task<Copy>("copy") {
+tasks.register<Copy>("copy") {
 // end::no-description[]
    description = "Copies the resource directory to the target directory."
 // tag::no-description[]

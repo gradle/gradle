@@ -7,6 +7,6 @@ dependencies {
     annotationProcessor project(":processor")
 }
 
-compileJava {
+tasks.named("compileJava") {
     options.incremental = true
 }

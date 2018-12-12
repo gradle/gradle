@@ -18,7 +18,7 @@ dependencies {
 }
 // end::dependencies-without-version[]
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

@@ -1,4 +1,4 @@
-task("originalInputs") {
+tasks.register("originalInputs") {
     doLast {
         file("inputs").mkdir()
         file("inputs/1.txt").writeText("Content for file 1.")
@@ -8,7 +8,7 @@ task("originalInputs") {
 }
 
 // tag::updated-inputs[]
-task("updateInputs") {
+tasks.register("updateInputs") {
     doLast {
         file("inputs/1.txt").writeText("Changed content for existing file 1.")
         file("inputs/4.txt").writeText("Content for new file 4.")
@@ -17,7 +17,7 @@ task("updateInputs") {
 // end::updated-inputs[]
 
 // tag::removed-input[]
-task("removeInput") {
+tasks.register("removeInput") {
     doLast {
         file("inputs/3.txt").delete()
     }
@@ -25,7 +25,7 @@ task("removeInput") {
 // end::removed-input[]
 
 // tag::removed-output[]
-task("removeOutput") {
+tasks.register("removeOutput") {
     doLast {
         file("$buildDir/outputs/1.txt").delete()
     }
@@ -33,7 +33,7 @@ task("removeOutput") {
 // end::removed-output[]
 
 // tag::reverse[]
-task<IncrementalReverseTask>("incrementalReverse") {
+tasks.register<IncrementalReverseTask>("incrementalReverse") {
     inputDir = file("inputs")
     outputDir = file("$buildDir/outputs")
     inputProperty = project.properties["taskInputProperty"] as String? ?: "original"

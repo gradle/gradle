@@ -12,7 +12,7 @@ dependencies {
 }
 
 // tag::iteration-task[]
-task iterateDeclaredDependencies {
+tasks.register("iterateDeclaredDependencies") {
     doLast {
         DependencySet dependencySet = configurations.scm.dependencies
 

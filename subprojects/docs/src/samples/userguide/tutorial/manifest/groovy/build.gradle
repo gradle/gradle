@@ -4,7 +4,7 @@ plugins {
 version = '1.0'
 
 // tag::add-to-manifest[]
-jar {
+tasks.named("jar") {
     manifest {
         attributes("Implementation-Title": "Gradle",
                    "Implementation-Version": version)
@@ -17,7 +17,7 @@ ext.sharedManifest = manifest {
     attributes("Implementation-Title": "Gradle",
                "Implementation-Version": version)
 }
-task fooJar(type: Jar) {
+tasks.register("fooJar", Jar) {
     manifest = project.manifest {
         from sharedManifest
     }
@@ -25,7 +25,7 @@ task fooJar(type: Jar) {
 // end::custom-manifest[]
 
 // tag::merge[]
-task barJar(type: Jar) {
+tasks.register("barJar", Jar) {
     manifest {
         attributes key1: 'value1'
         from sharedManifest, 'src/config/basemanifest.txt'
@@ -44,5 +44,5 @@ task barJar(type: Jar) {
 // end::merge[]
 
 // tag::write[]
-jar.manifest.writeTo("$buildDir/mymanifest.mf")
+tasks.named("jar") { manifest.writeTo("$buildDir/mymanifest.mf") }
 // end::write[]

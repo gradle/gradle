@@ -1,1 +1,1 @@
-task<UrlProcess>("processUrl")
+tasks.register<UrlProcess>("processUrl")

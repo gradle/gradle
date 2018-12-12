@@ -11,7 +11,7 @@ project(':api') {
     dependencies {
         compile project(':shared')
     }
-    task spiJar(type: Jar) {
+    tasks.register("spiJar", Jar) {
         baseName = 'api-spi'
         from sourceSets.main.output
         include('org/gradle/sample/api/**')

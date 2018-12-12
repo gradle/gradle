@@ -19,7 +19,7 @@ dependencies {
 
 // tag::retrieve-deps[]
 tasks {
-    create<Copy>("retrieveRuntimeDependencies") {
+    register<Copy>("retrieveRuntimeDependencies") {
         into("$buildDir/libs")
         from(configurations.runtimeClasspath)
     }
@@ -30,13 +30,13 @@ tasks {
 val tmpDistDir by extra { file("$buildDir/dist") }
 
 tasks {
-    create<Jar>("javadocJar") {
+    register<Jar>("javadocJar") {
         from(javadoc)  // <1>
         classifier = "javadoc"
     }
 
-    create<Copy>("unpackJavadocs") {
-        from(zipTree(getByName<Jar>("javadocJar").archivePath))  // <2>
+    register<Copy>("unpackJavadocs") {
+        from(zipTree(named<Jar>("javadocJar").get().archivePath))  // <2>
         into(tmpDistDir)  // <3>
     }
 }

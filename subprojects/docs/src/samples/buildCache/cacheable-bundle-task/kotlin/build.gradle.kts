@@ -47,11 +47,11 @@ open class BundleTask : NpmTask() {
     }
 }
 
-val bundle by tasks.creating(BundleTask::class)
+tasks.register<BundleTask>("bundle")
 // end::bundle-task[]
 
-task("printBundle") {
-    dependsOn(bundle)
+tasks.register("printBundle") {
+    dependsOn("bundle")
     doLast {
         println(file("$buildDir/bundle.js").readText())
     }

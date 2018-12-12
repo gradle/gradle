@@ -55,7 +55,7 @@ dependencies {
     libs("com.google.guava:guava:23.0")
 }
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(libs)
     into("$buildDir/libs")
 }

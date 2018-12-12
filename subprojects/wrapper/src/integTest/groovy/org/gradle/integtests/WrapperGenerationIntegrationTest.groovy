@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 
+import static org.gradle.internal.hash.HashUtil.sha256
+
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -61,12 +63,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "generated wrapper files are reproducible"() {
-
         when:
         executer.inDirectory(file("first")).withTasks("wrapper").run()
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
-        then:
+        then: "the checksum should be constant (unless there are code changes)"
+        sha256(file("first/gradle/wrapper/gradle-wrapper.jar")).asHexString() == "353aba77db94b53b3a6a72980246e23197af3e62549942aee91657c3878fdf42"
+
+        and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
         file("first/gradle/wrapper/gradle-wrapper.properties").md5Hash == file("second/gradle/wrapper/gradle-wrapper.properties").md5Hash
         file("first/gradlew").md5Hash == file("second/gradlew").md5Hash

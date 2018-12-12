@@ -2,7 +2,7 @@
 apply(plugin = "java")
 
 
-task("show") {
+tasks.register("show") {
     doLast {
         println(relativePath(tasks.getByName<JavaCompile>("compileJava").destinationDir))
         println(relativePath(tasks.getByName<ProcessResources>("processResources").destinationDir))

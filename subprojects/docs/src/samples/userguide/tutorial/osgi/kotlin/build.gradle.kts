@@ -4,7 +4,7 @@ plugins {
 }
 
 // tag::configure-jar[]
-tasks.withType<Jar> {
+tasks.withType<Jar>().configureEach {
     manifest {
         // the manifest of the default jar is of type OsgiManifest
         (manifest as? OsgiManifest)?.apply {
@@ -18,7 +18,7 @@ tasks.withType<Jar> {
         }
     }
 }
-task<Jar>("fooJar") {
+tasks.register<Jar>("fooJar") {
     manifest = osgi.osgiManifest {
         instruction("Bundle-Vendor", "MyCompany")
     }

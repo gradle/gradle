@@ -19,7 +19,7 @@ dependencies {
     "config2"("org.sample:client:latest.release")
 }
 
-task("listConfigs") {
+tasks.register("listConfigs") {
     doLast {
         configurations["config1"].forEach { println(it.name) }
         println()
@@ -46,7 +46,7 @@ dependencies {
 }
 // end::custom-status-scheme[]
 
-task("listApi") {
+tasks.register("listApi") {
     doLast {
         configurations["config3"].forEach { println("Resolved: ${it.name}") }
     }
@@ -67,7 +67,7 @@ dependencies {
 }
 // end::custom-status-scheme-module[]
 
-task("listLib") {
+tasks.register("listLib") {
     doLast {
         configurations["config4"].forEach { println("Resolved: ${it.name}") }
     }
@@ -90,7 +90,7 @@ dependencies {
 }
 // end::ivy-component-metadata-rule[]
 
-task("listWithIvyRule") {
+tasks.register("listWithIvyRule") {
     doLast {
         configurations["config5"].forEach { println("Resolved: ${it.name}") }
     }
@@ -115,7 +115,7 @@ dependencies {
 
 // end::config-component-metadata-rule[]
 
-task("listWithConfiguredRule") {
+tasks.register("listWithConfiguredRule") {
     doLast {
         configurations["config6"].forEach { println("Resolved: ${it.name}") }
     }

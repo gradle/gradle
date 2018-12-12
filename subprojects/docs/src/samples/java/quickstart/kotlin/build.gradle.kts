@@ -54,7 +54,7 @@ tasks.test {
 // end::task-customization[]
 
 // tag::upload[]
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         flatDir {
             dirs("repos")

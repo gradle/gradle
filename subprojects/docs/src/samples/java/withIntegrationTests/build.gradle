@@ -20,7 +20,8 @@ dependencies {
     integrationTestRuntime configurations.testRuntime
 }
 
-task integrationTest(type: Test, dependsOn: jar) {
+tasks.register("integrationTest", Test) {
+    dependsOn jar
     group 'Verification'
     description 'Runs the integration tests.'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -28,4 +29,6 @@ task integrationTest(type: Test, dependsOn: jar) {
     systemProperties['jar.path'] = jar.archivePath
 }
 
-check.dependsOn integrationTest
+tasks.named("check").configure {
+    dependsOn integrationTest
+}

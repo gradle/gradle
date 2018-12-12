@@ -1,12 +1,12 @@
 allprojects {
-    task hello {
+    tasks.register("hello") {
         doLast { task ->
             println "I'm $task.project.name"
         }
     }
 }
 subprojects {
-    hello {
+    tasks.named("hello") {
         doLast {println "- I depend on water"}
         afterEvaluate { Project project ->
             if (project.arctic) {

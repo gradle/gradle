@@ -13,7 +13,7 @@ dependencies {
     implementation("commons-io:commons-io:2.6")
 }
 
-task<Jar>("uberJar") {
+tasks.register<Jar>("uberJar") {
     appendix = "uber"
 
     from(sourceSets.main.get().output)

@@ -24,7 +24,7 @@ apply plugin: 'java'
 // tag::complete-example[]
 // tag::customization[]
 version = '1.0'
-jar {
+tasks.named("jar") {
     manifest {
         attributes 'Implementation-Title': 'Gradle Quickstart',
                    'Implementation-Version': version
@@ -46,13 +46,13 @@ dependencies {
 // end::dependencies[]
 
 // tag::task-customization[]
-test {
+tasks.named("test") {
     systemProperties 'property': 'value'
 }
 // end::task-customization[]
 
 // tag::upload[]
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
        flatDir {
            dirs 'repos'

@@ -29,28 +29,28 @@ fun javaExecutable(execName: String): String {
     require(executable.exists()) { "There is no ${execName} executable in ${javaExecutablesPath}" }
     return executable.toString()
 }
-tasks.withType<JavaCompile> {
+tasks.withType<JavaCompile>().configureEach {
     options.apply {
         isFork = true
         forkOptions.javaHome = file(javaHome)
     }
 }
-tasks.withType<Javadoc> {
+tasks.withType<Javadoc>().configureEach {
     executable = javaExecutable("javadoc")
 }
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     executable = javaExecutable("java")
 }
-tasks.withType<JavaExec> {
+tasks.withType<JavaExec>().configureEach {
     executable = javaExecutable("java")
 }
 // end::java-cross-compilation[]
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     systemProperty("targetJavaVersion", targetJavaVersion)
 }
 
-task("checkJavadocOutput") {
+tasks.register("checkJavadocOutput") {
     dependsOn(tasks.javadoc)
     doLast {
         require(File(the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))

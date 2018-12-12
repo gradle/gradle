@@ -1,4 +1,4 @@
-task hello {
+tasks.register("hello") {
     doLast {
         ant.echo('hello from Ant')
     }

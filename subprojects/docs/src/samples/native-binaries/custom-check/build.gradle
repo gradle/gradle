@@ -19,7 +19,7 @@ apply plugin: "cpp"
 // You don't need to apply the plugin below if you're already using CUnit or GoogleTest support
 apply plugin: TestingModelBasePlugin
 
-task myCustomCheck {
+tasks.register("myCustomCheck") {
     doLast {
         println 'Executing my custom check'
     }

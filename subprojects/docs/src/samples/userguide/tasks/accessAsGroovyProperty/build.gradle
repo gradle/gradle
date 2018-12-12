@@ -1,5 +1,5 @@
-task hello
-task copy(type: Copy)
+tasks.register("hello")
+tasks.register("copy", Copy)
 
 // Access tasks using Groovy dynamic properties on Project
 

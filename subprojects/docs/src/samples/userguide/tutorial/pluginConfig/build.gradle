@@ -1,8 +1,8 @@
 apply plugin: 'java'
 
-compileJava.destinationDir = file("$buildDir/output/classes")
+tasks.named("compileJava") { destinationDir = file("$buildDir/output/classes") }
 
-task show {
+tasks.register("show") {
     doLast {
         println relativePath(compileJava.destinationDir)
     }

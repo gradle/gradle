@@ -160,7 +160,7 @@ tasks.register("verificationTask") { verificationTask ->
 =====
 [source,kotlin]
 ----
-val check = tasks by registering
+val check by tasks.registering
 tasks.register("verificationTask") {
     // Configure verificationTask
 
@@ -194,8 +194,8 @@ check.configure {
 =====
 [source,kotlin]
 ----
-val check = tasks by registering
-val verificationTask = tasks by registering {
+val check by tasks.registering
+val verificationTask by tasks.registering {
     // Configure verificationTask
 }
 check {
@@ -392,7 +392,7 @@ task anEagerTask {
 =====
 [source,kotlin]
 ----
-val someTask = tasks by registering
+val someTask by tasks.registering
 
 task("anEagerTask") {
     dependsOn(someTask)

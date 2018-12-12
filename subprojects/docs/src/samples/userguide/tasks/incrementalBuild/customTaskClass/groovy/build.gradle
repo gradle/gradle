@@ -4,7 +4,7 @@ plugins {
     id 'base'
 }
 
-task processTemplates(type: ProcessTemplates) {
+tasks.register("processTemplates", ProcessTemplates) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
     templateData = new TemplateData("test", [year: 2012])
@@ -12,7 +12,7 @@ task processTemplates(type: ProcessTemplates) {
 }
 
 // tag::ad-hoc-task[]
-task processTemplatesAdHoc {
+tasks.register("processTemplatesAdHoc") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.files(fileTree("src/templates"))
     inputs.property("templateData.name", "docs")
@@ -34,7 +34,7 @@ task processTemplatesAdHoc {
 // end::ad-hoc-task[]
 
 // tag::custom-class-runtime-api[]
-task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
+tasks.register("processTemplatesRuntime", ProcessTemplatesNoAnnotations) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
     templateData = new TemplateData("test", [year: 2014])
@@ -49,7 +49,7 @@ task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
 // end::custom-class-runtime-api[]
 
 // tag::runtime-api-conf[]
-task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
+tasks.register("processTemplatesRuntimeConf", ProcessTemplatesNoAnnotations) {
     // ...
 // end::runtime-api-conf[]
     templateEngine = TemplateEngineType.FREEMARKER
@@ -72,20 +72,20 @@ task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
 // end::runtime-api-conf[]
 
 // tag::inferred-task-dep-via-outputs[]
-task packageFiles(type: Zip) {
+tasks.register("packageFiles", Zip) {
     from processTemplates.outputs
 }
 // end::inferred-task-dep-via-outputs[]
 
 // tag::inferred-task-dep-via-task[]
-task packageFiles2(type: Zip) {
+tasks.register("packageFiles2", Zip) {
     from processTemplates
 }
 // end::inferred-task-dep-via-task[]
 
 
 // tag::adhoc-destroyable-task[]
-task removeTempDir {
+tasks.register("removeTempDir") {
     destroyables.register("$projectDir/tmpDir")
     doLast {
         delete("$projectDir/tmpDir")
@@ -93,4 +93,6 @@ task removeTempDir {
 }
 // end::adhoc-destroyable-task[]
 
-build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf
+tasks.named("build") {
+    dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf
+}

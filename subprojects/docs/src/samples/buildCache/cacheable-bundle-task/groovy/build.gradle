@@ -47,10 +47,10 @@ class BundleTask extends NpmTask {
     }
 }
 
-task bundle(type: BundleTask)
+tasks.register("bundle", BundleTask)
 // end::bundle-task[]
 
-task printBundle {
+tasks.register("printBundle") {
     dependsOn bundle
     doLast {
         println file("$buildDir/bundle.js").text

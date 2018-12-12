@@ -30,6 +30,6 @@ dependencies {
 }
 // end::vintage-dependencies[]
 
-test {
+tasks.named("test") {
     useJUnitPlatform()
 }

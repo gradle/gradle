@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 // tag::file-set[]
-task zipWithFileSet(type: Zip) {
+tasks.register("zipWithFileSet", Zip) {
     from ('contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
@@ -10,13 +10,13 @@ task zipWithFileSet(type: Zip) {
 // end::file-set[]
 
 // tag::files[]
-task zipWithFiles(type: Zip) {
+tasks.register("zipWithFiles", Zip) {
     from 'path_to_file1', 'path_to_file2'
 }
 // end::files[]
 
 // tag::zip-file-set[]
-task zipWithZipFileSet(type: Zip) {
+tasks.register("zipWithZipFileSet", Zip) {
     from('contentDir') {
         include '**/*.txt'
         exclude '**/*.gif'
@@ -26,7 +26,7 @@ task zipWithZipFileSet(type: Zip) {
 // end::zip-file-set[]
 
 // tag::tar-file-set[]
-task tarWithFileSet(type: Tar) {
+tasks.register("tarWithFileSet", Tar) {
     from('contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')

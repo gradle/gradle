@@ -12,7 +12,7 @@ dependencies {
 }
 
 // tag::test-tags[]
-test {
+tasks.named("test") {
     useJUnitPlatform {
         includeTags 'fast'
         excludeTags 'slow'

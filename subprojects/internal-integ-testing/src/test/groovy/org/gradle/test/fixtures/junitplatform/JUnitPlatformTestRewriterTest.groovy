@@ -69,7 +69,7 @@ compileTestJava {
                 "--add-reads", "org.gradle.example=org.junit.jupiter.api"]
 }
 
-test {
+tasks.named("test") {
     useJUnitPlatform()
 
     def args = ["--add-modules", "ALL-MODULE-PATH",

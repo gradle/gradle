@@ -4,7 +4,7 @@ plugins {
 }
 
 // tag::configure-jar[]
-jar {
+tasks.named("jar") {
     manifest { // the manifest of the default jar is of type OsgiManifest
         name = 'overwrittenSpecialOsgiName'
         instruction 'Private-Package',
@@ -15,7 +15,7 @@ jar {
         instruction 'Bundle-DocURL', 'http://www.mycompany.com'
     }
 }
-task fooJar(type: Jar) {
+tasks.register("fooJar", Jar) {
     manifest = osgiManifest {
         instruction 'Bundle-Vendor', 'MyCompany'
     }

@@ -24,7 +24,7 @@ repositories {
 }
 
 // tag::publishDeps[]
-task("publishDeps") {
+tasks.register("publishDeps") {
     dependsOn(gradle.includedBuilds.map { it.task(":uploadArchives") })
 }
 // end::publishDeps[]

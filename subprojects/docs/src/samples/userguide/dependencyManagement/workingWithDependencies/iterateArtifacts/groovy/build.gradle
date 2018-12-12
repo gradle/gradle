@@ -12,7 +12,7 @@ dependencies {
 }
 
 // tag::iteration-task[]
-task iterateResolvedArtifacts {
+tasks.register("iterateResolvedArtifacts") {
     dependsOn configurations.scm
 
     doLast {

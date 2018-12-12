@@ -1,5 +1,5 @@
 // tag::set-input-files[]
-task compile(type: JavaCompile) {
+tasks.register("compile", JavaCompile) {
 
     // Use a File object to specify the source directory
     source = file('src/main/java')
@@ -22,7 +22,7 @@ task compile(type: JavaCompile) {
 // end::set-input-files[]
 
 // tag::add-input-files[]
-compile {
+tasks.named("compile") {
     // Add some source directories use String paths
     source 'src/main/java', 'src/main/groovy'
 

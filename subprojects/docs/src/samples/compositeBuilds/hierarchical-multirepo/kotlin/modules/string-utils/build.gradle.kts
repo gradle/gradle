@@ -18,7 +18,7 @@ repositories {
     jcenter()
 }
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         add(project.repositories["localrepo"])
     }

@@ -11,7 +11,7 @@ dependencies {
     jasper 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.2'
 }
 
-task preCompileJsps {
+tasks.register("preCompileJsps") {
     doLast {
         ant.taskdef(classname: 'org.apache.jasper.JspC',
                     name: 'jasper',

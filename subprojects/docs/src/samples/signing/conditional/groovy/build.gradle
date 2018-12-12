@@ -18,12 +18,12 @@ signing {
 
 // Alternative to signing.required
 // tag::only-if[]
-tasks.withType(Sign) {
+tasks.withType(Sign).configureEach {
     onlyIf { isReleaseVersion }
 }
 // end::only-if[]
 
-uploadArchives {
+tasks.named("uploadArchives") {
     repositories {
         mavenDeployer {
             repository(url: uri("$buildDir/repo"))

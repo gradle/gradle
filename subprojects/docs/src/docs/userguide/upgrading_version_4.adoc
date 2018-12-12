@@ -17,11 +17,11 @@
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes since 4.4, 4.5, etc.
 
-TIP: If you are using Gradle for Android, you need to move to version 3.4 or higher of both the Android Gradle Plugin and Android Studio.
+TIP: If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
 
-We recommend the following steps for all users:
+== For all users
 
- . If you are not already on version 4.10.3, read the sections <<#changes_5.0,below>> for help upgrading your project to 4.10.3.
+ . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release. We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0.
  . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan. If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
@@ -59,7 +59,7 @@ Other notable changes to be aware of that may break your build include:
 [[changes_5.0]]
 == Upgrading from 4.10 and earlier
 
-If you are not already on version 4.10, skip down to the section that applies to your current Gradle version and work your way up until you reach here.
+If you are not already on version 4.10, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when moving from Gradle 4.10 to 5.0.
 
 === Other changes
 
@@ -81,6 +81,9 @@ The following breaking changes are not from deprecations, but the result of chan
 While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a https://docs.gradle.org/current/dsl/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
  * The <<#rel5.0:configuration_avoidance, Configuration Avoidance API>> has been updated to prevent the creation and configuration of tasks that are never used.
+ * The <<#rel5.0:default_memory_settings,default memory settings>> for the command-line client, the Gradle daemon, and all workers including compilers and test executors, have been greatly reduced.
+ * The <<#rel5.0:default_tool_versions,default versions of several code quality plugins>> have been updated.
+ * Several <<#rel5.0:library_upgrades, library versions used by Gradle>> have been upgraded.
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:
 
@@ -190,6 +193,8 @@ Ideally you shouldn't use classes from this package, but, as a quick fix, you ca
 
 [[changes_4.10]]
 == Upgrading from 4.9 and earlier
+
+If you are not already on version 4.9, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when upgrading to Gradle 4.10.
 
 === Deprecated classes, methods and properties
 

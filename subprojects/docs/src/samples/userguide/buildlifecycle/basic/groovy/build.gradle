@@ -1,16 +1,16 @@
 println 'This is executed during the configuration phase.'
 
-task configured {
-    println 'This is also executed during the configuration phase.'
+tasks.register("configured") {
+    println 'This is only executed if the "configured" task is needed.'
 }
 
-task test {
+tasks.register("test") {
     doLast {
         println 'This is executed during the execution phase.'
     }
 }
 
-task testBoth {
+tasks.register("testBoth") {
 	doFirst {
 	  println 'This is executed first during the execution phase.'
 	}

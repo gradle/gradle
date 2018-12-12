@@ -1,4 +1,4 @@
-task printProps {
+tasks.register("printProps") {
     doLast {
         println commandLineProjectProp
         println gradlePropertiesProp

@@ -1,4 +1,4 @@
-task list {
+tasks.register("list") {
     doLast {
         def path = ant.path {
             fileset(dir: 'libs', includes: '*.jar')

@@ -24,7 +24,7 @@ open class Greeting : DefaultTask() {
 val messages = project.extensions.create("messages", MessageExtension::class, project.objects)
 
 // Create the greeting task
-task<Greeting>("greeting") {
+tasks.register<Greeting>("greeting") {
     // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
     greeting.set(messages.greeting)
