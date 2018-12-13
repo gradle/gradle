@@ -184,24 +184,28 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             double confidencePercentage = xy.get(1).doubleValue();
 
             if (Math.abs(confidencePercentage) >= THRESHOLD) {
-                return new BackgroundColor(index, redComponent(confidencePercentage), greenComponent(confidencePercentage));
+                return new BackgroundColor(index, redComponent(confidencePercentage), greenComponent(confidencePercentage), opacity(confidencePercentage));
             } else {
                 return null;
             }
         }
 
         // See TestDataGeneratorTest for examples
+        private static double opacity(double confidencePercentage) {
+            return (Math.abs(confidencePercentage) - THRESHOLD) / (100 - THRESHOLD);
+        }
+
         private static int redComponent(double confidencePercentage) {
-            return (int) (128 + (THRESHOLD + confidencePercentage) * 128 / (100 - THRESHOLD));
+            return confidencePercentage > 0 ? 255 : 0;
         }
 
         private static int greenComponent(double confidencePercentage) {
-            return (int) (128 - (confidencePercentage - THRESHOLD) * 128 / (100 - THRESHOLD));
+            return confidencePercentage < 0 ? 255 : 0;
         }
 
-        private BackgroundColor(double index, int redComponent, int greenComponent) {
+        private BackgroundColor(double index, int redComponent, int greenComponent, double opacity) {
             this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
-            this.color = String.format("#%02x%02x00", redComponent > 255 ? 255 : redComponent, greenComponent > 255 ? 255 : greenComponent);
+            this.color = String.format("rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
         }
 
         public Map getXaxis() {

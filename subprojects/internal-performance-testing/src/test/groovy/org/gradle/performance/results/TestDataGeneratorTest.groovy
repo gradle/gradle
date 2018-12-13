@@ -80,7 +80,7 @@ class TestDataGeneratorTest extends ResultSpecification {
                 ],
             ],
             background: [
-                [xaxis: [from: 0.5, to: 1.5], color: "#4dff00"]
+                [xaxis: [from: 0.5, to: 1.5], color: "rgba(0,255,0,0.4)"]
             ]
         ]
     }
@@ -123,16 +123,16 @@ class TestDataGeneratorTest extends ResultSpecification {
         TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).xaxis == [from: -0.5, to: 0.5]
         TestDataGenerator.BackgroundColor.ofConfidence([1, 100]).xaxis == [from: 0.5, to: 1.5]
 
-        TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).color == '#ff0000' // red
-        TestDataGenerator.BackgroundColor.ofConfidence([0, 90]).color == '#ff4000' // orange-red
-        TestDataGenerator.BackgroundColor.ofConfidence([0, 80]).color == '#ff8000' // orange
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).color == 'rgba(255,0,0,1.0)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 90]).color == 'rgba(255,0,0,0.5)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 80]).color == 'rgba(255,0,0,0.0)'
         TestDataGenerator.BackgroundColor.ofConfidence([0, 70]) == null
         TestDataGenerator.BackgroundColor.ofConfidence([0, 60]) == null
         TestDataGenerator.BackgroundColor.ofConfidence([0, 0]) == null
         TestDataGenerator.BackgroundColor.ofConfidence([0, -40]) == null
         TestDataGenerator.BackgroundColor.ofConfidence([0, -50]) == null
-        TestDataGenerator.BackgroundColor.ofConfidence([0, -80]).color == '#80ff00' // light-light-green
-        TestDataGenerator.BackgroundColor.ofConfidence([0, -90]).color == '#40ff00' // light-green
-        TestDataGenerator.BackgroundColor.ofConfidence([0, -100]).color == '#00ff00' // green
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -80]).color == 'rgba(0,255,0,0.0)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -90]).color == 'rgba(0,255,0,0.5)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -100]).color == 'rgba(0,255,0,1.0)'
     }
 }
