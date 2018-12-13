@@ -145,17 +145,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return true;
         }
 
-        @Nullable
-        @Override
-        public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputs) {
-            return OverlappingOutputs.detect(
-                afterPreviousExecutionState == null
-                    ? null
-                    : afterPreviousExecutionState.getOutputFileProperties(),
-                beforeExecutionOutputs
-            );
-        }
-
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
             return taskCacheKeyCalculator.calculate(task, getBeforeExecutionState(afterPreviousExecutionState), taskProperties);
@@ -174,12 +163,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
             AfterPreviousExecutionState afterPreviousExecutionState = taskExecutionContext.getAfterPreviousExecution();
-            BeforeExecutionState beforeExecutionState = getBeforeExecutionState(afterPreviousExecutionState);
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = getOutputFilesBeforeExecution();
+
+            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
+                afterPreviousExecutionState != null
+                    ? afterPreviousExecutionState.getOutputFileProperties()
+                    : null,
+                outputFilesBeforeExecution
+            );
             return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
                 afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
-                beforeExecutionState.getOutputFileProperties(),
+                outputFilesBeforeExecution,
                 taskExecutionContext.getTaskProperties().getOutputFileProperties(),
-                getOverlappingOutputs(afterPreviousExecutionState, getOutputFilesBeforeExecution()) != null,
+                overlappingOutputs != null,
                 task,
                 fingerprinterRegistry
             );

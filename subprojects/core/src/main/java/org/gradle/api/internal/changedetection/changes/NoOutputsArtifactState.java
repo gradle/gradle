@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -161,11 +160,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     @Override
     public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
         return Collections.emptyMap();
-    }
-
-    @Override
-    public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputs) {
-        return null;
     }
 
     @Override
