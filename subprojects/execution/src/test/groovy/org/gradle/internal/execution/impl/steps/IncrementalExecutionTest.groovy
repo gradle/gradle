@@ -777,7 +777,7 @@ class IncrementalExecutionTest extends Specification {
 
                 @Override
                 Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-                    changes = Optional.ofNullable(executionHistoryStore.load(getIdentity())).map { previous ->
+                    changes = executionHistoryStore.load(getIdentity()).map { previous ->
                         def outputsBefore = snapshotOutputs()
                         def beforeExecutionState = new DefaultBeforeExecutionState(implementationSnapshot, additionalImplementationSnapshots, snapshotInputProperties(), snapshotInputFiles(), outputsBefore)
                         return new DefaultExecutionStateChanges(previous, beforeExecutionState, this)
