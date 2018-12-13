@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -124,11 +123,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     @Override
     public boolean isAllowedToUseCachedResults() {
         return false;
-    }
-
-    @Override
-    public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
-        return NO_CACHE_KEY;
     }
 
     @Override

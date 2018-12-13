@@ -29,8 +29,6 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -64,22 +62,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final ValueSnapshotter valueSnapshotter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final OutputFilesRepository outputFilesRepository;
-    private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
     public DefaultTaskArtifactStateRepository(
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository outputFilesRepository,
-        TaskCacheKeyCalculator taskCacheKeyCalculator
+        OutputFilesRepository outputFilesRepository
     ) {
         this.fingerprinterRegistry = fingerprinterRegistry;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.executionHistoryStore = executionHistoryStore;
         this.outputFilesRepository = outputFilesRepository;
-        this.taskCacheKeyCalculator = taskCacheKeyCalculator;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
@@ -104,11 +99,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public boolean isAllowedToUseCachedResults() {
             return true;
-        }
-
-        @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
-            return taskCacheKeyCalculator.calculate(task, getBeforeExecutionState(afterPreviousExecutionState), taskProperties);
         }
 
         @Override

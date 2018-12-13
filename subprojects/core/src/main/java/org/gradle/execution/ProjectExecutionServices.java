@@ -45,7 +45,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -172,8 +171,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         ExecutionHistoryStore executionHistoryStore,
         OutputFilesRepository taskOutputsRepository
     ) {
-        TaskCacheKeyCalculator taskCacheKeyCalculator = new TaskCacheKeyCalculator(startParameter.isBuildCacheDebugLogging());
-
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
             instantiator,
@@ -182,8 +179,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                 classLoaderHierarchyHasher,
                 valueSnapshotter,
                 executionHistoryStore,
-                taskOutputsRepository,
-                taskCacheKeyCalculator
+                taskOutputsRepository
             )
         );
     }

@@ -17,9 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -41,11 +39,6 @@ public interface TaskArtifactState {
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
      */
     boolean isAllowedToUseCachedResults();
-
-    /**
-     * Returns the calculated cache key for the task's current state.
-     */
-    TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties);
 
     /**
      * Retakes output file snapshots and prevents the task from executing in an incremental fashion.

@@ -32,13 +32,7 @@ import java.util.SortedMap;
 
 public class TaskCacheKeyCalculator {
 
-    private final boolean buildCacheDebugLogging;
-
-    public TaskCacheKeyCalculator(boolean buildCacheDebugLogging) {
-        this.buildCacheDebugLogging = buildCacheDebugLogging;
-    }
-
-    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties taskProperties) {
+    public static TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties taskProperties, boolean buildCacheDebugLogging) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);

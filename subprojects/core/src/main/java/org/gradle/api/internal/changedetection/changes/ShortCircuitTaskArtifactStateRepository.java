@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -118,11 +117,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public boolean isAllowedToUseCachedResults() {
             return false;
-        }
-
-        @Override
-        public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
-            return delegate.calculateCacheKey(afterPreviousExecutionState, taskProperties);
         }
 
         @Override
