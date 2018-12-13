@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
@@ -29,9 +28,9 @@ import java.util.Optional;
  */
 public interface TaskArtifactState {
     /**
-     * Returns changes since the previous execution, if any.
+     * Return rebuild reason if any.
      */
-    Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved);
+    Optional<String> getRebuildReason();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

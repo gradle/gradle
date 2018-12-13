@@ -91,7 +91,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
+    public void setExecutionStateChanges(@Nullable ExecutionStateChanges executionStateChanges) {
         this.executionStateChanges = executionStateChanges;
     }
 

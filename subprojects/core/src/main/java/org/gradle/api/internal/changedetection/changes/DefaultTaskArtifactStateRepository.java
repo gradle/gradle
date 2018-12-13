@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
@@ -31,12 +30,9 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -49,7 +45,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -98,37 +93,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return true;
         }
 
-        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            return !previous.keySet().equals(current.keySet())
-                || new OutputFileChanges(previous, current).hasAnyChanges();
-        }
-
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved) {
-            if (!statesCalculated) {
-                statesCalculated = true;
-                // Calculate initial state - note this is potentially expensive
-                // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-                Optional<BeforeExecutionState> beforeExecutionState = getBeforeExecutionState(afterPreviousExecutionState);
-                if (afterPreviousExecutionState == null || outputsRemoved) {
-                    states = null;
-                } else {
-                    // TODO We need a nicer describable wrapper around task here
-                    states = beforeExecutionState.map(new Function<BeforeExecutionState, DefaultExecutionStateChanges>() {
-                        @Override
-                        public DefaultExecutionStateChanges apply(BeforeExecutionState beforeExecution) {
-                            return new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecution, new Describable() {
-                                @Override
-                                public String getDisplayName() {
-                                    // The value is cached, so we should be okay to call this many times
-                                    return task.toString();
-                                }
-                            });
-                        }
-                    }).orElse(null);
-                }
-            }
-            return Optional.ofNullable(states);
+        public Optional<String> getRebuildReason() {
+            return Optional.empty();
         }
 
         @Override

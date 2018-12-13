@@ -96,5 +96,5 @@ public interface TaskExecutionContext {
 
     Optional<ExecutionStateChanges> getExecutionStateChanges();
 
-    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
+    void setExecutionStateChanges(@Nullable ExecutionStateChanges executionStateChanges);
 }

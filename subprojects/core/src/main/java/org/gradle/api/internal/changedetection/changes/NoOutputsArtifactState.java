@@ -18,15 +18,9 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -35,87 +29,15 @@ class NoOutputsArtifactState implements TaskArtifactState {
 
     public static final TaskArtifactState WITHOUT_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs nor actions.");
     public static final TaskArtifactState WITH_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs despite executing actions.");
+    private final String rebuildMessage;
 
-    private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-    );
-
-    private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
-        @Override
-        public boolean isValid() {
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return "INVALID";
-        }
-
-        @Override
-        public Path getTaskPath() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getHashCode() {
-            return null;
-        }
-
-        @Override
-        public BuildCacheKeyInputs getInputs() {
-            return NO_CACHE_KEY_INPUTS;
-        }
-
-        @Override
-        public byte[] getHashCodeBytes() {
-            return null;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return toString();
-        }
-    };
-
-    private final Change change;
-
-    private NoOutputsArtifactState(final String message) {
-        this.change = new Change() {
-            @Override
-            public String getMessage() {
-                return message;
-            }
-        };
+    private NoOutputsArtifactState(String rebuildMessage) {
+        this.rebuildMessage = rebuildMessage;
     }
 
     @Override
-    public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved) {
-        return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
-            @Override
-            public void visitAllChanges(ChangeVisitor visitor) {
-                visitor.visitChange(change);
-            }
-
-            @Override
-            public boolean isRebuildRequired() {
-                return true;
-            }
-
-            @Override
-            public Iterable<Change> getInputFilesChanges() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public AfterPreviousExecutionState getPreviousExecution() {
-                throw new UnsupportedOperationException();
-            }
-        });
+    public Optional<String> getRebuildReason() {
+        return Optional.of(rebuildMessage);
     }
 
     @Override

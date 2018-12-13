@@ -70,7 +70,6 @@ import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -172,7 +171,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(
-        Instantiator instantiator,
         StartParameter startParameter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -182,7 +180,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     ) {
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
-            instantiator,
             new DefaultTaskArtifactStateRepository(
                 fingerprinterRegistry,
                 classLoaderHierarchyHasher,

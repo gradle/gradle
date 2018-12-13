@@ -109,7 +109,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskArtifactState() >> taskArtifactState
         taskArtifactState.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
-        taskArtifactState.getExecutionStateChanges(_, _) >> Optional.empty()
+        executionContext.getExecutionStateChanges() >> Optional.empty()
 
         executionContext.getTaskProperties() >> taskProperties
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()

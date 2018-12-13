@@ -22,13 +22,9 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -37,11 +33,9 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
     private final StartParameter startParameter;
     private final TaskArtifactStateRepository repository;
-    private final Instantiator instantiator;
 
-    public ShortCircuitTaskArtifactStateRepository(StartParameter startParameter, Instantiator instantiator, TaskArtifactStateRepository repository) {
+    public ShortCircuitTaskArtifactStateRepository(StartParameter startParameter, TaskArtifactStateRepository repository) {
         this.startParameter = startParameter;
-        this.instantiator = instantiator;
         this.repository = repository;
     }
 
@@ -61,11 +55,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         TaskArtifactState state = repository.getStateFor(task, taskProperties);
 
         if (startParameter.isRerunTasks()) {
-            return new RerunTaskArtifactState(state, task, "Executed with '--rerun-tasks'.");
+            return new RerunTaskArtifactState(state, "Executed with '--rerun-tasks'.");
         }
 
         if (!upToDateSpec.isSatisfiedBy(task)) {
-            return new RerunTaskArtifactState(state, task, "Task.upToDateWhen is false.");
+            return new RerunTaskArtifactState(state, "Task.upToDateWhen is false.");
         }
 
         return state;
@@ -73,43 +67,16 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
     private class RerunTaskArtifactState implements TaskArtifactState {
         private final TaskArtifactState delegate;
-        private final TaskInternal task;
-        private final Change reason;
+        private final String rebuildReason;
 
-        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task, final String reason) {
+        private RerunTaskArtifactState(TaskArtifactState delegate, final String rebuildReason) {
             this.delegate = delegate;
-            this.task = task;
-            this.reason = new Change() {
-                @Override
-                public String getMessage() {
-                    return reason;
-                }
-            };
+            this.rebuildReason = rebuildReason;
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved) {
-            return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
-                @Override
-                public void visitAllChanges(ChangeVisitor visitor) {
-                    visitor.visitChange(reason);
-                }
-
-                @Override
-                public boolean isRebuildRequired() {
-                    return true;
-                }
-
-                @Override
-                public Iterable<Change> getInputFilesChanges() {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public AfterPreviousExecutionState getPreviousExecution() {
-                    throw new UnsupportedOperationException();
-                }
-            });
+        public Optional<String> getRebuildReason() {
+            return Optional.of(rebuildReason);
         }
 
         @Override
