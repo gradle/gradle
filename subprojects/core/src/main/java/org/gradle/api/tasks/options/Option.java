@@ -29,10 +29,13 @@ import java.lang.annotation.*;
  * <ul>
  * <li>{@code boolean}</li>
  * <li>{@code Boolean}</li>
- * <li>{@code Enum}</li>
- * <li>{@code List&lt;Enum&gt;}</li>
- * <li>{@code List&lt;String&gt;}</li>
+ * <li>{@code Property<Boolean>}</li>
+ * <li>an {@code enum} type</li>
+ * <li>{@code Property<T>} of an enum type</li>
  * <li>{@code String}</li>
+ * <li>{@code Property<String>}</li>
+ * <li>{@code List<T>} of an {@code enum} type</li>
+ * <li>{@code List<String>}</li>
  * </ul>
  *
  * @since 4.6
