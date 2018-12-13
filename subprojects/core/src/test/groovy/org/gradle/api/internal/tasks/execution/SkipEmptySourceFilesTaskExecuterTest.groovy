@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -56,7 +57,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
     final buildInvocationId = UniqueId.generate()
-    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, outputChangeListener, target, new BuildInvocationScopeId(buildInvocationId))
+    final executionHistoryStore = Mock(ExecutionHistoryStore)
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target, new BuildInvocationScopeId(buildInvocationId))
     final stringInterner = new StringInterner()
     final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
@@ -81,8 +83,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
@@ -121,8 +123,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
@@ -162,8 +164,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
@@ -224,8 +226,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:

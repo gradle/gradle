@@ -33,6 +33,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -50,9 +51,11 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
     private final BuildInvocationScopeId buildInvocationScopeId;
+    private final ExecutionHistoryStore executionHistoryStore;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, ExecutionHistoryStore executionHistoryStore, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
         this.taskInputsListener = taskInputsListener;
+        this.executionHistoryStore = executionHistoryStore;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.outputChangeListener = outputChangeListener;
         this.executer = executer;
@@ -109,9 +112,10 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
-                // TODO Remove execution snapshot
             }
+            // TODO:lptr can we remove this?
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
+            executionHistoryStore.remove(task.getPath());
             return new TaskExecuterResult() {
                 @Override
                 public OriginMetadata getOriginMetadata() {
