@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -108,7 +109,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), newOutputFingerprints)) {
-                BeforeExecutionState execution = getBeforeExecutionState(afterPreviousExecutionState);
+                BeforeExecutionState execution = getBeforeExecutionState(afterPreviousExecutionState).get();
                 executionHistoryStore.store(
                     task.getPath(),
                     OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
@@ -130,23 +131,28 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        public Optional<ExecutionStateChanges> getExecutionStateChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             if (!statesCalculated) {
                 statesCalculated = true;
                 // Calculate initial state - note this is potentially expensive
                 // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-                BeforeExecutionState beforeExecutionState = getBeforeExecutionState(afterPreviousExecutionState);
+                Optional<BeforeExecutionState> beforeExecutionState = getBeforeExecutionState(afterPreviousExecutionState);
                 if (afterPreviousExecutionState == null || outputsRemoved) {
                     states = null;
                 } else {
                     // TODO We need a nicer describable wrapper around task here
-                    states = new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecutionState, new Describable() {
+                    states = beforeExecutionState.map(new Function<BeforeExecutionState, DefaultExecutionStateChanges>() {
                         @Override
-                        public String getDisplayName() {
-                            // The value is cached, so we should be okay to call this many times
-                            return task.toString();
+                        public DefaultExecutionStateChanges apply(BeforeExecutionState beforeExecution) {
+                            return new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecution, new Describable() {
+                                @Override
+                                public String getDisplayName() {
+                                    // The value is cached, so we should be okay to call this many times
+                                    return task.toString();
+                                }
+                            });
                         }
-                    });
+                    }).orElse(null);
                 }
             }
             return Optional.ofNullable(states);
@@ -161,11 +167,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             if (beforeExecutionState == null) {
                 beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, getOutputFilesBeforeExecution());
             }
-            return beforeExecutionState;
+            return Optional.of(beforeExecutionState);
         }
     }
 

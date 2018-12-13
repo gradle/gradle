@@ -79,7 +79,7 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
     }
 
     private ImmutableCollection<CurrentFileCollectionFingerprint> getCurrentInputs(TaskArtifactState taskArtifactState, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        return taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
+        return taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState).get().getInputFileProperties().values();
     }
 
 

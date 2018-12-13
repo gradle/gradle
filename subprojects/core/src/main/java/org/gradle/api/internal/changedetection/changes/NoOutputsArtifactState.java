@@ -138,7 +138,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        throw new UnsupportedOperationException();
+    public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        return Optional.empty();
     }
 }

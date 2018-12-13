@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -48,6 +49,7 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -64,6 +66,51 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
     private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
     private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
+    private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
+
+    private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "INVALID";
+        }
+
+        @Override
+        public Path getTaskPath() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getHashCode() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public BuildCacheKeyInputs getInputs() {
+            return NO_CACHE_KEY_INPUTS;
+        }
+
+        @Override
+        public byte[] getHashCodeBytes() {
+            return null;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return toString();
+        }
+    };
 
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -118,16 +165,22 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         });
     }
 
-    private TaskOutputCachingBuildCacheKey doResolve(TaskInternal task, TaskExecutionContext context) {
+    private TaskOutputCachingBuildCacheKey doResolve(final TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
-        TaskProperties taskProperties = context.getTaskProperties();
-        BeforeExecutionState beforeExecutionState = taskState.getBeforeExecutionState(context.getAfterPreviousExecution());
-        TaskOutputCachingBuildCacheKey cacheKey = TaskCacheKeyCalculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);
-        if (taskProperties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
-            LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
-            LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
-        }
-        return cacheKey;
+        final TaskProperties taskProperties = context.getTaskProperties();
+        return taskState.getBeforeExecutionState(context.getAfterPreviousExecution())
+            .map(new java.util.function.Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
+                @Override
+                public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {
+                    TaskOutputCachingBuildCacheKey cacheKey = TaskCacheKeyCalculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);
+                    if (taskProperties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
+                        LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
+                        LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
+                    }
+                    return cacheKey;
+                }
+            })
+            .orElse(NO_CACHE_KEY);
     }
 
     private static class OperationDetailsImpl implements SnapshotTaskInputsBuildOperationType.Details {
@@ -391,6 +444,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             Map<String, byte[]> inputValueHashesBytes = getInputValueHashesBytes();
             if (inputValueHashesBytes != null) {
                 model.put("inputValueHashes", Maps.transformEntries(inputValueHashesBytes, new Maps.EntryTransformer<String, byte[], String>() {
+                    @Nullable
                     @Override
                     public String transformEntry(@Nullable String key, @Nullable byte[] value) {
                         if (value == null) {
