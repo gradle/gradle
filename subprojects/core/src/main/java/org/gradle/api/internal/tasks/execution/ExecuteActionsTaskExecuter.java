@@ -247,7 +247,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getTaskArtifactState().getOutputFilesBeforeExecution();
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
 
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
                 afterPreviousExecutionState != null
@@ -271,7 +271,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
                 TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
                 taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution).ifPresent(new Consumer<BeforeExecutionState>() {
                     @Override
                     public void accept(BeforeExecutionState execution) {

@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -33,6 +35,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private ExecutionStateChanges executionStateChanges;
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private TaskArtifactState taskArtifactState;
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
@@ -63,6 +66,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState afterPreviousExecution) {
         this.afterPreviousExecution = afterPreviousExecution;
+    }
+
+    @Override
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+        return outputFilesBeforeExecution;
+    }
+
+    @Override
+    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
+        this.outputFilesBeforeExecution = outputFilesBeforeExecution;
     }
 
     @Override

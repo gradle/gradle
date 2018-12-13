@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -66,7 +65,6 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def action2 = Mock(ContextAwareTaskAction)
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
-    def taskArtifactState = Mock(TaskArtifactState)
     def taskProperties = Mock(TaskProperties)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -107,8 +105,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.getTaskArtifactState() >> taskArtifactState
-        taskArtifactState.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
+        executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
         executionContext.getExecutionStateChanges() >> Optional.empty()
 
         executionContext.getTaskProperties() >> taskProperties

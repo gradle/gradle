@@ -50,7 +50,7 @@ public class ResolveChangesTaskExecuter implements TaskExecuter {
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
         final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
 
         // Calculate initial state - note this is potentially expensive
         // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes

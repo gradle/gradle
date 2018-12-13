@@ -20,7 +20,6 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
@@ -54,11 +53,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskFiles = Mock(FileCollectionInternal)
     final taskInputsListener = Mock(TaskInputsListener)
     final taskContext = Mock(TaskExecutionContext)
-    final taskArtifactState = Mock(TaskArtifactState)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
     final buildInvocationId = UniqueId.generate()
-    final taskExecutionTime = 1L
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, outputChangeListener, target, new BuildInvocationScopeId(buildInvocationId))
     final stringInterner = new StringInterner()
     final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
@@ -116,8 +113,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
-        _ * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
-        _ * taskContext.taskArtifactState >> taskArtifactState
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -158,8 +154,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
-        _ * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
-        _ * taskContext.taskArtifactState >> taskArtifactState
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -213,10 +208,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        _ * taskContext.taskArtifactState >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
-        _ * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -260,10 +254,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        _ * taskContext.taskArtifactState >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
-        _ * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'

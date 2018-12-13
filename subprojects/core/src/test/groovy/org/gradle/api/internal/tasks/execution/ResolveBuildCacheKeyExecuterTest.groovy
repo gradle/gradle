@@ -67,7 +67,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
         _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> cacheKey
 
@@ -95,7 +95,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
         _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> {
             throw failure
@@ -116,7 +116,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
         _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.empty()
         0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
 

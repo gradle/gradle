@@ -46,11 +46,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
-        return ImmutableSortedMap.of();
-    }
-
-    @Override
     public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
         return Optional.empty();
     }

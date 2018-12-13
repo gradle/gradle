@@ -37,10 +37,5 @@ public interface TaskArtifactState {
      */
     boolean isAllowedToUseCachedResults();
 
-    /**
-     * Returns the outputs before execution.
-     */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
-
     Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
 }

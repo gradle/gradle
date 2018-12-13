@@ -74,7 +74,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (buildCacheEnabled) {
             AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getTaskArtifactState().getOutputFilesBeforeExecution();
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
                 afterPreviousExecution != null
                     ? afterPreviousExecution.getOutputFileProperties()

@@ -59,19 +59,20 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
 
     protected void doExecute(final Task task, String methodName) {
         final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
         final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
         IncrementalTaskInputs incrementalInputs = context.getExecutionStateChanges()
             .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
                 @Override
                 public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
                     return changes.isRebuildRequired()
-                        ? createRebuildInputs(task, getCurrentInputs(taskArtifactState, afterPreviousExecution))
+                        ? createRebuildInputs(task, getCurrentInputs(taskArtifactState, afterPreviousExecution, outputFilesBeforeExecution))
                         : createIncrementalInputs(changes.getInputFilesChanges());
                 }
             }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
                 @Override
                 public StatefulIncrementalTaskInputs get() {
-                    return createRebuildInputs(task, getCurrentInputs(taskArtifactState, afterPreviousExecution));
+                    return createRebuildInputs(task, getCurrentInputs(taskArtifactState, afterPreviousExecution, outputFilesBeforeExecution));
                 }
             });
 
@@ -79,8 +80,7 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
         JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
     }
 
-    private ImmutableCollection<CurrentFileCollectionFingerprint> getCurrentInputs(TaskArtifactState taskArtifactState, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+    private ImmutableCollection<CurrentFileCollectionFingerprint> getCurrentInputs(TaskArtifactState taskArtifactState, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
         return taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution).get().getInputFileProperties().values();
     }
 

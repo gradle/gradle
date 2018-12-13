@@ -99,14 +99,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
-            if (outputFilesBeforeExecution == null) {
-                outputFilesBeforeExecution = snapshotOutputs(task, taskProperties);
-            }
-            return outputFilesBeforeExecution;
-        }
-
-        @Override
         public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
             if (beforeExecutionState == null) {
                 beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, outputFilesBeforeExecution);

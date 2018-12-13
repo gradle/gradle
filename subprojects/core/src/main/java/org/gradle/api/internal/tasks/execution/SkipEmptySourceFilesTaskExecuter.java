@@ -20,7 +20,6 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -73,9 +72,8 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
                 AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
                 OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
                     afterPreviousExecution != null
                         ? afterPreviousExecution.getOutputFileProperties()
