@@ -239,6 +239,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
+    public boolean isTargetVirtualPlatform() {
+        ComponentState selectedComponent = getSelectedComponent();
+        return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
+    }
+
+    @Override
     public ComponentSelectionReason getReason() {
         return selector.getSelectionReason();
     }
