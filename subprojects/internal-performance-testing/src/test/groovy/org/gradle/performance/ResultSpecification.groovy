@@ -106,8 +106,8 @@ abstract class ResultSpecification extends Specification {
         result1.version('master').results.addAll(measuredOperations([2]))
 
         CrossVersionPerformanceResults result2 = crossVersionResults([startTime: 200])
-        result2.version('5.0-mockbaseline-2').results.addAll(measuredOperations([2]))
-        result2.version('master').results.addAll(measuredOperations([1]))
+        result2.version('5.0-mockbaseline-2').results.addAll(measuredOperations([2, 2]))
+        result2.version('master').results.addAll(measuredOperations([1, 1]))
 
         return new CrossVersionPerformanceTestHistory('mockCrossVersion',
             ['5.0-mockbaseline-1', '5.0-mockbaseline-2'],
