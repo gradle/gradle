@@ -95,7 +95,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+    public Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved) {
         return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
             @Override
             public void visitAllChanges(ChangeVisitor visitor) {
@@ -122,10 +122,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     @Override
     public boolean isAllowedToUseCachedResults() {
         return false;
-    }
-
-    @Override
-    public void afterOutputsRemovedBeforeTask() {
     }
 
     @Override

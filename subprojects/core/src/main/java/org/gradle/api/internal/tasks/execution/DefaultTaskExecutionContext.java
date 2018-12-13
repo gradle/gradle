@@ -31,6 +31,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private TaskArtifactState taskArtifactState;
+    private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
     private TaskProperties taskProperties;
@@ -69,6 +70,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
         this.taskArtifactState = taskArtifactState;
+    }
+
+    @Override
+    public boolean isOutputRemovedBeforeExecution() {
+        return outputRemovedBeforeExecution;
+    }
+
+    @Override
+    public void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution) {
+        this.outputRemovedBeforeExecution = outputRemovedBeforeExecution;
     }
 
     @Override

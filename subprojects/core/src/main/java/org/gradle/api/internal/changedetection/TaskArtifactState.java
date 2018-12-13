@@ -32,17 +32,12 @@ public interface TaskArtifactState {
     /**
      * Returns changes since the previous execution, if any.
      */
-    Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
+    Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
      */
     boolean isAllowedToUseCachedResults();
-
-    /**
-     * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
-     */
-    void afterOutputsRemovedBeforeTask();
 
     /**
      * Called when outputs were generated.

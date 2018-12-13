@@ -182,7 +182,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return context.getTaskArtifactState().getExecutionStateChanges(context.getAfterPreviousExecution());
+            return context.getTaskArtifactState().getExecutionStateChanges(context.getAfterPreviousExecution(), context.isOutputRemovedBeforeExecution());
         }
 
         @Override
@@ -224,7 +224,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void outputsRemovedAfterFailureToLoadFromCache() {
-            context.getTaskArtifactState().afterOutputsRemovedBeforeTask();
+            context.setOutputRemovedBeforeExecution(true);
         }
 
         @Override

@@ -84,7 +84,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskInternal task;
         private final TaskProperties taskProperties;
 
-        private boolean outputsRemoved;
         private boolean statesCalculated;
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
         private BeforeExecutionState beforeExecutionState;
@@ -98,11 +97,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public boolean isAllowedToUseCachedResults() {
             return true;
-        }
-
-        @Override
-        public void afterOutputsRemovedBeforeTask() {
-            outputsRemoved = true;
         }
 
         @Override
@@ -131,7 +125,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getExecutionStateChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        public Optional<ExecutionStateChanges> getExecutionStateChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState, boolean outputsRemoved) {
             if (!statesCalculated) {
                 statesCalculated = true;
                 // Calculate initial state - note this is potentially expensive
