@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -47,13 +47,13 @@ public class ResolveChangesTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-        final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
+        final TaskExecutionMode taskExecutionMode = context.getTaskExecutionMode();
 
         // Calculate initial state - note this is potentially expensive
         // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
         final Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
 
-        ExecutionStateChanges changes = taskArtifactState.getRebuildReason().map(new Function<String, ExecutionStateChanges>() {
+        ExecutionStateChanges changes = taskExecutionMode.getRebuildReason().map(new Function<String, ExecutionStateChanges>() {
             @Override
             public ExecutionStateChanges apply(String rebuildReason) {
                 return new RebuildExecutionStateChanges(rebuildReason);

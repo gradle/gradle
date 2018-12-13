@@ -61,7 +61,7 @@ public class ResolveBeforeExecutionStateExecuter implements TaskExecuter {
     @Nullable
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (context.getTaskArtifactState().isTaskHistoryMaintained()) {
+        if (context.getTaskExecutionMode().isTaskHistoryMaintained()) {
             context.setBeforeExecutionState(createExecutionState(task, context.getTaskProperties(), context.getAfterPreviousExecution(), context.getOutputFilesBeforeExecution()));
         }
         return delegate.execute(task, state, context);

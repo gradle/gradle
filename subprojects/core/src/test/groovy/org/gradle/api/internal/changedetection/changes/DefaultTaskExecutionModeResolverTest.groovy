@@ -19,21 +19,21 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
 
-import static org.gradle.api.internal.changedetection.TaskArtifactState.INCREMENTAL
-import static org.gradle.api.internal.changedetection.TaskArtifactState.RERUN_TASKS_ENABLED
-import static org.gradle.api.internal.changedetection.TaskArtifactState.UP_TO_DATE_WHEN_FALSE
-import static org.gradle.api.internal.changedetection.TaskArtifactState.WITHOUT_ACTIONS
-import static org.gradle.api.internal.changedetection.TaskArtifactState.WITH_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.WITHOUT_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.WITH_ACTIONS
 
-class DefaultTaskArtifactStateRepositoryTest extends Specification {
+class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def startParameter = new StartParameter()
-    def repository = new DefaultTaskArtifactStateRepository(startParameter)
+    def repository = new DefaultTaskExecutionModeResolver(startParameter)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
     def taskProperties = Mock(TaskProperties)
@@ -48,7 +48,7 @@ class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     def "no actions with no outputs"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
 
         then:
         state == WITHOUT_ACTIONS
@@ -59,7 +59,7 @@ class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     def "no actions with outputs"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
 
         then:
         state == WITH_ACTIONS
@@ -70,7 +70,7 @@ class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     def "default"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
 
         then:
         state == INCREMENTAL

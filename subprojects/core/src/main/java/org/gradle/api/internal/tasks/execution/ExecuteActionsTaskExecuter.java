@@ -212,7 +212,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     }
                     if (buildCacheEnabled
                             && context.isTaskCachingEnabled()
-                            && context.getTaskArtifactState().isAllowedToUseCachedResults()
+                            && context.getTaskExecutionMode().isAllowedToUseCachedResults()
                             && context.getBuildCacheKey().isValid()
                     ) {
                         return Optional.ofNullable(loader.apply(context.getBuildCacheKey()));

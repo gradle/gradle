@@ -19,9 +19,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * Encapsulates the state of the task when its outputs were last generated.
+ * Keeps information about the execution mode of a task.
  */
-public enum TaskArtifactState {
+public enum TaskExecutionMode {
     INCREMENTAL(null, true, true),
     WITHOUT_ACTIONS("Task has not declared any outputs nor actions.", false, false),
     WITH_ACTIONS("Task has not declared any outputs despite executing actions.", false, false),
@@ -33,7 +33,7 @@ public enum TaskArtifactState {
     private final boolean taskHistoryMaintained;
     private final boolean allowedToUseCachedResults;
 
-    TaskArtifactState(@Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
+    TaskExecutionMode(@Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
         this.rebuildReason = Optional.ofNullable(rebuildReason);
         this.taskHistoryMaintained = taskHistoryMaintained;
         this.allowedToUseCachedResults = allowedToUseCachedResults;

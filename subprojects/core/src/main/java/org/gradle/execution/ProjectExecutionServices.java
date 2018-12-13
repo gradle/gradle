@@ -22,8 +22,8 @@ import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
+import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -33,11 +33,11 @@ import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveChangesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -94,7 +94,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return listenerManager.getBroadcaster(TaskActionListener.class);
     }
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
+    TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
                                     BuildCacheCommandFactory commandFactory,
                                     BuildCacheController buildCacheController,
                                     TaskInputsListener inputsListener,
@@ -144,7 +144,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         executer = new ResolvePreviousStateExecuter(executionHistoryStore, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
-        executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
+        executer = new ResolveTaskExecutionModeExecuter(repository, resolver, propertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
@@ -175,9 +175,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(
+    TaskExecutionModeResolver createExecutionModeResolver(
         StartParameter startParameter
     ) {
-        return new DefaultTaskArtifactStateRepository(startParameter);
+        return new DefaultTaskExecutionModeResolver(startParameter);
     }
 }

@@ -19,39 +19,39 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
+import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 
 @NonNullApi
-public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
+public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolver {
 
     private final StartParameter startParameter;
 
-    public DefaultTaskArtifactStateRepository(StartParameter startParameter) {
+    public DefaultTaskExecutionModeResolver(StartParameter startParameter) {
         this.startParameter = startParameter;
     }
 
-    public TaskArtifactState getStateFor(TaskInternal task, TaskProperties taskProperties) {
+    public TaskExecutionMode getStateFor(TaskInternal task, TaskProperties taskProperties) {
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!taskProperties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (task.hasTaskActions()) {
-                return TaskArtifactState.WITH_ACTIONS;
+                return TaskExecutionMode.WITH_ACTIONS;
             } else {
-                return TaskArtifactState.WITHOUT_ACTIONS;
+                return TaskExecutionMode.WITHOUT_ACTIONS;
             }
         }
 
         if (startParameter.isRerunTasks()) {
-            return TaskArtifactState.RERUN_TASKS_ENABLED;
+            return TaskExecutionMode.RERUN_TASKS_ENABLED;
         }
 
         if (!upToDateSpec.isSatisfiedBy(task)) {
-            return TaskArtifactState.UP_TO_DATE_WHEN_FALSE;
+            return TaskExecutionMode.UP_TO_DATE_WHEN_FALSE;
         }
 
-        return TaskArtifactState.INCREMENTAL;
+        return TaskExecutionMode.INCREMENTAL;
     }
 }

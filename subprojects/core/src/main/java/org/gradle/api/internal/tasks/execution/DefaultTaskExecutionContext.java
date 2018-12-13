@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
@@ -38,7 +38,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private ExecutionStateChanges executionStateChanges;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
-    private TaskArtifactState taskArtifactState;
+    private TaskExecutionMode taskExecutionMode;
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
@@ -90,13 +90,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public TaskArtifactState getTaskArtifactState() {
-        return taskArtifactState;
+    public TaskExecutionMode getTaskExecutionMode() {
+        return taskExecutionMode;
     }
 
     @Override
-    public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
-        this.taskArtifactState = taskArtifactState;
+    public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
+        this.taskExecutionMode = taskExecutionMode;
     }
 
     @Override

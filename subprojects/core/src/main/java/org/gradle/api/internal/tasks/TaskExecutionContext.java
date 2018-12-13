@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -40,13 +40,13 @@ public interface TaskExecutionContext {
 
     void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
-    TaskArtifactState getTaskArtifactState();
+    TaskExecutionMode getTaskExecutionMode();
 
     Optional<BeforeExecutionState> getBeforeExecutionState();
 
     void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
 
-    void setTaskArtifactState(TaskArtifactState taskArtifactState);
+    void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
 
