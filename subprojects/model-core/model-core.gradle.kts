@@ -1,3 +1,4 @@
+import build.kotlinVersion
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -26,7 +27,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${BuildEnvironment.kotlinVersion}")
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
     api(project(":baseServices"))
     api(project(":coreApi"))
