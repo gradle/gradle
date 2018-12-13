@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -122,11 +121,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public void afterOutputsRemovedBeforeTask() {
             delegate.afterOutputsRemovedBeforeTask();
-        }
-
-        @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
-            return delegate.snapshotAfterTaskExecution(taskExecutionContext);
         }
 
         @Override

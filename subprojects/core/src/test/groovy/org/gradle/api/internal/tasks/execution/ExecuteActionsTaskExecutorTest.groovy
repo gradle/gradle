@@ -15,10 +15,13 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import com.google.common.collect.ImmutableSortedMap
+
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -40,10 +43,14 @@ import org.gradle.internal.execution.impl.steps.ExecuteStep
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep
 import org.gradle.internal.execution.impl.steps.UpToDateResult
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
@@ -61,6 +68,12 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
+    def stringInterner = new StringInterner()
+    final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
+    def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
+        getFingerprinter(_) >> fingerprinter
+    }
     def buildId = UniqueId.generate()
 
     def actionListener = Mock(TaskActionListener)
@@ -78,7 +91,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(false, fingerprinterRegistry, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -87,7 +100,6 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskArtifactState() >> taskArtifactState
-        taskArtifactState.snapshotAfterTaskExecution(executionContext) >> ImmutableSortedMap.of()
         taskArtifactState.getExecutionStateChanges(_) >> Optional.empty()
     }
 

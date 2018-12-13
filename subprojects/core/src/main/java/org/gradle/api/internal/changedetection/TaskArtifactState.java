@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -44,11 +43,6 @@ public interface TaskArtifactState {
      * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
      */
     void afterOutputsRemovedBeforeTask();
-
-    /**
-     * Called on completion of task execution.
-     */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext);
 
     /**
      * Called when outputs were generated.

@@ -21,12 +21,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -104,27 +102,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public void afterOutputsRemovedBeforeTask() {
             outputsRemoved = true;
-        }
-
-        @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
-            AfterPreviousExecutionState afterPreviousExecutionState = taskExecutionContext.getAfterPreviousExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = getOutputFilesBeforeExecution();
-
-            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
-                afterPreviousExecutionState != null
-                    ? afterPreviousExecutionState.getOutputFileProperties()
-                    : null,
-                outputFilesBeforeExecution
-            );
-            return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
-                afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
-                outputFilesBeforeExecution,
-                taskExecutionContext.getTaskProperties().getOutputFileProperties(),
-                overlappingOutputs != null,
-                task,
-                fingerprinterRegistry
-            );
         }
 
         @Override

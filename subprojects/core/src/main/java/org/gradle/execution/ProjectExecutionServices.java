@@ -97,6 +97,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskInputsListener inputsListener,
                                     TaskActionListener actionListener,
                                     OutputChangeListener outputChangeListener,
+                                    FileCollectionFingerprinterRegistry fingerprinterRegistry,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
@@ -117,6 +118,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheEnabled,
+            fingerprinterRegistry,
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,

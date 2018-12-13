@@ -75,7 +75,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             } else {
                 TaskArtifactState taskArtifactState = context.getTaskArtifactState();
                 AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getTaskArtifactState().getOutputFilesBeforeExecution();
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
                 OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
                     afterPreviousExecution != null
                         ? afterPreviousExecution.getOutputFileProperties()
@@ -111,7 +111,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
-                taskArtifactState.snapshotAfterTaskExecution(context);
+                // TODO Remove execution snapshot
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return new TaskExecuterResult() {
