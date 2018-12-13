@@ -39,20 +39,31 @@ public class DefaultScriptSourceHasher implements ScriptSourceHasher {
     @Override
     public HashCode hash(ScriptSource scriptSource) {
         TextResource resource = scriptSource.getResource();
-        File file = resource.getFile();
-        if (file != null) {
-            try {
-                return fileHasher.hash(file);
-            } catch (UncheckedIOException e) {
-                if (e.getCause() instanceof FileNotFoundException) {
-                    throw new UncheckedIOException("Could not read " + scriptSource.getDisplayName() + " as it does not exist.", e.getCause());
-                }
-                throw e;
-            }
+        if (resource.isContentCached()) {
+            return hashText(resource.getText());
         }
+        File file = resource.getFile();
+        if (file == null) {
+            return hashText(resource.getText());
+        }
+        return hashFile(file, scriptSource.getDisplayName());
+    }
+
+    private HashCode hashFile(File file, String displayName) {
+        try {
+            return fileHasher.hash(file);
+        } catch (UncheckedIOException e) {
+            if (e.getCause() instanceof FileNotFoundException) {
+                throw new UncheckedIOException("Could not read " + displayName + " as it does not exist.", e.getCause());
+            }
+            throw e;
+        }
+    }
+
+    private HashCode hashText(String text) {
         PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
         hasher.putHash(SIGNATURE);
-        hasher.putString(resource.getText());
+        hasher.putString(text);
         return hasher.hash();
     }
 }

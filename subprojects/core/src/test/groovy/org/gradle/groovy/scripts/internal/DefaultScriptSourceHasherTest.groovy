@@ -25,42 +25,74 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultScriptSourceHasherTest extends Specification {
+    private static final String TEXT = "script text"
+    private static final HashCode TEXT_HASH = HashCode.fromString("d8a365ea4ff1f32b9773e36b2661f1ec")
+    private static final SOME_HASH = HashCode.fromInt(123)
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def hash = HashCode.fromInt(123)
 
     def fileHasher = Mock(FileHasher)
     def scriptHasher = new DefaultScriptSourceHasher(fileHasher)
 
-    def hashesBackingFileWhenResourceIsBackedByFile() {
-        def script = Mock(ScriptSource)
-        def resource = Mock(TextResource)
+    def "hashes underlying file when not cached"() {
         def file = tmpDir.createFile("testfile")
+        def resource = Stub(TextResource) {
+            isContentCached() >> false
+            getFile() >> file
+        }
+        def script = Stub(ScriptSource) {
+            getResource() >> resource
+        }
 
         when:
         def result = scriptHasher.hash(script)
 
         then:
-        result == hash
+        result == SOME_HASH
 
         and:
-        1 * script.resource >> resource
-        1 * resource.file >> file
-        1 * fileHasher.hash(file) >> hash
-        0 * _
+        1 * fileHasher.hash(file) >> SOME_HASH
     }
 
-    def hashesContentWhenResourceIsNotBackedByFile() {
-        def script = Mock(ScriptSource)
-        def resource = Mock(TextResource)
+    def "hashes content when not cached and not a file"() {
+        def resource = Stub(TextResource) {
+            isContentCached() >> false
+            getFile() >> null
+            getText() >> TEXT
+        }
+        def script = Stub(ScriptSource) {
+            getResource() >> resource
+        }
 
         when:
-        scriptHasher.hash(script)
+        def result = scriptHasher.hash(script)
 
         then:
-        1 * script.resource >> resource
-        1 * resource.file >> null
-        1 * resource.text >> "alma"
-        0 * _
+        result == TEXT_HASH
+
+        and:
+        0 * fileHasher._
+    }
+
+    def "hashes content when cached"() {
+        def file = tmpDir.createFile("testfile")
+        def resource = Stub(TextResource) {
+            isContentCached() >> true
+            getFile() >> file
+            getText() >> TEXT
+        }
+        def script = Stub(ScriptSource) {
+            getResource() >> resource
+        }
+
+        when:
+        def result = scriptHasher.hash(script)
+
+        then:
+        result == TEXT_HASH
+
+        and:
+        0 * fileHasher._
     }
 }
