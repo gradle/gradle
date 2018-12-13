@@ -106,6 +106,13 @@ include("architectureTest")
 include("buildCachePackaging")
 include("execution")
 include("buildProfile")
+include("kotlinDsl")
+include("kotlinDslProviderPlugins")
+include("kotlinDslPlugins")
+include("kotlinDslToolingModels")
+include("kotlinDslToolingBuilders")
+include("kotlinDslTestFixtures")
+include("kotlinDslIntegTests")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
