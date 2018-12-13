@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import build.futureKotlin
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `kotlin-dsl-module`
+}
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
+}
+
+dependencies {
+
+    api(project(":distributionsDependencies"))
+
+    compileOnly(futureKotlin("stdlib-jdk8"))
 }
