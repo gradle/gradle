@@ -58,7 +58,8 @@ object ProjectGroups {
             rootProject.project(":dependencyManagement"),
             rootProject.project(":messaging"),
             rootProject.project(":processServices"),
-            rootProject.project(":resources"))
+            rootProject.project(":resources"),
+            rootProject.project(":kotlinDslToolingModels"))
 
     val Project.publicProjects
         get() = pluginProjects +
