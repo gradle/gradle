@@ -27,7 +27,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -73,11 +72,6 @@ public interface TaskArtifactState {
      * Called when outputs were generated.
      */
     void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
-
-    /**
-     * Returns the current output file fingerprints indexed by property name.
-     */
-    Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns the outputs before execution.

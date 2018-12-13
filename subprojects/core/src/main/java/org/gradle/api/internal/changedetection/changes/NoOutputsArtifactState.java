@@ -33,8 +33,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 class NoOutputsArtifactState implements TaskArtifactState {
@@ -155,11 +153,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
 
     @Override
     public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-    }
-
-    @Override
-    public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        return Collections.emptyMap();
     }
 
     @Override

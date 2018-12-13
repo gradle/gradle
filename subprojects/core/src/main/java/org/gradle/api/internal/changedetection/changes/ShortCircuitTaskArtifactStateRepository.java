@@ -35,7 +35,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Optional;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -135,11 +134,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, TaskProperties taskProperties) {
             return delegate.calculateCacheKey(afterPreviousExecutionState, taskProperties);
-        }
-
-        @Override
-        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return delegate.getOutputFingerprints(afterPreviousExecutionState);
         }
 
         @Override

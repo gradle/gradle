@@ -151,11 +151,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return getBeforeExecutionState(afterPreviousExecutionState).getOutputFileProperties();
-        }
-
-        @Override
         public void afterOutputsRemovedBeforeTask() {
             outputsRemoved = true;
         }

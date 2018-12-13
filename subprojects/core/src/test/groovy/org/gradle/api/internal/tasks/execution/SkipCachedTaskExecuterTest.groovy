@@ -81,7 +81,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
@@ -131,7 +130,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
@@ -194,7 +192,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * cacheKey.getDisplayName() >> "cache key"
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints()
         1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }
 
