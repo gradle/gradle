@@ -22,9 +22,9 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -42,11 +42,6 @@ public interface TaskArtifactState {
      * Returns the incremental task inputs for the current execution.
      */
     IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
-
-    /**
-     * Returns fingerprints of all the current input files.
-     */
-    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
@@ -77,4 +72,6 @@ public interface TaskArtifactState {
      * Returns the outputs before execution.
      */
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
+
+    BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 }

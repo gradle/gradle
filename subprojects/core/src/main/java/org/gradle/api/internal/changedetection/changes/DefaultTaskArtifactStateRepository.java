@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
@@ -132,12 +133,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private RebuildIncrementalTaskInputs createRebuildInputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints(afterPreviousExecutionState));
-        }
-
-        @Override
-        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
+            ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
         }
 
         @Override
@@ -232,7 +229,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return outputFilesBeforeExecution;
         }
 
-        private BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        @Override
+        public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             if (beforeExecutionState == null) {
                 beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, getOutputFilesBeforeExecution());
             }

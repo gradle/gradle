@@ -27,9 +27,9 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -128,11 +128,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean isAllowedToUseCachedResults() {
         return false;
     }
@@ -158,5 +153,10 @@ class NoOutputsArtifactState implements TaskArtifactState {
     @Override
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
         return ImmutableSortedMap.of();
+    }
+
+    @Override
+    public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        throw new UnsupportedOperationException();
     }
 }

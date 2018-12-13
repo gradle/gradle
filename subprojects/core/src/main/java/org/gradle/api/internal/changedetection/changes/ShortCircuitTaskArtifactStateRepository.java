@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskInternal;
@@ -29,9 +30,9 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -118,12 +119,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Override
         public IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints(afterPreviousExecutionState));
-        }
-
-        @Override
-        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return delegate.getCurrentInputFileFingerprints(afterPreviousExecutionState);
+            ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
         }
 
         @Override
@@ -154,6 +151,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
             return delegate.getOutputFilesBeforeExecution();
+        }
+
+        @Override
+        public BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+            return delegate.getBeforeExecutionState(afterPreviousExecutionState);
         }
     }
 }
