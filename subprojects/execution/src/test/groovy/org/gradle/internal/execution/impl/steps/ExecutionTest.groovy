@@ -214,6 +214,11 @@ class ExecutionTest extends Specification {
         }
 
         @Override
+        Optional<ExecutionOutcome> getAlreadyDeterminedOutcome() {
+            return Optional.empty()
+        }
+
+        @Override
         boolean hasOverlappingOutputs() {
             return false
         }

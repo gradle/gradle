@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
@@ -96,23 +96,23 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
-import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.PrepareOutputsStep;
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
 import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
@@ -205,6 +205,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
                 }
             };
+            BuildOutputCleanupRegistry noopBuildOutputCleanupRegistry = new BuildOutputCleanupRegistry() {
+                @Override
+                public void registerOutputs(Object files) {
+                }
+
+                @Override
+                public boolean isOutputOwnedByBuild(File file) {
+                    return true;
+                }
+            };
+
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<UpToDateResult>(
@@ -212,7 +223,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
                         new PrepareCachingStep<Context, CurrentSnapshotResult>(
                             new SnapshotOutputStep<Context>(fixedUniqueId,
-                                new CreateOutputsStep<Context, Result>(
+                                new PrepareOutputsStep<Context>(outputChangeListener, noopBuildOutputCleanupRegistry,
                                     new CatchExceptionStep<Context>(
                                         new TimeoutStep<Context>(timeoutHandler,
                                             new ExecuteStep(outputChangeListener)

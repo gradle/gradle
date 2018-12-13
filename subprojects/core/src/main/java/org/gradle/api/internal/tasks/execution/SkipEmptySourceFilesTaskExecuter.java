@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -69,6 +70,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 };
             } else {
                 context.setDeleteOutputsBeforeExecution(true);
+                context.setAlreadyDeterminedOutcome(ExecutionOutcome.NO_SOURCE);
             }
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskProperties.getInputFiles()));

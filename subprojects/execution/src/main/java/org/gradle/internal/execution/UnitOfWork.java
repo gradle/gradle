@@ -85,4 +85,11 @@ public interface UnitOfWork extends CacheableEntity {
      * Returns whether there are
      */
     boolean hasOverlappingOutputs();
+
+    /**
+     * The outcome, if any, already determined without actually executing the work.
+     * This is used when something higher up the chain can already decide not to execute the work,
+     * such as when the work has no source files.
+     */
+    Optional<ExecutionOutcome> getAlreadyDeterminedOutcome();
 }

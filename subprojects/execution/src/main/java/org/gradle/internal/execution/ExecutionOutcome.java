@@ -19,5 +19,6 @@ package org.gradle.internal.execution;
 public enum ExecutionOutcome {
     UP_TO_DATE,
     FROM_CACHE,
+    NO_SOURCE,
     EXECUTED
 }

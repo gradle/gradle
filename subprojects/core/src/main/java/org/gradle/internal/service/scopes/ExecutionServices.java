@@ -33,7 +33,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -46,11 +45,10 @@ import org.gradle.internal.execution.impl.steps.CachingContext;
 import org.gradle.internal.execution.impl.steps.CancelExecutionStep;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
-import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
-import org.gradle.internal.execution.impl.steps.RemoveOutputsStep;
+import org.gradle.internal.execution.impl.steps.PrepareOutputsStep;
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
 import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
@@ -127,13 +125,11 @@ public class ExecutionServices {
                     new PrepareCachingStep<Context, CurrentSnapshotResult>(
                         new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
                             new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
-                                new RemoveOutputsStep<Context>(outputChangeListener, buildOutputCleanupRegistry,
-                                    new CreateOutputsStep<Context, Result>(
-                                        new CatchExceptionStep<Context>(
-                                            new TimeoutStep<Context>(timeoutHandler,
-                                                new CancelExecutionStep<Context>(cancellationToken,
-                                                    new ExecuteStep(outputChangeListener)
-                                                )
+                                new PrepareOutputsStep<Context>(outputChangeListener, buildOutputCleanupRegistry,
+                                    new CatchExceptionStep<Context>(
+                                        new TimeoutStep<Context>(timeoutHandler,
+                                            new CancelExecutionStep<Context>(cancellationToken,
+                                                new ExecuteStep(outputChangeListener)
                                             )
                                         )
                                     )

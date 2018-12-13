@@ -21,10 +21,12 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskExecutionContext {
 
@@ -91,4 +93,8 @@ public interface TaskExecutionContext {
     boolean isDeleteOutputsBeforeExecution();
 
     void setDeleteOutputsBeforeExecution(boolean deleteOutputsBeforeExecution);
+
+    void setAlreadyDeterminedOutcome(ExecutionOutcome outcome);
+
+    Optional<ExecutionOutcome> getAlreadyDeterminedOutcome();
 }

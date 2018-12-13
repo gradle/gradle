@@ -403,6 +403,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public Optional<ExecutionOutcome> getAlreadyDeterminedOutcome() {
+            return Optional.empty();
+        }
+
+        @Override
         public boolean hasOverlappingOutputs() {
             return false;
         }

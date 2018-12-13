@@ -27,10 +27,10 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
@@ -93,6 +93,7 @@ class IncrementalExecutionTest extends Specification {
         }
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, new NamedObjectInstantiator())
+    def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -118,7 +119,7 @@ class IncrementalExecutionTest extends Specification {
             new SkipUpToDateStep<Context>(
                 new StoreSnapshotsStep<Context>(outputFilesRepository,
                     new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
-                        new CreateOutputsStep<Context, Result>(
+                        new PrepareOutputsStep<Context>(outputChangeListener, buildOutputCleanupRegistry,
                             new CatchExceptionStep<Context>(
                                 new ExecuteStep(outputChangeListener)
                             )
@@ -781,6 +782,11 @@ class IncrementalExecutionTest extends Specification {
                 @Override
                 boolean deleteOutputsBeforeExecution() {
                     return false
+                }
+
+                @Override
+                Optional<ExecutionOutcome> getAlreadyDeterminedOutcome() {
+                    return Optional.empty()
                 }
 
                 @Override

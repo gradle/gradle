@@ -19,12 +19,14 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
@@ -37,6 +39,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private boolean taskCachingEnabled;
     private Long executionTime;
     private boolean deleteOutputsBeforeExecution;
+    private ExecutionOutcome alreadyDeterminedOutcome;
 
     private final Timer executionTimer;
     private boolean taskExecutedIncrementally;
@@ -148,5 +151,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setDeleteOutputsBeforeExecution(boolean deleteOutputsBeforeExecution) {
         this.deleteOutputsBeforeExecution = deleteOutputsBeforeExecution;
+    }
+
+    @Override
+    public void setAlreadyDeterminedOutcome(ExecutionOutcome outcome) {
+        this.alreadyDeterminedOutcome = outcome;
+    }
+
+    @Override
+    public Optional<ExecutionOutcome> getAlreadyDeterminedOutcome() {
+        return Optional.ofNullable(alreadyDeterminedOutcome);
     }
 }

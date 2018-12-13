@@ -252,6 +252,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public Optional<ExecutionOutcome> getAlreadyDeterminedOutcome() {
+            return context.getAlreadyDeterminedOutcome();
+        }
+
+        @Override
         public boolean hasOverlappingOutputs() {
             return context.getTaskArtifactState().getOverlappingOutputs(context.getAfterPreviousExecution()) != null;
         }
