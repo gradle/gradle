@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.*
@@ -37,9 +39,11 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
     val compileOnly by project.configurations
 
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
     val runtime by project.configurations
 
     @get:Internal

@@ -18,7 +18,6 @@ package accessors
 
 import org.gradle.api.Project
 
-import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
@@ -29,11 +28,6 @@ import org.gradle.kotlin.dsl.the
 import com.gradle.publish.PluginBundleExtension
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
-
-
-internal
-val Project.base
-    get() = the<BasePluginConvention>()
 
 
 internal
