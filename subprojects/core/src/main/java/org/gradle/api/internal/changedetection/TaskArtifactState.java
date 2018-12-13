@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -38,11 +37,6 @@ public interface TaskArtifactState {
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
      */
     boolean isAllowedToUseCachedResults();
-
-    /**
-     * Called when outputs were generated.
-     */
-    void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
 
     /**
      * Returns the outputs before execution.

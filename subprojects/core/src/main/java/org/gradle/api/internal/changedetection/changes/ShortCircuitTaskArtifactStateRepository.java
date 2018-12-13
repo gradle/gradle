@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -116,11 +115,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public boolean isAllowedToUseCachedResults() {
             return false;
-        }
-
-        @Override
-        public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-            delegate.persistNewOutputs(afterPreviousExecutionState, newOutputFingerprints, successful, originMetadata);
         }
 
         @Override

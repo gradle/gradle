@@ -45,6 +45,8 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.tasks.DefaultTaskCacheKeyCalculator;
+import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -115,10 +117,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
+        TaskCacheKeyCalculator cacheKeyCalculator = new DefaultTaskCacheKeyCalculator();
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheEnabled,
             fingerprinterRegistry,
+            executionHistoryStore,
+            outputFilesRepository,
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,
@@ -126,7 +131,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, relativeFilePathResolver, executer);
         if (buildCacheEnabled || scanPluginApplied) {
-            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());
+            executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, outputChangeListener, executer, buildInvocationScopeId);

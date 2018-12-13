@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-
+import com.google.common.collect.ImmutableSortedMap
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
@@ -35,6 +36,8 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.CancelExecutionStep
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep
@@ -64,6 +67,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
+    def taskProperties = Mock(TaskProperties)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
@@ -73,6 +77,10 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
+    }
+    def executionHistoryStore = Mock(ExecutionHistoryStore)
+    def outputFilesRepository = Stub(OutputFilesRepository) {
+        isGeneratedByGradle(_) >> true
     }
     def buildId = UniqueId.generate()
 
@@ -91,7 +99,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, fingerprinterRegistry, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(false, fingerprinterRegistry, executionHistoryStore, outputFilesRepository, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -100,7 +108,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskArtifactState() >> taskArtifactState
-        taskArtifactState.getExecutionStateChanges(_) >> Optional.empty()
+        taskArtifactState.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
+        taskArtifactState.getExecutionStateChanges(_, _) >> Optional.empty()
+
+        executionContext.getTaskProperties() >> taskProperties
+        taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
 
     void noMoreInteractions() {

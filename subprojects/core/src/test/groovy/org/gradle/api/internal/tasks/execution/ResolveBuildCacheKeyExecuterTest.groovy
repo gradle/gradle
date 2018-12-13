@@ -26,8 +26,10 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
+import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -41,11 +43,13 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+    def beforeExecution = Mock(BeforeExecutionState)
     def taskArtifactState = Mock(TaskArtifactState)
     def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor, false)
+    def calculator = Mock(TaskCacheKeyCalculator)
+    def executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, calculator, false, delegate)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
     def "calculates build cache key"() {
@@ -62,7 +66,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        1 * taskArtifactState.calculateCacheKey(afterPreviousExecution, taskProperties) >> cacheKey
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.of(beforeExecution)
+        1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> cacheKey
 
         then:
         1 * taskProperties.hasDeclaredOutputs() >> true
@@ -88,7 +93,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        1 * taskArtifactState.calculateCacheKey(afterPreviousExecution, taskProperties) >> {
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.of(beforeExecution)
+        1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> {
             throw failure
         }
         0 * _
@@ -99,7 +105,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     }
 
     def "does not calculate cache key when task has no outputs"() {
-        def noCacheKey = Mock(TaskOutputCachingBuildCacheKey)
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -108,13 +113,11 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        1 * taskArtifactState.calculateCacheKey(afterPreviousExecution, taskProperties) >> noCacheKey
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.empty()
+        0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
 
         then:
-        1 * taskProperties.hasDeclaredOutputs() >> false
-
-        then:
-        1 * taskContext.setBuildCacheKey(noCacheKey)
+        1 * taskContext.setBuildCacheKey({ TaskOutputCachingBuildCacheKey key -> !key.valid } as TaskOutputCachingBuildCacheKey)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -122,7 +125,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         and:
         with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            key == noCacheKey
+            !key.valid
         }
     }
 

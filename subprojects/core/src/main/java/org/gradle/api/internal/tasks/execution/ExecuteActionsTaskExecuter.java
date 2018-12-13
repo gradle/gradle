@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
@@ -46,9 +47,14 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -72,6 +78,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final boolean buildCacheEnabled;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
+    private final ExecutionHistoryStore executionHistoryStore;
+    private final OutputFilesRepository outputFilesRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
@@ -80,6 +88,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ExecutionHistoryStore executionHistoryStore,
+        OutputFilesRepository outputFilesRepository,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
@@ -87,6 +97,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.fingerprinterRegistry = fingerprinterRegistry;
+        this.executionHistoryStore = executionHistoryStore;
+        this.outputFilesRepository = outputFilesRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
@@ -254,8 +266,34 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            context.getTaskArtifactState().persistNewOutputs(context.getAfterPreviousExecution(), finalOutputs, successful, originMetadata);
+        public void persistResult(final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, final boolean successful, final OriginMetadata originMetadata) {
+            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
+            // Only persist history if there was no failure, or some output files have been changed
+            if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
+                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
+                taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState).ifPresent(new Consumer<BeforeExecutionState>() {
+                    @Override
+                    public void accept(BeforeExecutionState execution) {
+                        executionHistoryStore.store(
+                            task.getPath(),
+                            OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
+                            execution.getImplementation(),
+                            execution.getAdditionalImplementations(),
+                            execution.getInputProperties(),
+                            execution.getInputFileProperties(),
+                            finalOutputs,
+                            successful
+                        );
+
+                        outputFilesRepository.recordOutputs(finalOutputs.values());
+                    }
+                });
+            }
+        }
+
+        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+            return !previous.keySet().equals(current.keySet())
+                || new OutputFileChanges(previous, current).hasAnyChanges();
         }
 
         @Override

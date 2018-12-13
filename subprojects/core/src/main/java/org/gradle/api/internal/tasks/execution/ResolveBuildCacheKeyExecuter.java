@@ -112,16 +112,21 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
     };
 
-    private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final TaskCacheKeyCalculator calculator;
     private final boolean buildCacheDebugLogging;
+    private final TaskExecuter delegate;
 
     public ResolveBuildCacheKeyExecuter(
-
-        TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor, boolean buildCacheDebugLogging) {
-        this.delegate = delegate;
+        BuildOperationExecutor buildOperationExecutor,
+        TaskCacheKeyCalculator calculator,
+        boolean buildCacheDebugLogging,
+        TaskExecuter delegate
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.calculator = calculator;
         this.buildCacheDebugLogging = buildCacheDebugLogging;
+        this.delegate = delegate;
     }
 
     @Override
@@ -172,7 +177,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             .map(new java.util.function.Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
                 @Override
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {
-                    TaskOutputCachingBuildCacheKey cacheKey = TaskCacheKeyCalculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);
+                    TaskOutputCachingBuildCacheKey cacheKey = calculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);
                     if (taskProperties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
                         LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
                         LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());

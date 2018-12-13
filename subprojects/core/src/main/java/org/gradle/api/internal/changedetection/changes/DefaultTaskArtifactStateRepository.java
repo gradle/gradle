@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -97,26 +96,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public boolean isAllowedToUseCachedResults() {
             return true;
-        }
-
-        @Override
-        public void persistNewOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
-            // Only persist history if there was no failure, or some output files have been changed
-            if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), newOutputFingerprints)) {
-                BeforeExecutionState execution = getBeforeExecutionState(afterPreviousExecutionState).get();
-                executionHistoryStore.store(
-                    task.getPath(),
-                    OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
-                    execution.getImplementation(),
-                    execution.getAdditionalImplementations(),
-                    execution.getInputProperties(),
-                    execution.getInputFileProperties(),
-                    newOutputFingerprints,
-                    successful
-                );
-
-                outputFilesRepository.recordOutputs(newOutputFingerprints.values());
-            }
         }
 
         private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
