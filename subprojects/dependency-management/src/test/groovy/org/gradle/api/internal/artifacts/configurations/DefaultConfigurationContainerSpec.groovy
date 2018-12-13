@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalCompone
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -71,8 +69,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ProjectStateRegistry projectStateRegistry = Mock()
     private DocumentationRegistry documentationRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
-    private ObjectFactory objectFactory = Mock()
-    private ProviderFactory providerFactory = Mock()
 
     private CollectionCallbackActionDecorator domainObjectCollectioncallbackActionDecorator = Mock()
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -80,7 +76,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
         immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, documentationRegistry,
-        domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext, objectFactory, providerFactory)
+        domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext)
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,92 +16,86 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Date;
 
-public class ArchivePublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
+public class DecoratingPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
     private String extension;
     private String type;
     private String classifier;
-    private Date date;
-    private File file;
+    private final PublishArtifact publishArtifact;
+    private boolean classifierSet;
 
-    private AbstractArchiveTask archiveTask;
+    public DecoratingPublishArtifact(PublishArtifact publishArtifact) {
+        super(publishArtifact.getBuildDependencies());
+        this.publishArtifact = publishArtifact;
+    }
 
-    public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
-        super(archiveTask);
-        this.archiveTask = archiveTask;
+    public PublishArtifact getPublishArtifact() {
+        return publishArtifact;
     }
 
     @Override
-    public ArchivePublishArtifact builtBy(Object... tasks) {
+    public DecoratingPublishArtifact builtBy(Object... tasks) {
         super.builtBy(tasks);
         return this;
     }
 
+    @Override
     public String getName() {
-        if (name != null) {
-            return name;
-        }
-        if (archiveTask.getBaseName() != null) {
-            return withAppendix(archiveTask.getBaseName());
-        }
-        return archiveTask.getAppendix();
+        return GUtil.elvis(name, publishArtifact.getName());
     }
 
-    private String withAppendix(String baseName) {
-        return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
-    }
-
+    @Override
     public String getExtension() {
-        return GUtil.elvis(extension, archiveTask.getExtension());
+        return GUtil.elvis(extension, publishArtifact.getExtension());
     }
 
+    @Override
     public String getType() {
-        return GUtil.elvis(type, archiveTask.getExtension());
+        return GUtil.elvis(type, publishArtifact.getType());
     }
 
+    @Override
     public String getClassifier() {
-        return GUtil.elvis(classifier, archiveTask.getClassifier());
+        if (classifierSet) {
+            return classifier;
+        }
+        return publishArtifact.getClassifier();
     }
 
+    @Override
     public File getFile() {
-        return GUtil.elvis(file, archiveTask.getArchivePath());
+        return publishArtifact.getFile();
     }
 
+    @Override
     public Date getDate() {
-        return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
+        return publishArtifact.getDate();
     }
 
-    public AbstractArchiveTask getArchiveTask() {
-        return archiveTask;
-    }
-
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public void setExtension(String extension) {
         this.extension = extension;
     }
 
+    @Override
     public void setType(String type) {
         this.type = type;
     }
 
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
+        this.classifierSet = true;
     }
 }

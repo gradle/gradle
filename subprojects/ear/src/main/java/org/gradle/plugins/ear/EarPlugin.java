@@ -19,27 +19,20 @@ package org.gradle.plugins.ear;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.artifacts.publish.DefaultConfigurablePublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.internal.DefaultEarPluginConvention;
 
@@ -157,16 +150,7 @@ public class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-
-        // TODO: TaskResolver should be a service somewhere?
-        TaskResolver taskResolver = ((ProjectInternal) project).getTasks();
-        PublishArtifact earArtifact = new DefaultConfigurablePublishArtifact(project.getObjects(), taskResolver, ear.flatMap(new Transformer<Provider<? extends FileSystemLocation>, Jar>() {
-            @Override
-            public Provider<? extends FileSystemLocation> transform(Jar jar) {
-                return jar.getArchiveFile();
-            }
-        })).configureFor(ear);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(earArtifact);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear));
 
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             public void execute(Ear task) {

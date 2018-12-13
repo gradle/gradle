@@ -20,7 +20,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -63,12 +63,13 @@ public class ScalaPlugin implements Plugin<Project> {
                 task.getAnalysisMappingFile().set(compileScalaMapping);
             }
         });
-        incrementalAnalysisElements.getOutgoing().artifact(compileScala.flatMap(new Transformer<Provider<RegularFile>, AbstractScalaCompile>() {
+        incrementalAnalysisElements.getOutgoing().artifact(
+            compileScalaMapping, new Action<ConfigurablePublishArtifact>() {
             @Override
-            public Provider<RegularFile> transform(AbstractScalaCompile compileScala) {
-                return compileScala.getAnalysisMappingFile();
+            public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
+                configurablePublishArtifact.builtBy(compileScala);
             }
-        }));
+        });
     }
 
     private static void configureScaladoc(final Project project, final SourceSet main) {

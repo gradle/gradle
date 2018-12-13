@@ -34,8 +34,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -64,8 +62,6 @@ class DefaultConfigurationContainerTest extends Specification {
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
-    private ObjectFactory objectFactory = Mock()
-    private ProviderFactory providerFactory = Mock()
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -80,7 +76,7 @@ class DefaultConfigurationContainerTest extends Specification {
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
             immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry,
-            documentationRegistry, callbackActionDecorator, userCodeApplicationContext, objectFactory, providerFactory)
+            documentationRegistry, callbackActionDecorator, userCodeApplicationContext)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

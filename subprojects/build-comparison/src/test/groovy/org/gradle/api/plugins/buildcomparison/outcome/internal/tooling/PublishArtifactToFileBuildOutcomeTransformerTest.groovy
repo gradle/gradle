@@ -18,14 +18,88 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.War
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.jvm.tasks.Jar
+import org.gradle.plugins.ear.Ear
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
+import spock.lang.Unroll
 
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.ARCHIVE_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.EAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.JAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.TAR_ARTIFACT
 import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.UNKNOWN_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.WAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.ZIP_ARTIFACT
 
 class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBuilderSpec {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
+
+    @Unroll
+    "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
+        given:
+        AbstractArchiveTask task = Mock(taskClass)
+        PublishArtifact artifact = new ArchivePublishArtifact(task)
+
+        and:
+        _ * task.getArchivePath() >> project.file("file")
+
+        when:
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
+
+        then:
+        outcome.typeIdentifier == typeIdentifier.typeIdentifier
+        outcome.id == "file"
+
+        where:
+        taskClass           | typeIdentifier
+        Zip                 | ZIP_ARTIFACT
+        Jar                 | JAR_ARTIFACT
+        Ear                 | EAR_ARTIFACT
+        Tar                 | TAR_ARTIFACT
+        War                 | WAR_ARTIFACT
+        AbstractArchiveTask | ARCHIVE_ARTIFACT
+    }
+
+    @Unroll
+    "can create outcome for lazy #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
+        given:
+        AbstractArchiveTask task = Mock(taskClass)
+        ProviderInternal taskProvider = Mock(ProviderInternal)
+        PublishArtifact artifact = new LazyPublishArtifact(taskProvider)
+
+        and:
+        _ * task.getArchivePath() >> project.file("file")
+        _ * taskProvider.get() >> task
+        _ * taskProvider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task) }
+
+        when:
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
+
+        then:
+        outcome.typeIdentifier == typeIdentifier.typeIdentifier
+        outcome.id == "file"
+
+        where:
+        taskClass           | typeIdentifier
+        Zip                 | ZIP_ARTIFACT
+        Jar                 | JAR_ARTIFACT
+        Ear                 | EAR_ARTIFACT
+        Tar                 | TAR_ARTIFACT
+        War                 | WAR_ARTIFACT
+        AbstractArchiveTask | ARCHIVE_ARTIFACT
+    }
 
     def "can handle generic publish artifact"() {
         given:
