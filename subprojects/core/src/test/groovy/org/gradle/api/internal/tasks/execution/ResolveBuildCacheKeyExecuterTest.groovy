@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -28,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -42,10 +40,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
-    def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecution = Mock(BeforeExecutionState)
-    def outputFilesBeforeExecution = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
-    def taskArtifactState = Mock(TaskArtifactState)
     def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
@@ -65,10 +60,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskProperties() >> taskProperties
         1 * task.getIdentityPath() >> Path.path(":foo")
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
+        _ * taskContext.getBeforeExecutionState() >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> cacheKey
 
         then:
@@ -92,11 +84,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
-        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
+        _ * taskContext.getBeforeExecutionState() >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> {
             throw failure
         }
@@ -113,11 +102,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
-        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskContext.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.empty()
+        _ * taskContext.getBeforeExecutionState() >> Optional.empty()
         0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
 
         then:

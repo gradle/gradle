@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -136,6 +135,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     private void resolve(final TaskInternal task, final TaskExecutionContext context) {
+        // TODO:lptr Review this comment
         /*
             This operation represents the work of analyzing the inputs.
             Therefore, it should encompass all of the file IO and compute necessary to do this.
@@ -171,9 +171,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     private TaskOutputCachingBuildCacheKey doResolve(final TaskInternal task, TaskExecutionContext context) {
-        TaskArtifactState taskState = context.getTaskArtifactState();
         final TaskProperties taskProperties = context.getTaskProperties();
-        return taskState.getBeforeExecutionState(context.getAfterPreviousExecution(), context.getOutputFilesBeforeExecution())
+        return context.getBeforeExecutionState()
             .map(new java.util.function.Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
                 @Override
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {

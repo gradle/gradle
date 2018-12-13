@@ -23,6 +23,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
@@ -40,6 +41,10 @@ public interface TaskExecutionContext {
     void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
     TaskArtifactState getTaskArtifactState();
+
+    Optional<BeforeExecutionState> getBeforeExecutionState();
+
+    void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
 
     void setTaskArtifactState(TaskArtifactState taskArtifactState);
 
@@ -102,5 +107,5 @@ public interface TaskExecutionContext {
 
     Optional<ExecutionStateChanges> getExecutionStateChanges();
 
-    void setExecutionStateChanges(@Nullable ExecutionStateChanges executionStateChanges);
+    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.time.Time;
@@ -36,6 +37,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private AfterPreviousExecutionState afterPreviousExecution;
     private ExecutionStateChanges executionStateChanges;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
+    private BeforeExecutionState beforeExecutionState;
     private TaskArtifactState taskArtifactState;
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
@@ -78,6 +80,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.outputFilesBeforeExecution = outputFilesBeforeExecution;
     }
 
+    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+        return Optional.ofNullable(beforeExecutionState);
+    }
+
+    @Override
+    public void setBeforeExecutionState(BeforeExecutionState beforeExecutionState) {
+        this.beforeExecutionState = beforeExecutionState;
+    }
+
     @Override
     public TaskArtifactState getTaskArtifactState() {
         return taskArtifactState;
@@ -104,7 +115,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public void setExecutionStateChanges(@Nullable ExecutionStateChanges executionStateChanges) {
+    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
         this.executionStateChanges = executionStateChanges;
     }
 

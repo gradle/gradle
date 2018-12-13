@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
@@ -270,9 +269,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
-                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
-                taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution).ifPresent(new Consumer<BeforeExecutionState>() {
+                context.getBeforeExecutionState().ifPresent(new Consumer<BeforeExecutionState>() {
                     @Override
                     public void accept(BeforeExecutionState execution) {
                         executionHistoryStore.store(

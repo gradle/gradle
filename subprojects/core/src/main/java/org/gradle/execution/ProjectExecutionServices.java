@@ -24,7 +24,6 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveChangesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
@@ -100,6 +100,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskInputsListener inputsListener,
                                     TaskActionListener actionListener,
                                     OutputChangeListener outputChangeListener,
+                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                    ValueSnapshotter valueSnapshotter,
                                     FileCollectionFingerprinterRegistry fingerprinterRegistry,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
@@ -135,6 +137,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
+        executer = new ResolveBeforeExecutionStateExecuter(classLoaderHierarchyHasher, valueSnapshotter, fingerprinterRegistry, executer);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, outputChangeListener, executer, buildInvocationScopeId);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(fingerprinterRegistry, executer);
@@ -173,22 +176,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(
-        StartParameter startParameter,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ValueSnapshotter valueSnapshotter,
-        ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository taskOutputsRepository
+        StartParameter startParameter
     ) {
-        return new ShortCircuitTaskArtifactStateRepository(
-            startParameter,
-            new DefaultTaskArtifactStateRepository(
-                fingerprinterRegistry,
-                classLoaderHierarchyHasher,
-                valueSnapshotter,
-                executionHistoryStore,
-                taskOutputsRepository
-            )
-        );
+        return new DefaultTaskArtifactStateRepository(startParameter);
     }
 }

@@ -46,7 +46,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final taskState = Mock(TaskStateInternal)
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskArtifactStateRepository)
-    final taskArtifactState = Mock(TaskArtifactState)
+    final taskArtifactState = TaskArtifactState.INCREMENTAL
     final resolver = Mock(FileResolver)
     final propertyWalker = Mock(PropertyWalker)
     final project = Mock(ProjectInternal)

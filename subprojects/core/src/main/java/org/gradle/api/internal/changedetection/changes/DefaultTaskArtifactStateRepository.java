@@ -16,157 +16,42 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.gradle.api.specs.AndSpec;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskArtifactStateRepository.class);
 
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final ValueSnapshotter valueSnapshotter;
-    private final ExecutionHistoryStore executionHistoryStore;
-    private final OutputFilesRepository outputFilesRepository;
+    private final StartParameter startParameter;
 
-    public DefaultTaskArtifactStateRepository(
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ValueSnapshotter valueSnapshotter,
-        ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository outputFilesRepository
-    ) {
-        this.fingerprinterRegistry = fingerprinterRegistry;
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.valueSnapshotter = valueSnapshotter;
-        this.executionHistoryStore = executionHistoryStore;
-        this.outputFilesRepository = outputFilesRepository;
+    public DefaultTaskArtifactStateRepository(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
-    public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
-        return new TaskArtifactStateImpl(task, taskProperties);
-    }
-
-    private class TaskArtifactStateImpl implements TaskArtifactState {
-        private final TaskInternal task;
-        private final TaskProperties taskProperties;
-
-        private boolean statesCalculated;
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
-        private BeforeExecutionState beforeExecutionState;
-        private ExecutionStateChanges states;
-
-        public TaskArtifactStateImpl(TaskInternal task, TaskProperties taskProperties) {
-            this.task = task;
-            this.taskProperties = taskProperties;
-        }
-
-        @Override
-        public boolean isAllowedToUseCachedResults() {
-            return true;
-        }
-
-        @Override
-        public Optional<String> getRebuildReason() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
-            if (beforeExecutionState == null) {
-                beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, outputFilesBeforeExecution);
-            }
-            return Optional.of(beforeExecutionState);
-        }
-    }
-
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs(TaskInternal task, TaskProperties taskProperties) {
-        return TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
-    }
-
-    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
-        Class<? extends TaskInternal> taskClass = task.getClass();
-        List<ContextAwareTaskAction> taskActions = task.getTaskActions();
-        ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
-        ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Implementation for {}: {}", task, taskImplementation);
-            LOGGER.debug("Action implementations for {}: {}", task, taskActionImplementations);
-        }
-
-        @SuppressWarnings("RedundantTypeArguments")
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
-
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
-
-        return new DefaultBeforeExecutionState(
-            taskImplementation,
-            taskActionImplementations,
-            inputProperties,
-            inputFiles,
-            outputFiles
-        );
-    }
-
-    private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        if (taskActions.isEmpty()) {
-            return ImmutableList.of();
-        }
-        ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
-        for (ContextAwareTaskAction taskAction : taskActions) {
-            actionImplementations.add(taskAction.getActionImplementation(classLoaderHierarchyHasher));
-        }
-        return actionImplementations.build();
-    }
-
-    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskProperties taskProperties, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        Map<String, Object> inputPropertyValues = taskProperties.getInputPropertyValues().create();
-        assert inputPropertyValues != null;
-        for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
-            String propertyName = entry.getKey();
-            Object value = entry.getValue();
-            try {
-                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
-                if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value));
-                } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
-                }
-            } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+    public TaskArtifactState getStateFor(TaskInternal task, TaskProperties taskProperties) {
+        // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
+        AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
+        if (!taskProperties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
+            if (task.hasTaskActions()) {
+                return TaskArtifactState.WITH_ACTIONS;
+            } else {
+                return TaskArtifactState.WITHOUT_ACTIONS;
             }
         }
 
-        return builder.build();
+        if (startParameter.isRerunTasks()) {
+            return TaskArtifactState.RERUN_TASKS_ENABLED;
+        }
+
+        if (!upToDateSpec.isSatisfiedBy(task)) {
+            return TaskArtifactState.UP_TO_DATE_WHEN_FALSE;
+        }
+
+        return TaskArtifactState.INCREMENTAL;
     }
 }

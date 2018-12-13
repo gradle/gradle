@@ -15,27 +15,48 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
  */
-public interface TaskArtifactState {
+public enum TaskArtifactState {
+    INCREMENTAL(null, true, true),
+    WITHOUT_ACTIONS("Task has not declared any outputs nor actions.", false, false),
+    WITH_ACTIONS("Task has not declared any outputs despite executing actions.", false, false),
+    RERUN_TASKS_ENABLED("Executed with '--rerun-tasks'.", true, false),
+    UP_TO_DATE_WHEN_FALSE("Task.upToDateWhen is false.", true, false);
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private final Optional<String> rebuildReason;
+    private final boolean taskHistoryMaintained;
+    private final boolean allowedToUseCachedResults;
+
+    TaskArtifactState(@Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
+        this.rebuildReason = Optional.ofNullable(rebuildReason);
+        this.taskHistoryMaintained = taskHistoryMaintained;
+        this.allowedToUseCachedResults = allowedToUseCachedResults;
+    }
+
     /**
      * Return rebuild reason if any.
      */
-    Optional<String> getRebuildReason();
+    public Optional<String> getRebuildReason() {
+        return rebuildReason;
+    }
+
+    /**
+     * Returns whether the execution history should be stored.
+     */
+    public boolean isTaskHistoryMaintained() {
+        return taskHistoryMaintained;
+    }
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
      */
-    boolean isAllowedToUseCachedResults();
-
-    Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
+    public boolean isAllowedToUseCachedResults() {
+        return allowedToUseCachedResults;
+    }
 }
