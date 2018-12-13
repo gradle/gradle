@@ -1,0 +1,2 @@
+
+ext.groovySum = { i, j -> i + j }
