@@ -21,14 +21,14 @@
 The Java Platform plugin brings the ability to declare platforms for the Java ecosystem.
 A platform can be used for different purposes:
 
-- a description of modules which are published together and share the same version (and should be aligned)
+- a description of modules which are published together and share the same version (and for example, share the same version)
 - a set of recommended versions for heterogeneous libraries. A typical example includes the {spring-boot-bom}[Spring Boot BOM]
 - <<sec:java_platform_consumption,sharing a set of dependency versions>> between subprojects
 
 A platform is a special kind of software component which doesn't contain any sources:
 it is only used to reference other libraries, so that they play well together during dependency resolution.
 
-Platforms are typically published as {maven-bom}[Maven BOMs] (or with the experimental {metadata-file-spec}[Gradle metadata file] format).
+Platforms can published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
 
 
 [[sec:java_platform_usage]]
@@ -47,10 +47,10 @@ include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[ta
 == API and runtime separation
 
 A major difference between a Maven BOM and a Java platform is that Gradle makes the difference between dependencies required at compile time and those only needed at run time.
-While the vast majority of users will only care about _compile time_ dependencies, it allows declaring dependencies or constraints which only apply to runtime.
+While many users will only care about _compile time_ dependencies, it allows declaring dependencies or <<dependency_management_terminology.adoc#sub:terminology_dependency_constraint,constraints>> which only apply to runtime.
 
 For this purpose, the plugin exposes two <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
-The `api` configuration should be used to declare constrainsts and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
+The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
 .Declaring API and runtime constraints
 ====
@@ -69,7 +69,7 @@ However, if `foo` appears, then usual conflict resolution would kick in. If a de
 ====
 
 By default, in order to avoid the common mistake of adding a dependency in a platform instead of a constraint, Gradle will fail if you try to do so.
-If, for some reason, you also want to add _hard dependencies_ in addition to constraints, you need to enable it explicitly:
+If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:
 
 .Allowing declaration of dependencies
 ====
@@ -77,17 +77,10 @@ include::sample[dir="java-platform/quickstart/groovy",files="build.gradle[tags=a
 include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[tags=allow-dependencies]"]
 ====
 
-[NOTE]
-====
-When published as a BOM file, dependencies do not make sense for Maven consumers.
-They would only be considered by a Gradle consumer if published with Gradle metadata.
-====
-
 [[sec:java_platform_project_constraints]]
 == Local project constraints
 
-If what you want to build is a platform for a set of libraries built locally, you can declare constraints onto local components, as demonstrated in the following example:
-
+If you have a multi-project build and want to publish a platform that links to subprojects, you can do it by declaring constraints on the subprojects which belong to the platform, as in the example below:
 .Allowing declaration of dependencies
 ====
 include::sample[dir="java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
@@ -105,12 +98,12 @@ include::sample[dir="java-platform/multiproject/groovy/platform",files="build.gr
 include::sample[dir="java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=publishing]"]
 ====
 
-This will generate a BOM file for the platform, with a `<dependencyManagement>` block where dependencies correspond to the constraints defined in the platform module.
+This will generate a BOM file for the platform, with a `<dependencyManagement>` block where its `<dependencies>` correspond to the constraints defined in the platform module.
 
 [[sec:java_platform_consumption]]
 == Consuming platforms
 
-Because a Java Platform are a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<managing_dependency_configurations.adoc#sec:bom_import,managing transitive dependencies>> section.
+Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<managing_dependency_configurations.adoc#sec:bom_import,managing transitive dependencies>> section.
 For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
 
 .Recommend versions in a platform module
