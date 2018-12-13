@@ -27,7 +27,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
     final ClassGenerator classGenerator = new AsmBackedClassGenerator()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
+    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), classGenerator, services)
     final instantiator = new ClassGeneratorBackedInstantiator(classGenerator, dependencyInjectingInstantiator)
 
     def "injects service using getter injection"() {
@@ -38,7 +38,18 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         def result = instantiator.newInstance(HasGetterInjection)
 
         then:
-        result instanceof DependencyInjectingInstantiator.WithServiceRegistry
+        result.someService == 'string'
+    }
+
+    def "constructor can use getter injected service"() {
+        given:
+        _ * services.get(String) >> "string"
+
+        when:
+        def result = instantiator.newInstance(UsesInjectedServiceFromConstructor)
+
+        then:
+        result.result == 'string'
         result.someService == 'string'
     }
 
@@ -50,16 +61,26 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         def result = instantiator.newInstance(HasInjectConstructor, 12)
 
         then:
-        !(result instanceof DependencyInjectingInstantiator.WithServiceRegistry)
         result.param1 == "string"
         result.param2 == 12
     }
 
-    public static class HasGetterInjection {
+    static class HasGetterInjection {
         @Inject String getSomeService() { throw new UnsupportedOperationException() }
     }
 
-    public static class HasInjectConstructor {
+    static class UsesInjectedServiceFromConstructor {
+        final String result
+
+        UsesInjectedServiceFromConstructor() {
+            result = someService
+        }
+
+        @Inject
+        String getSomeService() { throw new UnsupportedOperationException() }
+    }
+
+    static class HasInjectConstructor {
         String param1
         Number param2
 

@@ -102,8 +102,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
-    // Document current behaviour
-    def "fails when service injected using getter from constructor"() {
+    def "can use getter injected services from constructor"() {
         buildFile << """
             import ${Inject.name}
 
@@ -116,11 +115,11 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 ObjectFactory getObjects() { }
             }
             
-            extensions.create("one", Thing, "a")
+            def e = extensions.create("one", Thing, "a")
+            assert e.objects != null
         """
 
         expect:
-        fails()
-        failure.assertHasCause("Could not create an instance of type Thing.")
+        succeeds()
     }
 }

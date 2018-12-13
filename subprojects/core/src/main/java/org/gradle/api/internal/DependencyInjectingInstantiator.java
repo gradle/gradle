@@ -30,10 +30,12 @@ import java.lang.reflect.Type;
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
 public class DependencyInjectingInstantiator implements Instantiator {
+    private final ClassGenerator classGenerator;
     private final ServiceRegistry services;
     private final ConstructorSelector constructorSelector;
 
-    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ServiceRegistry services) {
+    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ClassGenerator classGenerator, ServiceRegistry services) {
+        this.classGenerator = classGenerator;
         this.services = services;
         this.constructorSelector = constructorSelector;
     }
@@ -44,12 +46,9 @@ public class DependencyInjectingInstantiator implements Instantiator {
             Object[] resolvedParameters = convertParameters(type, constructor, parameters);
             Object instance;
             try {
-                instance = constructor.getConstructor().newInstance(resolvedParameters);
+                instance =  classGenerator.newInstance(constructor.getConstructor(), services, resolvedParameters);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
-            }
-            if (instance instanceof WithServiceRegistry) {
-                ((WithServiceRegistry) instance).setServices(services);
             }
             return type.cast(instance);
         } catch (Throwable t) {
@@ -133,13 +132,5 @@ public class DependencyInjectingInstantiator implements Instantiator {
             throw new IllegalArgumentException(String.format("Unexpected parameter provided for constructor for class %s.", type.getName()));
         }
         return resolvedParameters;
-    }
-
-    /**
-     * An internal interface that can be used by code generators/proxies to indicate that
-     * they require a service registry.
-     */
-    public interface WithServiceRegistry {
-        void setServices(ServiceRegistry services);
     }
 }
