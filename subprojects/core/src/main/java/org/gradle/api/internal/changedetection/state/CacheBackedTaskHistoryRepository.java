@@ -102,6 +102,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     successful
                 );
             }
+
+            @Override
+            public void remove() {
+                executionHistoryStore.remove(task.getPath());
+            }
         };
     }
 

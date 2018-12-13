@@ -171,4 +171,8 @@ class NoOutputsArtifactState implements TaskArtifactState {
         return null;
     }
 
+    @Override
+    public void removeLastExecution() {
+    }
+
 }

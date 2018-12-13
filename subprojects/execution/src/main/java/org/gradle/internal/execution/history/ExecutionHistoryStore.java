@@ -37,4 +37,6 @@ public interface ExecutionHistoryStore {
                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
                boolean successful);
+
+    void remove(String key);
 }

@@ -35,5 +35,7 @@ public interface TaskHistoryRepository {
         BeforeExecutionState getBeforeExecutionState();
 
         void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
+        
+        void remove();
     }
 }
