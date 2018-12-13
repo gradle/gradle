@@ -131,11 +131,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void removeLastExecution() {
-            history.remove();
-        }
-
-        @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey(TaskProperties taskProperties) {
             return taskCacheKeyCalculator.calculate(task, history.getBeforeExecutionState(), taskProperties);
         }

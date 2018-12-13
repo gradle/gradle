@@ -163,11 +163,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             delegate.persistNewOutputs(newOutputFingerprints, successful, originMetadata);
         }
 
-        @Override
-        public void removeLastExecution() {
-            delegate.removeLastExecution();
-        }
-
         @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {

@@ -89,9 +89,4 @@ public interface TaskArtifactState {
      */
     @Nullable
     OverlappingOutputs getOverlappingOutputs();
-
-    /**
-     * Removes the last execution of the task from the execution history.
-     */
-    void removeLastExecution();
 }
