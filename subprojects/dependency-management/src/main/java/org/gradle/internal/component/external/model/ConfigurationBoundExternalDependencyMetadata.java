@@ -32,7 +32,9 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A `ModuleDependencyMetadata` implementation that is backed by an `ExternalDependencyDescriptor` bound to a particular
@@ -133,6 +135,17 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
             return this;
         }
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getForOptionalFeatures() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return null;
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {

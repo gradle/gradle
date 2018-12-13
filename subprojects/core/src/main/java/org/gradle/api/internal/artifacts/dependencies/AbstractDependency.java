@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-public abstract class AbstractDependency implements ResolvableDependency, Dependency {
+import javax.annotation.Nullable;
+import java.util.Set;
+
+public abstract class AbstractDependency implements ResolvableDependency, DependencyInternal {
     private String reason;
+    private Set<String> requestedOptionalFeatures;
+    private Set<String> requiredForOptionalFeatures;
 
     protected void copyTo(AbstractDependency target) {
         target.reason = reason;
@@ -38,5 +43,33 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
     @Override
     public void because(String reason) {
         this.reason = reason;
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return requestedOptionalFeatures;
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getRequiredForOptionalFeatures() {
+        return requiredForOptionalFeatures;
+    }
+
+    @Override
+    public void includeOptionalFeature(String featureId) {
+        if (requestedOptionalFeatures == null) {
+            requestedOptionalFeatures = Sets.newHashSetWithExpectedSize(1);
+        }
+        requestedOptionalFeatures.add(featureId);
+    }
+
+    @Override
+    public void usedByOptionalFeature(String featureId) {
+        if (requiredForOptionalFeatures == null) {
+            requiredForOptionalFeatures = Sets.newHashSetWithExpectedSize(1);
+        }
+        requiredForOptionalFeatures.add(featureId);
     }
 }

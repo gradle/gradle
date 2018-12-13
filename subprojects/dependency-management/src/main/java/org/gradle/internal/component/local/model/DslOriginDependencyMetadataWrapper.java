@@ -27,7 +27,9 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
@@ -113,6 +115,17 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getForOptionalFeatures() {
+        return delegate.getForOptionalFeatures();
+    }
+
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return delegate.getRequestedOptionalFeatures();
     }
 
     @Override

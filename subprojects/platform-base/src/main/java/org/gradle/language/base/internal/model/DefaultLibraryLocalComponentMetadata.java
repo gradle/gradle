@@ -165,7 +165,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
             selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
             ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
-            false, false, true, false, null);
+            false, false, true, false, null, null, null);
     }
 
     @Override

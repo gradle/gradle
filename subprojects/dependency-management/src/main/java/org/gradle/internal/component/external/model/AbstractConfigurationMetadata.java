@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +44,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
+    private final Set<String> requestedOptionalFeatures;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
@@ -51,7 +53,9 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
+                                  ImmutableList<ModuleDependencyMetadata> configDependencies,
+                                  ImmutableCapabilities capabilities,
+                                  Set<String> requestedOptionalFeatures) {
 
         this.componentId = componentId;
         this.name = name;
@@ -63,13 +67,15 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.attributes = attributes;
         this.configDependencies = configDependencies;
         this.capabilities = capabilities;
+        this.requestedOptionalFeatures = requestedOptionalFeatures;
     }
 
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                   Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                  ImmutableCapabilities capabilities) {
+                                  ImmutableCapabilities capabilities,
+                                  Set<String> requestedOptionalFeatures) {
 
         this.componentId = componentId;
         this.name = name;
@@ -81,6 +87,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.attributes = attributes;
         this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
+        this.requestedOptionalFeatures = requestedOptionalFeatures;
     }
 
     @Override
@@ -177,4 +184,10 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     protected abstract ConfigurationMetadata withAttributes(ImmutableAttributes attributes);
+
+    @Nullable
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return requestedOptionalFeatures;
+    }
 }

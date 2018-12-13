@@ -18,12 +18,13 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -90,4 +91,11 @@ public interface ConfigurationMetadata extends HasAttributes {
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
     CapabilitiesMetadata getCapabilities();
+
+    /**
+     * The set of requested optional features, if any.
+     * @return the set of requested optional features, or null if none
+     */
+    @Nullable
+    Set<String> getRequestedOptionalFeatures();
 }

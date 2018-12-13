@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -240,6 +241,9 @@ class NodeState implements DependencyGraphNode {
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
+                if (shouldSkipOptional(dependencyState)) {
+                    continue;
+                }
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
@@ -255,6 +259,38 @@ class NodeState implements DependencyGraphNode {
             // This way, all edges of the node will be re-processed.
             pendingDepsVisitor.complete();
         }
+    }
+
+    private boolean shouldSkipOptional(DependencyState dependencyState) {
+        Set<String> forOptionalFeatures = dependencyState.getDependency().getForOptionalFeatures();
+        if (forOptionalFeatures == null || forOptionalFeatures.isEmpty()) {
+            // this dependency is not optional
+            return false;
+        }
+        Set<String> requiredFeatures = collectOptionalFeatureRequirements();
+        if (requiredFeatures == null) {
+            // if we didn't request any feature
+            return true;
+        }
+        // if the intersection of requested optional features and the provided features is empty, it's not used
+        return Sets.intersection(forOptionalFeatures, requiredFeatures).isEmpty();
+    }
+
+    private Set<String> collectOptionalFeatureRequirements() {
+        Set<String> requirements = null;
+        for (EdgeState edge : incomingEdges) {
+            if (edge.isTransitive()) {
+                Set<String> features = edge.getDependencyMetadata().getRequestedOptionalFeatures();
+                if (features != null) {
+                    if (requirements == null) {
+                        requirements = features;
+                    } else {
+                        requirements = Sets.union(requirements, features);
+                    }
+                }
+            }
+        }
+        return requirements;
     }
 
     /**

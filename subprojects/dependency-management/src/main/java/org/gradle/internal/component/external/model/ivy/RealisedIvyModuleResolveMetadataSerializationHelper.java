@@ -111,7 +111,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                hierarchy, configurationHelper.filterArtifacts(configurationName, hierarchy), configurationHelper.filterExcludes(hierarchy), attributes, capabilities);
+                hierarchy, configurationHelper.filterArtifacts(configurationName, hierarchy), configurationHelper.filterExcludes(hierarchy), attributes, capabilities, null);
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
             int dependenciesCount = decoder.readSmallInt();

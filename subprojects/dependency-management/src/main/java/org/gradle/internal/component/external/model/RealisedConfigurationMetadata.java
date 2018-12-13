@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.List;
+import java.util.Set;
 
 public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata {
 
@@ -32,8 +33,9 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
                                          ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes componentLevelAttributes,
-                                         ImmutableCapabilities capabilities) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null);
+                                         ImmutableCapabilities capabilities,
+                                         Set<String> requestedOptionalFeatures) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null, requestedOptionalFeatures);
     }
 
     public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId,
@@ -45,8 +47,9 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,
                                          ImmutableCapabilities capabilities,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities);
+                                         ImmutableList<ModuleDependencyMetadata> configDependencies,
+                                         Set<String> requestedOptionalFeatures) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, requestedOptionalFeatures);
     }
 
     @Override
@@ -58,7 +61,7 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
     public ConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
         return new RealisedConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(),
             getHierarchy(), ImmutableList.copyOf(getArtifacts()), getExcludes(), attributes,
-            ImmutableCapabilities.of(getCapabilities().getCapabilities()), getConfigDependencies());
+            ImmutableCapabilities.of(getCapabilities().getCapabilities()), getConfigDependencies(), getRequestedOptionalFeatures());
     }
 
     public RealisedConfigurationMetadata withDependencies(ImmutableList<ModuleDependencyMetadata> dependencies) {
@@ -72,7 +75,8 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
             getExcludes(),
             getAttributes(),
             ImmutableCapabilities.of(getCapabilities().getCapabilities()),
-            dependencies
+            dependencies,
+            getRequestedOptionalFeatures()
         );
     }
 }

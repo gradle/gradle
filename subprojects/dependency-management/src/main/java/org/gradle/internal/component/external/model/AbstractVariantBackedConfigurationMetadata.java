@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -139,6 +140,12 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return variant.getCapabilities();
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return null;
     }
 
     @Override

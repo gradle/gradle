@@ -26,7 +26,9 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final DependencyMetadata delegate;
@@ -52,6 +54,17 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
         return new ModuleDependencyMetadataWrapper(delegate.withReason(reason));
+    }
+
+    @Nullable
+    @Override
+    public Set<String> getForOptionalFeatures() {
+        return delegate.getForOptionalFeatures();
+    }
+
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return delegate.getRequestedOptionalFeatures();
     }
 
     @Override

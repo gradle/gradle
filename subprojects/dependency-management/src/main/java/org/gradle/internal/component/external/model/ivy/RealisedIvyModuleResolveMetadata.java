@@ -82,8 +82,18 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, ImmutableCapabilities.EMPTY);
 
 
-            configurations.put(configurationName, createConfiguration(configurationHelper, variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
-                configurationHelper.filterArtifacts(configurationName, hierarchy), configurationHelper.filterExcludes(hierarchy), variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities())));
+            configurations.put(configurationName,
+                    createConfiguration(configurationHelper,
+                            variantMetadataRules,
+                            metadata.getId(),
+                            configurationName,
+                            configuration.isTransitive(),
+                            configuration.isVisible(),
+                            hierarchy,
+                            configurationHelper.filterArtifacts(configurationName, hierarchy),
+                            configurationHelper.filterExcludes(hierarchy),
+                            variantAttributes,
+                            ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities())));
         }
         return configurations;
     }
@@ -132,7 +142,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     private static RealisedConfigurationMetadata createConfiguration(IvyConfigurationHelper configurationHelper, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {
-        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities);
+        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null);
         ImmutableList<ModuleDependencyMetadata> dependencyMetadata = configurationHelper.filterDependencies(configuration);
         dependencyMetadata = ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata));
         configuration.setDependencies(dependencyMetadata);

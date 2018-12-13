@@ -20,7 +20,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A dependency that can participate in dependency resolution.
@@ -84,4 +86,13 @@ public interface DependencyMetadata {
      */
     DependencyMetadata withReason(String reason);
 
+    /**
+     * Returns the set of optional features this dependency is used for.
+     * @return a set of optional feature ids, or null if it's used in every case
+     */
+    @Nullable
+    Set<String> getForOptionalFeatures();
+
+    @Nullable
+    Set<String> getRequestedOptionalFeatures();
 }

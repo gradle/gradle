@@ -49,6 +49,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -487,6 +488,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         @Override
         public CapabilitiesMetadata getCapabilities() {
             return capabilities;
+        }
+
+        @Nullable
+        @Override
+        public Set<String> getRequestedOptionalFeatures() {
+            return null;
         }
 
         private boolean include(DefaultLocalConfigurationMetadata configuration) {

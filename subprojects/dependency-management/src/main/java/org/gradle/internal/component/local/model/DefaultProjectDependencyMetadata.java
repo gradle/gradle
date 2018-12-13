@@ -26,8 +26,10 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     private final ProjectComponentSelector selector;
@@ -93,4 +95,14 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
         return delegate.withReason(reason);
     }
 
+    @Nullable
+    @Override
+    public Set<String> getForOptionalFeatures() {
+        return delegate.getForOptionalFeatures();
+    }
+
+    @Override
+    public Set<String> getRequestedOptionalFeatures() {
+        return delegate.getRequestedOptionalFeatures();
+    }
 }

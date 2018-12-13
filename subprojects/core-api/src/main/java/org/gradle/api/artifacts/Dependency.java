@@ -85,4 +85,27 @@ public interface Dependency {
      */
     @Incubating
     void because(@Nullable String reason);
+
+    /**
+     * Declares that we need the optional dependencies of this dependency
+     * required by the supplied feature id.
+     *
+     * @param featureId the id of the optional feature
+     *
+     * @since 5.2
+     */
+    @Incubating
+    void includeOptionalFeature(String featureId);
+
+    /**
+     * Declares to consumers that this dependency is optional and should
+     * only be brought in the dependency graph if the consumer uses the
+     * feature.
+     *
+     * @param featureId the id of the optional feature
+     *
+     * @since 5.2
+     */
+    @Incubating
+    void usedByOptionalFeature(String featureId);
 }

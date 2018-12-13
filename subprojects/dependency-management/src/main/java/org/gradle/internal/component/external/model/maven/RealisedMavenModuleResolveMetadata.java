@@ -87,7 +87,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                         derivedVariant.getExcludes(),
                         derivedVariant.getAttributes(),
                         (ImmutableCapabilities) derivedVariant.getCapabilities(),
-                        dependencies
+                        dependencies,
+                        null
                     );
                     builder.add(derivedVariantMetadata);
                 }
@@ -115,7 +116,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     private static RealisedConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, List<? extends DependencyMetadata> dependencies, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(componentId, name);
         ImmutableList<ModuleDependencyMetadata> asImmutable = ImmutableList.copyOf(Cast.<List<ModuleDependencyMetadata>>uncheckedCast(dependencies));
-        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.<ExcludeMetadata>of(), attributes, capabilities, asImmutable);
+        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.<ExcludeMetadata>of(), attributes, capabilities, asImmutable, null);
         return configuration;
     }
 

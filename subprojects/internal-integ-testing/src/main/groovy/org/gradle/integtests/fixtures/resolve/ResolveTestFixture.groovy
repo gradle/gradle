@@ -498,10 +498,16 @@ allprojects {
         }
 
         String getArtifactName() {
+            if (type == 'dir') {
+                return name
+            }
             return "${getName()}${classifier ? '-' + classifier : ''}.${getType()}"
         }
 
         String getFileName() {
+            if (type == 'dir') {
+                return name
+            }
             return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
         }
     }
@@ -835,13 +841,16 @@ class GenerateGraphTask extends DefaultTask {
             }
 
             configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                String ext = it.extension ? ".${it.extension}":""
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${ext}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                String ext = it.extension ? ".${it.extension}":""
+                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${ext}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
-                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                String ext = it.extension ? ".${it.extension}":""
+                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${ext}]")
             }
         }
     }

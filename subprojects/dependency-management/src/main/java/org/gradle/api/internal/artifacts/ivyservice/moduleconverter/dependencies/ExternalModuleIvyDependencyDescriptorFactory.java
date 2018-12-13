@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.gradle.api.internal.artifacts.dependencies.DependencyInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -37,6 +38,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
 
     public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
+        DependencyInternal dependencyDetails = (DependencyInternal) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
@@ -50,7 +52,11 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
                 componentId, selector, clientConfiguration, clientAttributes, dependency.getAttributes(), dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
-                excludes, force, changing, transitive, false, dependency.getReason());
+                excludes, force, changing, transitive, false,
+                dependency.getReason(),
+                dependencyDetails.getRequestedOptionalFeatures(),
+                dependencyDetails.getRequiredForOptionalFeatures()
+                );
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

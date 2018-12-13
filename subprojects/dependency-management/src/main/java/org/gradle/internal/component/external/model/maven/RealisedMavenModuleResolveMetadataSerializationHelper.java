@@ -139,7 +139,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                hierarchy, RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(metadata.getId(), configurationName), ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
+                hierarchy, RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(metadata.getId(), configurationName), ImmutableList.<ExcludeMetadata>of(), attributes, capabilities, null);
             ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
@@ -212,7 +212,8 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableList.<ModuleComponentArtifactMetadata>of(),
             ImmutableList.copyOf(excludeMetadata),
             attributes,
-            immutableCapabilities
+            immutableCapabilities,
+            null
         );
         ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized);
         realized.setDependencies(dependencies);
