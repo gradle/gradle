@@ -182,7 +182,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                 classLoaderHierarchyHasher,
                 valueSnapshotter,
                 executionHistoryStore,
-                instantiator,
                 taskOutputsRepository,
                 taskCacheKeyCalculator
             )

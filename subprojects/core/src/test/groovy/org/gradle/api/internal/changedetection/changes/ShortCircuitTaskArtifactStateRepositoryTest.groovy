@@ -79,9 +79,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         1 * upToDateSpec.empty >> false
         1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
         0 * taskArtifactState._
-
-        and:
-        !state.getInputChanges().incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
@@ -95,9 +92,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         and:
         1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
         0 * taskArtifactState._
-
-        and:
-        !state.getInputChanges().incremental
     }
 
 }

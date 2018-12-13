@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskInternal;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
@@ -115,12 +113,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
                     throw new UnsupportedOperationException();
                 }
             });
-        }
-
-        @Override
-        public IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
         }
 
         @Override

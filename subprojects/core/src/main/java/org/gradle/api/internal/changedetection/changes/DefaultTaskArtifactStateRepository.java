@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
@@ -29,11 +28,9 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.change.Change;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -46,7 +43,6 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -58,8 +54,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -69,7 +63,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final Instantiator instantiator;
     private final OutputFilesRepository outputFilesRepository;
     private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
@@ -78,7 +71,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
-        Instantiator instantiator,
         OutputFilesRepository outputFilesRepository,
         TaskCacheKeyCalculator taskCacheKeyCalculator
     ) {
@@ -86,7 +78,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.executionHistoryStore = executionHistoryStore;
-        this.instantiator = instantiator;
         this.outputFilesRepository = outputFilesRepository;
         this.taskCacheKeyCalculator = taskCacheKeyCalculator;
     }
@@ -108,33 +99,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public TaskArtifactStateImpl(TaskInternal task, TaskProperties taskProperties) {
             this.task = task;
             this.taskProperties = taskProperties;
-        }
-
-        @Override
-        public IncrementalTaskInputs getInputChanges(final @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return getExecutionStateChanges(afterPreviousExecutionState)
-                .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
-                     @Override
-                     public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
-                         return changes.isRebuildRequired()
-                             ? createRebuildInputs(afterPreviousExecutionState)
-                             : createIncrementalInputs(changes.getInputFilesChanges());
-                     }
-                }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
-                    @Override
-                    public StatefulIncrementalTaskInputs get() {
-                        return createRebuildInputs(afterPreviousExecutionState);
-                    }
-                });
-        }
-
-        private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
-            return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
-        }
-
-        private RebuildIncrementalTaskInputs createRebuildInputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = getBeforeExecutionState(afterPreviousExecutionState).getInputFileProperties().values();
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
         }
 
         @Override

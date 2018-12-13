@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -37,11 +36,6 @@ public interface TaskArtifactState {
      * Returns changes since the previous execution, if any.
      */
     Optional<ExecutionStateChanges> getExecutionStateChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
-
-    /**
-     * Returns the incremental task inputs for the current execution.
-     */
-    IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -120,11 +119,6 @@ class NoOutputsArtifactState implements TaskArtifactState {
                 throw new UnsupportedOperationException();
             }
         });
-    }
-
-    @Override
-    public IncrementalTaskInputs getInputChanges(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
