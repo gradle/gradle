@@ -64,7 +64,7 @@ Cacheable tasks are validated stricter than non-cacheable tasks by the `validate
 For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
 This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
 
-## Apply plugins from included build using `plugins { }` block 
+### Apply plugins from included build using `plugins { }` block 
 
 The [`plugins { }`](userguide/plugins.html#sec:plugins_block) block in build scripts can now be used to refer to plugins defined in included builds. In previous versions of Gradle, this was possible but required some additional boiler-plate code in the settings file. This boiler-plate is now no longer required.
 
