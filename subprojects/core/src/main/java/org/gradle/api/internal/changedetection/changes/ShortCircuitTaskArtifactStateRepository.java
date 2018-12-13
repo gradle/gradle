@@ -90,8 +90,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            return delegate.getBeforeExecutionState(afterPreviousExecutionState);
+        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
+            return delegate.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution);
         }
     }
 }

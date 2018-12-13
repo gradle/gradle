@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -30,6 +31,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -48,10 +50,11 @@ public class ResolveChangesTaskExecuter implements TaskExecuter {
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
         final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
 
         // Calculate initial state - note this is potentially expensive
         // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-        final Optional<BeforeExecutionState> beforeExecutionState = taskArtifactState.getBeforeExecutionState(afterPreviousExecution);
+        final Optional<BeforeExecutionState> beforeExecutionState = taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution);
 
         ExecutionStateChanges changes = taskArtifactState.getRebuildReason().map(new Function<String, ExecutionStateChanges>() {
             @Override

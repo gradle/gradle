@@ -173,7 +173,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey doResolve(final TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
         final TaskProperties taskProperties = context.getTaskProperties();
-        return taskState.getBeforeExecutionState(context.getAfterPreviousExecution())
+        return taskState.getBeforeExecutionState(context.getAfterPreviousExecution(), taskState.getOutputFilesBeforeExecution())
             .map(new java.util.function.Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
                 @Override
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {

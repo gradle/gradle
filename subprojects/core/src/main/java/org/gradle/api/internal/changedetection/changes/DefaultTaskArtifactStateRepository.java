@@ -107,9 +107,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
             if (beforeExecutionState == null) {
-                beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, getOutputFilesBeforeExecution());
+                beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, outputFilesBeforeExecution);
             }
             return Optional.of(beforeExecutionState);
         }

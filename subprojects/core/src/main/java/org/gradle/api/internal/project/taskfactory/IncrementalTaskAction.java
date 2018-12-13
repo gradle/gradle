@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
@@ -79,7 +80,8 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
     }
 
     private ImmutableCollection<CurrentFileCollectionFingerprint> getCurrentInputs(TaskArtifactState taskArtifactState, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-        return taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState).get().getInputFileProperties().values();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+        return taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution).get().getInputFileProperties().values();
     }
 
 

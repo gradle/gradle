@@ -271,7 +271,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
                 TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-                taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState).ifPresent(new Consumer<BeforeExecutionState>() {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = taskArtifactState.getOutputFilesBeforeExecution();
+                taskArtifactState.getBeforeExecutionState(afterPreviousExecutionState, outputFilesBeforeExecution).ifPresent(new Consumer<BeforeExecutionState>() {
                     @Override
                     public void accept(BeforeExecutionState execution) {
                         executionHistoryStore.store(

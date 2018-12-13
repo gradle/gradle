@@ -51,7 +51,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+    public Optional<BeforeExecutionState> getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
         return Optional.empty();
     }
 }

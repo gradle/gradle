@@ -44,6 +44,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskContext = Mock(TaskExecutionContext)
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecution = Mock(BeforeExecutionState)
+    def outputFilesBeforeExecution = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
     def taskArtifactState = Mock(TaskArtifactState)
     def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
@@ -66,7 +67,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.of(beforeExecution)
+        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> cacheKey
 
         then:
@@ -93,7 +95,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.of(beforeExecution)
+        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> {
             throw failure
         }
@@ -113,7 +116,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution) >> Optional.empty()
+        _ * taskArtifactState.getOutputFilesBeforeExecution() >> outputFilesBeforeExecution
+        _ * taskArtifactState.getBeforeExecutionState(afterPreviousExecution, outputFilesBeforeExecution) >> Optional.empty()
         0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
 
         then:
