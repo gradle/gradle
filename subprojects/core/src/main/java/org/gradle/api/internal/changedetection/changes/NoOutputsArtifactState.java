@@ -168,4 +168,8 @@ class NoOutputsArtifactState implements TaskArtifactState {
         return null;
     }
 
+    @Override
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+        return ImmutableSortedMap.of();
+    }
 }

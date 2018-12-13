@@ -163,5 +163,10 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             return delegate.getOverlappingOutputs(afterPreviousExecutionState);
         }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+            return delegate.getOutputFilesBeforeExecution();
+        }
     }
 }

@@ -100,6 +100,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private boolean outputsRemoved;
         private boolean statesCalculated;
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
         private BeforeExecutionState beforeExecutionState;
         private ExecutionStateChanges states;
 
@@ -147,12 +148,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
-            BeforeExecutionState beforeExecutionState = getBeforeExecutionState(afterPreviousExecutionState);
             return OverlappingOutputs.detect(
                 afterPreviousExecutionState == null
                     ? null
                     : afterPreviousExecutionState.getOutputFileProperties(),
-                beforeExecutionState.getOutputFileProperties()
+                getOutputFilesBeforeExecution()
             );
         }
 
@@ -233,15 +233,27 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return Optional.ofNullable(states);
         }
 
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+            if (outputFilesBeforeExecution == null) {
+                outputFilesBeforeExecution = snapshotOutputs(task, taskProperties);
+            }
+            return outputFilesBeforeExecution;
+        }
+
         private BeforeExecutionState getBeforeExecutionState(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
             if (beforeExecutionState == null) {
-                beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState);
+                beforeExecutionState = createExecution(task, taskProperties, afterPreviousExecutionState, getOutputFilesBeforeExecution());
             }
             return beforeExecutionState;
         }
     }
 
-    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs(TaskInternal task, TaskProperties taskProperties) {
+        return TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
+    }
+
+    private BeforeExecutionState createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -257,8 +269,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
-
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
 
         return new DefaultBeforeExecutionState(
             taskImplementation,
