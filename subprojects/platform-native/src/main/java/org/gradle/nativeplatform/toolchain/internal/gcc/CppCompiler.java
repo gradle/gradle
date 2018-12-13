@@ -23,14 +23,19 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
+import org.gradle.util.VersionNumber;
 
 class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
-
-    CppCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompileArgsTransformer(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
+    CppCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerType compilerType, VersionNumber compilerVersion) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompileArgsTransformer(compilerType, compilerVersion), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
+        CppCompileArgsTransformer(CompilerType compilerType, VersionNumber compilerVersion) {
+            super(compilerType, compilerVersion);
+        }
+
         @Override
         protected String getLanguage() {
             return "c++";

@@ -58,6 +58,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.VersionNumber;
 
 import java.util.Collections;
 import java.util.List;
@@ -99,9 +100,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
+        SearchResult<GccMetadata> gccMetadata = getGccMetadata(ToolType.CPP_COMPILER);
+        VersionNumber compilerVersion = gccMetadata.getComponent().getVersion();
+        CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService, metadataProvider.getCompilerType(), compilerVersion);
         OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return versionAwareCompiler(outputCleaningCompiler, ToolType.CPP_COMPILER);
+        return versionAwareCompiler(outputCleaningCompiler, gccMetadata);
     }
 
     @Override
@@ -113,7 +116,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends BinaryToolSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, ToolType toolType) {
-        SearchResult<GccMetadata> gccMetadata = getGccMetadata(toolType);
+        return versionAwareCompiler(compiler, getGccMetadata(toolType));
+    }
+
+    private <T extends BinaryToolSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, SearchResult<GccMetadata> gccMetadata) {
         return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(
             metadataProvider.getCompilerType().getIdentifier(),
             gccMetadata.getComponent().getVendor(),

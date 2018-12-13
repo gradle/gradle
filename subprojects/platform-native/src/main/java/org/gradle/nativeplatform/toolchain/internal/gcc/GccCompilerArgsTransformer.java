@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangVersionCppSourceCompatibilitySupport;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -35,6 +36,18 @@ import java.util.List;
  * Maps common options for C/C++ compiling with GCC
  */
 abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    private final CompilerType compilerType;
+    private final VersionNumber compilerVersion;
+
+    GccCompilerArgsTransformer() {
+        this(null, null);
+    }
+
+    GccCompilerArgsTransformer(CompilerType compilerType, VersionNumber compilerVersion) {
+        this.compilerType = compilerType;
+        this.compilerVersion = compilerVersion;
+    }
+
     @Override
     public List<String> transform(T spec) {
         List<String> args = Lists.newArrayList();
@@ -42,8 +55,7 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
         addMacroArgs(spec, args);
         addUserArgs(spec, args);
         addIncludeArgs(spec, args);
-        // TODO: need to acquire toolchain name and version
-        //addSourceCompatibilityArgs(spec, compilerType, version, args);
+        addSourceCompatibilityArgs(spec, args);
         return args;
     }
 
@@ -95,16 +107,16 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
 
     protected abstract String getLanguage();
 
-    protected void addSourceCompatibilityArgs(T spec, GccCompilerType compilerType, VersionNumber version, List<String> args) {
-        if (spec instanceof CppCompileSpec) {
+    protected void addSourceCompatibilityArgs(T spec, List<String> args) {
+        if (compilerType != null && compilerVersion != null && spec instanceof CppCompileSpec) {
             CppCompileSpec cppSpec = (CppCompileSpec) spec;
             CppSourceCompatibility compat = cppSpec.getSourceCompatibility();
             // If compat == null, then don't add an arg (i.e., use the compiler's default source compatibility)
             if (compat != null) {
                 if (compilerType == GccCompilerType.GCC) {
-                    args.add(GccVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat));
-                } else {
-                    args.add(ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(version, compat));
+                    args.add(GccVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(compilerVersion, compat));
+                } else if (compilerType == GccCompilerType.CLANG) {
+                    args.add(ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(compilerVersion, compat));
                 }
             }
         }
