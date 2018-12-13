@@ -22,7 +22,7 @@ object ProjectGroups {
     private
     val Project.internalProjects
         get() = rootProject.subprojects.filter { it.name.startsWith("internal") ||
-            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance") }.toSet()
+            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance", "kotlinDslTestFixtures", "kotlinDslIntegTests") }.toSet()
 
     val Project.javaProjects
         get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
