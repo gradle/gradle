@@ -20,16 +20,19 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
+    private ExecutionStateChanges executionStateChanges;
     private TaskArtifactState taskArtifactState;
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
@@ -80,6 +83,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution) {
         this.outputRemovedBeforeExecution = outputRemovedBeforeExecution;
+    }
+
+    @Override
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        return Optional.ofNullable(executionStateChanges);
+    }
+
+    @Override
+    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
+        this.executionStateChanges = executionStateChanges;
     }
 
     @Override

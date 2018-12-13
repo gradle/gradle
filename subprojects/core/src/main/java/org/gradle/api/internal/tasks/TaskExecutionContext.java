@@ -22,9 +22,11 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskExecutionContext {
 
@@ -91,4 +93,8 @@ public interface TaskExecutionContext {
     boolean isOutputRemovedBeforeExecution();
 
     void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
+
+    Optional<ExecutionStateChanges> getExecutionStateChanges();
+
+    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 }

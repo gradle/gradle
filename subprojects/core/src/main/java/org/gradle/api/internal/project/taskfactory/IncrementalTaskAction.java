@@ -59,7 +59,7 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
     protected void doExecute(final Task task, String methodName) {
         final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
         final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-        IncrementalTaskInputs incrementalInputs = taskArtifactState.getExecutionStateChanges(afterPreviousExecution, context.isOutputRemovedBeforeExecution())
+        IncrementalTaskInputs incrementalInputs = context.getExecutionStateChanges()
             .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
                 @Override
                 public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
