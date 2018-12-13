@@ -1,3 +1,4 @@
+import java.util.jar.Attributes
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
@@ -40,6 +41,10 @@ tasks.register("executableJar", Jar) {
     archiveName = 'gradle-wrapper.jar'
     fileMode = 0644
     dirMode = 0755
+    manifest {
+        attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
+        attributes([(Attributes.Name.IMPLEMENTATION_TITLE.toString()): "Gradle Wrapper"])
+    }
     from sourceSets.main.output
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }

@@ -61,16 +61,8 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-This API is likely to be replaced in the near future. See the <<task_configuration_avoidance#sec:what_is_new_task_configuration,task configuration avoidance chapter>> for more information.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance,task configuration avoidance chapter>>.
 ====
-
-.Defining tasks using strings for task names
-====
-include::sample[dir="userguide/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[]"]
-====
-
-There is an alternative syntax for defining tasks, which you may prefer to use:
 
 .Defining tasks using the `tasks` container
 ====
@@ -78,13 +70,12 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
 
-And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
+And finally, there is the language specific syntax for Kotlin DSL:
 
 .Defining tasks using a DSL specific syntax
 ====
-include::sample[dir="userguide/tasks/defineAsGroovyExpression",files="build.gradle[]"]
 include::sample[dir="userguide/tasks/defineAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
 
 [.multi-language-text.lang-kotlin]
@@ -141,25 +132,24 @@ This creates a copy task with no default behavior. The task can be configured us
 
 Just to be clear, realize that the name of this task is “`myCopy`”, but it is of _type_ “`Copy`”. You can have multiple tasks of the same _type_, but with different names. You'll find this gives you a lot of power to implement cross-cutting concerns across all tasks of a particular type.
 
-.Configuring a task using the API
+.Configuring a task using the link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] API
 ====
 include::sample[dir="userguide/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="userguide/tasks/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This is similar to the way we would configure objects in Java. You have to repeat the context (`myCopy`) in the configuration statement every time. This is a redundancy and not very nice to read.
+There is another way of configuring a task.
 
-There is another way of configuring a task. It also preserves the context and it is arguably the most readable. It is usually our favorite.
-
-.Configuring a task using a DSL specific syntax
+.Configuring a task using a the <<task_configuration_avoidance.adoc,task configuration avoidance>> APIs
 ====
 include::sample[dir="userguide/tasks/configureUsingBlock/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="userguide/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This works for _any_ task. Task access is just a shortcut for the `tasks.getByName()` method. It is important to note that if you pass a block to the `getByName()` method, this block is applied to _configure_ the task, not when the task executes.
+This works for _any_ task. Task access in Kotlin is just a shortcut for the `tasks.named()` method. It is important to note that if you pass a block to the `named()` method, this block is applied only <<task_configuration_avoidance.adoc#how_does_it_work, when the task is required>>.
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
+We also recommend using the <<task_configuration_avoidance.adoc#old_vs_new_configuration_api_overview, task configuration avoidance>> APIs alternative.
 
 You can also use a configuration block when you define a task.
 
@@ -201,6 +191,12 @@ You can also create the task using a `constructorArgs` Map argument using the Pr
 ====
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/groovy",files="build.gradle[tags=on-project]"]
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
+====
+
+[NOTE]
+.Prefer creating a task with constructor arguments using the TaskContainer
+====
+It's recommended to use the <<task_configuration_avoidance.adoc,Task Configuration Avoidance>> APIs instead to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.
