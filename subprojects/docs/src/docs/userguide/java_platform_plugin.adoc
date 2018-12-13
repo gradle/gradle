@@ -21,14 +21,14 @@
 The Java Platform plugin brings the ability to declare platforms for the Java ecosystem.
 A platform can be used for different purposes:
 
-- a description of modules which are published together and share the same version (and for example, share the same version)
+- a description of modules which are published together (and for example, share the same version)
 - a set of recommended versions for heterogeneous libraries. A typical example includes the {spring-boot-bom}[Spring Boot BOM]
 - <<sec:java_platform_consumption,sharing a set of dependency versions>> between subprojects
 
 A platform is a special kind of software component which doesn't contain any sources:
 it is only used to reference other libraries, so that they play well together during dependency resolution.
 
-Platforms can published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
+Platforms can be published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
 
 
 [[sec:java_platform_usage]]
