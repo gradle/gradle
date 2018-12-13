@@ -111,7 +111,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             if (addAllDependenciesAsConstraints()) {
                 defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"), null, ImmutableAttributes.EMPTY)
             } else {
-                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY)
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, null, null)
             }
         }
         metadata
@@ -192,7 +192,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             assert dependencies[0].constraint == addAllDependenciesAsConstraints()
             assert dependencies[1].constraint == addAllDependenciesAsConstraints()
         } else {
-            assert dependencies.empty
+            assert dependencies.empty || dependencies.every { !it.forOptionalFeatures.empty }
         }
 
         where:
@@ -228,7 +228,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "[3.0,)"
             assert dependencies[0].constraint == addAllDependenciesAsConstraints()
         } else {
-            assert dependencies.empty
+            assert dependencies.empty || dependencies.every { !it.forOptionalFeatures.empty }
         }
 
         where:
@@ -272,7 +272,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        dependencies.empty
+        dependencies.empty || dependencies.every { !it.forOptionalFeatures.empty }
 
         where:
         metadataType | metadataImplementation
@@ -289,7 +289,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
+        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null, null, null)
 
         consumer.selectConfigurations(attributes, immutable, schema)[0]
     }

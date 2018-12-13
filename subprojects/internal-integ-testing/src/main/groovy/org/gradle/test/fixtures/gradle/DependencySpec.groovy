@@ -31,6 +31,8 @@ class DependencySpec {
     List<ExcludeSpec> exclusions = []
     String reason
     Map<String, ?> attributes
+    Set<String> includedOptionalFeatures = []
+    Set<String> usedByOptionalFeatures = []
 
     DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> rejects, Collection<Map> excludes, String reason, Map<String, ?> attributes) {
         group = g
@@ -53,5 +55,17 @@ class DependencySpec {
     DependencySpec attribute(String name, Object value) {
         attributes[name] = value
         this
+    }
+
+    void includeOptionalFeature(String feature) {
+        includedOptionalFeatures << feature
+    }
+
+    void usedByOptionalFeature(String feature) {
+        usedByOptionalFeatures << feature
+    }
+
+    String getModule() {
+        module
     }
 }

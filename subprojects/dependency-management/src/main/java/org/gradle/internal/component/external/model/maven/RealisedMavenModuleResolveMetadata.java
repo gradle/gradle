@@ -145,7 +145,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
+        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, incoming.isOptional());
         dependency.alwaysUseAttributeMatching();
         return dependency;
     }
@@ -160,9 +160,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
         MavenScope dependencyScope = dependency.getScope();
-        if (dependency.isOptional()) {
-            return false;
-        }
         return hierarchy.contains(dependencyScope.getLowerName());
     }
 

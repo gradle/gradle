@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -44,6 +45,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
@@ -163,7 +165,7 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.usedByOptionalFeatures, dependency.includedOptionalFeatures);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason, dependencyConstraint.attributes);
@@ -191,7 +193,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null, ImmutableAttributes.EMPTY));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null, ImmutableAttributes.EMPTY, null, null));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -205,6 +207,8 @@ public class ModuleMetadataParser {
             ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
+            Set<String> usedByOptionalFeatures = null;
+            Set<String> includedOptionalFeatures = null;
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -219,15 +223,29 @@ public class ModuleMetadataParser {
                     reason = reader.nextString();
                 } else if (name.equals("attributes")) {
                     attributes = consumeAttributes(reader);
+                } else if (name.equals("includedOptionalFeatures")) {
+                    includedOptionalFeatures = consumeStringSet(reader);
+                } else if (name.equals("usedByOptionalFeatures")) {
+                    usedByOptionalFeatures = consumeStringSet(reader);
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes));
+            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, usedByOptionalFeatures, includedOptionalFeatures));
             reader.endObject();
         }
         reader.endArray();
         return dependencies;
+    }
+
+    private Set<String> consumeStringSet(JsonReader reader) throws IOException {
+        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            builder.add(reader.nextString());
+        }
+        reader.endArray();
+        return builder.build();
     }
 
     private List<VariantCapability> consumeCapabilities(JsonReader reader) throws IOException {
@@ -402,14 +420,18 @@ public class ModuleMetadataParser {
         final ImmutableList<ExcludeMetadata> excludes;
         final String reason;
         final ImmutableAttributes attributes;
+        final Set<String> usedByOptionalFeatures;
+        final Set<String> includedOptionalFeatures;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<String> usedByOptionalFeatures, Set<String> includedOptionalFeatures) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = excludes;
             this.reason = reason;
             this.attributes = attributes;
+            this.usedByOptionalFeatures = usedByOptionalFeatures;
+            this.includedOptionalFeatures = includedOptionalFeatures;
         }
     }
 

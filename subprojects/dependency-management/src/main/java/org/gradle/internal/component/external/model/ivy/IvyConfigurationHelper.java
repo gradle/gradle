@@ -96,7 +96,7 @@ class IvyConfigurationHelper {
     }
 
     ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
-        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, false);
     }
 
     private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {

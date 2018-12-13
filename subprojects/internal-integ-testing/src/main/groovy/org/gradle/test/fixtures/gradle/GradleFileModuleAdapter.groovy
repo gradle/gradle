@@ -100,6 +100,12 @@ class GradleFileModuleAdapter {
                                     }
                                 }
                             }
+                            if (d.usedByOptionalFeatures) {
+                                usedByOptionalFeatures(d.usedByOptionalFeatures)
+                            }
+                            if (d.includedOptionalFeatures) {
+                                includedOptionalFeatures(d.includedOptionalFeatures)
+                            }
                         }
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->

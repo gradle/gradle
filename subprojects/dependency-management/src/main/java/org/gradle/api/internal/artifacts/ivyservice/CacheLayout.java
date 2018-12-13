@@ -53,6 +53,7 @@ public enum CacheLayout {
         .changedTo(63, "4.10-rc-1")
         .changedTo(68, "5.0-milestone-1")
         .changedTo(69, "5.0-rc-1")
+        .changedTo(5874415, "5.1-rc-1") // TODO CC: use real version when we agree on this feature
     ),
 
     RESOURCES(ROOT, "resources", introducedIn("1.9-rc-1")),

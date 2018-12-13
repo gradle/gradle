@@ -149,6 +149,10 @@ public class ModuleMetadataSerializer {
                 componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes());
                 encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
+                Set<String> usedByOptionalFeatures = dependency.getUsedByOptionalFeatures();
+                Set<String> includedOptionalFeatures = dependency.getIncludedOptionalFeatures();
+                writeNullableStringSet(usedByOptionalFeatures);
+                writeNullableStringSet(includedOptionalFeatures);
             }
         }
 
@@ -360,6 +364,13 @@ public class ModuleMetadataSerializer {
                 writeString(configuration);
             }
         }
+
+        private void writeNullableStringSet(Set<String> nullableSet) throws IOException {
+            encoder.writeBoolean(nullableSet != null);
+            if (nullableSet != null) {
+                writeStringSet(nullableSet);
+            }
+        }
     }
 
     private static class Reader {
@@ -448,7 +459,9 @@ public class ModuleMetadataSerializer {
                 ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
                 String reason = decoder.readNullableString();
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes());
+                Set<String> usedByOptionalFeatures = readNullableStringSet();
+                Set<String> includedOptionalFeatures = readNullableStringSet();
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), usedByOptionalFeatures, includedOptionalFeatures);
             }
         }
 
@@ -705,6 +718,14 @@ public class ModuleMetadataSerializer {
                 builder.add(readString());
             }
             return builder.build();
+        }
+
+        private Set<String> readNullableStringSet() throws IOException {
+            boolean nonNull = decoder.readBoolean();
+            if (nonNull) {
+                return readStringSet();
+            }
+            return null;
         }
     }
 

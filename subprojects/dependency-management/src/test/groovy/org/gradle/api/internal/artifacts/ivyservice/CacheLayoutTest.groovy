@@ -21,6 +21,8 @@ import spock.lang.Specification
 
 class CacheLayoutTest extends Specification {
 
+    final String latestMetadataLayoutVersion = CacheLayout.META_DATA.version.toString()
+
     def "use root layout"() {
         when:
         CacheLayout cacheLayout = CacheLayout.ROOT
@@ -54,10 +56,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-2.69'
-        cacheLayout.version == CacheVersion.parse("2.69")
-        cacheLayout.version.toString() == '2.69'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.69')
+        cacheLayout.key == "metadata-${latestMetadataLayoutVersion}"
+        cacheLayout.version == CacheVersion.parse(latestMetadataLayoutVersion)
+        cacheLayout.version.toString() == latestMetadataLayoutVersion
+        cacheLayout.getPath(new File('some/dir')) == new File("some/dir/metadata-${latestMetadataLayoutVersion}")
         !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
     }

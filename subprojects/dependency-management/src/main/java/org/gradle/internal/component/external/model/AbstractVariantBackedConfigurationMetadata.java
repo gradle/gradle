@@ -57,7 +57,7 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), forcedDependencies));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), forcedDependencies, dependency.getUsedByOptionalFeatures(), dependency.getIncludedOptionalFeatures()));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
@@ -65,8 +65,7 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
                 dependencyConstraint.getReason(),
-                forcedDependencies
-            ));
+                forcedDependencies, null, null));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
     }

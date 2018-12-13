@@ -291,8 +291,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<String> usedByOptionalFeatures, Set<String> includedOptionalFeatures) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, usedByOptionalFeatures, includedOptionalFeatures));
         }
 
         @Override
@@ -361,14 +361,18 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final ImmutableList<ExcludeMetadata> excludes;
         private final String reason;
         private final ImmutableAttributes attributes;
+        private final Set<String> usedByOptionalFeatures;
+        private final Set<String> includedOptionalFeatures;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<String> usedByOptionalFeatures, Set<String> includedOptionalFeatures) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = ImmutableList.copyOf(excludes);
             this.reason = reason;
             this.attributes = attributes;
+            this.usedByOptionalFeatures = usedByOptionalFeatures;
+            this.includedOptionalFeatures = includedOptionalFeatures;
         }
 
         @Override
@@ -402,6 +406,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
+        public Set<String> getUsedByOptionalFeatures() {
+            return usedByOptionalFeatures;
+        }
+
+        @Override
+        public Set<String> getIncludedOptionalFeatures() {
+            return includedOptionalFeatures;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -416,12 +430,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(versionConstraint, that.versionConstraint)
                 && Objects.equal(excludes, that.excludes)
                 && Objects.equal(reason, that.reason)
-                && Objects.equal(attributes, that.attributes);
+                && Objects.equal(attributes, that.attributes)
+                && Objects.equal(usedByOptionalFeatures, that.usedByOptionalFeatures)
+                && Objects.equal(includedOptionalFeatures, that.includedOptionalFeatures);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, usedByOptionalFeatures, includedOptionalFeatures);
         }
     }
 

@@ -144,7 +144,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
-        1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY, null, null)
         1 * metadata.setContentHash(_)
         0 * _
     }
@@ -263,15 +263,15 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g0", "m0", emptyConstraint(), [], null, ImmutableAttributes.EMPTY)
-        1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, ImmutableAttributes.EMPTY)
-        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY)
-        1 * variant1.addDependency("g3", "m3", requires("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g0", "m0", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant1.addDependency("g3", "m3", requires("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY, null, null)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY)
-        1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY)
-        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY)
-        1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY, null, null)
+        1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY, null, null)
         1 * metadata.setContentHash(_)
         0 * _
     }
@@ -359,8 +359,8 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, attributes(custom: 'foo'))
-        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, attributes(custom: 'foo', other:'bar'))
+        1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, attributes(custom: 'foo'), null, null)
+        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, attributes(custom: 'foo', other: 'bar'), null, null)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g1", "m1", prefers("v1"), null, attributes(custom: 'foo'))
         1 * variant2.addDependencyConstraint("g2", "m2", requires("v2"), null, attributes(custom: 'foo', other: 'bar'))
@@ -499,9 +499,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY, null, null)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY, null, null)
         1 * metadata.setContentHash(_)
         0 * _
     }
@@ -627,7 +627,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
-        1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY)
+        1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY, null, null)
         1 * metadata.setContentHash(_)
         0 * metadata._
     }

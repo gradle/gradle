@@ -218,7 +218,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
-        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, null, false);
+        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, null, false, null, null);
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

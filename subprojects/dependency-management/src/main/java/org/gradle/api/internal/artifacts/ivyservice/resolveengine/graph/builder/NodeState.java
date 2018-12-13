@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -273,7 +274,7 @@ class NodeState implements DependencyGraphNode {
             return true;
         }
         // if the intersection of requested optional features and the provided features is empty, it's not used
-        return Sets.intersection(forOptionalFeatures, requiredFeatures).isEmpty();
+        return Sets.intersection(forOptionalFeatures, requiredFeatures).isEmpty() && !ConfigurationBoundExternalDependencyMetadata.OPTIONAL_FEATURE_NAME.equals(forOptionalFeatures);
     }
 
     private Set<String> collectOptionalFeatureRequirements() {

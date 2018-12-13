@@ -22,6 +22,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import java.util.Set;
+
 /**
  * An _immutable_ view of the variant of a component.
  *
@@ -48,6 +50,10 @@ public interface ComponentVariant extends VariantResolveMetadata {
         String getReason();
 
         ImmutableAttributes getAttributes();
+
+        Set<String> getUsedByOptionalFeatures();
+        Set<String> getIncludedOptionalFeatures();
+
     }
 
     interface DependencyConstraint {

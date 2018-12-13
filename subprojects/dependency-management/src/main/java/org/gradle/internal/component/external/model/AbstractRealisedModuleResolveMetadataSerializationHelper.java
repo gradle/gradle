@@ -119,7 +119,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         boolean constraint = decoder.readBoolean();
         boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force, readNullableStringSet(decoder), readNullableStringSet(decoder));
     }
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
@@ -160,6 +160,8 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeBoolean(dependencyMetadata.isConstraint());
         encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
+        writeNullableStringSet(encoder, dependencyMetadata.getForOptionalFeatures());
+        writeNullableStringSet(encoder, dependencyMetadata.getRequestedOptionalFeatures());
     }
 
     protected void writeMavenExcludeRules(Encoder encoder, List<ExcludeMetadata> excludes) throws IOException {
@@ -213,10 +215,25 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         return set;
     }
 
+    private Set<String> readNullableStringSet(Decoder decoder) throws IOException {
+        boolean nonNull = decoder.readBoolean();
+        if (nonNull) {
+            return readStringSet(decoder);
+        }
+        return null;
+    }
+
     protected void writeStringSet(Encoder encoder, Set<String> values) throws IOException {
         encoder.writeSmallInt(values.size());
         for (String configuration : values) {
             encoder.writeString(configuration);
+        }
+    }
+
+    private void writeNullableStringSet(Encoder encoder, Set<String> nullableSet) throws IOException {
+        encoder.writeBoolean(nullableSet != null);
+        if (nullableSet != null) {
+            writeStringSet(encoder, nullableSet);
         }
     }
 }

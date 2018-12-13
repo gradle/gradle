@@ -560,6 +560,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                     artifactId(dep.module)
                                     if (dep.version) { version(dep.version) }
                                     scope('compile')
+                                    if (dep.usedByOptionalFeatures) {
+                                        optional('true')
+                                    }
                                 }
                             }
                         }
@@ -570,6 +573,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                     artifactId(dep.module)
                                     if (dep.version) { version(dep.version) }
                                     scope('runtime')
+                                    if (dep.usedByOptionalFeatures) {
+                                        optional('true')
+                                    }
                                 }
                             }
                         }

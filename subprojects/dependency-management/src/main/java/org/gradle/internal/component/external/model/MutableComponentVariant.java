@@ -21,11 +21,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.List;
+import java.util.Set;
 
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes);
+    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<String> usedByOptionalFeatures, Set<String> includedOptionalFeatures);
 
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
 

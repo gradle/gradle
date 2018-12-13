@@ -182,7 +182,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
+        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, incoming.isOptional());
         dependency.alwaysUseAttributeMatching();
         return dependency;
     }
@@ -196,9 +196,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
-        if (dependency.isOptional()) {
-            return false;
-        }
         return hierarchy.contains(dependency.getScope().getLowerName());
     }
 
@@ -282,7 +279,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         private final MavenDependencyDescriptor dependencyDescriptor;
 
         OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
-            super(configuration, componentId, delegate);
+            super(configuration, componentId, delegate, false);
             this.dependencyDescriptor = delegate;
         }
 

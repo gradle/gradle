@@ -33,6 +33,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -42,26 +43,30 @@ import java.util.Set;
  * differently based on the configuration that they are sourced from.
  */
 public class ConfigurationBoundExternalDependencyMetadata implements ModuleDependencyMetadata {
+    public static final Set<String> OPTIONAL_FEATURE_NAME = Collections.singleton("all-optional");
+
     private final ConfigurationMetadata configuration;
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
     private final boolean isTransitive;
     private final boolean isConstraint;
+    private final boolean isOptional;
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason, boolean isOptional) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
         this.isConstraint = dependencyDescriptor.isConstraint();
+        this.isOptional = isOptional;
     }
 
-    public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
-        this(configuration, componentId, dependencyDescriptor, null);
+    public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean isOptional) {
+        this(configuration, componentId, dependencyDescriptor, null, isOptional);
     }
 
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
@@ -134,13 +139,13 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason, isOptional);
     }
 
     @Nullable
     @Override
     public Set<String> getForOptionalFeatures() {
-        return null;
+        return isOptional ? OPTIONAL_FEATURE_NAME : null;
     }
 
     @Override
@@ -149,12 +154,12 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor, isOptional);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate, isOptional);
     }
 
     @Override

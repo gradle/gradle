@@ -43,13 +43,17 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final boolean constraint;
     private final String reason;
     private final boolean force;
+    private final Set<String> usedByOptionalFeatures;
+    private final Set<String> includedOptionalFeatures;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, String reason, boolean force) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, String reason, boolean force, Set<String> usedByOptionalFeatures, Set<String> includedOptionalFeatures) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
         this.constraint = constraint;
         this.force = force;
+        this.usedByOptionalFeatures = usedByOptionalFeatures;
+        this.includedOptionalFeatures = includedOptionalFeatures;
     }
 
     @Override
@@ -62,7 +66,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes()), excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes()), excludes, constraint, reason, force, usedByOptionalFeatures, includedOptionalFeatures);
     }
 
     @Override
@@ -70,24 +74,24 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (Objects.equal(reason, this.reason)) {
             return this;
         }
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force, usedByOptionalFeatures, includedOptionalFeatures);
     }
 
     @Nullable
     @Override
     public Set<String> getForOptionalFeatures() {
-        return null;
+        return usedByOptionalFeatures;
     }
 
     @Override
     public Set<String> getRequestedOptionalFeatures() {
-        return null;
+        return includedOptionalFeatures;
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, reason, force);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, reason, force, usedByOptionalFeatures, includedOptionalFeatures);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
@@ -142,7 +146,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, true);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, true, usedByOptionalFeatures, includedOptionalFeatures);
     }
 
     @Override
