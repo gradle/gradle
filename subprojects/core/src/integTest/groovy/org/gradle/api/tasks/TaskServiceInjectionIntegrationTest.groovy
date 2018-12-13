@@ -111,6 +111,31 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("got it")
     }
 
+    def "can use @Inject service getter from constructor"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                CustomTask() {
+                    println(executor != null ? "got it" : "NOT IT")
+                }
+
+                @Inject
+                WorkerExecutor getExecutor() { }
+            }
+
+            task myTask(type: CustomTask)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains("got it")
+    }
+
     def "fails when task constructor with args is not annotated with @Inject"() {
         given:
         buildFile << """

@@ -96,6 +96,37 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
+    def "services injected using getter can be used from constructor"() {
+        buildFile << """
+            class Thing1 {
+                final Property<String> name
+                
+                Thing1() { this.name = objects.property(String) }
+
+                @javax.inject.Inject
+                ObjectFactory getObjects() { null }
+            }
+            
+            class Thing2 {
+                String name
+                
+                Thing2() {
+                    def t = objects.newInstance(Thing1)
+                    t.name.set("name")
+                    name = t.name.get()
+                }
+
+                @javax.inject.Inject
+                ObjectFactory getObjects() { null }
+            }
+            
+            assert objects.newInstance(Thing2).name == "name"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can create nested DSL elements using injected ObjectFactory"() {
         buildFile << """
             class Thing {
@@ -159,7 +190,7 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
     }
 
-    def "object creation fails with ObjectInstantiationException given unknown service injected"() {
+    def "object creation fails with ObjectInstantiationException given unknown service requested"() {
         given:
         buildFile << """
         interface Unknown { }
