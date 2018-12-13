@@ -199,9 +199,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
             }
             if (javaInstallationForTest.javaVersion.isJava9Compatible) {
-                //allow embedded executer to modify environment variables
+                // allow embedded executer to modify environment variables
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-                //allow embedded executer to inject legacy types into the system classloader
+                // allow embedded executer to inject legacy types into the system classloader
                 jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version
