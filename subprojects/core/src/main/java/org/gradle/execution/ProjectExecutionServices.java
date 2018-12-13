@@ -32,11 +32,11 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveChangesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveIncrementalChangesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
@@ -132,16 +132,16 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        executer = new ResolveChangesTaskExecuter(executer);
+        executer = new ResolveIncrementalChangesTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, relativeFilePathResolver, executer);
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
-        executer = new ResolveBeforeExecutionStateExecuter(classLoaderHierarchyHasher, valueSnapshotter, fingerprinterRegistry, executer);
+        executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, fingerprinterRegistry, executer);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer, buildInvocationScopeId);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(fingerprinterRegistry, executer);
-        executer = new ResolvePreviousStateExecuter(executionHistoryStore, executer);
+        executer = new ResolveAfterPreviousExecutionStateTaskExecuter(executionHistoryStore, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, resolver, propertyWalker, executer);

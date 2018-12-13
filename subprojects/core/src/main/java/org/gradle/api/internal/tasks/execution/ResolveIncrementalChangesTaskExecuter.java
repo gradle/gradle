@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -32,55 +31,54 @@ import org.gradle.internal.execution.history.changes.DefaultExecutionStateChange
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ResolveChangesTaskExecuter implements TaskExecuter {
+/**
+ * Resolves the incremental changes to pass to the task actions.
+ *
+ * @see org.gradle.api.tasks.incremental.IncrementalTaskInputs
+ */
+public class ResolveIncrementalChangesTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
 
-    public ResolveChangesTaskExecuter(TaskExecuter delegate) {
+    public ResolveIncrementalChangesTaskExecuter(TaskExecuter delegate) {
         this.delegate = delegate;
     }
 
     @Nullable
     @Override
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
-        final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-        final TaskExecutionMode taskExecutionMode = context.getTaskExecutionMode();
-
-        // Calculate initial state - note this is potentially expensive
-        // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
-        final Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
-
-        ExecutionStateChanges changes = taskExecutionMode.getRebuildReason().map(new Function<String, ExecutionStateChanges>() {
-            @Override
-            public ExecutionStateChanges apply(String rebuildReason) {
-                return new RebuildExecutionStateChanges(rebuildReason);
-            }
-        }).orElseGet(new Supplier<ExecutionStateChanges>() {
-            @Nullable
-            @Override
-            public ExecutionStateChanges get() {
-                if (afterPreviousExecution == null || context.isOutputRemovedBeforeExecution()) {
-                    return null;
-                } else {
-                    // TODO We need a nicer describable wrapper around task here
-                    return beforeExecutionState.map(new Function<BeforeExecutionState, ExecutionStateChanges>() {
-                        @Override
-                        public ExecutionStateChanges apply(BeforeExecutionState beforeExecution) {
-                            return new DefaultExecutionStateChanges(afterPreviousExecution, beforeExecution, new Describable() {
-                                @Override
-                                public String getDisplayName() {
-                                    // The value is cached, so we should be okay to call this many times
-                                    return task.toString();
-                                }
-                            });
-                        }
-                    }).orElse(null);
+        ExecutionStateChanges changes = context.getTaskExecutionMode().getRebuildReason()
+            .map(new Function<String, ExecutionStateChanges>() {
+                @Override
+                public ExecutionStateChanges apply(String rebuildReason) {
+                    return new RebuildExecutionStateChanges(rebuildReason);
                 }
-            }
-        });
+            }).orElseGet(new Supplier<ExecutionStateChanges>() {
+                @Nullable
+                @Override
+                public ExecutionStateChanges get() {
+                    final AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
+                    if (afterPreviousExecution == null || context.isOutputRemovedBeforeExecution()) {
+                        return null;
+                    } else {
+                        // TODO We need a nicer describable wrapper around task here
+                        return context.getBeforeExecutionState().map(new Function<BeforeExecutionState, ExecutionStateChanges>() {
+                            @Override
+                            public ExecutionStateChanges apply(BeforeExecutionState beforeExecution) {
+                                return new DefaultExecutionStateChanges(afterPreviousExecution, beforeExecution, new Describable() {
+                                    @Override
+                                    public String getDisplayName() {
+                                        // The value is cached, so we should be okay to call this many times
+                                        return task.toString();
+                                    }
+                                });
+                            }
+                        }).orElse(null);
+                    }
+                }
+            });
 
         context.setExecutionStateChanges(changes);
 

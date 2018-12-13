@@ -43,15 +43,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class ResolveBeforeExecutionStateExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBeforeExecutionStateExecuter.class);
+/**
+ * Resolve the input state of a task before it is being executed.
+ *
+ * This snapshot is required for up-to-date checks, caching and incremental execution.
+ */
+public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBeforeExecutionStateTaskExecuter.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final TaskExecuter delegate;
 
-    public ResolveBeforeExecutionStateExecuter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter, FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskExecuter delegate) {
+    public ResolveBeforeExecutionStateTaskExecuter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter, FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskExecuter delegate) {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;

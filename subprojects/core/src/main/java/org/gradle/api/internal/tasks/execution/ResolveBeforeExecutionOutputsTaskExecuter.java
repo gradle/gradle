@@ -28,6 +28,11 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 
 import javax.annotation.Nullable;
 
+/**
+ * Snapshot the task's inputs before execution.
+ *
+ * The data is required to determine overlapping outputs and to resolve the tasks full execution state before execution.
+ */
 public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final TaskExecuter delegate;

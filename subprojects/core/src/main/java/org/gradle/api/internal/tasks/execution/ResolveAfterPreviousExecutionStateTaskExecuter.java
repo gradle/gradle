@@ -27,11 +27,11 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class ResolvePreviousStateExecuter implements TaskExecuter {
+public class ResolveAfterPreviousExecutionStateTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final TaskExecuter delegate;
 
-    public ResolvePreviousStateExecuter(ExecutionHistoryStore executionHistoryStore, TaskExecuter delegate) {
+    public ResolveAfterPreviousExecutionStateTaskExecuter(ExecutionHistoryStore executionHistoryStore, TaskExecuter delegate) {
         this.executionHistoryStore = executionHistoryStore;
         this.delegate = delegate;
     }
