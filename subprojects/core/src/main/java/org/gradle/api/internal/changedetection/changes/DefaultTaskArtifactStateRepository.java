@@ -147,12 +147,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Nullable
         @Override
-        public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+        public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputs) {
             return OverlappingOutputs.detect(
                 afterPreviousExecutionState == null
                     ? null
                     : afterPreviousExecutionState.getOutputFileProperties(),
-                getOutputFilesBeforeExecution()
+                beforeExecutionOutputs
             );
         }
 
@@ -179,7 +179,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
                 beforeExecutionState.getOutputFileProperties(),
                 taskExecutionContext.getTaskProperties().getOutputFileProperties(),
-                getOverlappingOutputs(afterPreviousExecutionState) != null,
+                getOverlappingOutputs(afterPreviousExecutionState, getOutputFilesBeforeExecution()) != null,
                 task,
                 fingerprinterRegistry
             );

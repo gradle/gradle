@@ -164,7 +164,7 @@ class NoOutputsArtifactState implements TaskArtifactState {
     }
 
     @Override
-    public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState) {
+    public OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputs) {
         return null;
     }
 

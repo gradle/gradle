@@ -84,7 +84,7 @@ public interface TaskArtifactState {
      * Returns if overlapping outputs were detected
      */
     @Nullable
-    OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState);
+    OverlappingOutputs getOverlappingOutputs(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputs);
 
     /**
      * Returns the outputs before execution.

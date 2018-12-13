@@ -99,7 +99,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         def afterPreviousExecution = Mock(AfterPreviousExecutionState)
         def previousFile = temporaryFolder.file("output.txt")
         previousFile << "some content"
-        def outputFiles = ImmutableSortedMap.of(
+        def previousOutputFiles = ImmutableSortedMap.of(
+                "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
                 "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
         )
 
@@ -114,9 +117,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        1 * afterPreviousExecution.outputFileProperties >> outputFiles
+        1 * afterPreviousExecution.outputFileProperties >> previousOutputFiles
+        1 * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution) >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution, outputFilesBefore) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -139,8 +143,11 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         def afterPreviousExecution = Mock(AfterPreviousExecutionState)
         def previousFile = temporaryFolder.file("output.txt")
         previousFile.createNewFile()
-        def outputFiles = ImmutableSortedMap.of(
-                "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        def previousOutputFiles = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
         )
 
         when:
@@ -154,9 +161,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
-        1 * afterPreviousExecution.outputFileProperties >> outputFiles
+        1 * afterPreviousExecution.outputFileProperties >> previousOutputFiles
+        1 * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
         1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution) >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecution, outputFilesBefore) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -194,6 +202,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         def overlappingFile = outputDir.file("overlap")
         overlappingFile << "overlapping file"
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousOutputFiles = ImmutableSortedMap.of(
+            "output", fingerprint
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
+            "output", fingerprint
+        )
 
         when:
         executer.execute(task, state, taskContext)
@@ -207,8 +221,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
-        1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.naturalOrder().put("outputProperty", fingerprint).build()
-        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState) >> new OverlappingOutputs("outputProperty", overlappingFile.absolutePath)
+        1 * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
+        1 * taskArtifactState.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState, outputFilesBefore) >> new OverlappingOutputs("output", overlappingFile.absolutePath)
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -253,7 +268,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskContext.taskArtifactState >> taskArtifactState
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         1 * afterPreviousExecutionState.outputFileProperties >> previousOutputFingerprints
-        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState) >> null
+        1 * taskArtifactState.getOverlappingOutputs(afterPreviousExecutionState, _) >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'
