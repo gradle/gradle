@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -54,23 +53,21 @@ public class EarPlugin implements Plugin<Project> {
     static final String DEFAULT_LIB_DIR_NAME = "lib";
 
     private final ObjectFactory objectFactory;
-    private final FileResolver fileResolver;
 
     /**
-     * Injects an {@link ObjectFactory} and a {@link FileResolver} instance.
+     * Injects an {@link ObjectFactory}
      *
      * @since 4.2
      */
     @Inject
-    public EarPlugin(ObjectFactory objectFactory, FileResolver fileResolver) {
+    public EarPlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
-        EarPluginConvention earPluginConvention = objectFactory.newInstance(DefaultEarPluginConvention.class, fileResolver, objectFactory);
+        EarPluginConvention earPluginConvention = objectFactory.newInstance(DefaultEarPluginConvention.class);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
