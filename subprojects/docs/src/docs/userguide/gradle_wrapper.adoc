@@ -227,6 +227,8 @@ To enable this feature, download the `.sha256` file associated with the Gradle d
 
 You can download the `.sha256` file from the link:https://services.gradle.org/distributions/[stable releases] or link:https://services.gradle.org/distributions-snapshots/[release candidate and nightly releases]. The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
 
+You can also reference the link:https://gradle.org/release-checksums/[list of Gradle distribution checksums].
+
 ==== Configuring checksum verification
 
 Add the downloaded hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line.
@@ -246,7 +248,7 @@ The Wrapper JAR is a binary file that will be executed on the computers of devel
 As with all such files, you should be sure that it's trustworthy before executing it.
 For example, since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by committing it or submitting a pull request that seemingly only upgrades the Gradle version.
 
-In order to allow checking the integrity of the Wrapper JAR, Gradle publishes the checksums of all releases (except for version 3.3 to 4.0.2, which did not generate reproducible JARs) alongside the corresponding Gradle distribution on https://services.gradle.org/.
+In order to allow checking the integrity of the Wrapper JAR, Gradle publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs) alongside the corresponding Gradle distribution on https://services.gradle.org/.
 You can manually verify the checksum of the Wrapper JAR to ensure that it has not been tampered with by running the following commands on one of the major operating systems:
 
 [source,bash,subs=+attributes]
@@ -307,7 +309,7 @@ d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95  gradle/wrapper
 d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95
 ----
 
-Once you know the actual checksum, check whether it's listed on https://gradle.org/wrapper-checksums/.
+Once you know the actual checksum, check whether it's listed on https://gradle.org/release-checksums/.
 If it is listed, you have verified the integrity of the Wrapper JAR.
 However, it belongs to a different -- probably older -- Gradle version.
 In this case, it's safe to run the `wrapper` task again to update the Wrapper JAR so it matches the Gradle version in `gradle/wrapper/gradle-wrapper.properties`.
