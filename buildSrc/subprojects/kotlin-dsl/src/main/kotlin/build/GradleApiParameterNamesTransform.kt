@@ -17,16 +17,10 @@
 package build
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RelativePath
-
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.kotlin.dsl.*
 
@@ -34,8 +28,6 @@ import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
 import org.gradle.kotlin.dsl.codegen.parameterNamesFor
 
 import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
-import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
-import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -54,101 +46,58 @@ import javax.inject.Inject
 import kotlin.LazyThreadSafetyMode.NONE
 
 
-fun Project.gradleApiWithParameterNames(): Dependency =
-    DefaultSelfResolvingDependency(gradleApiWithParameterNamesFiles() as FileCollectionInternal)
-
-
-private
-fun Project.gradleApiWithParameterNamesFiles(): FileCollection =
-    files().from(provider {
-        resolveGradleApiWithParameterNames()
-    })
-
-
-private
-val artifactType = Attribute.of("artifactType", String::class.java)
-
-
 // TODO:kotlin-dsl dedupe, see MinifyPlugin
 private
 val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 
 
-private
-const val withParameterNames = "with-parameter-names"
+fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModuleNames: String) {
 
+    val artifactType = Attribute.of("artifactType", String::class.java)
+    val jarWithGradleApiParameterNames = "jar-with-gradle-api-parameter-names"
+    val gradleApiMetadataJar = configurations.detachedConfiguration(dependencies.create(project(":apiMetadata"))).files.single()
 
-private
-fun Project.resolveGradleApiWithParameterNames(): FileCollection =
-    withRegisteredGradleApiParameterNamesTransform {
-        gradleApiDetachedConfiguration().resolveGradleApiWithParameterNamesArtifactFiles()
+    val gradleApiConfig by configurations.registering {
+        exclude(module = "sisu-inject-plexus")
+        attributes {
+            attribute(artifactType, jarWithGradleApiParameterNames)
+        }
     }
 
-
-private
-fun <T> Project.withRegisteredGradleApiParameterNamesTransform(block: () -> T): T {
-    var gradleApiParameterNamesTransformRegistered: Boolean? by project.extra
-    if (gradleApiParameterNamesTransformRegistered != true) {
-        registerGradleApiParameterNamesTransform()
-        @Suppress("unused_value")
-        gradleApiParameterNamesTransformRegistered = true
-    }
-    return block()
-}
-
-
-private
-fun Project.registerGradleApiParameterNamesTransform() {
     dependencies {
         registerTransform {
             from.attribute(artifactType, "jar").attribute(minified, true)
-            to.attribute(artifactType, withParameterNames)
+            to.attribute(artifactType, jarWithGradleApiParameterNames)
             artifactTransform(GradleApiParameterNamesTransform::class) {
-                params(
-                    gradle.gradleVersion,
-                    project.serviceOf<ModuleRegistry>().getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
-                )
+                params(gradleApiMetadataJar)
             }
         }
+
+        for (gradleModuleName in gradleModuleNames) {
+            gradleApiConfig.name(project(gradleModuleName))
+        }
+    }
+
+    the<SourceSetContainer>().named("main") {
+        compileClasspath += gradleApiConfig
     }
 }
-
-
-private
-fun Project.gradleApiDetachedConfiguration() =
-    configurations.detachedConfiguration(dependencies.gradleApi())
-
-
-private
-fun Configuration.resolveGradleApiWithParameterNamesArtifactFiles() =
-    incoming.artifactView {
-        attributes {
-            attribute(artifactType, withParameterNames)
-        }
-    }.artifacts.artifactFiles
 
 
 internal
 class GradleApiParameterNamesTransform @Inject constructor(
-    private val gradleVersion: String,
     private val gradleApiMetadataJar: File
 ) : ArtifactTransform() {
 
-    private
-    val gradleApiJarFileName =
-        "gradle-api-$gradleVersion.jar"
-
-    private
-    val gradleApiJarWithParameterNamesFileName =
-        "gradle-api-$gradleVersion-with-parameter-names.jar"
-
     override fun transform(input: File): MutableList<File> =
-        when (input.name) {
-            gradleApiJarFileName -> mutableListOf(outputDirectory.resolve(gradleApiJarWithParameterNamesFileName).also { outputFile ->
-                transformGradleApiJar(input, outputFile)
-            })
-            else -> mutableListOf(input)
-        }
+        if (input.name.startsWith("gradle-")) mutableListOf(outputFileFor(input).also { outputFile ->
+            transformGradleApiJar(input, outputFile)
+        })
+        else mutableListOf(input)
+
+    private
+    fun outputFileFor(input: File) =
+        outputDirectory.resolve("${input.nameWithoutExtension}-with-parameter-names.jar")
 
     private
     fun transformGradleApiJar(inputFile: File, outputFile: File) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import build.gradleApiWithParameterNames
+import build.withCompileOnlyGradleApiModulesWithParameterNames
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -25,9 +25,9 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-dependencies {
+withCompileOnlyGradleApiModulesWithParameterNames(":plugins")
 
-    compileOnly(gradleApiWithParameterNames())
+dependencies {
 
     compile(project(":distributionsDependencies"))
 

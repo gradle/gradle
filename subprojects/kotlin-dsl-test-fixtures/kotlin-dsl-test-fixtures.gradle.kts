@@ -15,7 +15,6 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import build.gradleApiWithParameterNames
 
 plugins {
     `kotlin-library`
@@ -32,7 +31,6 @@ dependencies {
     compile(project(":kotlinDsl"))
     compile(project(":kotlinDslToolingBuilders"))
 
-    compile(gradleApiWithParameterNames())
     compile(gradleTestKit())
 
     compile(library("junit"))

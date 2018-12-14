@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -30,14 +29,6 @@ import kotlin.reflect.full.valueParameters
 
 
 class GradleApiParameterNamesTest : AbstractIntegrationTest() {
-
-    @Test
-    fun `Gradle API has parameter names`() {
-
-        assertHasParameterNames(
-            PluginDependenciesSpec::class, "id", listOf(String::class), listOf("id")
-        )
-    }
 
     @Test
     fun `Kotlin delegation generated member has parameter names`() {
@@ -56,16 +47,17 @@ class GradleApiParameterNamesTest : AbstractIntegrationTest() {
             *parameterTypes.map { it.java }.toTypedArray()
         )
         assertThat(
+            "java.lang.reflect parameter names match",
             javaMethod.parameters.map { it.name },
             equalTo(parameterNames)
         )
 
         // kotlin.reflect
-        parameterTypes.map { it }
         val kotlinFunction = type.declaredFunctions.single {
             it.name == methodName && it.valueParameters.map { it.type.classifier } == parameterTypes
         }
         assertThat(
+            "kotlin.reflect parameter names match",
             kotlinFunction.valueParameters.map { it.name!! },
             equalTo(parameterNames as List<String?>)
         )
