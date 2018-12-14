@@ -34,7 +34,7 @@ tasks {
         failOnWarning = true
     }
     "test" {
-        dependsOn(rootProject.tasks["customInstallation"])
+        dependsOn({ rootProject.tasks["customInstallation"] })
     }
 }
 
