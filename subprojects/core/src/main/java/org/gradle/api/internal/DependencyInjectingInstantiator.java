@@ -46,7 +46,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
             Object[] resolvedParameters = convertParameters(type, constructor, parameters);
             Object instance;
             try {
-                instance =  classGenerator.newInstance(constructor.getConstructor(), services, resolvedParameters);
+                instance =  classGenerator.newInstance(constructor.getConstructor(), services, this, resolvedParameters);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
