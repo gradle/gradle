@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
+import build.gradleApiWithParameterNames
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `kotlin-dsl-module`
+}
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
+}
+
+dependencies {
+
+    compileOnly(gradleApiWithParameterNames())
+
+    compile(project(":distributionsDependencies"))
+
+    compile(project(":kotlinDsl"))
 }
