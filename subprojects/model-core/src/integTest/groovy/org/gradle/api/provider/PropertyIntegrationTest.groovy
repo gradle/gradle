@@ -282,7 +282,7 @@ class SomeTask extends DefaultTask {
     final Property<String> prop = project.objects.property(String)
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = "value"
 assert custom.prop.get() == "value"
 
@@ -315,7 +315,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = "\${'some value'.substring(5)}"
 assert custom.prop.get() == "value"
 
@@ -342,7 +342,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task wrongValueTypeDsl {
     doLast {
@@ -431,7 +431,7 @@ class SomeExtension {
     }
 }
  
-project.extensions.create("some", SomeExtension, objects)            
+project.extensions.create("some", SomeExtension)            
         """
 
         when:
