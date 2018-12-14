@@ -17,7 +17,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
@@ -41,26 +40,9 @@ tasks {
 
     withType<Test>().configureEach {
 
-        testLogging {
-            events("failed")
-            exceptionFormat = TestExceptionFormat.FULL
-        }
-
-        // sets the Gradle Test Kit user home to a known constant dir
-        systemProperty(
-            "org.gradle.testkit.dir",
-            "$rootDir/.gradle/testKitGradleUserHome")
-
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
             true)
-    }
-
-    register("quickTest", Test::class) {
-        exclude(
-            "**/*IntegrationTest.class",
-            "**/*SampleTest.class"
-        )
     }
 }

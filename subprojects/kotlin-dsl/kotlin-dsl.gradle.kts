@@ -19,7 +19,6 @@ import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
 import build.withCompileOnlyGradleApiModulesWithParameterNames
-import build.withParallelTests
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
@@ -110,5 +109,3 @@ tasks {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
-
-withParallelTests()

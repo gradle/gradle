@@ -24,7 +24,10 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 
 import org.gradle.internal.hash.HashUtil
+import org.gradle.testkit.runner.internal.TestKitDirProvider
 import org.gradle.util.GradleVersion
+
+import org.gradle.kotlin.dsl.withGroovyBuilder
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
@@ -255,9 +258,17 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     private
     fun generatedExtensionsJarFromTestKitUserHome(): File =
-        File(System.getProperty("org.gradle.testkit.dir"))
+        lookupTestKitDir()
             .resolve("caches")
             .listFiles { f -> f.isDirectory && f.name == GradleVersion.current().version }.single()
             .resolve("generated-gradle-jars")
             .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }.single()
+
+    // TODO:kotlin-dsl rewrite once GradleExecuter is in use
+    private
+    fun lookupTestKitDir(): File =
+        System.getProperty("org.gradle.testkit.dir")?.let { File(it) }
+            ?: gradleRunnerForArguments().withGroovyBuilder {
+                (getProperty("testKitDirProvider") as TestKitDirProvider).dir
+            }
 }

@@ -15,7 +15,6 @@
  */
 
 import build.withCompileOnlyGradleApiModulesWithParameterNames
-import build.withParallelTests
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -41,5 +40,3 @@ tasks {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
-
-withParallelTests()

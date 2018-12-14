@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import build.withParallelTests
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.futurePluginVersionsFile
 
@@ -79,5 +78,3 @@ tasks {
         dependsOn(writeFuturePluginVersions)
     }
 }
-
-withParallelTests()
