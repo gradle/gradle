@@ -25,8 +25,5 @@ gradlebuildJava {
 }
 
 dependencies {
-
-    api(project(":distributionsDependencies"))
-
     compileOnly(futureKotlin("stdlib-jdk8"))
 }

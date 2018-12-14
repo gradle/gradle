@@ -69,6 +69,11 @@ private
 val artifactType = Attribute.of("artifactType", String::class.java)
 
 
+// TODO:kotlin-dsl dedupe, see MinifyPlugin
+private
+val minified = Attribute.of("minified", Boolean::class.javaObjectType)
+
+
 private
 const val withParameterNames = "with-parameter-names"
 
@@ -96,7 +101,7 @@ private
 fun Project.registerGradleApiParameterNamesTransform() {
     dependencies {
         registerTransform {
-            from.attribute(artifactType, "jar")
+            from.attribute(artifactType, "jar").attribute(minified, true)
             to.attribute(artifactType, withParameterNames)
             artifactTransform(GradleApiParameterNamesTransform::class) {
                 params(

@@ -15,7 +15,30 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import build.gradleApiWithParameterNames
+
+plugins {
+    `kotlin-library`
+}
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
+}
+
+dependencies {
+
+    compile(project(":distributionsDependencies"))
+
+    compile(project(":kotlinDsl"))
+    compile(project(":kotlinDslToolingBuilders"))
+
+    compile(gradleApiWithParameterNames())
+    compile(gradleTestKit())
+
+    compile(library("junit"))
+    compile(testLibrary("hamcrest"))
+
+    compile("com.nhaarman:mockito-kotlin:1.6.0")
+    compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
+    compile("org.ow2.asm:asm:6.2.1")
 }
