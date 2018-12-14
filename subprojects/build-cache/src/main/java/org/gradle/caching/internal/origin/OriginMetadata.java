@@ -57,6 +57,15 @@ public class OriginMetadata {
         return producedByCurrentBuild;
     }
 
+    /**
+     * Return this metadata as if it was produced by a previous build.
+     */
+    public OriginMetadata asProducedByPreviousBuild() {
+        return producedByCurrentBuild
+            ? new OriginMetadata(buildInvocationId, executionTime, false)
+            : this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

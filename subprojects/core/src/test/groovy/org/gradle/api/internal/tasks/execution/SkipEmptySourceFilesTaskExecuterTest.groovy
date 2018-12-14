@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
@@ -116,6 +117,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -157,6 +159,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -199,6 +202,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         def outputFilesBefore = ImmutableSortedMap.of(
             "output", fingerprinter.fingerprint(ImmutableFileCollection.of(outputDir, outputFile, overlappingFile))
         )
+        def overlappingOutputs = new OverlappingOutputs("someProperty", "path/to/outputFile")
 
         when:
         executer.execute(task, state, taskContext)
@@ -213,6 +217,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> overlappingOutputs
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -259,6 +264,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> null
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'

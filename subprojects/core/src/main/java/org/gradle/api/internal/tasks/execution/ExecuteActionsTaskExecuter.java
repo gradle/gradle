@@ -266,7 +266,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     public void accept(BeforeExecutionState execution) {
                         executionHistoryStore.store(
                             task.getPath(),
-                            originMetadata,
+                            // Make sure we store as "from previous build" because the cache might give back the same object
+                            originMetadata.asProducedByPreviousBuild(),
                             execution.getImplementation(),
                             execution.getAdditionalImplementations(),
                             execution.getInputProperties(),
