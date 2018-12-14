@@ -103,7 +103,6 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
             }
-            // TODO:lptr can we remove this?
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             executionHistoryStore.remove(task.getPath());
             return new TaskExecuterResult() {
