@@ -90,6 +90,130 @@ By default, Gradle caches changing versions of dependencies for 24 hours. Within
 
 Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module. All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
 
+[[sub:declaring_dependency_rich_version]]
+=== Rich version declaration
+
+Gradle supports a rich model for declaring versions, which allows to combine different level of version information.
+The terms and their meaning are explained below, from the strongest to the weakest:
+
+`strictly`::
+Any version not matched by this version notation will be excluded.
+This is the strongest version declaration.
+It will cause dependency resolution to fail if no version acceptable by this clause can be selected.
+This term supports dynamic versions.
++
+When defined, overrides previous `require` declaration and clears previous `reject`.
+
+`require`::
+Implies that the selected version cannot be lower than what `require` accepts but could be higher through conflict resolution, even if higher has an exclusive higher bound.
+This is what a direct version on a dependency translates to.
+This term supports dynamic versions.
++
+When defined, overrides previous `strictly` declaration and clears previous `reject`.
+
+`prefer`::
+This is a very soft version declaration.
+It applies only if there is no stronger non dynamic opinion on a version for the module.
+This term does not support dynamic versions.
++
+Definition can complement `strictly` or `require`.
+
+There is also an additional term outside of the level hierarchy:
+
+`reject`::
+Declares that specific version(s) are not accepted for the module.
+This will cause dependency resolution to fail if the only versions selectable are also rejected.
+This term supports dynamic versions.
+
+The following table gives a couple use cases and how to combine the different terms for a rich version declaration:
+
+.Rich version use cases
+[%header%autowidth,compact]
+|===
+| Use case | `strictly` | `require` | `prefer` | `rejects` | Locking recommended? | Potential result
+
+| No strong opinion, works with 1.5
+|
+|
+| 1.5
+|
+|
+| 1.5 if no other opinion, any otherwise
+
+| Should not be downgraded below 1.5, but can be upgraded
+|
+| 1.5
+|
+|
+|
+| any starting from 1.5, equivalent of `org:foo:1.5`
+
+| Any version between 1.0 and below 2.0, tested with 1.5
+| [1.0, 2.0[
+|
+| 1.5
+|
+| yes
+| any between 1.0 and 2.0 excluded, 1.5 if nobody else cares
+
+| Any version between 1.0 and below 2.0, tested with 1.5, 1.4 known broken
+| [1.0, 2.0[
+|
+| 1.5
+| 1.4
+| yes
+| any between 1.0 and 2.0 excluded, 1.4 excluded, 1.5 if nobody else cares
+
+| Give me whatever the latest release version is, cannot downgrade
+|
+| `latest.release`
+|
+|
+| yes
+| the latest release at build time
+
+| Give me whatever the latest release version is, previous versions work
+|
+|
+| `latest.release`
+|
+| yes
+| the latest release at build time
+
+| No other version than 1.5
+| 1.5
+|
+|
+|
+|
+| 1.5, or failure if another `strict` or `require` constraint disagrees
+
+| No other version than 1.5 or a patch version
+| [1.5,1.6[
+|
+|
+|
+| yes
+| latest release between 1.5 and 1.6 excluded, or failure if another `strict` or `require` constraint disagrees
+|===
+
+
+[NOTE]
+====
+Rich version information will be preserved when using the Gradle metadata format.
+However conversion to Ivy or Maven metadata formats will be lossy.
+The highest level will be published, that is `strictly` or `require` over `prefer`.
+In addition, any `reject` will be ignored.
+====
+
+Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration which gives access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint].
+
+.Rich version declaration
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
+====
+
 [[sec:declaring_file_dependency]]
 == Declaring a file dependency
 
