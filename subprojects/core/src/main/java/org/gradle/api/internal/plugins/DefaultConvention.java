@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -50,18 +49,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
 
-    /**
-     * This method should not be used in runtime code proper as means that the convention cannot create
-     * dynamic extensions.
-     *
-     * It's here for backwards compatibility with our tests and for convenience.
-     *
-     * @see #DefaultConvention(org.gradle.internal.reflect.Instantiator)
-     */
-    public DefaultConvention() {
-        this(null);
-    }
-
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
@@ -78,13 +65,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
         return extensionsDynamicObject;
-    }
-
-    private Instantiator getInstantiator() {
-        if (instantiator == null) {
-            throw new GradleException("request for DefaultConvention.instantiator when the object was constructed without a convention");
-        }
-        return instantiator;
     }
 
     @Override
@@ -239,7 +219,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
-        return getInstantiator().newInstance(instanceType, constructionArguments);
+        return instantiator.newInstance(instanceType, constructionArguments);
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {

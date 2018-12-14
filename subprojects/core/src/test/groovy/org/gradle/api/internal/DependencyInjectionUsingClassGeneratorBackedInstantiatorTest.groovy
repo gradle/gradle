@@ -27,8 +27,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
     final ClassGenerator classGenerator = new AsmBackedClassGenerator()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator dependencyInjectingInstantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), classGenerator, services)
-    final instantiator = new ClassGeneratorBackedInstantiator(classGenerator, dependencyInjectingInstantiator)
+    final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), classGenerator, services)
 
     def "injects service using getter injection"() {
         given:

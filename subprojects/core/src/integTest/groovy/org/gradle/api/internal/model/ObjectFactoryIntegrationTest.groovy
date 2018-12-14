@@ -17,7 +17,7 @@ package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
+class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create instances of class using injected factory"() {
         buildFile << """
             @groovy.transform.ToString
@@ -154,7 +154,7 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
                 void thing(Action<? super Thing2> action) { action.execute(thing) }
             }
             
-            project.extensions.create('thing', Thing3, project.objects)
+            project.extensions.create('thing', Thing3)
             
             thing {
                 thing {
@@ -164,6 +164,56 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             assert thing.thing.thing.name == 'thing'
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "DSL elements created using injected ObjectFactory can be extended and those extensions can receive services"() {
+        buildFile << """
+            class Thing {
+                String name   
+
+                @javax.inject.Inject
+                Thing(ObjectFactory factory) { assert factory != null }
+            }
+            
+            class Thing2 {
+            }
+            
+            class Thing3 {
+                Thing2 thing
+                
+                Thing3(ObjectFactory factory) {
+                    thing = factory.newInstance(Thing2)
+                }
+                
+                void thing(Action<? super Thing2> action) { action.execute(thing) }
+            }
+            
+            project.extensions.create('thing', Thing3)
+            
+            thing.extensions.create('thing2', Thing)
+            thing.thing.extensions.create('thing2', Thing)
+            thing.thing.thing2.extensions.create('thing2', Thing)
+            thing.thing2.extensions.create('thing2', Thing)
+            
+            thing {
+                thing {
+                    thing2 {
+                        name = 'thing'
+                    }
+                }
+                thing2 {
+                    thing2 {
+                        name = 'thing'
+                    }
+                }
+            }
+            
+            assert thing.thing.thing2.name == 'thing'
+            assert thing.thing2.thing2.name == 'thing'
 """
 
         expect:

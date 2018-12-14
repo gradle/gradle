@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.lang.reflect.Constructor;
@@ -28,7 +29,7 @@ class IdentityClassGenerator implements ClassGenerator {
     }
 
     @Override
-    public <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    public <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         return constructor.newInstance(params);
     }
 }

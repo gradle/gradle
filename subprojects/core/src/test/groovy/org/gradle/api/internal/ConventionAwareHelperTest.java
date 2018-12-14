@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestTask;
 import org.gradle.util.TestUtil;
@@ -33,7 +34,10 @@ import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 public class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware;
@@ -45,7 +49,7 @@ public class ConventionAwareHelperTest {
 
     @Before public void setUp() {
         testTask = TestUtil.create(temporaryFolder).task(TestTask.class);
-        conventionAware = new ConventionAwareHelper(testTask);
+        conventionAware = new ConventionAwareHelper(testTask, new DefaultConvention(TestUtil.instantiatorFactory().decorate()));
     }
 
     @Test

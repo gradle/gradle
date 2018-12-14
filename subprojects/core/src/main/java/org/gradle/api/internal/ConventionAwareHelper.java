@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -37,13 +36,6 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     private final IConventionAware _source;
     private final Set<String> _propertyNames;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
-
-    /**
-     * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
-     */
-    public ConventionAwareHelper(IConventionAware source) {
-        this(source, new DefaultConvention());
-    }
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;

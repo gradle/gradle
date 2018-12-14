@@ -29,11 +29,9 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -47,6 +45,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -79,6 +78,29 @@ import static org.junit.Assert.fail;
 public class AsmBackedClassGeneratorTest {
     private final AbstractClassGenerator generator = new AsmBackedClassGenerator();
 
+    private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
+        Class<? extends T> type = generator.generate(clazz);
+        for (Constructor<?> constructor : type.getConstructors()) {
+            if (constructor.getParameterTypes().length == args.length) {
+                int i = 0;
+                for (; i < args.length; i++) {
+                    Object arg = args[i];
+                    Class<?> parameterType = constructor.getParameterTypes()[i];
+                    if (parameterType.isPrimitive()) {
+                        parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                    }
+                    if (!parameterType.isInstance(arg)) {
+                        break;
+                    }
+                }
+                if (i == args.length) {
+                    return (T) generator.newInstance(constructor, null, null, args);
+                }
+            }
+        }
+        throw new UnsupportedOperationException();
+    }
+
     @Test
     public void mixesInGeneratedSubclassInterface() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
@@ -88,10 +110,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInConventionAwareInterface() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
-
-        Bean bean = JavaReflectionUtil.newInstance(generatedClass);
+        Bean bean = newInstance(Bean.class);
+        assertTrue(IConventionAware.class.isInstance(bean));
 
         IConventionAware conventionAware = (IConventionAware) bean;
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
@@ -100,9 +120,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInDynamicObjectAwareInterface() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(DynamicObjectAware.class.isAssignableFrom(generatedClass));
-        Bean bean = JavaReflectionUtil.newInstance(generatedClass);
+        Bean bean = newInstance(Bean.class);
+        assertTrue(DynamicObjectAware.class.isInstance(bean));
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
 
         dynamicBean.getAsDynamicObject().setProperty("prop", "value");
@@ -112,9 +131,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInExtensionAwareInterface() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(ExtensionAware.class.isAssignableFrom(generatedClass));
-        Bean bean = JavaReflectionUtil.newInstance(generatedClass);
+        Bean bean = newInstance(Bean.class);
+        assertTrue(ExtensionAware.class.isInstance(bean));
         ExtensionAware dynamicBean = (ExtensionAware) bean;
 
         assertThat(dynamicBean.getExtensions(), notNullValue());
@@ -122,9 +140,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInGroovyObjectInterface() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(GroovyObject.class.isAssignableFrom(generatedClass));
-        Bean bean = JavaReflectionUtil.newInstance(generatedClass);
+        Bean bean = newInstance(Bean.class);
+        assertTrue(GroovyObject.class.isInstance(bean));
         GroovyObject groovyObject = (GroovyObject) bean;
         assertThat(groovyObject.getMetaClass(), notNullValue());
 
@@ -147,11 +164,10 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void overridesPublicConstructors() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(BeanWithConstructor.class);
-        Bean bean = generatedClass.getConstructor(String.class).newInstance("value");
+        Bean bean = newInstance(BeanWithConstructor.class, "value");
         assertThat(bean.getProp(), equalTo("value"));
 
-        bean = JavaReflectionUtil.newInstance(generatedClass);
+        bean = newInstance(BeanWithConstructor.class);
         assertThat(bean.getProp(), equalTo("default value"));
     }
 
@@ -315,19 +331,12 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void reportsConstructionFailure() {
+    public void reportsConstructionFailure() throws Exception {
         try {
             newInstance(UnconstructibleBean.class);
             fail();
-        } catch (ObjectInstantiationException e) {
+        } catch (InvocationTargetException e) {
             assertThat(e.getCause(), sameInstance(UnconstructibleBean.failure));
-        }
-
-        try {
-            newInstance(Bean.class, "arg1", 2);
-            fail();
-        } catch (ObjectInstantiationException e) {
-            // expected
         }
 
         try {
@@ -354,9 +363,9 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void appliesConventionMappingToEachProperty() throws Exception {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
-        Bean bean = JavaReflectionUtil.newInstance(generatedClass);
+        Bean bean = newInstance(Bean.class);
+
+        assertTrue(IConventionAware.class.isInstance(bean));
         IConventionAware conventionAware = (IConventionAware) bean;
 
         assertThat(bean.getProp(), nullValue());
@@ -458,7 +467,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     @Issue("GRADLE-2163")
     public void appliesConventionMappingToGroovyBoolean() throws Exception {
-        BeanWithGroovyBoolean bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithGroovyBoolean.class));
+        BeanWithGroovyBoolean bean = newInstance(BeanWithGroovyBoolean.class);
 
         assertTrue(bean instanceof IConventionAware);
         assertThat(bean.getSmallB(), equalTo(false));
@@ -502,8 +511,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void appliesConventionMappingToCollectionGetter() throws Exception {
-        Class<? extends CollectionBean> generatedClass = generator.generate(CollectionBean.class);
-        CollectionBean bean = JavaReflectionUtil.newInstance(generatedClass);
+        CollectionBean bean = newInstance(CollectionBean.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         final List<String> conventionValue = toList("value");
 
@@ -529,7 +537,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void handlesVariousPropertyTypes() throws Exception {
-        BeanWithVariousPropertyTypes bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithVariousPropertyTypes.class));
+        BeanWithVariousPropertyTypes bean = newInstance(BeanWithVariousPropertyTypes.class);
 
         assertThat(bean.getArrayProperty(), notNullValue());
         assertThat(bean.getBooleanProperty(), equalTo(false));
@@ -551,9 +559,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotOverrideMethodsFromConventionAwareInterface() throws Exception {
-        Class<? extends ConventionAwareBean> generatedClass = generator.generate(ConventionAwareBean.class);
-        assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
-        ConventionAwareBean bean = JavaReflectionUtil.newInstance(generatedClass);
+        ConventionAwareBean bean = newInstance(ConventionAwareBean.class);
         assertSame(bean, bean.getConventionMapping());
 
         bean.setProp("value");
@@ -562,7 +568,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotOverrideMethodsFromSuperclassesMarkedWithAnnotation() throws Exception {
-        BeanSubClass bean = JavaReflectionUtil.newInstance(generator.generate(BeanSubClass.class));
+        BeanSubClass bean = newInstance(BeanSubClass.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map("property", new Callable<Object>() {
             public Object call() throws Exception {
@@ -592,7 +598,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotMixInConventionMappingToClassWithAnnotation() throws Exception {
-        NoMappingBean bean = JavaReflectionUtil.newInstance(generator.generate(NoMappingBean.class));
+        NoMappingBean bean = newInstance(NoMappingBean.class);
         assertFalse(bean instanceof IConventionAware);
         assertNull(bean.getInterfaceProperty());
 
@@ -602,14 +608,14 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
-        DynamicObjectAwareBean bean = JavaReflectionUtil.newInstance(generator.generate(DynamicObjectAwareBean.class));
+        DynamicObjectAwareBean bean = newInstance(DynamicObjectAwareBean.class);
         assertThat(bean.getConvention(), sameInstance(bean.conv));
         assertThat(bean.getAsDynamicObject(), sameInstance(bean.conv.getExtensionsAsDynamicObject()));
     }
 
     @Test
     public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
-        Bean bean = JavaReflectionUtil.newInstance(generator.generate(Bean.class));
+        Bean bean = newInstance(Bean.class);
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
         new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
@@ -624,7 +630,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void canAddDynamicPropertiesAndMethodsToGroovyObject() throws Exception {
-        TestDecoratedGroovyBean bean = JavaReflectionUtil.newInstance(generator.generate(TestDecoratedGroovyBean.class));
+        TestDecoratedGroovyBean bean = newInstance(TestDecoratedGroovyBean.class);
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
         new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
@@ -639,7 +645,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void respectsPropertiesAddedToMetaClassOfJavaObject() throws Exception {
-        Bean bean = JavaReflectionUtil.newInstance(generator.generate(Bean.class));
+        Bean bean = newInstance(Bean.class);
 
         call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
         assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
@@ -649,7 +655,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void respectsPropertiesAddedToMetaClassOfGroovyObject() throws Exception {
-        TestDecoratedGroovyBean bean = JavaReflectionUtil.newInstance(generator.generate(TestDecoratedGroovyBean.class));
+        TestDecoratedGroovyBean bean = newInstance(TestDecoratedGroovyBean.class);
 
         call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
         assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
@@ -659,7 +665,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void usesExistingGetAsDynamicObjectMethod() throws Exception {
-        DynamicObjectBean bean = JavaReflectionUtil.newInstance(generator.generate(DynamicObjectBean.class));
+        DynamicObjectBean bean = newInstance(DynamicObjectBean.class);
 
         call("{ it.prop = 'value' }", bean);
         assertThat(call("{ it.prop }", bean), equalTo((Object) "value"));
@@ -681,7 +687,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInSetValueMethodForSingleValuedProperty() throws Exception {
-        BeanWithVariousGettersAndSetters bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithVariousGettersAndSetters.class));
+        BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
 
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("value"));
@@ -710,7 +716,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Exception {
-        Bean bean = JavaReflectionUtil.newInstance(generator.generate(Bean.class));
+        Bean bean = newInstance(Bean.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
             public Object call() throws Exception {
@@ -726,7 +732,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotMixInSetValueMethodForReadOnlyProperty() throws Exception {
-        BeanWithReadOnlyProperties bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithReadOnlyProperties.class));
+        BeanWithReadOnlyProperties bean = newInstance(BeanWithReadOnlyProperties.class);
 
         try {
             call("{ it.prop 'value'}", bean);
@@ -738,7 +744,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotMixInSetValueMethodForMultiValueProperty() throws Exception {
-        CollectionBean bean = JavaReflectionUtil.newInstance(generator.generate(CollectionBean.class));
+        CollectionBean bean = newInstance(CollectionBean.class);
 
         try {
             call("{ def val = ['value']; it.prop val}", bean);
@@ -750,7 +756,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void overridesExistingSetValueMethod() throws Exception {
-        BeanWithDslMethods bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithDslMethods.class));
+        BeanWithDslMethods bean = newInstance(BeanWithDslMethods.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
             public Object call() throws Exception {
@@ -783,7 +789,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Exception {
-        BeanWithMultiArgDslMethods bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithMultiArgDslMethods.class));
+        BeanWithMultiArgDslMethods bean = newInstance(BeanWithMultiArgDslMethods.class);
         // this method should have been added to the class
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("value"));
@@ -791,26 +797,26 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotOverrideSetValueMethodForPropertyThatIsNotConventionMappingAware() throws Exception {
-        BeanWithMultiArgDslMethodsAndNoConventionMapping bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithMultiArgDslMethodsAndNoConventionMapping.class));
+        BeanWithMultiArgDslMethodsAndNoConventionMapping bean = newInstance(BeanWithMultiArgDslMethodsAndNoConventionMapping.class);
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("(value)"));
     }
 
     @Test
     public void mixesInClosureOverloadForActionMethod() throws Exception {
-        Bean bean = JavaReflectionUtil.newInstance(generator.generate(Bean.class));
+        Bean bean = newInstance(Bean.class);
         bean.prop = "value";
 
         call("{def value; it.doStuff { value = it }; assert value == \'value\' }", bean);
 
-        BeanWithOverriddenMethods subBean = JavaReflectionUtil.newInstance(generator.generate(BeanWithOverriddenMethods.class));
+        BeanWithOverriddenMethods subBean = newInstance(BeanWithOverriddenMethods.class);
 
         call("{def value; it.doStuff { value = it }; assert value == \'overloaded\' }", subBean);
     }
 
     @Test
     public void doesNotOverrideExistingClosureOverload() throws Exception {
-        BeanWithDslMethods bean = JavaReflectionUtil.newInstance(generator.generate(BeanWithDslMethods.class));
+        BeanWithDslMethods bean = newInstance(BeanWithDslMethods.class);
         bean.prop = "value";
 
         assertThat(call("{def value; it.doStuff { value = it }; return value }", bean), equalTo((Object) "[value]"));
@@ -818,7 +824,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void generatesDslObjectCompatibleObject() throws Exception {
-        DslObject dslObject = new DslObject(JavaReflectionUtil.newInstance(generator.generate(Bean.class)));
+        DslObject dslObject = new DslObject(newInstance(Bean.class));
         assertEquals(Bean.class, dslObject.getDeclaredType());
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
@@ -829,7 +835,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void honorsPublicType() throws Exception {
-        DslObject dslObject = new DslObject(JavaReflectionUtil.newInstance(generator.generate(BeanWithPublicType.class)));
+        DslObject dslObject = new DslObject(newInstance(BeanWithPublicType.class));
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
     }
 
@@ -920,10 +926,6 @@ public class AsmBackedClassGeneratorTest {
         }));
         assertEquals("[1]", bean.getProp2().get());
         assertEquals("[2]", bean.getProp2().get());
-    }
-
-    private <T> T newInstance(Class<T> type, Object... parameters) {
-        return DirectInstantiator.instantiate(generator.generate(type), parameters);
     }
 
     public static class Bean {
@@ -1198,7 +1200,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, ThreadGlobalInstantiator.getOrCreate()).getConvention();
+        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorate()).getConvention();
 
         public Convention getConvention() {
             return conv;
