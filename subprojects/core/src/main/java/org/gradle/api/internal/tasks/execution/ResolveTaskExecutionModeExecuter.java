@@ -63,7 +63,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
         Timer clock = Time.startTimer();
         TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, task);
         context.setTaskProperties(taskProperties);
-        TaskExecutionMode taskExecutionMode = executionModeResolver.getStateFor(task, taskProperties);
+        TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, taskProperties);
         TaskOutputsInternal outputs = task.getOutputs();
 
         context.setTaskExecutionMode(taskExecutionMode);

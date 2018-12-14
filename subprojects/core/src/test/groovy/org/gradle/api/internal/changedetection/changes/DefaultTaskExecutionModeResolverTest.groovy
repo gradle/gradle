@@ -25,10 +25,10 @@ import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
 
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.WITHOUT_ACTIONS
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.WITH_ACTIONS
 
 class DefaultTaskExecutionModeResolverTest extends Specification {
 
@@ -48,10 +48,10 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "no actions with no outputs"() {
         when:
-        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == WITHOUT_ACTIONS
+        state == NO_OUTPUTS_WITHOUT_ACTIONS
         1 * upToDateSpec.isEmpty() >> true
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * task.hasTaskActions() >> false
@@ -59,10 +59,10 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "no actions with outputs"() {
         when:
-        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == WITH_ACTIONS
+        state == NO_OUTPUTS_WITH_ACTIONS
         1 * upToDateSpec.isEmpty() >> true
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * task.hasTaskActions() >> true
@@ -70,7 +70,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "default"() {
         when:
-        TaskExecutionMode state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
         state == INCREMENTAL
@@ -81,7 +81,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
     def "--rerun-tasks enabled"() {
         when:
         startParameter.setRerunTasks(true)
-        def state = repository.getStateFor(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
         state == RERUN_TASKS_ENABLED
@@ -90,7 +90,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "uoToDateSpec evaluates to false"() {
         when:
-        def state = repository.getStateFor(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
         state == UP_TO_DATE_WHEN_FALSE

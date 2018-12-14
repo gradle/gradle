@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -247,18 +246,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
-
-            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
-                afterPreviousExecutionState != null
-                    ? afterPreviousExecutionState.getOutputFileProperties()
-                    : null,
-                outputFilesBeforeExecution
-            );
             return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
                 afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
                 outputFilesBeforeExecution,
                 context.getTaskProperties().getOutputFileProperties(),
-                overlappingOutputs != null,
+                context.getOverlappingOutputs() != null,
                 task,
                 fingerprinterRegistry
             );
@@ -274,7 +266,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     public void accept(BeforeExecutionState execution) {
                         executionHistoryStore.store(
                             task.getPath(),
-                            OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
+                            originMetadata,
                             execution.getImplementation(),
                             execution.getAdditionalImplementations(),
                             execution.getInputProperties(),

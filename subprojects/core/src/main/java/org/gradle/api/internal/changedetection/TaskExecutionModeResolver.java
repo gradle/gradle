@@ -19,5 +19,5 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 
 public interface TaskExecutionModeResolver {
-    TaskExecutionMode getStateFor(TaskInternal task, TaskProperties taskProperties);
+    TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties taskProperties);
 }

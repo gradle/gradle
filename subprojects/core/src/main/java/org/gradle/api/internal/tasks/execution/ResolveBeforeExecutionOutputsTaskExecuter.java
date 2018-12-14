@@ -17,12 +17,14 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 
@@ -47,6 +49,16 @@ public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = TaskFingerprintUtil.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties(), fingerprinterRegistry);
         context.setOutputFilesBeforeExecution(outputsBeforeExecution);
+
+        AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
+        OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
+            afterPreviousExecutionState != null
+                ? afterPreviousExecutionState.getOutputFileProperties()
+                : null,
+            outputsBeforeExecution
+        );
+        context.setOverlappingOutputs(overlappingOutputs);
+
         return delegate.execute(task, state, context);
     }
 }

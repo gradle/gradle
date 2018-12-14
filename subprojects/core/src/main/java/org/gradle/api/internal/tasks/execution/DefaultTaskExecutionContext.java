@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -35,6 +36,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
+    private OverlappingOutputs overlappingOutputs;
     private ExecutionStateChanges executionStateChanges;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
@@ -78,6 +80,17 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
         this.outputFilesBeforeExecution = outputFilesBeforeExecution;
+    }
+
+    @Nullable
+    @Override
+    public OverlappingOutputs getOverlappingOutputs() {
+        return overlappingOutputs;
+    }
+
+    @Override
+    public void setOverlappingOutputs(@Nullable OverlappingOutputs overlappingOutputs) {
+        this.overlappingOutputs = overlappingOutputs;
     }
 
     public Optional<BeforeExecutionState> getBeforeExecutionState() {

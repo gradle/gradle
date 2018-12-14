@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -34,7 +33,6 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
@@ -75,15 +73,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
-                OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
-                    afterPreviousExecution != null
-                        ? afterPreviousExecution.getOutputFileProperties()
-                        : null,
-                    outputFilesBeforeExecution
-                );
-                boolean cleanupDirectories = overlappingOutputs == null;
+                boolean cleanupDirectories = context.getOverlappingOutputs() == null;
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }

@@ -32,9 +32,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,14 +71,6 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (buildCacheEnabled) {
-            AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
-            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
-                afterPreviousExecution != null
-                    ? afterPreviousExecution.getOutputFileProperties()
-                    : null,
-                outputFilesBeforeExecution
-            );
             TaskOutputCachingState taskOutputCachingState = resolveCachingState(
                 context.getTaskProperties().hasDeclaredOutputs(),
                 context.getTaskProperties().getOutputFileProperties(),
@@ -88,7 +78,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
                 task,
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
-                overlappingOutputs,
+                context.getOverlappingOutputs(),
                 relativeFilePathResolver);
             context.setTaskCachingEnabled(taskOutputCachingState.isEnabled());
             state.setTaskOutputCaching(taskOutputCachingState);

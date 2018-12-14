@@ -33,14 +33,14 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         this.startParameter = startParameter;
     }
 
-    public TaskExecutionMode getStateFor(TaskInternal task, TaskProperties taskProperties) {
+    public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties taskProperties) {
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!taskProperties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (task.hasTaskActions()) {
-                return TaskExecutionMode.WITH_ACTIONS;
+                return TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS;
             } else {
-                return TaskExecutionMode.WITHOUT_ACTIONS;
+                return TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS;
             }
         }
 

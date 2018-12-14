@@ -61,7 +61,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
 
         then: 'taskContext is initialized with task artifact state'
         1 * taskContext.setTaskProperties(_)
-        1 * repository.getStateFor(task, _) >> executionMode
+        1 * repository.getExecutionMode(task, _) >> executionMode
         1 * taskContext.setTaskExecutionMode(executionMode)
         2 * task.getOutputs() >> outputs
         1 * task.getInputs() >> inputs

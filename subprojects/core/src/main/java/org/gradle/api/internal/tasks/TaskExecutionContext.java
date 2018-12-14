@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -108,4 +109,8 @@ public interface TaskExecutionContext {
     Optional<ExecutionStateChanges> getExecutionStateChanges();
 
     void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
+
+    @Nullable OverlappingOutputs getOverlappingOutputs();
+
+    void setOverlappingOutputs(@Nullable OverlappingOutputs overlappingOutputs);
 }
