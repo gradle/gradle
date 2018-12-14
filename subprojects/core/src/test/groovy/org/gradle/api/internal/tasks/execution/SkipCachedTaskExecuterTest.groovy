@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
@@ -69,7 +70,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskExecutionMode.isAllowedToUseCachedResults() >> false
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null
@@ -94,7 +95,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingDisabled() }
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
 
@@ -118,7 +119,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheController.load(_) >> { throw new RuntimeException("unknown error") }
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null
@@ -179,7 +180,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheController.load(_)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null

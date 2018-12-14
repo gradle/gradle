@@ -46,7 +46,6 @@ public class ResolveIncrementalChangesTaskExecuter implements TaskExecuter {
         this.delegate = delegate;
     }
 
-    @Nullable
     @Override
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         ExecutionStateChanges changes = context.getTaskExecutionMode().getRebuildReason()

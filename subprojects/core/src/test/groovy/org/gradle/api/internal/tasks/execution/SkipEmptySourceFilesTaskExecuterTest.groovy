@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -34,8 +35,6 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
-import org.gradle.internal.id.UniqueId
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,9 +56,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskContext = Mock(TaskExecutionContext)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
-    final buildInvocationId = UniqueId.generate()
     final executionHistoryStore = Mock(ExecutionHistoryStore)
-    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target, new BuildInvocationScopeId(buildInvocationId))
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target)
     final stringInterner = new StringInterner()
     final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
@@ -291,7 +289,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext)
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:
@@ -309,7 +307,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext)
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:

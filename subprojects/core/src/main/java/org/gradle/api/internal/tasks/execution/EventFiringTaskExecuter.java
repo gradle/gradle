@@ -23,14 +23,11 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-
-import javax.annotation.Nullable;
 
 public class EventFiringTaskExecuter implements TaskExecuter {
 
@@ -55,17 +52,16 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 return result;
             }
 
-            @Nullable
             private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
                 try {
                     taskExecutionListener.beforeExecute(task);
                 } catch (Throwable t) {
                     state.setOutcome(new TaskExecutionException(task, t));
-                    return null;
+                    return TaskExecuterResult.NO_REUSED_OUTPUT;
                 }
 
                 TaskExecuterResult result = delegate.execute(task, state, context);
-                operationContext.setResult(new ExecuteTaskBuildOperationResult(state, context, findPreviousOriginMetadata(result)));
+                operationContext.setResult(new ExecuteTaskBuildOperationResult(state, context, result.getReusedOutputOriginMetadata().orElse(null)));
 
                 try {
                     taskExecutionListener.afterExecute(task, state);
@@ -74,17 +70,6 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 }
 
                 return result;
-            }
-
-            @Nullable
-            private OriginMetadata findPreviousOriginMetadata(@Nullable TaskExecuterResult result) {
-                if (result != null) {
-                    OriginMetadata originMetadata = result.getOriginMetadata();
-                    if (originMetadata != null && !originMetadata.isProducedByCurrentBuild()) {
-                        return originMetadata;
-                    }
-                }
-                return null;
             }
 
             @Override

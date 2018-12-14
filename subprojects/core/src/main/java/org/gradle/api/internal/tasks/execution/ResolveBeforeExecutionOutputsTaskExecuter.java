@@ -28,8 +28,6 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 
-import javax.annotation.Nullable;
-
 /**
  * Snapshot the task's inputs before execution.
  *
@@ -44,7 +42,6 @@ public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
         this.delegate = delegate;
     }
 
-    @Nullable
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = TaskFingerprintUtil.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties(), fingerprinterRegistry);

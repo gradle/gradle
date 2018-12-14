@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -38,6 +39,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, state, context) >> {
             state.setOutcome(TaskExecutionOutcome.EXECUTED)
+            return TaskExecuterResult.NO_REUSED_OUTPUT
         }
         0 * _
         state.outcome == TaskExecutionOutcome.EXECUTED

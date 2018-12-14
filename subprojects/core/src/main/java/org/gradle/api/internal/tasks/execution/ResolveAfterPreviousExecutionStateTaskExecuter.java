@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class ResolveAfterPreviousExecutionStateTaskExecuter implements TaskExecuter {
@@ -36,7 +35,6 @@ public class ResolveAfterPreviousExecutionStateTaskExecuter implements TaskExecu
         this.delegate = delegate;
     }
 
-    @Nullable
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         executionHistoryStore.load(task.getPath()).ifPresent(new Consumer<AfterPreviousExecutionState>() {

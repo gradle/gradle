@@ -41,6 +41,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
+    @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
@@ -51,7 +52,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         if (!messages.isEmpty()) {
             List<String> firstMessages = messages.subList(0, Math.min(5, messages.size()));
             report(task, firstMessages, state);
-            return null;
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         }
 
         return executer.execute(task, state, context);

@@ -27,14 +27,12 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -48,18 +46,17 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
-    private final BuildInvocationScopeId buildInvocationScopeId;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, ExecutionHistoryStore executionHistoryStore, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, ExecutionHistoryStore executionHistoryStore, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.outputChangeListener = outputChangeListener;
         this.executer = executer;
-        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
+    @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
         FileCollection sourceFiles = taskProperties.getSourceFiles();
@@ -105,12 +102,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             executionHistoryStore.remove(task.getPath());
-            return new TaskExecuterResult() {
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return OriginMetadata.fromCurrentBuild(buildInvocationScopeId.getId(), context.markExecutionTime());
-                }
-            };
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskProperties.getInputFiles()));
         }

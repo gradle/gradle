@@ -63,7 +63,6 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         this.delegate = delegate;
     }
 
-    @Nullable
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (context.getTaskExecutionMode().isTaskHistoryMaintained()) {

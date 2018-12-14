@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
@@ -72,7 +73,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.setBuildCacheKey(cacheKey)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
 
@@ -110,7 +111,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.setBuildCacheKey({ TaskOutputCachingBuildCacheKey key -> !key.valid } as TaskOutputCachingBuildCacheKey)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
 
         and:

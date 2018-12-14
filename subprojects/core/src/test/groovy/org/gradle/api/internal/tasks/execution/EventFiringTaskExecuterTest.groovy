@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
@@ -47,7 +48,7 @@ class EventFiringTaskExecuterTest extends Specification {
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext)
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
@@ -92,7 +93,10 @@ class EventFiringTaskExecuterTest extends Specification {
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext) >> { state.setOutcome(failure) }
+        1 * delegate.execute(task, state, executionContext) >> {
+            state.setOutcome(failure)
+            return TaskExecuterResult.NO_REUSED_OUTPUT
+        }
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
@@ -117,7 +121,7 @@ class EventFiringTaskExecuterTest extends Specification {
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext)
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskExecutionListener.afterExecute(task, state) >> {
@@ -148,6 +152,7 @@ class EventFiringTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, state, executionContext) >> {
             state.setOutcome(failure)
+            return TaskExecuterResult.NO_REUSED_OUTPUT
         }
 
         then:

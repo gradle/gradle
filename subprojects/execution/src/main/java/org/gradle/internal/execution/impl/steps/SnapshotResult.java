@@ -24,4 +24,9 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 public interface SnapshotResult extends Result {
     ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
     OriginMetadata getOriginMetadata();
+
+    /**
+     * Did we reuse the output from some previous execution?
+     */
+    boolean isReused();
 }

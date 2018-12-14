@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -75,7 +76,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * outputs.visitRegisteredProperties(_)
 
         then: 'delegate is executed'
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then: 'task artifact state is removed from taskContext'
         1 * outputs.setPreviousOutputFiles(null)

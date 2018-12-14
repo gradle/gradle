@@ -125,8 +125,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
+            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                return result.isReused()
+                    ? Optional.of(result.getOriginMetadata())
+                    : Optional.<OriginMetadata>empty();
             }
         };
     }
@@ -266,8 +268,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     public void accept(BeforeExecutionState execution) {
                         executionHistoryStore.store(
                             task.getPath(),
-                            // Make sure we store as "from previous build" because the cache might give back the same object
-                            originMetadata.asProducedByPreviousBuild(),
+                            originMetadata,
                             execution.getImplementation(),
                             execution.getAdditionalImplementations(),
                             execution.getInputProperties(),
