@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface PropertyMetadataStore {
+public interface WorkPropertyMetadataStore {
     <T> TypeMetadata getTypeMetadata(Class<T> type);
 }

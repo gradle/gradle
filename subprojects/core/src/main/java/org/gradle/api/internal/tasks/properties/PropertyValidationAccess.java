@@ -64,7 +64,7 @@ public class PropertyValidationAccess {
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
-        PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
+        WorkPropertyMetadataStore metadataStore = new DefaultWorkPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ), cacheFactory);
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
@@ -80,9 +80,9 @@ public class PropertyValidationAccess {
     }
 
     private static class BeanTypeNodeFactory {
-        private final PropertyMetadataStore metadataStore;
+        private final WorkPropertyMetadataStore metadataStore;
 
-        public BeanTypeNodeFactory(PropertyMetadataStore metadataStore) {
+        public BeanTypeNodeFactory(WorkPropertyMetadataStore metadataStore) {
             this.metadataStore = metadataStore;
         }
 
@@ -143,7 +143,7 @@ public class PropertyValidationAccess {
 
         @Override
         public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            for (PropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
+            for (WorkPropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
                 for (String validationMessage : metadata.getValidationMessages()) {
                     problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
@@ -217,13 +217,13 @@ public class PropertyValidationAccess {
 
     private interface PropertyValidator {
         @Nullable
-        String validate(boolean stricterValidation, PropertyMetadata metadata);
+        String validate(boolean stricterValidation, WorkPropertyMetadata metadata);
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
         @Nullable
         @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, WorkPropertyMetadata metadata) {
             Class<?> valueType = metadata.getDeclaredType();
             if (File.class.isAssignableFrom(valueType)
                 || java.nio.file.Path.class.isAssignableFrom(valueType)
@@ -238,7 +238,7 @@ public class PropertyValidationAccess {
 
         @Nullable
         @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, WorkPropertyMetadata metadata) {
             PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
             if (stricterValidation && pathSensitive == null) {
                 return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";

@@ -227,6 +227,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultWorkPropertyMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task)
     }
 }

@@ -19,6 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import java.util.Set;
 
 public interface TypeMetadata {
-    Set<PropertyMetadata> getPropertiesMetadata();
+    Set<WorkPropertyMetadata> getPropertiesMetadata();
     boolean hasAnnotatedProperties();
 }

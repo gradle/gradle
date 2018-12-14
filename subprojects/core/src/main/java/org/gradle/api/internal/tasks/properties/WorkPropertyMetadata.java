@@ -21,7 +21,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public interface PropertyMetadata {
+public interface WorkPropertyMetadata {
     String getFieldName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
