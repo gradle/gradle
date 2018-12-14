@@ -24,9 +24,7 @@
         </parameters>
       </runner>
     </build-runners>
-    <vcs-settings>
-      <vcs-entry-ref root-id="Gradle_Promotion__master_" />
-    </vcs-settings>
+    <vcs-settings />
     <requirements>
       <contains id="RQ_27" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
