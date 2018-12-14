@@ -14,7 +14,7 @@
     <parameters>
       <param name="TC_USERNAME" value="TeamcityRestBot" />
       <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
-      <param name="env.JAVA_HOME" value="%linux.java9.oracle.64bit%" />
+      <param name="env.JAVA_HOME" value="%linux.java11.openjdk.64bit%" />
       <param name="performance.baselines" value="defaults" />
       <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
       <param name="performance.db.username" value="tcagent" />
