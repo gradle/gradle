@@ -17,7 +17,6 @@
 package org.gradle.api.internal.plugins
 
 
-import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
@@ -43,7 +42,7 @@ class DefaultConventionTest {
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
 
-    Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
 
     @Before void setUp() {
         convention = new DefaultConvention(instantiator)

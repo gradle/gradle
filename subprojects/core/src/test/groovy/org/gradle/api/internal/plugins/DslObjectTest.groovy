@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.ThreadGlobalInstantiator
+
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DslObjectTest extends Specification {
@@ -39,7 +40,7 @@ class DslObjectTest extends Specification {
 
     def "works for dsl object"() {
         when:
-        new DslObject(ThreadGlobalInstantiator.getOrCreate().newInstance(Thing))
+        new DslObject(TestUtil.instantiatorFactory().decorate().newInstance(Thing))
 
         then:
         notThrown(Exception)

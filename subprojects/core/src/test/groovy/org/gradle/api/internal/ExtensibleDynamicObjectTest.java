@@ -396,7 +396,7 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void doesNotIncludeToStringInGetPropertyErrorMessageWhenItIsNotImplemented() {
-        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, ThreadGlobalInstantiator.getOrCreate());
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorate());
 
         try {
             bean.getProperty("unknown");
@@ -420,7 +420,7 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void doesNotIncludeToStringInSetPropertyErrorMessageWhenItIsNotImplemented() {
-        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, ThreadGlobalInstantiator.getOrCreate());
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorate());
 
         try {
             bean.setProperty("unknown", "value");
@@ -772,7 +772,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canCallGroovyDynamicMethods() {
         DynamicGroovyBean bean = new DynamicGroovyBean();
-        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, ThreadGlobalInstantiator.getOrCreate());
+        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, TestUtil.instantiatorFactory().decorate());
         Integer doubled = (Integer) object.invokeMethod("bar", 1);
         assertThat(doubled, equalTo(2));
 
@@ -792,7 +792,7 @@ public class ExtensibleDynamicObjectTest {
         final ExtensibleDynamicObject extensibleDynamicObject;
 
         public Bean() {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, ThreadGlobalInstantiator.getOrCreate());
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorate());
         }
 
         public DynamicObject getAsDynamicObject() {

@@ -15,7 +15,7 @@
  */
 package org.gradle.util
 
-import org.gradle.api.internal.ThreadGlobalInstantiator
+
 import org.gradle.util.ConfigureUtil.IncompleteInputException
 import spock.lang.Specification
 
@@ -181,7 +181,7 @@ class ConfigureUtilTest extends Specification {
 
     void configureByMapTriesMethodForExtensibleObjects() {
         given:
-        Bean bean = ThreadGlobalInstantiator.getOrCreate().newInstance(Bean)
+        Bean bean = TestUtil.instantiatorFactory().decorate().newInstance(Bean)
 
         when:
         ConfigureUtil.configureByMap(bean, method: "foo")
