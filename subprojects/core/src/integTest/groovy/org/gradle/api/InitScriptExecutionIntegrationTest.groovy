@@ -228,6 +228,21 @@ rootProject {
         }
     }
 
+    def 'init script classpath configuration has proper usage attribute'() {
+        def initScript = file('init.gradle')
+        initScript << """
+initscript {
+    configurations.classpath {
+        def value = attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+        assert value.name == Usage.JAVA_RUNTIME
+    }
+}
+"""
+        expect:
+        executer.withArguments('--init-script', initScript.absolutePath)
+        succeeds()
+    }
+
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''
