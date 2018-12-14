@@ -40,7 +40,7 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
     @Internal
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
+            conventionMapping = new ConventionAwareHelper(this, getConvention());
         }
         return conventionMapping;
     }

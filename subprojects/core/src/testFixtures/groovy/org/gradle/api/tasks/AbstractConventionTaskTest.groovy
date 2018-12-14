@@ -35,7 +35,7 @@ public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
         ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
 
         then:
-        conventionMapping.getConvention().is(getProject().getConvention())
+        conventionMapping.getConvention().is(task.getConvention())
     }
 }
 
