@@ -70,7 +70,7 @@ public interface TaskArtifactState {
     void afterOutputsRemovedBeforeTask();
 
     /**
-     * Called on completion of task execution.
+     * Takes the fingerprints of the outputs after task execution.
      */
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext);
 
