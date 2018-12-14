@@ -47,8 +47,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ### `ProjectBuilder` constructor
-Now the constructor of the `ProjectBuilder` is deprecated.
-You should always grab an instance of it via the `ProjectBuilder#builder()` method.
+
+The default constructor of `ProjectBuilder` is now deprecated.
+You should always use `ProjectBuilder#builder()` to create instances.
 
 ### Breaking changes
 
@@ -63,6 +64,8 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+
+ - [Stefan M.](https://github.com/StefMa) - Deprecate ProjectBuilder constructor (gradle/gradle#7444)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
