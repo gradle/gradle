@@ -88,10 +88,11 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.isExcludedBuild() =
-        // Two expected cache-miss:
-        // 1. compileAll is seed build
-        // 2. Gradleception which re-builds Gradle with a new Gradle version
-        gradle.startParameter.taskNames.contains("compileAll") || "Gradle_Check_Gradleception" == System.getenv("BUILD_TYPE_ID")
+    // Expected cache-miss:
+    // 1. compileAll is seed build
+    // 2. Gradleception which re-builds Gradle with a new Gradle version
+    // 3. buildScanPerformance test, which doesn't depend on compileAll
+        gradle.startParameter.taskNames.contains("compileAll") || System.getenv("BUILD_TYPE_ID") in listOf("Enterprise_Master_Components_BuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {

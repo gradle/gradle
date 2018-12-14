@@ -76,9 +76,12 @@ class TestDataGeneratorTest extends ResultSpecification {
                 ],
                 [
                     label: 'master vs 5.0-mockbaseline-2',
-                    data: [[1, 68.27]]
+                    data: [[1, -87.87]]
                 ],
             ],
+            background: [
+                [xaxis: [from: 0.5, to: 1.5], color: "rgba(0,255,0,0.4)"]
+            ]
         ]
     }
 
@@ -113,5 +116,23 @@ class TestDataGeneratorTest extends ResultSpecification {
                 ]
             ]
         ]
+    }
+
+    def 'can calculate background color'() {
+        expect:
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).xaxis == [from: -0.5, to: 0.5]
+        TestDataGenerator.BackgroundColor.ofConfidence([1, 100]).xaxis == [from: 0.5, to: 1.5]
+
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).color == 'rgba(255,0,0,1.0)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 90]).color == 'rgba(255,0,0,0.5)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 80]).color == 'rgba(255,0,0,0.0)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 70]) == null
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 60]) == null
+        TestDataGenerator.BackgroundColor.ofConfidence([0, 0]) == null
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -40]) == null
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -50]) == null
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -80]).color == 'rgba(0,255,0,0.0)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -90]).color == 'rgba(0,255,0,0.5)'
+        TestDataGenerator.BackgroundColor.ofConfidence([0, -100]).color == 'rgba(0,255,0,1.0)'
     }
 }
