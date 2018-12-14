@@ -330,9 +330,9 @@ patchedExternalModules.builtBy("patchExternalModules")
 
 dependencies {
 
-    externalModules("org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}")
-    externalModules("org.gradle:gradle-kotlin-dsl-provider-plugins:${BuildEnvironment.gradleKotlinDslVersion}")
-    externalModules("org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}")
+    externalModules(project(":kotlinDsl"))
+    externalModules(project(":kotlinDslProviderPlugins"))
+    externalModules(project(":kotlinDslToolingBuilders"))
 
     coreRuntime(project(":launcher"))
     coreRuntime(project(":runtimeApiInfo"))

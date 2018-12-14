@@ -20,7 +20,7 @@ dependencies {
     smokeTestCompile project(":internalIntegTesting")
     smokeTestCompile testLibraries.spock
 
-    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}"
+    smokeTestRuntimeOnly project(':kotlinDsl')
     smokeTestRuntimeOnly project(':codeQuality')
     smokeTestRuntimeOnly project(':ide')
     smokeTestRuntimeOnly project(':ivy')

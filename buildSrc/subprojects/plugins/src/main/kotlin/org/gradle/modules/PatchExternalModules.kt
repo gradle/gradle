@@ -2,6 +2,7 @@ package org.gradle.modules
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -13,6 +14,15 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 
+private
+val upperCaseLetters = "\\p{Upper}".toRegex()
+
+
+private
+fun String.toKebabCase() =
+    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
+
+
 @CacheableTask
 open class PatchExternalModules : DefaultTask() {
 
@@ -21,7 +31,12 @@ open class PatchExternalModules : DefaultTask() {
 
     @get:Input
     val namesOfModulesToPatch: Set<String>
-        get() = modulesToPatch.dependencies.map { it.name }.toSet()
+        get() = modulesToPatch.dependencies.map {
+            when (it) {
+                is ProjectDependency -> "gradle-${it.name.toKebabCase()}"
+                else -> it.name
+            }
+        }.toSet()
 
     @Internal
     lateinit var allModules: Configuration
