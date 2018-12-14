@@ -38,7 +38,7 @@ dependencies {
 // -- Testing ----------------------------------------------------------
 tasks {
     test {
-        dependsOn(":customInstallation")
+        dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
 

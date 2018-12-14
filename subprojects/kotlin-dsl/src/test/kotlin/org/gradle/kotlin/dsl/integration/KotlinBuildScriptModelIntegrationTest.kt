@@ -511,6 +511,13 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withBuildScript(rootProjectScript)
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
 
-        assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
+        val srcConventionalPathDirNames = listOf("java", "groovy", "kotlin", "resources")
+        val sourcePath = sourcePathFor(subProjectScriptFile).map { path ->
+            when {
+                srcConventionalPathDirNames.contains(path.name) -> path.parentFile.parentFile.parentFile.name
+                else -> path.name
+            }
+        }.distinct()
+        assertThat(sourcePath, matches)
     }
 }

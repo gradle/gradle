@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.rootProjectDir
+import org.gradle.kotlin.dsl.fixtures.testFixturesProjectDir
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
 import org.hamcrest.CoreMatchers.allOf
@@ -886,5 +886,5 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     private
     val fixturesRepository: File
-        get() = File(rootProjectDir, "fixtures/repository").absoluteFile
+        get() = File(testFixturesProjectDir, "fixtures/repository").absoluteFile
 }

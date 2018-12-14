@@ -26,6 +26,6 @@ open class AbstractPluginIntegrationTest : AbstractPluginTest() {
 
     override val testRepositoryPaths: List<String>
         get() = normalisedPathsOf(
-            "../plugins/build/repository"
+            "../kotlin-dsl-plugins/build/repository"
         )
 }

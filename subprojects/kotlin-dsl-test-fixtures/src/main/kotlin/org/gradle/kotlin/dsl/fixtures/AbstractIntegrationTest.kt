@@ -264,10 +264,10 @@ fun customInstallation() =
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 
-val rootProjectDir = File("../..").canonicalFile!!
+val testFixturesProjectDir = File("../kotlin-dsl-test-fixtures").canonicalFile!!
 
 
-val customInstallationBuildDir = File(rootProjectDir, "build/custom")
+val customInstallationBuildDir = File(testFixturesProjectDir, "build/custom")
 
 
 inline fun <T> withTestDaemon(block: () -> T) =
