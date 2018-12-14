@@ -375,6 +375,10 @@ class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
+    public boolean shouldIncludedInGraphResult() {
+        return isSelected() && !component.getModule().isVirtualPlatform();
+    }
+
     private ModuleExclusion getModuleResolutionFilter(List<EdgeState> incomingEdges) {
         ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
         ModuleExclusion nodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());

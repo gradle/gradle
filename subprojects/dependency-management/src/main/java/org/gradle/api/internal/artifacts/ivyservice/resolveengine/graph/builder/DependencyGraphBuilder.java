@@ -396,7 +396,7 @@ public class DependencyGraphBuilder {
 
         // Visit the nodes prior to visiting the edges
         for (NodeState nodeState : resolveState.getNodes()) {
-            if (nodeState.isSelected()) {
+            if (nodeState.shouldIncludedInGraphResult()) {
                 visitor.visitNode(nodeState);
             }
         }
@@ -404,7 +404,7 @@ public class DependencyGraphBuilder {
         // Collect the components to sort in consumer-first order
         List<ComponentState> queue = Lists.newArrayListWithExpectedSize(resolveState.getNodeCount());
         for (ModuleResolveState module : resolveState.getModules()) {
-            if (module.getSelected() != null) {
+            if (module.getSelected() != null && !module.isVirtualPlatform()) {
                 queue.add(module.getSelected());
             }
         }
@@ -421,7 +421,7 @@ public class DependencyGraphBuilder {
                     }
                     for (EdgeState edge : node.getIncomingEdges()) {
                         ComponentState owner = edge.getFrom().getOwner();
-                        if (owner.getVisitState() == VisitState.NotSeen) {
+                        if (owner.getVisitState() == VisitState.NotSeen && !owner.getModule().isVirtualPlatform()) {
                             queue.add(pos, owner);
                             pos++;
                         } // else, already visited or currently visiting (which means a cycle), skip

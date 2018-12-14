@@ -1085,11 +1085,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 edge("org:foo:1.0", "org:foo:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
                 }
-                constraint("org:platform:1.1", "org:platform:1.1") {
-                    noArtifacts()
-                    constraint('org:foo:1.1')
-                    byConstraint("belongs to platform org:platform:1.1")
-                }
             }
             virtualConfiguration("org:platform:1.1")
         }
