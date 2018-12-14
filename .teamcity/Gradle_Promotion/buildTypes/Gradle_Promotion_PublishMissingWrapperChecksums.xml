@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="3e6668a7-550b-463b-bf3a-2a94061947ce" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
   <name>Publish Missing Wrapper Checksums</name>
-  <description>Promotes the latest change on 'master' that passed the 'Quick Feedback' stage as new nightly. This build configuration can be triggered manually if there are issues further down the pipeline we can ignore temporarily.</description>
+  <description />
   <settings>
     <options>
       <option name="artifactRules" value="incoming-build-receipt/build-receipt.properties =&gt; incoming-build-receipt&#xA;**/build/git-checkout/build/build-receipt.properties&#xA;**/build/distributions/*.zip =&gt; promote-build-distributions&#xA;**/build/website-checkout/data/releases.xml&#xA;**/build/gradle-checkout/build/reports/integTest/** =&gt; distribution-tests&#xA;**/smoke-tests/build/reports/tests/** =&gt; post-smoke-tests" />
