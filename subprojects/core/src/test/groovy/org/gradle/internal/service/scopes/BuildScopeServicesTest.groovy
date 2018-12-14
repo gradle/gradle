@@ -21,7 +21,6 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
@@ -71,6 +70,7 @@ import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.instanceOf
@@ -96,7 +96,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         sessionServices.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
         sessionServices.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
-        sessionServices.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
+        sessionServices.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
         sessionServices.get(FileResolver) >> Stub(FileResolver)
         sessionServices.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         sessionServices.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
