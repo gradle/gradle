@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.ProjectGroups.javaProjects
+import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -10,23 +10,30 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-configurations {
-    create("gradleApiRuntime") {
-        isVisible = false
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
-    }
+val gradleApiRuntime by configurations.creating {
+    isVisible = false
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isTransitive = false
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
+    exclude(module = "distributions")
 }
+
+val gradleApiRuntimeProjects = publicJavaProjects.filter { p ->
+    listOf("kotlinDsl", "apiMetadata", "architectureTest", "runtimeApiInfo").all { !p.name.startsWith(it) }
+}
+
 dependencies {
     testImplementation(project(":distributionsDependencies"))
-    "gradleApiRuntime"(project(":"))
+    gradleApiRuntimeProjects.forEach {
+        gradleApiRuntime(it)
+    }
 }
 
 apiMetadata {
-    sources.from(javaProjects.map { it.sourceSets.main.get().allJava })
+    sources.from({gradleApiRuntimeProjects.map { it.sourceSets.main.get().allJava }})
     includes.addAll(PublicApi.includes)
     excludes.addAll(PublicApi.excludes)
-    classpath.from(configurations["gradleApiRuntime"])
+    classpath.from(gradleApiRuntime)
 }
