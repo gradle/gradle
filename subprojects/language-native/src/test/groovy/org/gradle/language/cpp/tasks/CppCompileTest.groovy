@@ -29,6 +29,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
+import static org.gradle.nativeplatform.CppSourceCompatibility.Cpp11
+
 class CppCompileTest extends AbstractProjectBuilderSpec {
 
     CppCompile cppCompile
@@ -53,6 +55,7 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
         cppCompile.objectFileDir = temporaryFolder.file("outputFile")
         cppCompile.source sourceFile
         cppCompile.setPreCompiledHeader pch
+        cppCompile.sourceCompatibility = Cpp11
         execute(cppCompile)
 
         then:
@@ -75,6 +78,7 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
             assert spec.preCompiledHeader == "header"
             assert spec.prefixHeaderFile.name == "prefixHeader"
             assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
+            assert spec.sourceCompatibility == Cpp11
             true
         }) >> result
         1 * result.didWork >> true

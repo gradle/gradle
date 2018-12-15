@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeatur
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -1032,5 +1033,50 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    @Unroll
+    def "build fails when cpp source uses language features outside the requested source compatibility"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.${sourceCompatibility}
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/cpp11.cpp") << """
+            #include <iostream>
+            #include <ctime>
+            #include <chrono>
+            int main () {
+              using namespace std::chrono;
+              system_clock::time_point today = system_clock::now();
+              time_t tt;
+              tt = system_clock::to_time_t ( today );
+              std::cout << "today is: " << ctime(&tt);
+              return 0;
+            }
+"""
+
+        expect:
+        if (shouldFail) {
+            fails "assemble"
+            failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+            failure.assertHasCause("A build operation failed.")
+            failure.assertThatCause(containsText("C++ compiler failed while compiling cpp11.cpp"))
+        } else {
+            succeeds "assemble"
+        }
+
+        where:
+        sourceCompatibility || shouldFail 
+        'Cpp11'             || false
+        'Cpp98'             || true
     }
 }
