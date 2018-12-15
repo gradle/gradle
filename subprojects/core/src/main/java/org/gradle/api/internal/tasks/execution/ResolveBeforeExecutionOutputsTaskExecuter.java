@@ -17,14 +17,19 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+
+import java.util.function.Consumer;
 
 /**
  * Snapshot the task's inputs before execution.
@@ -41,18 +46,23 @@ public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
+        ImmutableSortedSet<TaskOutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = taskFingerprinter.fingerprintTaskFiles(task, outputFilePropertySpecs);
         context.setOutputFilesBeforeExecution(outputsBeforeExecution);
 
         AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-        OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(
-            afterPreviousExecutionState != null
-                ? afterPreviousExecutionState.getOutputFileProperties()
-                : null,
-            outputsBeforeExecution
-        );
-        context.setOverlappingOutputs(overlappingOutputs);
+        @SuppressWarnings("RedundantTypeArguments")
+        ImmutableSortedMap<String, FileCollectionFingerprint> outputsAfterPreviousExecution = afterPreviousExecutionState != null
+            ? afterPreviousExecutionState.getOutputFileProperties()
+            : ImmutableSortedMap.<String, FileCollectionFingerprint>of();
+        OverlappingOutputs.detect(outputsAfterPreviousExecution, outputsBeforeExecution)
+            .ifPresent(new Consumer<OverlappingOutputs>() {
+                @Override
+                public void accept(OverlappingOutputs overlappingOutputs) {
+                    context.setOverlappingOutputs(overlappingOutputs);
+                }
+            });
 
         return delegate.execute(task, state, context);
     }

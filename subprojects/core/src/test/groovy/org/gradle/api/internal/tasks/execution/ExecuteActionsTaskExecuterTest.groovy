@@ -98,6 +98,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
+        executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getExecutionStateChanges() >> Optional.empty()
 
         executionContext.getTaskProperties() >> taskProperties
