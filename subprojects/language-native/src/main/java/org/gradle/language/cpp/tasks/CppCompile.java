@@ -19,6 +19,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.language.cpp.tasks.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.CppSourceCompatibility;
@@ -39,12 +41,16 @@ public class CppCompile extends AbstractNativeSourceCompileTask {
         srcCompat = objectFactory.property(CppSourceCompatibility.class);
     }
 
+    @Input
+    @Optional
     public Property<CppSourceCompatibility> getSourceCompatibility() {
         return srcCompat;
     }
 
     @Override
     protected NativeCompileSpec createCompileSpec() {
-        return new DefaultCppCompileSpec();
+        DefaultCppCompileSpec defaultCppCompileSpec = new DefaultCppCompileSpec();
+        defaultCppCompileSpec.setSourceCompatibility(srcCompat.getOrNull());
+        return defaultCppCompileSpec;
     }
 }
