@@ -50,7 +50,6 @@ open class ApiMetadataPlugin : Plugin<Project> {
                         include(extension.includes.get())
                         exclude(extension.excludes.get())
                     })
-                    classpath.from(extension.classpath)
                     destinationFile.set(generatedPropertiesFileFor(apiParametersFilename))
                 }
 

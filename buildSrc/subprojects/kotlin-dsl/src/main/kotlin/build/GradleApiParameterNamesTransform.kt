@@ -16,6 +16,11 @@
 
 package build
 
+import accessors.sourceSets
+
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
@@ -27,7 +32,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
 import org.gradle.kotlin.dsl.codegen.parameterNamesFor
 
-import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
+import org.gradle.kotlin.dsl.support.GradleApiMetadata
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -55,7 +60,6 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
 
     val artifactType = Attribute.of("artifactType", String::class.java)
     val jarWithGradleApiParameterNames = "jar-with-gradle-api-parameter-names"
-    val gradleApiMetadataJar = configurations.detachedConfiguration(dependencies.create(project(":apiMetadata"))).files.single()
 
     val gradleApiConfig by configurations.registering {
         exclude(module = "sisu-inject-plexus")
@@ -69,7 +73,11 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
             from.attribute(artifactType, "jar").attribute(minified, true)
             to.attribute(artifactType, jarWithGradleApiParameterNames)
             artifactTransform(GradleApiParameterNamesTransform::class) {
-                params(gradleApiMetadataJar)
+                params(
+                    PublicApi.includes,
+                    PublicApi.excludes,
+                    publicJavaProjects.flatMap { it.sourceSets["main"].allJava.files }
+                )
             }
         }
 
@@ -79,14 +87,16 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
     }
 
     the<SourceSetContainer>().named("main") {
-        compileClasspath += gradleApiConfig
+        compileClasspath += gradleApiConfig.get()
     }
 }
 
 
 internal
 class GradleApiParameterNamesTransform @Inject constructor(
-    private val gradleApiMetadataJar: File
+    private val publicApiIncludes: List<String>,
+    private val publicApiExcludes: List<String>,
+    private val publicApiSources: List<File>
 ) : ArtifactTransform() {
 
     override fun transform(input: File): MutableList<File> =
@@ -150,7 +160,12 @@ class GradleApiParameterNamesTransform @Inject constructor(
 
     private
     val gradleApiMetadata by lazy(NONE) {
-        gradleApiMetadataFrom(gradleApiMetadataJar)
+        val index = extractParameterNamesIndexFrom(publicApiSources)
+        GradleApiMetadata(
+            publicApiIncludes,
+            publicApiExcludes,
+            { key: String -> index[key]?.split(",") }
+        )
     }
 
     private
