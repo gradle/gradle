@@ -220,6 +220,8 @@ include::java_library_plugin.adoc[leveloffset=+2]
 
 include::java_library_distribution_plugin.adoc[leveloffset=+2]
 
+include::java_platform_plugin.adoc[leveloffset=+2]
+
 include::jdepend_plugin.adoc[leveloffset=+2]
 
 include::publishing_maven.adoc[leveloffset=+2]
