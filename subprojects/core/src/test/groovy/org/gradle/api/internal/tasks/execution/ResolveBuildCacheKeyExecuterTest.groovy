@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -31,10 +30,8 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.testing.internal.util.Specification
-import org.gradle.util.Path
 
 class ResolveBuildCacheKeyExecuterTest extends Specification {
 
@@ -44,9 +41,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def beforeExecution = Mock(BeforeExecutionState)
     def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
     def calculator = Mock(TaskCacheKeyCalculator)
-    def executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, calculator, false, delegate)
+    def executer = new ResolveBuildCacheKeyExecuter(calculator, false, delegate)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
     def "calculates build cache key"() {
@@ -54,13 +50,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            key == cacheKey
-        }
-
-        then:
         1 * taskContext.getTaskProperties() >> taskProperties
-        1 * task.getIdentityPath() >> Path.path(":foo")
         _ * taskContext.getBeforeExecutionState() >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> cacheKey
 
@@ -84,7 +74,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.getBeforeExecutionState() >> Optional.of(beforeExecution)
         1 * calculator.calculate(task, beforeExecution, taskProperties, false) >> {
@@ -94,7 +83,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         def ex = thrown RuntimeException
         ex.is(failure)
-        buildOpFailure().is(failure)
     }
 
     def "does not calculate cache key when task has no outputs"() {
@@ -102,7 +90,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.getBeforeExecutionState() >> Optional.empty()
         0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
@@ -113,11 +100,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
-
-        and:
-        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            !key.valid
-        }
     }
 
     def "adapts key to result interface"() {
@@ -126,7 +108,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def key = Mock(TaskOutputCachingBuildCacheKey) {
             getInputs() >> inputs
         }
-        def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
+        def adapter = new SnapshotTaskInputsMeasuringTaskExecuter.OperationResultImpl(key)
 
         when:
         inputs.inputValueHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
@@ -162,13 +144,4 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         HashCode.fromBytes(adapter.hashBytes).toString() == "000000ff"
     }
-
-    private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {
-        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsBuildOperationType)
-    }
-
-    private Throwable buildOpFailure() {
-        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsBuildOperationType)
-    }
-
 }

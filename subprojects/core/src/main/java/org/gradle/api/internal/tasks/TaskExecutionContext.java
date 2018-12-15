@@ -27,6 +27,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -113,4 +114,16 @@ public interface TaskExecutionContext {
     Optional<OverlappingOutputs> getOverlappingOutputs();
 
     void setOverlappingOutputs(OverlappingOutputs overlappingOutputs);
+
+    /**
+     * Gets and clears the build operation designed to measure the time taken
+     * by capturing input snapshotting and cache key calculation.
+     */
+    Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation();
+
+    /**
+     * Sets the build operation designed to measure the time taken
+     * by capturing input snapshotting and cache key calculation.
+     */
+    void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation  operation);
 }

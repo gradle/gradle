@@ -68,6 +68,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+        return log.start(descriptor);
+    }
+
+    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
         generator.execute(new TestBuildOperationQueue<O>(log));
     }
@@ -270,6 +275,33 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             return t;
+        }
+
+        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+            Record record = new Record(descriptor.build());
+            records.add(record);
+            final TestBuildOperationContext context = new TestBuildOperationContext(record);
+            return new ExecutingBuildOperation() {
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return descriptor;
+                }
+
+                @Override
+                public void failed(@Nullable Throwable failure) {
+                    context.failed(failure);
+                }
+
+                @Override
+                public void setResult(Object result) {
+                    context.setResult(result);
+                }
+
+                @Override
+                public void setStatus(String status) {
+                    context.setStatus(status);
+                }
+            };
         }
     }
 

@@ -106,6 +106,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
+    public ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+        return start(descriptor, getCurrentBuildOperation());
+    }
+
+    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         try {
             executeInParallel(new ParentPreservingQueueWorker<O>(runnableBuildOperationWorker), schedulingAction);
@@ -193,6 +198,77 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             newOperation.setRunning(false);
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         }
+    }
+
+    // TODO:lptr extract common code from this and execute()
+    private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
+        if (parent == null) {
+            parent = defaultParent;
+        }
+
+        final BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
+        final BuildOperationState newOperation = new BuildOperationState(descriptor, clock.getCurrentTime());
+
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
+
+        newOperation.setRunning(true);
+
+        listener.started(descriptor, new OperationStartEvent(newOperation.getStartTime()));
+        final ProgressLogger progressLogger = createProgressLogger(newOperation);
+
+        final DefaultBuildOperationContext context = new DefaultBuildOperationContext();
+
+        LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+        final BuildOperationState finalParent = parent;
+        return new ExecutingBuildOperation() {
+            private boolean finished;
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return descriptorBuilder;
+            }
+
+            @Override
+            public void failed(@Nullable Throwable failure) {
+                assertNotFinished();
+                context.failed(failure);
+                finish();
+            }
+
+            @Override
+            public void setResult(Object result) {
+                assertNotFinished();
+                context.setResult(result);
+                finish();
+            }
+
+            @Override
+            public void setStatus(String status) {
+                assertNotFinished();
+                context.setStatus(status);
+            }
+
+            private void finish() {
+                finished = true;
+                LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
+                try {
+                    progressLogger.completed(context.status, context.failure != null);
+                    listener.finished(descriptor, new OperationFinishEvent(newOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+
+                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, finalParent);
+                } finally {
+                    newOperation.setRunning(false);
+                    LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+                }
+            }
+
+            private void assertNotFinished() {
+                if (finished) {
+                    throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
+                }
+            }
+        };
     }
 
     private BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {

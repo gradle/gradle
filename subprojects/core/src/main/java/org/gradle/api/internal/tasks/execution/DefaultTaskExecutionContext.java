@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -47,6 +48,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskProperties taskProperties;
     private boolean taskCachingEnabled;
     private Long executionTime;
+    private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
     private final Timer executionTimer;
     private boolean taskExecutedIncrementally;
@@ -197,5 +199,17 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
         this.taskExecutedIncrementally = taskExecutedIncrementally;
+    }
+
+    @Override
+    public Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation() {
+        Optional<ExecutingBuildOperation> result = Optional.ofNullable(snapshotTaskInputsBuildOperation);
+        snapshotTaskInputsBuildOperation = null;
+        return result;
+    }
+
+    @Override
+    public void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation snapshotTaskInputsBuildOperation) {
+        this.snapshotTaskInputsBuildOperation = snapshotTaskInputsBuildOperation;
     }
 }

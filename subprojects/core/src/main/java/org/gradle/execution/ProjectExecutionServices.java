@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.FinishSnapshotTaskInputsBuildOperationTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateTaskExecuter;
@@ -43,6 +44,7 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExec
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
+import org.gradle.api.internal.tasks.execution.StartSnapshotTaskInputsBuildOperationTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -132,13 +134,23 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
         executer = new ResolveIncrementalChangesTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, relativeFilePathResolver, executer);
+        // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+        // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
         if (buildCacheEnabled || scanPluginApplied) {
-            executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
+            executer = new FinishSnapshotTaskInputsBuildOperationTaskExecuter(executer);
+        }
+        if (buildCacheEnabled || scanPluginApplied) {
+            executer = new ResolveBuildCacheKeyExecuter(cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
         executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, executer);
+        // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+        // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
+        if (buildCacheEnabled || scanPluginApplied) {
+            executer = new StartSnapshotTaskInputsBuildOperationTaskExecuter(buildOperationExecutor, executer);
+        }
         executer = new ResolveAfterPreviousExecutionStateTaskExecuter(executionHistoryStore, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);

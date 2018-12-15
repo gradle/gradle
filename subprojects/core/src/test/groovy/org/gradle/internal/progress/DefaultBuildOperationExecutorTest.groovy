@@ -41,7 +41,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
 
-    def "fires events when operation starts and finishes successfully"() {
+    def "fires events when wrap-around operation starts and finishes successfully"() {
         setup:
         GradleThread.setManaged()
 
@@ -98,7 +98,59 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         GradleThread.setUnmanaged()
     }
 
-    def "fires events when operation starts and fails"() {
+    def "fires events when non-wrap-around operation starts and finishes successfully"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
+        def details = Mock(Object)
+        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
+        def id
+
+        when:
+        def handle = operationExecutor.start(operationDetailsBuilder)
+
+        then:
+        1 * timeProvider.currentTime >> 123L
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
+            id = operation.id
+            assert operation.id != null
+            assert operation.parentId == null
+            assert operation.name == "<op>"
+            assert operation.displayName == "<some-operation>"
+            assert operation.details == details
+            assert start.startTime == 123L
+        }
+
+        then:
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
+
+        when:
+        handle.setResult("result")
+
+        then:
+        1 * progressLogger.completed(null, false)
+
+        then:
+        1 * timeProvider.currentTime >> 124L
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
+            assert operation.parentId == null
+            assert operation.id == id
+            assert operation.name == "<op>"
+            assert operation.displayName == "<some-operation>"
+            assert operation.details == details
+            assert opResult.startTime == 123L
+            assert opResult.endTime == 124L
+            assert opResult.failure == null
+        }
+
+        cleanup:
+        GradleThread.setUnmanaged()
+    }
+
+    def "fires events when wrap-around operation starts and fails"() {
         setup:
         GradleThread.setManaged()
 
@@ -133,6 +185,52 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * buildOperation.run(_) >> { throw failure }
+
+        then:
+        1 * progressLogger.completed(null, true)
+
+        then:
+        1 * timeProvider.currentTime >> 124L
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
+            assert operation.id == id
+            assert opResult.startTime == 123L
+            assert opResult.endTime == 124L
+            assert opResult.failure == failure
+        }
+
+        cleanup:
+        GradleThread.setUnmanaged()
+    }
+
+    def "fires events when non-wrap-around operation starts and fails"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
+        def operationDescriptionBuilder = displayName("<some-operation>").progressDisplayName("<some-op>")
+        def failure = new RuntimeException()
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
+        def id
+
+        when:
+        def handle = operationExecutor.start(operationDescriptionBuilder)
+
+        then:
+        1 * timeProvider.currentTime >> 123L
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
+            assert operation.id != null
+            id = operation.id
+            assert operation.parentId == null
+            assert operation.displayName == "<some-operation>"
+            assert start.startTime == 123L
+        }
+
+        then:
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
+
+        when:
+        handle.failed(failure)
 
         then:
         1 * progressLogger.completed(null, true)
