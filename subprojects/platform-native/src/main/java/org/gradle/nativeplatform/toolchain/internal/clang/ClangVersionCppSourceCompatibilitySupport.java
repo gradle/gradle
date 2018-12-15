@@ -59,55 +59,48 @@ public class ClangVersionCppSourceCompatibilitySupport {
      * @throws IllegalArgumentException If {@code compat} is not supported by the Clang version.
      */
     public static String getSourceCompatibilityOption(VersionNumber version, CppSourceCompatibility compat) {
-        IllegalArgumentException exception = new IllegalArgumentException(String.format(
-            "clang %s does not support %s", version, compat));
         switch (compat) {
             case Cpp2a:
             case Cpp2aExtended:
                 if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
-                } else {
-                    // toolchain does not support C++2a
-                    throw exception;
                 }
+                // toolchain does not support C++2a
+                break;
             case Cpp17:
             case Cpp17Extended:
                 if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_17 : STD_CPP_GNU_17;
-                } else if (version.getMajor() >= 3 && version.getMinor() <= 5) {
+                } else if (version.getMajor() >= 3 && version.getMinor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
-                } else {
-                    // toolchain does not support C++17
-                    throw exception;
                 }
+                // toolchain does not support C++17
+                break;
             case Cpp14:
             case Cpp14Extended:
                 if (version.getMajor() >= 3 && version.getMinor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_14 : STD_CPP_GNU_14;
                 } else if (version.getMajor() >= 3 && version.getMinor() >= 2) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
-                } else {
-                    // toolchain does not support C++14
-                    throw exception;
                 }
+                // toolchain does not support C++14
+                break;
             case Cpp11:
             case Cpp11Extended:
                 if (version.getMajor() >= 3) {
                     return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_11 : STD_CPP_GNU_11;
-                } else {
-                    // toolchain does not support C++11
-                    throw exception;
                 }
+                // toolchain does not support C++11
+                break;
             case Cpp03:
             case Cpp03Extended:
                 if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp03 ? STD_CPP_03 : STD_CPP_GNU_03;
                 } else if (version.getMajor() >= 3) {
                     return STD_CPP_03;
-                } else {
-                    // toolchain does not support C++03
-                    throw exception;
                 }
+                // toolchain does not support C++03
+                break;
             case Cpp98Extended:
                 return STD_CPP_GNU_98;
             case Cpp98:
@@ -115,5 +108,6 @@ public class ClangVersionCppSourceCompatibilitySupport {
             default:
                 return STD_CPP_98;
         }
+        throw new IllegalArgumentException(String.format("clang %s does not support %s", version, compat));
     }
 }
