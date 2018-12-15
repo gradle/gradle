@@ -115,7 +115,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> null
+        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -157,7 +157,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> null
+        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -215,7 +215,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> overlappingOutputs
+        1 * taskContext.overlappingOutputs >> Optional.of(overlappingOutputs)
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -262,7 +262,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> null
+        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'

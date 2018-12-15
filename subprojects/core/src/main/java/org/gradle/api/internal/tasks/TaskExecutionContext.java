@@ -110,7 +110,7 @@ public interface TaskExecutionContext {
 
     void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 
-    @Nullable OverlappingOutputs getOverlappingOutputs();
+    Optional<OverlappingOutputs> getOverlappingOutputs();
 
-    void setOverlappingOutputs(@Nullable OverlappingOutputs overlappingOutputs);
+    void setOverlappingOutputs(OverlappingOutputs overlappingOutputs);
 }

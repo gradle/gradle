@@ -70,7 +70,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                boolean cleanupDirectories = context.getOverlappingOutputs() == null;
+                boolean cleanupDirectories = !context.getOverlappingOutputs().isPresent();
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }

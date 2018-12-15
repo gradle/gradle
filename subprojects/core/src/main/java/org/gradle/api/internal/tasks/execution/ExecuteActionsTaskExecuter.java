@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -50,10 +50,10 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
+import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -74,8 +74,9 @@ import java.util.function.Function;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+
     private final boolean buildCacheEnabled;
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
+    private final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final OutputFilesRepository outputFilesRepository;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -85,7 +86,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        TaskFingerprinter taskFingerprinter,
         ExecutionHistoryStore executionHistoryStore,
         OutputFilesRepository outputFilesRepository,
         BuildOperationExecutor buildOperationExecutor,
@@ -94,7 +95,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         WorkExecutor<UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
-        this.fingerprinterRegistry = fingerprinterRegistry;
+        this.taskFingerprinter = taskFingerprinter;
         this.executionHistoryStore = executionHistoryStore;
         this.outputFilesRepository = outputFilesRepository;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -126,6 +127,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                //noinspection RedundantTypeArguments
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.<OriginMetadata>empty();
@@ -246,16 +248,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution = context.getOutputFilesBeforeExecution();
-            return TaskFingerprintUtil.fingerprintAfterOutputsGenerated(
-                afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
-                outputFilesBeforeExecution,
-                context.getTaskProperties().getOutputFileProperties(),
-                context.getOverlappingOutputs() != null,
-                task,
-                fingerprinterRegistry
-            );
+            final AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
+            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
+            return context.getOverlappingOutputs()
+                .map(new Function<OverlappingOutputs, ImmutableSortedMap<String, CurrentFileCollectionFingerprint>>() {
+                    @Override
+                    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> apply(OverlappingOutputs overlappingOutputs) {
+                        return OutputFilterUtil.filterOutputFingerprints(
+                            afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
+                            context.getOutputFilesBeforeExecution(),
+                            outputsAfterExecution
+                        );
+                    }
+                }).orElse(outputsAfterExecution);
         }
 
         @Override

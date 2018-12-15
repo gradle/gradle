@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
+import org.gradle.api.internal.tasks.execution.DefaultTaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
@@ -42,6 +43,7 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExec
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
+import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
@@ -99,7 +101,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     OutputChangeListener outputChangeListener,
                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                     ValueSnapshotter valueSnapshotter,
-                                    FileCollectionFingerprinterRegistry fingerprinterRegistry,
+                                    TaskFingerprinter taskFingerprinter,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
@@ -120,7 +122,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheEnabled,
-            fingerprinterRegistry,
+            taskFingerprinter,
             executionHistoryStore,
             outputFilesRepository,
             buildOperationExecutor,
@@ -133,10 +135,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(buildOperationExecutor, cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
-        executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, fingerprinterRegistry, executer);
+        executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
-        executer = new ResolveBeforeExecutionOutputsTaskExecuter(fingerprinterRegistry, executer);
+        executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, executer);
         executer = new ResolveAfterPreviousExecutionStateTaskExecuter(executionHistoryStore, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
@@ -155,6 +157,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getResourceFilter(),
             stringInterner
         );
+    }
+
+    TaskFingerprinter createTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        return new DefaultTaskFingerprinter(fingerprinterRegistry);
     }
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(

@@ -82,14 +82,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.outputFilesBeforeExecution = outputFilesBeforeExecution;
     }
 
-    @Nullable
     @Override
-    public OverlappingOutputs getOverlappingOutputs() {
-        return overlappingOutputs;
+    public Optional<OverlappingOutputs> getOverlappingOutputs() {
+        return Optional.ofNullable(overlappingOutputs);
     }
 
     @Override
-    public void setOverlappingOutputs(@Nullable OverlappingOutputs overlappingOutputs) {
+    public void setOverlappingOutputs(OverlappingOutputs overlappingOutputs) {
         this.overlappingOutputs = overlappingOutputs;
     }
 

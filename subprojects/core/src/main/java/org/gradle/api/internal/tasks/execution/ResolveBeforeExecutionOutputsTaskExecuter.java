@@ -19,14 +19,12 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 
 /**
  * Snapshot the task's inputs before execution.
@@ -34,17 +32,17 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
  * The data is required to determine overlapping outputs and to resolve the tasks full execution state before execution.
  */
 public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
+    private final TaskFingerprinter taskFingerprinter;
     private final TaskExecuter delegate;
 
-    public ResolveBeforeExecutionOutputsTaskExecuter(FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskExecuter delegate) {
-        this.fingerprinterRegistry = fingerprinterRegistry;
+    public ResolveBeforeExecutionOutputsTaskExecuter(TaskFingerprinter taskFingerprinter, TaskExecuter delegate) {
+        this.taskFingerprinter = taskFingerprinter;
         this.delegate = delegate;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = TaskFingerprintUtil.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties(), fingerprinterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
         context.setOutputFilesBeforeExecution(outputsBeforeExecution);
 
         AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -31,7 +30,6 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -53,13 +51,18 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
+    private final TaskFingerprinter taskFingerprinter;
     private final TaskExecuter delegate;
 
-    public ResolveBeforeExecutionStateTaskExecuter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter, FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskExecuter delegate) {
+    public ResolveBeforeExecutionStateTaskExecuter(
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
+        TaskFingerprinter taskFingerprinter,
+        TaskExecuter delegate
+    ) {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
-        this.fingerprinterRegistry = fingerprinterRegistry;
+        this.taskFingerprinter = taskFingerprinter;
         this.delegate = delegate;
     }
 
@@ -86,7 +89,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = TaskFingerprintUtil.fingerprintTaskFiles(task, taskProperties.getInputFileProperties(), fingerprinterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, taskProperties.getInputFileProperties());
 
         return new DefaultBeforeExecutionState(
             taskImplementation,
