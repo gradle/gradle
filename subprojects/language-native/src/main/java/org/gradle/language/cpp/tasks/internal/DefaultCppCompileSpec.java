@@ -17,7 +17,19 @@
 package org.gradle.language.cpp.tasks.internal;
 
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
+import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 public class DefaultCppCompileSpec extends AbstractNativeCompileSpec implements CppCompileSpec {
+    private CppSourceCompatibility sourceCompatibility;
+
+    @Override
+    public CppSourceCompatibility getSourceCompatibility() {
+        return sourceCompatibility;
+    }
+
+    @Override
+    public void setSourceCompatibility(CppSourceCompatibility cppSrcCompat) {
+        this.sourceCompatibility = cppSrcCompat;
+    }
 }
