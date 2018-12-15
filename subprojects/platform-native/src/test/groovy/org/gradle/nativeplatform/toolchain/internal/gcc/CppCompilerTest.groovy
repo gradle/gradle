@@ -25,7 +25,7 @@ class CppCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile, workerLeaseService)
+        new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile, workerLeaseService, null, null)
     }
 
     @Override
