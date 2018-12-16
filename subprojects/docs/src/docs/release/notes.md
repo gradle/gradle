@@ -5,17 +5,13 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community contributors to this release of Gradle:
 [Thomas Broyer](https://github.com/tbroyer).
 
-<!-- 
-## 1
+## Improvements for plugin authors 
 
-details of 1
+### Service injection into project extensions
 
-## 2
+There are several [useful services](userguide/custom_tasks.html#service_injection) that Gradle makes available for task and plugin implementations to use. Previously, these were available for injection into task and plugin instances. In this Gradle release these services are also available for injection directly into project extensions. Using this can help simplify your plugin implementation.
 
-details of 2
-
-## n
--->
+See the [User Manual](userguide/custom_plugins.html#service_injection) for details.
 
 ## The Java Platform plugin
 
