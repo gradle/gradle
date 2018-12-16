@@ -138,8 +138,12 @@ _Depends on_: `jar`, `startScripts`
 +
 Creates a full distribution TAR archive including runtime libraries and OS specific scripts.
 
+[[sec:application_extension]]
+== Application extension
+
+The application plugin adds an extension to the project, which you can use to configure its behavior. See the link:{groovyDslPath}/org.gradle.api.plugins.JavaApplication.html[JavaApplication] DSL documentation for more information on the properties available on the extension.
 
 [[sec:application_convention_properties]]
-== Convention properties
+== Convention properties (deprecated)
 
-The application plugin adds some properties to the project, which you can use to configure its behaviour. See the link:{groovyDslPath}/org.gradle.api.Project.html[Project] class in the API documentation.
+The application plugin also adds some convention properties to the project, which you can use to configure its behavior. These are deprecated and superseded by the extension described above. See the link:{groovyDslPath}/org.gradle.api.plugins.ApplicationPluginConvention.html[ApplicationPluginConvention] DSL documentation.
