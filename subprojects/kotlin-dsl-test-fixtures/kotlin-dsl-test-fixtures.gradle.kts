@@ -31,7 +31,7 @@ dependencies {
     compile(project(":kotlinDsl"))
     compile(project(":kotlinDslToolingBuilders"))
 
-    compile(gradleTestKit())
+    compile(project(":testKit"))
 
     compile(library("junit"))
     compile(testLibrary("hamcrest"))

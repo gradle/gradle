@@ -47,6 +47,14 @@ dependencies {
     }
 
     testImplementation(project(":kotlinDslTestFixtures"))
+
+    testImplementation(project(":buildCacheHttp"))
+    testImplementation(project(":buildInit"))
+    testImplementation(project(":jacoco"))
+    testImplementation(project(":platformNative"))
+    testImplementation(project(":plugins"))
+    testImplementation(project(":versionControl"))
+
     testImplementation("com.tngtech.archunit:archunit:0.8.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
 }
