@@ -45,7 +45,10 @@ include::troubleshooting.adoc[leveloffset=+2]
 == Upgrading and Migrating
 
 include::upgrading_version_5.adoc[leveloffset=+2]
+
 include::upgrading_version_4.adoc[leveloffset=+2]
+
+include::migrating_from_maven.adoc[leveloffset=+2]
 
 include::migrating_from_ant.adoc[leveloffset=+2]
 
