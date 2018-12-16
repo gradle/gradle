@@ -382,9 +382,35 @@ Support for declaring command line options currently comes with a few limitation
 - Options cannot be declared globally e.g. on a project-level or as part of a plugin.
 - When assigning an option on the command line then the task exposing the option needs to be spelled out explicitly e.g. `gradle check --tests abc` does not work even though the `check` task depends on the `test` task.
 
+[[service_injection]]
+== Service injection
+
+Gradle provides a number of services that can be used in a task implementation. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as we'll see in the following section.
+
+There are 2 ways that a task can receive the services that it needs. One option is to inject the services as parameters of the task class constructor. The constructor must be annotated with the `javax.inject.Inject` annotation.
+
+Alternatively, a service can be injected as a property of the task using a getter method annotated with the `javax.inject.Inject` annotation. This can be useful, for example, when you cannot change the constructor of the task class due to backwards compatibility constraints. This pattern also allows Gradle to defer creation of the service until it is required, rather than when the task instance is created, which helps with performance.
+
+Here is an example that shows these two approaches:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/tasks/serviceInjection/groovy/buildSrc/src/main/java/UrlProcess.java[]
+----
+
+[[services_for_injection]]
+=== Available services
+
+The following services are available for injection:
+
+- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>>.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>>.
+- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
+- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<worker_api>>, below.
+
 [[worker_api]]
 == The Worker API
-
 
 [NOTE]
 ====
