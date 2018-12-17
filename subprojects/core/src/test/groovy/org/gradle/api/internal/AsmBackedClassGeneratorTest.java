@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
@@ -342,21 +341,21 @@ public class AsmBackedClassGeneratorTest {
         try {
             newInstance(AbstractBean.class);
             fail();
-        } catch (GradleException e) {
+        } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for abstract class 'AbstractBean'."));
         }
 
         try {
             newInstance(PrivateBean.class);
             fail();
-        } catch (GradleException e) {
+        } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
         }
 
         try {
             newInstance(FinalBean.class);
             fail();
-        } catch (GradleException e) {
+        } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for final class 'FinalBean'."));
         }
     }

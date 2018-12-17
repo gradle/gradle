@@ -23,7 +23,6 @@ import groovy.lang.GroovyObject;
 import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
@@ -95,15 +94,15 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         int modifiers = type.getModifiers();
         if (Modifier.isPrivate(modifiers)) {
-            throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",
+            throw new ClassGenerationException(String.format("Cannot create a proxy class for private class '%s'.",
                     type.getSimpleName()));
         }
         if (Modifier.isAbstract(modifiers)) {
-            throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",
+            throw new ClassGenerationException(String.format("Cannot create a proxy class for abstract class '%s'.",
                     type.getSimpleName()));
         }
         if (Modifier.isFinal(modifiers)) {
-            throw new GradleException(String.format("Cannot create a proxy class for final class '%s'.",
+            throw new ClassGenerationException(String.format("Cannot create a proxy class for final class '%s'.",
                 type.getSimpleName()));
         }
         Class<? extends T> subclass;
@@ -221,7 +220,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             subclass = builder.generate();
         } catch (Throwable e) {
-            throw new GradleException(String.format("Could not generate a proxy class for class %s.", type.getName()), e);
+            throw new ClassGenerationException(String.format("Could not generate a proxy class for class %s.", type.getName()), e);
         }
 
         cache.put(type, subclass);

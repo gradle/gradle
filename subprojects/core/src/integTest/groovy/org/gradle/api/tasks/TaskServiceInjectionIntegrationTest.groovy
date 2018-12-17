@@ -166,6 +166,35 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The constructor for class CustomTask should be annotated with @Inject.")
     }
 
+    def "task creation fails when service getter is not public or protected"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+            import groovy.transform.PackageScope
+
+            class CustomTask extends DefaultTask {
+                @Inject @PackageScope
+                WorkerExecutor getExecutor() { }
+
+                @TaskAction
+                void printIt() {
+                    println(executor != null ? "got it" : "NOT IT")
+                }
+            }
+
+            task myTask(type: CustomTask)
+        """
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Cannot attach @Inject to method CustomTask.getExecutor() as it is not public or protected.")
+    }
+
     @Requires(KOTLIN_SCRIPT)
     def "can construct a task in Kotlin with @Inject services constructor arg"() {
         given:
