@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata
 import spock.lang.Issue
 import spock.lang.Specification
 

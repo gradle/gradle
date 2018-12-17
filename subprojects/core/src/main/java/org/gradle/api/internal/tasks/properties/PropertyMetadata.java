@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.api.internal.tasks.properties;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;

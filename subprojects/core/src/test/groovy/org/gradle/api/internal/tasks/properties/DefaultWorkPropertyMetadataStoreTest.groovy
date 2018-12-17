@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.PropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input

@@ -27,7 +27,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;

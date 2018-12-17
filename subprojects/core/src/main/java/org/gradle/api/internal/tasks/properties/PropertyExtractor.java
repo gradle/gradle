@@ -35,7 +35,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;

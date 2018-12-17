@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata;
 
 public interface WorkPropertyMetadata {
     PropertyMetadata getPropertyMetadata();

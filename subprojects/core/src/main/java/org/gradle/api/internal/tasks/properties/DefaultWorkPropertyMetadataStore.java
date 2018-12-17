@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;

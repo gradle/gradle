@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.PropertyMetadata;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -50,7 +51,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
     public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
         TypeMetadata typeMetadata = getTypeMetadata();
-        for (final WorkPropertyMetadata workMetadata : typeMetadata.getPropertiesMetadata()) {
+        for (WorkPropertyMetadata workMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyMetadata propertyMetadata = workMetadata.getPropertyMetadata();
             String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
             PropertyValue propertyValue = new DefaultPropertyValue(propertyName, workMetadata.getPropertyMetadata(), getBean());
