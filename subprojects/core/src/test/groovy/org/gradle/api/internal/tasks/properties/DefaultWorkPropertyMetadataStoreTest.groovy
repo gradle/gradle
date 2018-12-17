@@ -39,7 +39,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.annotation.Nullable
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
@@ -107,27 +106,6 @@ class DefaultWorkPropertyMetadataStoreTest extends Specification {
         propertyMetadata.validationMessages.empty
         metadata.visitPropertyValue(propertyValue, null, null, null)
         visited == [propertyValue]
-    }
-
-    class TaskWithInputFile extends DefaultTask {
-        @InputFile getFile() {}
-    }
-
-    class TaskWithInternal extends TaskWithInputFile {
-        @Internal @Override getFile() {}
-    }
-
-    class TaskWithOutputFile extends TaskWithInternal {
-        @OutputFile @Override getFile() {}
-    }
-
-    def "can make property internal and then make it into another type of property"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
-        expect:
-        isOfType(metadataStore.getTypeMetadata(TaskWithInputFile).propertiesMetadata*.propertyMetadata.first(), InputFile)
-        isIgnored(metadataStore.getTypeMetadata(TaskWithInternal).propertiesMetadata*.propertyMetadata.first())
-        isOfType(metadataStore.getTypeMetadata(TaskWithOutputFile).propertiesMetadata*.propertyMetadata.first(), OutputFile)
     }
 
     @Unroll
@@ -237,144 +215,6 @@ class DefaultWorkPropertyMetadataStoreTest extends Specification {
         typeMetadata*.validationMessages.flatten().empty
     }
 
-    class BaseClasspathPropertyTask extends DefaultTask {
-        @Classpath FileCollection overriddenClasspath
-        @InputFiles FileCollection overriddenInputFiles
-    }
-
-    class OverridingClasspathPropertyTask extends BaseClasspathPropertyTask {
-        @InputFiles
-        @Override
-        FileCollection getOverriddenClasspath() {
-            return super.getOverriddenClasspath()
-        }
-
-        @Classpath
-        @Override
-        FileCollection getOverriddenInputFiles() {
-            return super.getOverriddenInputFiles()
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/913")
-    def "@Classpath does not take precedence over @InputFiles when overriding properties in child type"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def typeMetadata = metadataStore.getTypeMetadata(OverridingClasspathPropertyTask).propertiesMetadata*.propertyMetadata
-
-        then:
-        typeMetadata*.fieldName as List == ["overriddenClasspath", "overriddenInputFiles"]
-        typeMetadata*.propertyType as List == [InputFiles, Classpath]
-        typeMetadata*.validationMessages.flatten().empty
-    }
-
-    class TaskWithBothFieldAndGetterAnnotation extends DefaultTask {
-        @InputFiles FileCollection inputFiles
-
-        @InputFiles
-        FileCollection getInputFiles() {
-            return inputFiles
-        }
-    }
-
-    def "warns about both method and field having the same annotation"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotation).propertiesMetadata*.propertyMetadata.first()
-
-        then:
-        metadata.validationMessages == ["has both a getter and field declared with annotation @InputFiles"]
-    }
-
-    class TaskWithBothFieldAndGetterAnnotationButIrrelevant extends DefaultTask {
-        @Nullable FileCollection inputFiles
-
-        @Nullable @InputFiles
-        FileCollection getInputFiles() {
-            return inputFiles
-        }
-    }
-
-    def "doesn't warn about both method and field having the same irrelevant annotation"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotationButIrrelevant).propertiesMetadata*.propertyMetadata.first()
-
-        then:
-        metadata.validationMessages.empty
-    }
-
-    class TaskWithAnnotationsOnPrivateProperties extends DefaultTask {
-        @Input
-        private String getInput() {
-            'Input'
-        }
-
-        @OutputFile
-        private File getOutputFile() {
-            null
-        }
-
-        private String getNotAnInput() {
-            'Not an input'
-        }
-    }
-
-    def "warns about annotations on private properties"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithAnnotationsOnPrivateProperties).propertiesMetadata*.propertyMetadata
-
-        then:
-        metadata*.validationMessages.flatten() as List == [
-            "is private and annotated with an input or output annotation",
-            "is private and annotated with an input or output annotation",
-        ]
-    }
-
-    class TaskWithConflictingPropertyTypes extends DefaultTask {
-        @InputFile
-        @InputDirectory
-        File inputThing
-
-        @InputFile
-        @OutputFile
-        File confusedFile
-    }
-
-    def "warns about conflicting property types being specified"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithConflictingPropertyTypes).propertiesMetadata*.propertyMetadata
-
-        then:
-        metadata*.validationMessages.flatten() as List == [
-            "has conflicting property types declared: @InputFile, @OutputFile",
-            "has conflicting property types declared: @InputFile, @InputDirectory"
-        ]
-    }
-
-    class TaskWithNonConflictingPropertyTypes extends DefaultTask {
-        @InputFiles
-        @Classpath
-        FileCollection classpath
-    }
-
-    def "doesn't warn about non-conflicting property types being specified"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithNonConflictingPropertyTypes).propertiesMetadata*.propertyMetadata
-
-        then:
-        metadata*.validationMessages.flatten().empty
-    }
-
     @SuppressWarnings("GrDeprecatedAPIUsage")
     static class SimpleTask extends DefaultTask {
         @Input String inputString
@@ -400,62 +240,6 @@ class DefaultWorkPropertyMetadataStoreTest extends Specification {
         nonIgnoredProperties(typeMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
     }
 
-    private static class BaseTask extends DefaultTask {
-        @Input String baseValue
-        @Input String superclassValue
-        @Input String superclassValueWithDuplicateAnnotation
-        String nonAnnotatedBaseValue
-    }
-
-    private static class OverridingTask extends BaseTask {
-        @Override
-        String getSuperclassValue() {
-            return super.getSuperclassValue()
-        }
-
-        @Input @Override
-        String getSuperclassValueWithDuplicateAnnotation() {
-            return super.getSuperclassValueWithDuplicateAnnotation()
-        }
-
-        @Input @Override
-        String getNonAnnotatedBaseValue() {
-            return super.getNonAnnotatedBaseValue()
-        }
-    }
-
-    def "overridden properties inherit super-class annotations"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def typeMetadata = metadataStore.getTypeMetadata(OverridingTask).propertiesMetadata*.propertyMetadata
-
-        then:
-        nonIgnoredProperties(typeMetadata) == ["baseValue", "nonAnnotatedBaseValue", "superclassValue", "superclassValueWithDuplicateAnnotation"]
-    }
-
-    private interface TaskSpec {
-        @Input
-        String getInterfaceValue()
-    }
-
-    private static class InterfaceImplementingTask extends DefaultTask implements TaskSpec {
-        @Override
-        String getInterfaceValue() {
-            "value"
-        }
-    }
-
-    def "implemented properties inherit interface annotations"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def typeMetadata = metadataStore.getTypeMetadata(InterfaceImplementingTask).propertiesMetadata*.propertyMetadata
-
-        then:
-        nonIgnoredProperties(typeMetadata) == ["interfaceValue"]
-    }
-
     @SuppressWarnings("GroovyUnusedDeclaration")
     private static class IsGetterTask extends DefaultTask {
         @Input
@@ -474,17 +258,6 @@ class DefaultWorkPropertyMetadataStoreTest extends Specification {
         void setFeature2(boolean enabled) {
             this.feature2 = enabled
         }
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2115")
-    def "annotation on private field is recognized for is-getter"() {
-        def metadataStore = new DefaultWorkPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
-        when:
-        def typeMetadata = metadataStore.getTypeMetadata(IsGetterTask).propertiesMetadata*.propertyMetadata
-
-        then:
-        nonIgnoredProperties(typeMetadata) == ["feature1"]
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
