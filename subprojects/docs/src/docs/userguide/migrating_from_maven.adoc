@@ -124,7 +124,7 @@ All you have to do is run the command
 
 [listing.terminal]
 ----
-$ gradle init
+> gradle init
 ----
 
 from the root project directory and let Gradle do its thing.
@@ -153,7 +153,7 @@ If you're lucky and don't have many plugins or much in the way of customisation 
 
 [listing.terminal]
 ----
-$ gradle build
+> gradle build
 ----
 
 once the migration has completed.
@@ -192,12 +192,11 @@ For example, consider this Maven-style dependency on Log4J:
 
 This dependency would look like the following in a Gradle build script:
 
-[source,groovy]
-----
-dependencies {
-    implementation 'log4j:log4j:1.2.12'  // <1>
-}
-----
+.Declaring a simple compile-time dependency
+====
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=compile-dependencies]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=compile-dependencies]"]
+====
 <1> Attaches version 1.2.12 of Log4J to the `implementation` configuration (scope)
 
 The string identifier takes the form "__<groupId>__:__<artifactId>__:__<version>__", although Gradle refers to them as "group", "module" and "version".
@@ -245,12 +244,11 @@ For example, imagine you want to use the `groovy-all` POM for your tests.
 It's solely a POM that has its own dependencies listed inside a `<dependencies>` block.
 The appropriate configuration in the Gradle build looks like this:
 +
-[source,groovy]
-----
-dependencies {
-    testCompile 'org.codehaus.groovy:groovy-all:2.5.4'
-}
-----
+.Consuming a POM dependency that has only transitive dependencies
+====
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=pom-dependencies]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=pom-dependencies]"]
+====
 +
 The result of this will be that all `compile` and `runtime` scope dependencies in the `groovy-all` POM get added to the test runtime classpath, while only the `compile` scope dependencies get added to the test compilation classpath.
 Dependencies with other scopes will be ignored.
@@ -262,12 +260,11 @@ Gradle allows you to retrieve declared dependencies from any Maven-compatible or
 Unlike Maven, it has no default repository, so you have to declare at least one.
 In order to have the same behavior as your Maven build, just configure <<repository_types#sub:maven_central,Maven Central>> in your Gradle build, like this:
 
-[source,groovy]
-----
-repositories {
-    mavenCentral()
-}
-----
+.Configuring the build to use Maven Central
+====
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
 
 You can also use the `repositories {}` block to configure custom repositories, as described in the <<repository_types#sub:maven_repo,Repository Types>> chapter.
 
@@ -310,9 +307,10 @@ You simply declare the dependency in the normal way, but wrap the dependency ide
 .Importing a BOM in a Gradle build
 ====
 include::sample[dir="userguide/mavenMigration/importBom/groovy",files="build.gradle[tags=bom]"]
+include::sample[dir="userguide/mavenMigration/importBom/kotlin",files="build.gradle.kts[tags=bom]"]
 ====
-<1> Apply the Spring Boot Dependencies BOM
-<2> Add a dependency whose version is defined by that BOM
+<1> Applies the Spring Boot Dependencies BOM
+<2> Adds a dependency whose version is defined by that BOM
 
 You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<managing_transitive_dependencies#sec:bom_import,importing version recommendations from a Maven BOM>>.
 
@@ -340,10 +338,18 @@ For example, this `<modules>` block:
 +
 can be migrated by adding the following line to the settings script:
 +
-[source,groovy]
-.settings.gradle
+.Declaring which projects are part of the build
+====
+include::sample[dir="userguide/mavenMigration/multiModule/groovy",files="settings.gradle"]
+include::sample[dir="userguide/mavenMigration/multiModule/kotlin",files="settings.gradle.kts"]
+====
+<1> Sets the name of the overall project
+<2> Configures two subprojects as part of this build
++
+.Output of **`gradle projects`**
 ----
-include 'simple-weather', 'simple-webapp'
+> gradle projects
+include::{samplesPath}/userguide/mavenMigration/multiModule/projects.out[]
 ----
  2. Replace cross-module dependencies with <<dependency_types#sub:project_dependencies,project dependencies>>.
  3. Replicate project inheritance with <<multi_project_builds#sec:cross_project_configuration,cross-project configuration>>.
@@ -381,32 +387,42 @@ You can easily get the same behavior by combining conditions with secondary buil
 
 Let's say you have different deployment settings depending on the environment: local development (the default), a test environment, and production.
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
-Next, you add a condition like this to the main build script:
+You can then conditionally apply one of those profile scripts based on a <<build_environment#sec:project_properties,project property>> of your own choice.
 
-[source,groovy]
+The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
+
+.Mimicing the behavior of Maven profiles in Gradle
+====
+include::sample[dir="userguide/mavenMigration/profiles/groovy",files="build.gradle;profile-default.gradle;profile-test.gradle;profile-prod.gradle"]
+include::sample[dir="userguide/mavenMigration/profiles/kotlin",files="build.gradle.kts;profile-default.gradle.kts;profile-test.gradle.kts;profile-prod.gradle.kts"]
+====
+<1> Checks for the existence of (Groovy) or binds (Kotlin) the `buildProfile` project property
+<2> Applies the appropriate profile script, using the value of `buildProfile` in the script filename
+<3> Prints out the value of the `message` extra project property
+<4> Initializes the `message` extra project property, whose value can then be used in the main build script
+
+With this setup in place, you can activate one of the profiles by passing a value for the project property you're using -- `buildProfile` in this case:
+
+.Output of **`gradle greeting`**
 ----
-if (!hasProperty('buildProfile')) ext.buildProfile = 'default'
-apply from: "profile-${buildProfile}.gradle"
+> gradle greeting
+include::{samplesPath}/userguide/mavenMigration/profiles/greeting-default.out[]
+----
+.Output of **`gradle -PbuildProfile=test greeting`**
+----
+> gradle -PbuildProfile=test greeting
+include::{samplesPath}/userguide/mavenMigration/profiles/greeting-test.out[]
 ----
 
-All you have to do then is put the environment-specific configuration, such as project properties, dependencies, etc., in the corresponding build script.
-To activate a particular profile, you can just pass in the relevant project property on the command line:
+You're not limited to checking project properties.
+You could also check environment variables, the JDK version, the OS the build is running on, or anything else you can imagine.
 
-[listing.terminal]
-----
-$ gradle -PbuildProfile=test build
-----
-
-Or you can set the project property another way.
-It's up to you.
-And those conditions don't just have to check project properties.
-You could check environment variables, the JDK version, the OS the build is running on, and anything else you can imagine.
-
-One thing to bear in mind is that high level ‘if' statements make builds harder to understand and maintain, similar to the way they complicate Object-Oriented code.
+One thing to bear in mind is that high level condition statements make builds harder to understand and maintain, similar to the way they complicate object-oriented code.
 The same applies to profiles.
-Gradle offers you many better ways to avoid the extensive use of profiles that Maven often requires, for example by offering variants.
+Gradle offers you many better ways to avoid the extensive use of profiles that Maven often requires, for example by configuring multiple tasks that are variants of one another.
+See the `publish__PubName__PublicationTo__RepoName__Repository` tasks created by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
 
-For a lengthier discussion on working with Maven profiles in Gradle, look no further than http://gradle.org/feature-spotlight-gradles-support-maven-pom-profiles[this article] by Benjamin Muschko.
+For a lengthier discussion on working with Maven profiles in Gradle, look no further than https://blog.gradle.org/maven-pom-profiles[this blog post].
 
 
 [[migmvn:filtering_resources]]
@@ -423,7 +439,8 @@ As an example, here's a configuration that treats the source files as http://doc
 
 .Filtering the content of resources via the `processResources` task
 ====
-include::sample[dir="userguide/mavenMigration/resourceFiltering/groovy",files="build.gradle[tags=process-resources]"]
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=process-resources]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=process-resources]"]
 ====
 
 See the API docs for link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySpec] to see all the options available to you.
@@ -493,7 +510,8 @@ In this case, the corresponding Gradle configuration looks like the following:
 
 .Configuring the Gradle Checkstyle Plugin
 ====
-include::sample[dir="userguide/mavenMigration/checkstyle/groovy",files="build.gradle[tags=checkstyle]"]
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=checkstyle]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=checkstyle]"]
 ====
 
 The Checkstyle tasks are automatically added as dependencies of the `check` task, which also includes `test`.
@@ -501,7 +519,8 @@ If you want to ensure that Checkstyle runs before the tests, then just specify a
 
 .Controlling when the `checkstyle` task runs
 ====
-include::sample[dir="userguide/mavenMigration/checkstyle/groovy",files="build.gradle[tags=dependsOn]"]
+include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[tags=depends-on]"]
+include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=depends-on]"]
 ====
 
 As you can see, the Gradle configuration is often much shorter than the Maven equivalent.
@@ -520,6 +539,7 @@ For example, you can use Ant's Echo task like this:
 .Invoking Ant tasks
 ====
 include::sample[dir="userguide/mavenMigration/ant/groovy",files="build.gradle"]
+include::sample[dir="userguide/mavenMigration/ant/kotlin",files="build.gradle.kts"]
 ====
 
 Even Ant properties and filesets are supported natively.

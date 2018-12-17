@@ -1,0 +1,8 @@
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Root project 'simple-multi-module'
++--- Project ':simple-weather'
+\--- Project ':simple-webapp'
+
