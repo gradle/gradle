@@ -49,11 +49,14 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 ### IntelliJ
 
-You can generate the IntelliJ projects by running
+You can generate the IntelliJ projects by importing it using the import wizard. You must use IntelliJ 2018.3 or newer.
+
+
+Alternatively, you may also generated IDEA metadata files with:
 
     ./gradlew idea
 
-then open the generated `gradle.ipr` file.
+then open the generated `gradle.ipr` file.  This is unsupported and will be removed at some point.
 
 ### Eclipse
 
