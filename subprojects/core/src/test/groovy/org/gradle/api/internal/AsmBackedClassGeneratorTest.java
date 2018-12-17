@@ -104,7 +104,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void mixesInGeneratedSubclassInterface() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertTrue(GeneratedSubclasses.is(generatedClass));
+        assertTrue(GeneratedSubclasses.unpack(generatedClass).equals(Bean.class));
         assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
     }
 

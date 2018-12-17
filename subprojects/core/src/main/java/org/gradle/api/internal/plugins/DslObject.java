@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
@@ -79,7 +80,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return conventionMapping;
     }
 
-    public Class getDeclaredType() {
+    public Class<?> getDeclaredType() {
         return getPublicType().getConcreteClass();
     }
 
@@ -87,20 +88,15 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         if (object instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) object).getPublicType());
         }
-        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(object.getClass()));
+        return TypeOf.<Object>typeOf(firstNonGeneratedClassOf(object.getClass()));
     }
 
-    private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
-        if (!clazz.isSynthetic()) {
-            return clazz;
-        }
-        Class<?> next;
-        while ((next = clazz.getSuperclass()) != null) {
-            if (!next.isSynthetic()) {
-                return next;
-            }
-        }
-        return clazz;
+    public Class<?> getImplementationType() {
+        return firstNonGeneratedClassOf(object.getClass());
+    }
+
+    private Class<?> firstNonGeneratedClassOf(Class<?> clazz) {
+        return GeneratedSubclasses.unpack(clazz);
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {
