@@ -455,6 +455,8 @@ It also uses the Failsafe plugin in place of Surefire so that failed integration
 This behavior is easy to replicate in Gradle with source sets, as explained in our chapter on <<java_testing#sec:configuring_java_integration_tests,Testing in Java & JVM projects>>.
 You can then configure a clean-up task, such as one that shuts down a test server for example, to always run after the integration tests regardless of whether they succeed or fail using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:finalizedBy(java.lang.Object++[]++)[Task.finalizedBy()].
 
+If you really don't want your integration tests to fail the build, then you can use the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:ignoreFailures[Test.ignoreFailures] setting described in the <<java_testing#sec:test_execution,Test execution>> section of the Java testing chapter.
+
 Source sets also give you a lot of flexibility on where you place the source files for your integration tests.
 You can easily keep them in the same directory as the unit tests or, more preferably, in a separate source directory like `src/integTest/java`.
 To support other types of tests, you just add more source sets and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks!
