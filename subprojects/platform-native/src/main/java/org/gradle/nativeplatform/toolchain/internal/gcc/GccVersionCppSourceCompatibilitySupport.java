@@ -49,7 +49,7 @@ public class GccVersionCppSourceCompatibilitySupport {
      * @return Default GCC source compatibility.
      */
     public static CppSourceCompatibility getDefaultSourceCompatibility(VersionNumber version) {
-        if (version.getMajor() >= 6 && version.getMinor() >= 1) {
+        if (version.getMajor() > 6 || (version.getMajor() == 6 && version.getMinor() >= 1)) {
             return CppSourceCompatibility.Cpp14;
         }
         return CppSourceCompatibility.Cpp98;
@@ -64,50 +64,44 @@ public class GccVersionCppSourceCompatibilitySupport {
      * @return GCC language standard option.
      */
     public static String getSourceCompatibilityOption(VersionNumber version, CppSourceCompatibility compat) {
-        IllegalArgumentException exception = new IllegalArgumentException(String.format(
-            "gcc %s does not support %s", version, compat));
         switch (compat) {
             case Cpp2a:
             case Cpp2aExtended:
                 if (version.getMajor() >= 8) {
                     return compat == CppSourceCompatibility.Cpp2a ? STD_CPP_2A : STD_CPP_GNU_2A;
-                } else {
-                    // toolchain does not support C++2a
-                    throw exception;
                 }
+                // toolchain does not support C++2a
+                break;
             case Cpp17:
             case Cpp17Extended:
                 if (version.getMajor() >= 8) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_17 : STD_CPP_GNU_17;
                 } else if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
-                } else {
-                    // toolchain does not support C++17
-                    throw exception;
                 }
+                // toolchain does not support C++17
+                break;
             case Cpp14:
             case Cpp14Extended:
                 if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_14 : STD_CPP_GNU_14;
-                } else if (version.getMajor() >= 4 && version.getMinor() >= 8) {
+                } else if (version.getMajor() == 4 && version.getMinor() >= 8) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
-                } else {
-                    // toolchain does not support C++14
-                    throw exception;
                 }
+                // toolchain does not support C++14
+                break;
             case Cpp11:
             case Cpp11Extended:
-                if (version.getMajor() >= 4 && version.getMinor() >= 7) {
+                if (version.getMajor() >= 5 || (version.getMajor() == 4 && version.getMinor() >= 7)) {
                     return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_11 : STD_CPP_GNU_11;
-                } else if (version.getMajor() >= 4 && version.getMinor() >= 3) {
+                } else if (version.getMajor() == 4 && version.getMinor() >= 3) {
                     return compat == CppSourceCompatibility.Cpp11 ? STD_CPP_0X : STD_CPP_GNU_0X;
-                } else {
-                    // toolchain does not support C++11
-                    throw exception;
                 }
+                // toolchain does not support C++11
+                break;
             case Cpp03:
             case Cpp03Extended:
-                if (version.getMajor() >= 4 && version.getMinor() >= 8) {
+                if (version.getMajor() >= 5 || (version.getMajor() == 4 && version.getMinor() >= 8)) {
                     return compat == CppSourceCompatibility.Cpp03 ? STD_CPP_03 : STD_CPP_GNU_03;
                 } else {
                     return compat == CppSourceCompatibility.Cpp03 ? STD_CPP_98 : STD_CPP_GNU_98;
@@ -119,5 +113,6 @@ public class GccVersionCppSourceCompatibilitySupport {
             default:
                 return STD_CPP_98;
         }
+        throw new IllegalArgumentException(String.format("gcc %s does not support %s", version, compat));
     }
 }
