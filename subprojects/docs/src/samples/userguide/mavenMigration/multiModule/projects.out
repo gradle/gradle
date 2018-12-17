@@ -1,3 +1,4 @@
+
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -6,3 +7,5 @@ Root project 'simple-multi-module'
 +--- Project ':simple-weather'
 \--- Project ':simple-webapp'
 
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :simple-weather:tasks
