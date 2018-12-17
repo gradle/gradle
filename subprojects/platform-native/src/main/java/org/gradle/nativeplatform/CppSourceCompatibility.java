@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Configures the C++ source compatibility that is to be used when compiling the C++ source files.
  *
- * @since 5.1
+ * @since 5.2
  */
 @Incubating
 public enum CppSourceCompatibility {

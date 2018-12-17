@@ -112,7 +112,7 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
     /**
      * Returns the C++ source compatibility for this component.
      *
-     * @since 5.1
+     * @since 5.2
      */
     Property<CppSourceCompatibility> getSourceCompatibility();
 }

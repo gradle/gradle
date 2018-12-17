@@ -41,6 +41,12 @@ public class CppCompile extends AbstractNativeSourceCompileTask {
         srcCompat = objectFactory.property(CppSourceCompatibility.class);
     }
 
+    /**
+     * Returns the source compatibility that augments the C++ compilers arguments.
+     *
+     * @return C++ source compatibility.
+     * @since 5.2
+     */
     @Input
     @Optional
     public Property<CppSourceCompatibility> getSourceCompatibility() {

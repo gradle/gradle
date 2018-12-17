@@ -90,7 +90,7 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
     /**
      * Returns the C++ source compatibility to use to compile the source files.
      *
-     * @since 5.1
+     * @since 5.2
      */
     Provider<CppSourceCompatibility> getSourceCompatibility();
 }
