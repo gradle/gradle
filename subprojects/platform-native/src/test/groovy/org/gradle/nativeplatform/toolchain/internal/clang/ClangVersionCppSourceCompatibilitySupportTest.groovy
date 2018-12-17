@@ -50,4 +50,61 @@ class ClangVersionCppSourceCompatibilitySupportTest extends Specification {
         '3.5.2' | CppSourceCompatibility.Cpp2a
         '4.0'   | CppSourceCompatibility.Cpp2a
     }
+
+    @Unroll
+    def "clang #version supports source compatibility #sourceCompatibility with '#arg'"() {
+        VersionNumber versionNumber = VersionNumber.parse(version)
+
+        when:
+        def c = ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(versionNumber, sourceCompatibility)
+
+        then:
+        c == arg
+
+        where:
+        version | sourceCompatibility                  || arg
+        '2.9'   | CppSourceCompatibility.Cpp98         || "-std=c++98"
+        '2.9'   | CppSourceCompatibility.Cpp98Extended || "-std=gnu++98"
+        '8.0'   | CppSourceCompatibility.Cpp98         || "-std=c++98"
+        '8.0'   | CppSourceCompatibility.Cpp98Extended || "-std=gnu++98"
+
+        '3.0'   | CppSourceCompatibility.Cpp03         || "-std=c++03"
+        '3.0'   | CppSourceCompatibility.Cpp03Extended || "-std=c++03" // below 5.0, gnu++03 is not recognized
+        '5.0'   | CppSourceCompatibility.Cpp03         || "-std=c++03"
+        '5.0'   | CppSourceCompatibility.Cpp03Extended || "-std=gnu++03"
+        '5.0.2' | CppSourceCompatibility.Cpp03         || "-std=c++03"
+        '5.0.2' | CppSourceCompatibility.Cpp03Extended || "-std=gnu++03"
+        '6.0'   | CppSourceCompatibility.Cpp03         || "-std=c++03"
+        '6.0'   | CppSourceCompatibility.Cpp03Extended || "-std=gnu++03"
+
+        '3.0'   | CppSourceCompatibility.Cpp11         || "-std=c++11" // c++11 is never only experimental after 2.9
+        '3.0'   | CppSourceCompatibility.Cpp11Extended || "-std=gnu++11"
+        '4.0'   | CppSourceCompatibility.Cpp11         || "-std=c++11"
+        '4.0'   | CppSourceCompatibility.Cpp11Extended || "-std=gnu++11"
+        '5.0'   | CppSourceCompatibility.Cpp11         || "-std=c++11"
+        '5.0'   | CppSourceCompatibility.Cpp11Extended || "-std=gnu++11"
+
+        '3.2'   | CppSourceCompatibility.Cpp14         || "-std=c++1y"
+        '3.2'   | CppSourceCompatibility.Cpp14Extended || "-std=gnu++1y"
+        '3.3'   | CppSourceCompatibility.Cpp14         || "-std=c++1y"
+        '3.3'   | CppSourceCompatibility.Cpp14Extended || "-std=gnu++1y"
+        '3.4.2' | CppSourceCompatibility.Cpp14         || "-std=c++1y"
+        '3.4.2' | CppSourceCompatibility.Cpp14Extended || "-std=gnu++1y"
+        '3.5.2' | CppSourceCompatibility.Cpp14         || "-std=c++14" // c++14 stops being experimental at 3.5.2
+        '3.5.2' | CppSourceCompatibility.Cpp14Extended || "-std=gnu++14"
+        '6.0'   | CppSourceCompatibility.Cpp14         || "-std=c++14"
+        '6.0'   | CppSourceCompatibility.Cpp14Extended || "-std=gnu++14"
+
+        '3.5.2' | CppSourceCompatibility.Cpp17         || "-std=c++1z"
+        '3.5.2' | CppSourceCompatibility.Cpp17Extended || "-std=gnu++1z"
+        '4.0.1' | CppSourceCompatibility.Cpp17         || "-std=c++1z"
+        '4.0.1' | CppSourceCompatibility.Cpp17Extended || "-std=gnu++1z"
+        '5.0.2' | CppSourceCompatibility.Cpp17         || "-std=c++17" // c++17 stops being experimental at 5.0
+        '5.0.2' | CppSourceCompatibility.Cpp17Extended || "-std=gnu++17"
+
+        '5.0.2' | CppSourceCompatibility.Cpp2a         || "-std=c++2a"
+        '5.0.2' | CppSourceCompatibility.Cpp2aExtended || "-std=gnu++2a"
+        '6.0'   | CppSourceCompatibility.Cpp2a         || "-std=c++2a"
+        '6.0'   | CppSourceCompatibility.Cpp2aExtended || "-std=gnu++2a"
+    }
 }

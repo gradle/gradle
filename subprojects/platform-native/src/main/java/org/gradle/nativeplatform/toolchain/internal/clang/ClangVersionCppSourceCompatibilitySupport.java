@@ -71,16 +71,16 @@ public class ClangVersionCppSourceCompatibilitySupport {
             case Cpp17Extended:
                 if (version.getMajor() >= 5) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_17 : STD_CPP_GNU_17;
-                } else if (version.getMajor() >= 3 && version.getMinor() >= 5) {
+                } else if (version.getMajor() >= 4 || (version.getMajor() == 3 && version.getMinor() >= 5)) {
                     return compat == CppSourceCompatibility.Cpp17 ? STD_CPP_1Z : STD_CPP_GNU_1Z;
                 }
                 // toolchain does not support C++17
                 break;
             case Cpp14:
             case Cpp14Extended:
-                if (version.getMajor() >= 3 && version.getMinor() >= 5) {
+                if (version.getMajor() >= 4 || (version.getMajor() == 3 && version.getMinor() >= 5)) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_14 : STD_CPP_GNU_14;
-                } else if (version.getMajor() >= 3 && version.getMinor() >= 2) {
+                } else if (version.getMajor() == 3 && version.getMinor() >= 2) {
                     return compat == CppSourceCompatibility.Cpp14 ? STD_CPP_1Y : STD_CPP_GNU_1Y;
                 }
                 // toolchain does not support C++14
