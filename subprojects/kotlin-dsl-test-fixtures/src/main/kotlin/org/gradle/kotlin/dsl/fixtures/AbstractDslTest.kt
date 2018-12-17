@@ -37,7 +37,7 @@ abstract class AbstractDslTest : TestWithTempFiles() {
     fun Project.eval(
         script: String,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
-        scriptCompilationClassPath: ClassPath = testCompilationClassPath,
+        scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
         eval(

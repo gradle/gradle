@@ -37,7 +37,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 
 import org.junit.Test
 
@@ -135,7 +135,7 @@ class InterpreterTest : TestWithTempFiles() {
             on {
                 compilationClassPathOf(any())
             } doAnswer {
-                testCompilationClassPath
+                testRuntimeClassPath
             }
 
             on {

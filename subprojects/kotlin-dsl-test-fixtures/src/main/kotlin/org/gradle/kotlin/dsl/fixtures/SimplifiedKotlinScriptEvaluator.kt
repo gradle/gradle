@@ -20,15 +20,13 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.Project
-import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.configuration.DefaultImportsReader
 
 import org.gradle.groovy.scripts.ScriptSource
 
-import org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
-
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -39,8 +37,6 @@ import org.gradle.internal.resource.StringTextResource
 
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
@@ -64,7 +60,7 @@ fun eval(
     script: String,
     target: Any,
     baseCacheDir: File,
-    scriptCompilationClassPath: ClassPath = testCompilationClassPath,
+    scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
     scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
     SimplifiedKotlinScriptEvaluator(
@@ -188,9 +184,6 @@ class SimplifiedKotlinScriptEvaluator(
 }
 
 
-val testCompilationClassPath: ClassPath by lazy {
-    DefaultClassPath.of(
-        getClasspathForClass(Unit::class.java),
-        getClasspathForClass(Settings::class.java),
-        getClasspathForClass(KotlinSettingsScript::class.java))
+val testRuntimeClassPath: ClassPath by lazy {
+    ClasspathUtil.getClasspath(SimplifiedKotlinScriptEvaluator::class.java.classLoader)
 }

@@ -46,7 +46,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -530,7 +530,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     ) {
         ResidualProgramCompiler(
             outputDir,
-            testCompilationClassPath,
+            testRuntimeClassPath,
             sourceHash,
             programKind,
             programTarget

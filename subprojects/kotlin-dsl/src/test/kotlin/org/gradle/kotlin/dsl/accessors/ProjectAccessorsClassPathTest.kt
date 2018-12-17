@@ -51,7 +51,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.eval
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.support.compileToDirectory
@@ -170,7 +170,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // when:
             buildAccessorsFromSourceFor(
                 schema,
-                testCompilationClassPath + defaultPackageTypes,
+                testRuntimeClassPath + defaultPackageTypes,
                 srcDir,
                 binDir
             )
@@ -418,7 +418,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         schema: TypedProjectSchema,
         target: Project,
         script: String,
-        classPath: ClassPath = testCompilationClassPath,
+        classPath: ClassPath = testRuntimeClassPath,
         buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit = ::buildAccessorsFor
     ) {
 

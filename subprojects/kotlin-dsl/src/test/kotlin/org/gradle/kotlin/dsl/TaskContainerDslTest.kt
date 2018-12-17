@@ -23,7 +23,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.customInstallationGradleApiExtensionsClasspath
 import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
@@ -359,7 +359,7 @@ class TaskContainerDslTest : AbstractDslTest() {
 
             eval(
                 script,
-                scriptCompilationClassPath = testCompilationClassPath + customInstallationGradleApiExtensionsClasspath
+                scriptCompilationClassPath = testRuntimeClassPath + customInstallationGradleApiExtensionsClasspath
             )
 
             tasksAssertions.forEach { taskAssertion ->

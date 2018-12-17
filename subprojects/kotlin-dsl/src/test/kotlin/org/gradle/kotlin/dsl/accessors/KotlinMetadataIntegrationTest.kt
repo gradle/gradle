@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
 
@@ -73,7 +73,7 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
                     """)
                 ),
                 loggerFor<KotlinMetadataIntegrationTest>(),
-                testCompilationClassPath.asFiles
+                testRuntimeClassPath.asFiles
             )
         )
 
