@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.bean.PropertyMetadata;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -144,26 +145,27 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             for (WorkPropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
-                String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
-                for (String validationMessage : metadata.getValidationMessages()) {
+                PropertyMetadata propertyMetadata = metadata.getPropertyMetadata();
+                String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
+                for (String validationMessage : propertyMetadata.getValidationMessages()) {
                     problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                 }
-                Class<? extends Annotation> propertyType = metadata.getPropertyType();
+                Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
                 if (propertyType == null) {
-                    if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
+                    if (!Modifier.isPrivate(propertyMetadata.getGetterMethod().getModifiers())) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
                     }
                     continue;
                 }
                 PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
-                    String validationMessage = validator.validate(stricterValidation, metadata);
+                    String validationMessage = validator.validate(stricterValidation, propertyMetadata);
                     if (validationMessage != null) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                     }
                 }
-                if (metadata.isAnnotationPresent(Nested.class)) {
-                    TypeToken<?> beanType = unpackProvider(metadata.getMethod());
+                if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                    TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
                     nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
                 }
             }
@@ -217,13 +219,13 @@ public class PropertyValidationAccess {
 
     private interface PropertyValidator {
         @Nullable
-        String validate(boolean stricterValidation, WorkPropertyMetadata metadata);
+        String validate(boolean stricterValidation, PropertyMetadata metadata);
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
         @Nullable
         @Override
-        public String validate(boolean stricterValidation, WorkPropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
             Class<?> valueType = metadata.getDeclaredType();
             if (File.class.isAssignableFrom(valueType)
                 || java.nio.file.Path.class.isAssignableFrom(valueType)
@@ -238,7 +240,7 @@ public class PropertyValidationAccess {
 
         @Nullable
         @Override
-        public String validate(boolean stricterValidation, WorkPropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
             PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
             if (stricterValidation && pathSensitive == null) {
                 return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";

@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -50,7 +51,6 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +143,7 @@ public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataSto
         return new DefaultTypeMetadata(builder.build());
     }
 
-    private class DefaultTypeMetadata implements TypeMetadata {
+    private static class DefaultTypeMetadata implements TypeMetadata {
         private final ImmutableSet<WorkPropertyMetadata> propertiesMetadata;
 
         DefaultTypeMetadata(ImmutableSet<WorkPropertyMetadata> propertiesMetadata) {
@@ -158,7 +158,7 @@ public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataSto
         @Override
         public boolean hasAnnotatedProperties() {
             for (WorkPropertyMetadata metadata : propertiesMetadata) {
-                if (metadata.getPropertyType() != null) {
+                if (metadata.getPropertyMetadata().getPropertyType() != null) {
                     return true;
                 }
             }
@@ -168,54 +168,23 @@ public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataSto
 
     private static class DefaultWorkPropertyMetadata implements WorkPropertyMetadata {
         private final PropertyAnnotationHandler annotationHandler;
-        private final PropertyMetadata property;
+        private final PropertyMetadata propertyMetadata;
 
-        public DefaultWorkPropertyMetadata(PropertyMetadata property, PropertyAnnotationHandler annotationHandler) {
-            this.property = property;
+        public DefaultWorkPropertyMetadata(PropertyMetadata propertyMetadata, @Nullable PropertyAnnotationHandler annotationHandler) {
+            this.propertyMetadata = propertyMetadata;
             this.annotationHandler = annotationHandler;
         }
 
         @Override
-        public String getFieldName() {
-            return property.getFieldName();
+        public PropertyMetadata getPropertyMetadata() {
+            return propertyMetadata;
         }
 
         @Override
-        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-            return property.isAnnotationPresent(annotationType);
-        }
-
-        @Override
-        @Nullable
-        public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            return property.getAnnotation(annotationType);
-        }
-
-        @Override
-        public List<String> getValidationMessages() {
-            return property.getValidationMessages();
-        }
-
-        @Override
-        @Nullable
-        public PropertyAnnotationHandler getPropertyValueVisitor() {
-            return annotationHandler;
-        }
-
-        @Override
-        @Nullable
-        public Class<? extends Annotation> getPropertyType() {
-            return property.getPropertyType();
-        }
-
-        @Override
-        public Class<?> getDeclaredType() {
-            return property.getDeclaredType();
-        }
-
-        @Override
-        public Method getMethod() {
-            return property.getGetterMethod();
+        public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+            if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
+                annotationHandler.visitPropertyValue(propertyValue, visitor, specFactory, context);
+            }
         }
     }
 

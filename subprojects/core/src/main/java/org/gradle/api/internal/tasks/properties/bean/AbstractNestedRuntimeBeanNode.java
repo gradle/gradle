@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.WorkPropertyMetadata;
@@ -51,14 +50,11 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
     public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
         TypeMetadata typeMetadata = getTypeMetadata();
-        for (final WorkPropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
-            PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            if (propertyValueVisitor == null || !propertyValueVisitor.shouldVisit(visitor)) {
-                continue;
-            }
+        for (final WorkPropertyMetadata workMetadata : typeMetadata.getPropertiesMetadata()) {
+            PropertyMetadata propertyMetadata = workMetadata.getPropertyMetadata();
             String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean(), propertyMetadata.getMethod());
-            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
+            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, workMetadata.getPropertyMetadata(), getBean());
+            workMetadata.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
                     queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
@@ -69,7 +65,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
     private static class DefaultPropertyValue implements PropertyValue {
         private final String propertyName;
-        private final WorkPropertyMetadata propertyMetadata;
+        private final PropertyMetadata propertyMetadata;
         private final Object bean;
         private final Method method;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
@@ -90,11 +86,11 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public DefaultPropertyValue(String propertyName, WorkPropertyMetadata propertyMetadata, Object bean, Method method) {
+        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean) {
             this.propertyName = propertyName;
             this.propertyMetadata = propertyMetadata;
             this.bean = bean;
-            this.method = method;
+            this.method = propertyMetadata.getGetterMethod();
             method.setAccessible(true);
         }
 
