@@ -67,8 +67,8 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Thomas Broyer](https://github.com/tbroyer) - Provide default value for annotationProcessorGeneratedSourcesDirectory (gradle/gradle#7551)
-
  - [Stefan M.](https://github.com/StefMa) - Deprecate ProjectBuilder constructor (gradle/gradle#7444)
+ - [Roberto Perez Alcolea](https://github.com/rpalcolea) - Ignore ProjectBuilder deprecation warning when using builder (gradle/gradle#8067)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
