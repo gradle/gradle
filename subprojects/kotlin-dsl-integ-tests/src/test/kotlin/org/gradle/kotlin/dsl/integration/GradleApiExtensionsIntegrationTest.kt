@@ -24,10 +24,6 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 
 import org.gradle.internal.hash.HashUtil
-import org.gradle.testkit.runner.internal.TestKitDirProvider
-import org.gradle.util.GradleVersion
-
-import org.gradle.kotlin.dsl.withGroovyBuilder
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
@@ -190,21 +186,12 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `generated jar is reproducible`() {
-        val generatedJarHash = HashUtil.createHash(generatedExtensionsJarFromTestKitUserHome(), "MD5")
-        assertThat(
-            generatedJarHash.asZeroPaddedHexString(32),
-            equalTo("b68be672b3a1f3cc401dc8e4968a3ee2")
-        )
-    }
-
-    @Test
-    fun `generated jar contains Gradle API extensions sources and byte code`() {
+    fun `generated jar contains Gradle API extensions sources and byte code and is reproducible`() {
 
         withBuildScript("")
-        build("help")
+        build("help", "-g", "guh")
 
-        val generatedJar = generatedExtensionsJarFromTestKitUserHome()
+        val generatedJar = generatedExtensionsJarFromGradleUserHome(existing("guh"))
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
             .use { it.entries().toList().map { entry -> entry.name } }
@@ -254,21 +241,23 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             generatedSourceCode,
             not(containsString("\r"))
         )
+
+        // Assert that the generated JAR is reproducible
+        val generatedJarHash = HashUtil.createHash(generatedJar, "MD5")
+        assertThat(
+            generatedJarHash.asZeroPaddedHexString(32),
+            equalTo("b68be672b3a1f3cc401dc8e4968a3ee2")
+        )
     }
 
     private
-    fun generatedExtensionsJarFromTestKitUserHome(): File =
-        lookupTestKitDir()
-            .resolve("caches")
-            .listFiles { f -> f.isDirectory && f.name == GradleVersion.current().version }.single()
-            .resolve("generated-gradle-jars")
-            .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }.single()
-
-    // TODO:kotlin-dsl rewrite once GradleExecuter is in use
-    private
-    fun lookupTestKitDir(): File =
-        System.getProperty("org.gradle.testkit.dir")?.let { File(it) }
-            ?: gradleRunnerForArguments().withGroovyBuilder {
-                (getProperty("testKitDirProvider") as TestKitDirProvider).dir
-            }
+    fun generatedExtensionsJarFromGradleUserHome(guh: File): File =
+        Regex("^\\d.*").let { startsWithDigit ->
+            guh.resolve("caches")
+                .listFiles { f -> f.isDirectory && f.also { println(it) }.name.matches(startsWithDigit) }
+                .single()
+                .resolve("generated-gradle-jars")
+                .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }
+                .single()
+        }
 }
