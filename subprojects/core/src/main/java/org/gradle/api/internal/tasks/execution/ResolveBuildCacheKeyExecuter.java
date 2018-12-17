@@ -30,6 +30,8 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.util.Path;
 
+import java.util.function.Function;
+
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
     private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
@@ -103,7 +105,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey resolve(final TaskInternal task, TaskExecutionContext context) {
         final TaskProperties taskProperties = context.getTaskProperties();
         return context.getBeforeExecutionState()
-            .map(new java.util.function.Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
+            .map(new Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
                 @Override
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {
                     TaskOutputCachingBuildCacheKey cacheKey = calculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);

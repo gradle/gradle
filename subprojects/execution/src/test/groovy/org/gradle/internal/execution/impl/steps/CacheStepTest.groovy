@@ -60,6 +60,7 @@ class CacheStepTest extends Specification {
         def finalOutputs = result.finalOutputs
         then:
         result.outcome.get() == ExecutionOutcome.FROM_CACHE
+        result.reused
         originMetadata == cachedOriginMetadata
         finalOutputs == outputsFromCache
 
@@ -82,6 +83,7 @@ class CacheStepTest extends Specification {
 
         then:
         result == executionResult
+        !result.reused
 
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> executionResult
@@ -102,6 +104,7 @@ class CacheStepTest extends Specification {
 
         then:
         result == failedResult
+        !result.reused
 
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> failedResult
