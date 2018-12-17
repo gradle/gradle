@@ -1079,4 +1079,40 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         'Cpp11'             || false
         'Cpp98'             || true
     }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "recompile when source compatibility changes"() {
+        when:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp98
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/main.cpp") << """
+            int main () {
+              return 0;
+            }
+"""
+
+        then:
+        succeeds "assemble"
+
+        when:
+        buildFile << """
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp11
+                }
+            }
+         """
+
+        then:
+        executedAndNotSkipped(":assemble")
+    }
 }
