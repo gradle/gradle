@@ -106,7 +106,7 @@ You can run `gradle installDist` to create an image of the application in `build
 
 The application plugin can generate Unix (suitable for Linux, macOS etc.) and Windows start scripts out of the box. The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var). The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
 
-The start scripts are completely customizable. Please refer to the documentation of link:{javadocPath}/org/gradle/api/tasks/application/CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
+The start scripts are completely customizable. Please refer to the documentation of link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
 
 [[sec:application_tasks]]
 == Tasks
@@ -118,7 +118,7 @@ _Depends on_: `classes`
 +
 Starts the application.
 
-`startScripts` — link:{groovyDslPath}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]::
+`startScripts` — link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts]::
 _Depends on_: `jar`
 +
 Creates OS specific scripts to run the project as a JVM application.
