@@ -24,22 +24,25 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
-import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
-public class ResolvePreviousStateExecuter implements TaskExecuter {
+public class ResolveAfterPreviousExecutionStateTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final TaskExecuter delegate;
 
-    public ResolvePreviousStateExecuter(ExecutionHistoryStore executionHistoryStore, TaskExecuter delegate) {
+    public ResolveAfterPreviousExecutionStateTaskExecuter(ExecutionHistoryStore executionHistoryStore, TaskExecuter delegate) {
         this.executionHistoryStore = executionHistoryStore;
         this.delegate = delegate;
     }
 
-    @Nullable
     @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        AfterPreviousExecutionState execution = executionHistoryStore.load(task.getPath());
-        context.setAfterPreviousExecution(execution);
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
+        executionHistoryStore.load(task.getPath()).ifPresent(new Consumer<AfterPreviousExecutionState>() {
+            @Override
+            public void accept(AfterPreviousExecutionState execution) {
+                context.setAfterPreviousExecution(execution);
+            }
+        });
         return delegate.execute(task, state, context);
     }
 }

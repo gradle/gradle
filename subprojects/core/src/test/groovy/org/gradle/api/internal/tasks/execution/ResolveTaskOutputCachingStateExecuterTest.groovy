@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
@@ -277,7 +278,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         1 * taskState.setTaskOutputCaching({ !it.enabled } as TaskOutputCachingState)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
 

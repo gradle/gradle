@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes
+package org.gradle.internal.execution.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -29,9 +29,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.changedetection.changes.TaskFingerprintUtil.filterOutputFingerprint
+import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputFingerprint
 
-class TaskFingerprintUtilTest extends Specification {
+class OutputFilterUtilTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()

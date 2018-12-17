@@ -70,6 +70,11 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
                 }
 
                 @Override
+                public boolean isReused() {
+                    return true;
+                }
+
+                @Override
                 public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
                     return loadResult.getResultingSnapshots();
                 }

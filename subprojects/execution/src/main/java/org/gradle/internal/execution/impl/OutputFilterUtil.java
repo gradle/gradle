@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.internal.execution.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
@@ -35,59 +32,42 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
-public class TaskFingerprintUtil {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskFingerprintUtil.class);
+/**
+ * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
+ * <ul>
+ * <li>an entry that did not exist before the execution, but exists after the execution</li>
+ * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+ * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+ * </ul>
+ */
+public class OutputFilterUtil {
 
-    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAfterOutputsGenerated(
-        final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current,
-        SortedSet<? extends TaskFilePropertySpec> outputProperties,
-        boolean hasOverlappingOutputs,
-        TaskInternal task,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry
+    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> filterOutputFingerprints(
+        final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> outputsAfterPreviousExecution,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution,
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution
     ) {
-        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = fingerprintTaskFiles(task, outputProperties, fingerprinterRegistry);
-
-        if (!hasOverlappingOutputs) {
-            return outputFilesAfter;
-        } else {
-            return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(current, new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
-                @Override
-                @SuppressWarnings("NullableProblems")
-                public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
-                    CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
-                    FileCollectionFingerprint afterPreviousExecution = TaskFingerprintUtil.getFingerprintAfterPreviousExecution(previous, propertyName);
-                    return TaskFingerprintUtil.filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
-                }
-            }));
-        }
+        return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(outputsBeforeExecution, new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
+            @Override
+            @SuppressWarnings("NullableProblems")
+            public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint outputBeforeExecution) {
+                CurrentFileCollectionFingerprint outputAfterExecution = outputsAfterExecution.get(propertyName);
+                FileCollectionFingerprint outputAfterPreviousExecution = getFingerprintForProperty(outputsAfterPreviousExecution, propertyName);
+                return filterOutputFingerprint(outputAfterPreviousExecution, outputBeforeExecution, outputAfterExecution);
+            }
+        }));
     }
 
-    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends TaskFilePropertySpec> fileProperties, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        for (TaskFilePropertySpec propertySpec : fileProperties) {
-            CurrentFileCollectionFingerprint result;
-            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(propertySpec.getNormalizer());
-            LOGGER.debug("Fingerprinting property {} for {}", propertySpec, task);
-            result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
-            builder.put(propertySpec.getPropertyName(), result);
-        }
-        return builder.build();
-    }
-
-    private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous, String propertyName) {
-        if (previous != null) {
-            FileCollectionFingerprint afterPreviousExecution = previous.get(propertyName);
+    private static FileCollectionFingerprint getFingerprintForProperty(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> fingerprinters, String propertyName) {
+        if (fingerprinters != null) {
+            FileCollectionFingerprint afterPreviousExecution = fingerprinters.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }
@@ -95,10 +75,8 @@ public class TaskFingerprintUtil {
         return FileCollectionFingerprint.EMPTY;
     }
 
-    /**
-     * Returns a new fingerprint that filters out entries that should not be considered outputs of the task.
-     */
-    public static CurrentFileCollectionFingerprint filterOutputFingerprint(
+    @VisibleForTesting
+    static CurrentFileCollectionFingerprint filterOutputFingerprint(
             @Nullable FileCollectionFingerprint afterPreviousExecution,
             CurrentFileCollectionFingerprint beforeExecution,
             CurrentFileCollectionFingerprint afterExecution
@@ -106,7 +84,10 @@ public class TaskFingerprintUtil {
         CurrentFileCollectionFingerprint filesFingerprint;
         final Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
         if (!beforeExecution.getFingerprints().isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
-            final Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints = afterPreviousExecution != null ? afterPreviousExecution.getFingerprints() : ImmutableMap.<String, FileSystemLocationFingerprint>of();
+            @SuppressWarnings("RedundantTypeArguments")
+            final Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints = afterPreviousExecution != null
+                ? afterPreviousExecution.getFingerprints()
+                : ImmutableMap.<String, FileSystemLocationFingerprint>of();
 
             final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
             final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
@@ -180,12 +161,7 @@ public class TaskFingerprintUtil {
     }
 
     /**
-     * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
-     * <ul>
-     * <li>an entry that did not exist before the execution, but exists after the execution</li>
-     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
-     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
-     * </ul>
+     * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
     private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
         if (snapshot.getType() == FileType.Missing) {

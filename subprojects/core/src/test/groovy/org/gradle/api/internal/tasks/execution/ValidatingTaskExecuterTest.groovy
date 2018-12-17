@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.TaskValidationContext
@@ -48,7 +49,7 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
         1 * taskProperties.validate(_)
-        1 * target.execute(task, state, executionContext)
+        1 * target.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
 

@@ -26,17 +26,19 @@ import org.gradle.internal.reflect.Instantiator;
  * A {@link ITaskFactory} which determines task actions, inputs and outputs based on annotation attached to the task properties. Also provides some validation based on these annotations.
  */
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
+    private final Instantiator instantiator;
     private final TaskClassInfoStore taskClassInfoStore;
     private final ITaskFactory taskFactory;
 
-    public AnnotationProcessingTaskFactory(TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory) {
+    public AnnotationProcessingTaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory) {
+        this.instantiator = instantiator;
         this.taskClassInfoStore = taskClassInfoStore;
         this.taskFactory = taskFactory;
     }
 
     @Override
-    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new AnnotationProcessingTaskFactory(taskClassInfoStore, taskFactory.createChild(project, instantiator));
+    public ITaskFactory createChild(ProjectInternal project, Instantiator childInstantiator) {
+        return new AnnotationProcessingTaskFactory(instantiator, taskClassInfoStore, taskFactory.createChild(project, childInstantiator));
     }
 
     @Override
@@ -57,7 +59,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
-            ((TaskInternal) task).prependParallelSafeAction(actionFactory.create());
+            ((TaskInternal) task).prependParallelSafeAction(actionFactory.create(instantiator));
         }
 
         // Enabled caching if task type is annotated with @CacheableTask

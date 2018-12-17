@@ -60,6 +60,7 @@ class CacheStepTest extends Specification {
         def finalOutputs = result.finalOutputs
         then:
         result.outcome.get() == ExecutionOutcome.FROM_CACHE
+        result.reused
         originMetadata == cachedOriginMetadata
         finalOutputs == outputsFromCache
 
@@ -72,8 +73,9 @@ class CacheStepTest extends Specification {
     def "executes work and stores in cache on cache miss"() {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
-            final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
+            final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
             final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
+            final boolean reused = false
         }
 
         when:
@@ -81,6 +83,7 @@ class CacheStepTest extends Specification {
 
         then:
         result == executionResult
+        !result.reused
 
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> executionResult
@@ -91,8 +94,9 @@ class CacheStepTest extends Specification {
     def "failures are not stored in the cache"() {
         def failedResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
-            final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(currentBuildId, 0)
+            final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
             final Try<ExecutionOutcome> outcome = Try.failure(new RuntimeException("failed"))
+            final boolean reused = false
         }
 
         when:
@@ -100,6 +104,7 @@ class CacheStepTest extends Specification {
 
         then:
         result == failedResult
+        !result.reused
 
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> failedResult

@@ -36,7 +36,7 @@ public class CatchExceptionTaskExecuter implements TaskExecuter {
             return delegate.execute(task, state, context);
         } catch (RuntimeException e) {
             state.setOutcome(new TaskExecutionException(task, e));
-            return null;
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         }
     }
 }

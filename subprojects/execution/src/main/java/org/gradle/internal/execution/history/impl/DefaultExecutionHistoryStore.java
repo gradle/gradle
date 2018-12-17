@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
@@ -50,10 +50,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         );
     }
 
-    @Nullable
     @Override
-    public AfterPreviousExecutionState load(String key) {
-        return store.get(key);
+    public Optional<AfterPreviousExecutionState> load(String key) {
+        return Optional.ofNullable(store.get(key));
     }
 
     @Override

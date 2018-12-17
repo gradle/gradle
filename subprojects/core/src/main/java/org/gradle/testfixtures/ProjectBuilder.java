@@ -17,7 +17,9 @@ package org.gradle.testfixtures;
 
 import org.gradle.util.SingleMessageLogger;
 import org.gradle.api.Project;
+import org.gradle.internal.Factory;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -67,7 +69,12 @@ public class ProjectBuilder {
      * @return The builder
      */
     public static ProjectBuilder builder() {
-        return new ProjectBuilder();
+        return DeprecationLogger.whileDisabled(new Factory<ProjectBuilder>() {
+                  @Override
+                  public ProjectBuilder create() {
+                      return new ProjectBuilder();
+                  }
+              });
     }
 
     /**
