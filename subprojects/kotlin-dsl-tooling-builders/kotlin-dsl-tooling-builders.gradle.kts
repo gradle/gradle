@@ -32,11 +32,13 @@ dependencies {
     compile(project(":kotlinDsl"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
+
+    integTestImplementation(project(":kotlinDslTestFixtures"))
 }
 
 // -- Testing ----------------------------------------------------------
 tasks {
-    test {
+    integTest {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
