@@ -153,7 +153,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private <O extends BuildOperation> void execute(final O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+    private <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         execute(descriptorBuilder, defaultParent, new BuildOperationExecution<BuildOperation>() {
             @Override
