@@ -25,6 +25,7 @@ import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.OperationFinishEvent
@@ -40,6 +41,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def timeProvider = Mock(Clock)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
+
+    def setup() {
+        CurrentBuildOperationRef.instance().clear()
+    }
 
     def "fires events when wrap-around operation starts and finishes successfully"() {
         setup:
