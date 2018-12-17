@@ -17,6 +17,7 @@ package org.gradle.testfixtures;
 
 import org.gradle.util.SingleMessageLogger;
 import org.gradle.api.Project;
+import org.gradle.internal.Factory;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 import org.gradle.util.DeprecationLogger;
 
