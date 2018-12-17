@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -28,7 +29,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.ScriptSource
 import spock.lang.Specification
 
-public class SkipOnlyIfTaskExecuterTest extends Specification {
+class SkipOnlyIfTaskExecuterTest extends Specification {
     private final TaskInternal task = Mock(TaskInternal)
     private final Spec<Task> spec = Mock(Spec)
     private final TaskStateInternal state = Mock(TaskStateInternal)
@@ -63,7 +64,7 @@ public class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> true
-        1 * delegate.execute(task, state, executionContext)
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         noMoreInteractions()
     }
 

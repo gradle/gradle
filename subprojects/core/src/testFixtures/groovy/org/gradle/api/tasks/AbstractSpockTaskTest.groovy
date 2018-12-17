@@ -30,6 +30,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -39,7 +40,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def taskFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory())
+    def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
 
     abstract AbstractTask getTask()
 

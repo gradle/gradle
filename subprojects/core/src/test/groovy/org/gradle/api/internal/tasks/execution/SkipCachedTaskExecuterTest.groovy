@@ -21,17 +21,16 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
-import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Ignore
 
@@ -47,11 +46,9 @@ class SkipCachedTaskExecuterTest extends Specification {
     def task = Stub(TaskInternal)
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
-    def taskArtifactState = Mock(TaskArtifactState)
+    def taskExecutionMode = Mock(TaskExecutionMode)
     def buildCacheController = Mock(BuildCacheController)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
-    def outputChangeListener = Mock(OutputChangeListener)
-    def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
     def outputFingerprints = [:]
@@ -69,19 +66,18 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> false
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
+        1 * taskExecutionMode.isAllowedToUseCachedResults() >> false
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null
 
         then:
         1 * taskContext.getExecutionTime() >> 1
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
@@ -99,7 +95,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingDisabled() }
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
 
@@ -115,23 +111,22 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
         1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
+        1 * taskExecutionMode.isAllowedToUseCachedResults() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_) >> { throw new RuntimeException("unknown error") }
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null
 
         then:
         1 * taskContext.getExecutionTime() >> 1
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
@@ -151,8 +146,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
         1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
+        1 * taskExecutionMode.isAllowedToUseCachedResults() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
@@ -177,15 +172,15 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskProperties.outputFileProperties >> ImmutableSortedSet.of()
         1 * taskProperties.localStateFiles >> localStateFiles
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
+        1 * taskExecutionMode.isAllowedToUseCachedResults() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext)
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskState.getFailure() >> null
@@ -193,8 +188,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * cacheKey.getDisplayName() >> "cache key"
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputFingerprints()
+        1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }
 

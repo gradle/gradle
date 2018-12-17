@@ -19,19 +19,21 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
+
+class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def startParameter = new StartParameter()
-    def delegate = Mock(TaskArtifactStateRepository)
-    def repository = new ShortCircuitTaskArtifactStateRepository(startParameter, TestUtil.instantiatorFactory().decorate(), delegate)
-    def taskArtifactState = Mock(TaskArtifactState)
+    def repository = new DefaultTaskExecutionModeResolver(startParameter)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
     def taskProperties = Mock(TaskProperties)
@@ -44,60 +46,55 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         _ * outputs.getUpToDateSpec() >> upToDateSpec
     }
 
-    def doesNotLoadHistoryWhenTaskHasNoOutputs() {
+    def "no actions with no outputs"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
+        state == NO_OUTPUTS_WITHOUT_ACTIONS
         1 * upToDateSpec.isEmpty() >> true
         1 * taskProperties.hasDeclaredOutputs() >> false
-        0 * taskArtifactState._
-
-        and:
-        state instanceof NoOutputsArtifactState
+        1 * task.hasTaskActions() >> false
     }
 
-    def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
+    def "no actions with outputs"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
+        state == NO_OUTPUTS_WITH_ACTIONS
+        1 * upToDateSpec.isEmpty() >> true
+        1 * taskProperties.hasDeclaredOutputs() >> false
+        1 * task.hasTaskActions() >> true
+    }
+
+    def "default"() {
+        when:
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
+
+        then:
+        state == INCREMENTAL
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
-
-        and:
-        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
-        state == taskArtifactState
     }
 
-    def taskArtifactsAreAlwaysOutOfDateWithRerunTasks() {
+    def "--rerun-tasks enabled"() {
         when:
         startParameter.setRerunTasks(true)
-        def state = repository.getStateFor(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
+        state == RERUN_TASKS_ENABLED
         1 * upToDateSpec.empty >> false
-        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
-        0 * taskArtifactState._
-
-        and:
-        !state.getInputChanges().incremental
     }
 
-    def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
+    def "uoToDateSpec evaluates to false"() {
         when:
-        def state = repository.getStateFor(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
+        state == UP_TO_DATE_WHEN_FALSE
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
-
-        and:
-        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
-        0 * taskArtifactState._
-
-        and:
-        !state.getInputChanges().incremental
     }
-
 }

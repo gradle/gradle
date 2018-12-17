@@ -43,7 +43,7 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSna
 
         UnitOfWork work = context.getWork();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
-        OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId, work.markExecutionTime());
         return new CurrentSnapshotResult() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
@@ -58,6 +58,11 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSna
             @Override
             public Try<ExecutionOutcome> getOutcome() {
                 return result.getOutcome();
+            }
+
+            @Override
+            public boolean isReused() {
+                return false;
             }
         };
     }

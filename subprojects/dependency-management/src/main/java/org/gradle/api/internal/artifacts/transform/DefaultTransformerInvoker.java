@@ -354,8 +354,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<AfterPreviousExecutionState> previousExecution = Optional.ofNullable(executionHistoryStore.load(identityString));
-            return previousExecution.map(previous -> {
+            return executionHistoryStore.load(identityString).map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
                 InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);

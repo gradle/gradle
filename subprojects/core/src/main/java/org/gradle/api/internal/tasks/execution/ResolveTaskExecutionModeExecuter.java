@@ -21,8 +21,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
+import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -43,30 +43,30 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NonNullApi
-public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskArtifactStateTaskExecuter.class);
+public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskExecutionModeExecuter.class);
 
     private final PropertyWalker propertyWalker;
-    private final PathToFileResolver resolver;
+    private final PathToFileResolver fileResolver;
     private final TaskExecuter executer;
-    private final TaskArtifactStateRepository repository;
+    private final TaskExecutionModeResolver executionModeResolver;
 
-    public ResolveTaskArtifactStateTaskExecuter(TaskArtifactStateRepository repository, PathToFileResolver resolver, PropertyWalker propertyWalker, TaskExecuter executer) {
+    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, PathToFileResolver fileResolver, PropertyWalker propertyWalker, TaskExecuter executer) {
         this.propertyWalker = propertyWalker;
-        this.resolver = resolver;
+        this.fileResolver = fileResolver;
         this.executer = executer;
-        this.repository = repository;
+        this.executionModeResolver = executionModeResolver;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         Timer clock = Time.startTimer();
-        TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
+        TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, task);
         context.setTaskProperties(taskProperties);
-        TaskArtifactState taskArtifactState = repository.getStateFor(task, taskProperties);
+        TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, taskProperties);
         TaskOutputsInternal outputs = task.getOutputs();
 
-        context.setTaskArtifactState(taskArtifactState);
+        context.setTaskExecutionMode(taskExecutionMode);
         outputs.setPreviousOutputFiles(new LazilyInitializedFileCollection() {
             @Override
             public FileCollection createDelegate() {
@@ -94,7 +94,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
             return executer.execute(task, state, context);
         } finally {
             outputs.setPreviousOutputFiles(null);
-            context.setTaskArtifactState(null);
+            context.setTaskExecutionMode(null);
             context.setTaskProperties(null);
             LOGGER.debug("Removed task artifact state for {} from context.");
         }

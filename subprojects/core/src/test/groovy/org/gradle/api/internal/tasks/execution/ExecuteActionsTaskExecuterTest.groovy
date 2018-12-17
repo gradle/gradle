@@ -16,9 +16,10 @@
 package org.gradle.api.internal.tasks.execution
 
 import com.google.common.collect.ImmutableSortedMap
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -32,6 +33,8 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.CancelExecutionStep
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep
@@ -50,17 +53,25 @@ import spock.lang.Specification
 
 import static java.util.Collections.emptyList
 
-class ExecuteActionsTaskExecutorTest extends Specification {
+class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def action1 = Mock(ContextAwareTaskAction)
     def action2 = Mock(ContextAwareTaskAction)
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
-    def taskArtifactState = Mock(TaskArtifactState)
+    def taskProperties = Mock(TaskProperties)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
+    def stringInterner = new StringInterner()
+    def taskFingerprinter = Stub(TaskFingerprinter) {
+        fingerprintTaskFiles(task, _) >> ImmutableSortedMap.of()
+    }
+    def executionHistoryStore = Mock(ExecutionHistoryStore)
+    def outputFilesRepository = Stub(OutputFilesRepository) {
+        isGeneratedByGradle(_) >> true
+    }
     def buildId = UniqueId.generate()
 
     def actionListener = Mock(TaskActionListener)
@@ -78,7 +89,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, outputFilesRepository, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -86,9 +97,12 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.getTaskArtifactState() >> taskArtifactState
-        taskArtifactState.snapshotAfterTaskExecution(executionContext) >> ImmutableSortedMap.of()
-        taskArtifactState.getExecutionStateChanges(_) >> Optional.empty()
+        executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
+        executionContext.getOverlappingOutputs() >> Optional.empty()
+        executionContext.getExecutionStateChanges() >> Optional.empty()
+
+        executionContext.getTaskProperties() >> taskProperties
+        taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
 
     void noMoreInteractions() {

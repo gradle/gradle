@@ -78,6 +78,11 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
                     public Try<ExecutionOutcome> getOutcome() {
                         return Try.successful(ExecutionOutcome.UP_TO_DATE);
                     }
+
+                    @Override
+                    public boolean isReused() {
+                        return true;
+                    }
                 };
             } else {
                 return executeBecause(reasons, context);
@@ -107,6 +112,11 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
             @Override
             public Try<ExecutionOutcome> getOutcome() {
                 return result.getOutcome();
+            }
+
+            @Override
+            public boolean isReused() {
+                return result.isReused();
             }
         };
     }

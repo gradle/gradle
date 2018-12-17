@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -128,7 +129,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         @Override
-        public Action<? super Task> create() {
+        public Action<? super Task> create(Instantiator instantiator) {
             return new StandardTaskAction(taskType, method);
         }
     }
@@ -143,8 +144,8 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         @Override
-        public Action<? super Task> create() {
-            return new IncrementalTaskAction(taskType, method);
+        public Action<? super Task> create(Instantiator instantiator) {
+            return new IncrementalTaskAction(instantiator, taskType, method);
         }
     }
 }
