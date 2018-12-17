@@ -23,6 +23,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
+import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.util.GradleVersion
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
@@ -192,6 +193,10 @@ subprojects {
 
     if (project in javaProjects) {
         apply(plugin = "gradlebuild.java-projects")
+    }
+
+    if (project in publicJavaProjects) {
+        apply(plugin = "gradlebuild.public-java-projects")
     }
 
     if (project in publishedProjects) {

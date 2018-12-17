@@ -16,10 +16,7 @@
 
 package build
 
-import accessors.sourceSets
-
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.transform.ArtifactTransform
@@ -43,12 +40,11 @@ import org.objectweb.asm.Type
 
 import java.io.InputStream
 import java.io.File
+import java.util.Properties
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
-
-import kotlin.LazyThreadSafetyMode.NONE
 
 
 // TODO:kotlin-dsl dedupe, see MinifyPlugin
@@ -61,7 +57,7 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
     val artifactType = Attribute.of("artifactType", String::class.java)
     val jarWithGradleApiParameterNames = "jar-with-gradle-api-parameter-names"
 
-    val gradleApiConfig by configurations.registering {
+    val gradleApiWithParameterNames by configurations.registering {
         exclude(module = "sisu-inject-plexus")
         attributes {
             attribute(artifactType, jarWithGradleApiParameterNames)
@@ -73,21 +69,17 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
             from.attribute(artifactType, "jar").attribute(minified, true)
             to.attribute(artifactType, jarWithGradleApiParameterNames)
             artifactTransform(GradleApiParameterNamesTransform::class) {
-                params(
-                    PublicApi.includes,
-                    PublicApi.excludes,
-                    publicJavaProjects.flatMap { it.sourceSets["main"].allJava.files }
-                )
+                params(PublicApi.includes, PublicApi.excludes)
             }
         }
 
         for (gradleModuleName in gradleModuleNames) {
-            gradleApiConfig.name(project(gradleModuleName))
+            gradleApiWithParameterNames.name(project(gradleModuleName))
         }
     }
 
     the<SourceSetContainer>().named("main") {
-        compileClasspath += gradleApiConfig.get()
+        compileClasspath += gradleApiWithParameterNames.get()
     }
 }
 
@@ -95,8 +87,7 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
 internal
 class GradleApiParameterNamesTransform @Inject constructor(
     private val publicApiIncludes: List<String>,
-    private val publicApiExcludes: List<String>,
-    private val publicApiSources: List<File>
+    private val publicApiExcludes: List<String>
 ) : ArtifactTransform() {
 
     override fun transform(input: File): MutableList<File> =
@@ -112,8 +103,9 @@ class GradleApiParameterNamesTransform @Inject constructor(
     private
     fun transformGradleApiJar(inputFile: File, outputFile: File) {
         JarFile(inputFile).use { inputJar ->
+            val gradleApiMetadata = gradleApiMetadataFor(inputFile.gradleModuleName, inputJar)
             writingJar(outputFile) { zipOutputStream ->
-                transformGradleApiJarEntries(inputJar, zipOutputStream)
+                transformGradleApiJarEntries(gradleApiMetadata, inputJar, zipOutputStream)
             }
         }
     }
@@ -126,46 +118,50 @@ class GradleApiParameterNamesTransform @Inject constructor(
     }
 
     private
-    fun transformGradleApiJarEntries(inputJar: JarFile, zipOutputStream: ZipOutputStream) {
+    fun transformGradleApiJarEntries(gradleApiMetadata: GradleApiMetadata, inputJar: JarFile, zipOutputStream: ZipOutputStream) {
         inputJar.entries().asSequence().filterNot { it.isDirectory }.forEach { entry ->
-            if (entry.isGradleApi) inputJar.transformJarEntry(entry, zipOutputStream)
+            if (gradleApiMetadata.isGradleApi(entry)) inputJar.transformJarEntry(gradleApiMetadata, entry, zipOutputStream)
             else inputJar.copyJarEntry(entry, zipOutputStream)
         }
     }
 
     private
-    val JarEntry.isGradleApi
-        get() = name.endsWith(".class")
-            && !name.endsWith("package-info.class")
-            && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
+    fun gradleApiMetadataFor(moduleName: String, inputJar: JarFile): GradleApiMetadata {
+        val parameterNamesIndex = Properties().apply {
+            inputJar.getJarEntry("$moduleName-parameter-names.properties")?.let { entry ->
+                inputJar.getInputStream(entry).buffered().use { input -> load(input) }
+            }
+        }
+        return GradleApiMetadata(
+            publicApiIncludes,
+            publicApiExcludes,
+            { key: String -> parameterNamesIndex.getProperty(key, null)?.split(",") }
+        )
+    }
 
     private
-    fun JarFile.transformJarEntry(entry: JarEntry, zipOutputStream: ZipOutputStream) {
+    fun GradleApiMetadata.isGradleApi(entry: JarEntry) =
+        entry.name.endsWith(".class")
+            && !entry.name.endsWith("package-info.class")
+            && spec.isSatisfiedBy(RelativePath.parse(true, entry.name))
+
+    private
+    fun JarFile.transformJarEntry(gradleApiMetadata: GradleApiMetadata, entry: JarEntry, zipOutputStream: ZipOutputStream) {
         getInputStream(entry).buffered().use { input ->
             zipOutputStream.run {
                 putNextEntry(JarEntry(entry.name))
-                write(transformClass(input))
+                write(transformClass(gradleApiMetadata, input))
                 closeEntry()
             }
         }
     }
 
     private
-    fun transformClass(input: InputStream): ByteArray {
+    fun transformClass(gradleApiMetadata: GradleApiMetadata, input: InputStream): ByteArray {
         val writer = ClassWriter(0)
         val transformer = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
         ClassReader(input).accept(transformer, 0)
         return writer.toByteArray()
-    }
-
-    private
-    val gradleApiMetadata by lazy(NONE) {
-        val index = extractParameterNamesIndexFrom(publicApiSources)
-        GradleApiMetadata(
-            publicApiIncludes,
-            publicApiExcludes,
-            { key: String -> index[key]?.split(",") }
-        )
     }
 
     private
@@ -177,6 +173,15 @@ class GradleApiParameterNamesTransform @Inject constructor(
         }
     }
 }
+
+
+private
+val gradleModuleNameRegex = Regex("-\\d.*")
+
+
+private
+val File.gradleModuleName: String
+    get() = nameWithoutExtension.replace(gradleModuleNameRegex, "")
 
 
 private
