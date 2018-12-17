@@ -120,7 +120,7 @@ This will publish your package to all configured publication repositories, but t
 == Performing an automatic conversion
 
 Gradle's <<build_init_plugin#build_init_plugin,`init` task>> is typically used to create a new skeleton project, but you can also use it to convert an existing Maven build to Gradle automatically.
-All you have to do is run the command
+Once Gradle is <<installation#installation,installed on your system>>, all you have to do is run the command
 
 [listing.terminal]
 ----
@@ -449,11 +449,7 @@ See the API docs for link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySp
 [[migmvn:integration_tests]]
 == Configuring integration tests
 
-Although unit tests are very useful, they can't ensure that an application or library works as a whole.
-It's easy for bugs to appear in the interactions between objects and their interactions with the environment.
-That's why many projects incorporate some form of higher level testing, sometimes termed integration, functional or acceptance testing.
-
-Maven supports these types of test by providing an extra set of phases: `pre-integration-test`, `integration-test`, `post-integration-test`, and `verify`.
+Many Maven builds incorporate integration tests of some sort, which Maven supports through an extra set of phases: `pre-integration-test`, `integration-test`, `post-integration-test`, and `verify`.
 It also uses the Failsafe plugin in place of Surefire so that failed integration tests don't automatically fail the build (because you may need to clean up resources, such as a running application server).
 
 This behavior is easy to replicate in Gradle with source sets, as explained in our chapter on <<java_testing#sec:configuring_java_integration_tests,Testing in Java & JVM projects>>.
@@ -574,9 +570,10 @@ Then try to work out how to solve that problem in Gradle.
 You'll probably find that the two build models are different enough that "transcribing" Maven plugin code into a Gradle plugin just won't be effective.
 On the plus side, the plugin is likely to be much easier to write than the original Maven one because Gradle has a much richer build model and API.
 
-If you do need to implement custom logic, either via build scripts or plugins, then be sure to familiarize yourself with Gradle's link:{groovyDslPath}/[Groovy DSL Reference], which provides comprehensive documentation on the API that you'll be working with.
-It details the standard configuration blocks (and the objects that back them), the core types in the system (`Project`, `Task`, etc.), and the standard set of tasks.
-The main entry point is the `Project` interface as that's the top-level object that backs the build scripts.
+If you do need to implement custom logic, either via build scripts or plugins, check out the https://gradle.org/guides/?q=Plugin%20Development[Guides related to plugin development].
+Also be sure to familiarize yourself with Gradle's link:{groovyDslPath}/[Groovy DSL Reference], which provides comprehensive documentation on the API that you'll be working with.
+It details the standard configuration blocks (and the objects that back them), the core types in the system (`Project`, `Task`, etc.), and the standard set of task types.
+The main entry point is the link:{groovyDslPath}/org.gradle.api.Project.html[Project] interface as that's the top-level object that backs the build scripts.
 
 == Further reading
 
