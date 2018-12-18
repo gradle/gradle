@@ -91,7 +91,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
-        failure.assertHasCause("Unable to determine CustomPlugin argument #1: missing parameter value of type interface Unknown, or no service of type interface Unknown")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface Unknown, or no service of type interface Unknown")
     }
 
     // Document current behaviour

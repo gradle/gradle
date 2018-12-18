@@ -141,7 +141,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Unable to determine $HasOneInjectConstructor.name argument #1: value string not assignable to type class java.lang.Number"
+        e.cause.message == "Unable to determine constructor argument #1: value string not assignable to class java.lang.Number"
     }
 
     def "fails on missing service"() {
@@ -154,7 +154,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String"
+        e.cause.message == "Unable to determine constructor argument #1: value 12 is not assignable to class java.lang.String, or no service of type class java.lang.String"
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -227,29 +227,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
     }
 
     def "fails when null passed as constructor argument value"() {
-        given:
-        services.find(String) >> null
-
         when:
         instantiator.newInstance(HasInjectConstructor, null, 12)
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String"
+        e.cause.message == "Null value provided in parameters [null, 12]"
     }
 
     def "fails when null passed as constructor argument value and services expected"() {
-        given:
-        services.find(String) >> null
-
         when:
         instantiator.newInstance(HasInjectConstructor, [null] as Object[])
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String"
+        e.cause.message == "Null value provided in parameters [null]"
     }
 
     def "selects @Inject constructor over no-args constructor"() {

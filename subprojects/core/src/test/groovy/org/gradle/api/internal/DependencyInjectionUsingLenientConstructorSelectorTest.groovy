@@ -74,14 +74,66 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         result.param2 == null
     }
 
-    def "does not allows null parameters when services expected"() {
+    def "does allows null parameters when services expected"() {
+        given:
+        services.find(Number) >> 12
+
         when:
-        instantiator.newInstance(HasConstructor, [null] as Object[])
+        def result = instantiator.newInstance(HasConstructor, [null] as Object[])
+
+        then:
+        result.param1 == null
+        result.param2 == 12
+    }
+
+    def "fails when null value is provided for primitive parameter"() {
+        when:
+        instantiator.newInstance(AcceptsPrimitiveTypes, 12, null)
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine $HasConstructor.name argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String"
+        e.cause.message == "Unable to determine constructor argument #2: null value is not assignable to boolean"
+    }
+
+    def "fails when null value is provided for primitive parameter and services expected"() {
+        when:
+        instantiator.newInstance(AcceptsPrimitiveTypes, [null] as Object[])
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Unable to determine constructor argument #1: null value is not assignable to int"
+    }
+
+    def "fails when parameters do not match constructor"() {
+        when:
+        instantiator.newInstance(HasConstructor, ["a", "b"] as Object[])
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Unable to determine constructor argument #2: value b not assignable to class java.lang.Number"
+    }
+
+    def "fails when no constructors match parameters"() {
+        when:
+        instantiator.newInstance(HasConstructors, ["a", "b"] as Object[])
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "No constructors of class $HasConstructors.name match parameters: [a, b]"
+    }
+
+    def "fails when no constructors are ambiguous"() {
+        when:
+        instantiator.newInstance(HasConstructors, ["a"] as Object[])
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Multiple constructors of class $HasConstructors.name match parameters: [a]"
     }
 
     static class HasDefaultConstructor {
@@ -94,6 +146,13 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         HasConstructor(String param1, Number param2) {
             this.param1 = param1
             this.param2 = param2
+        }
+    }
+
+    static class HasConstructors {
+        HasConstructors(String param1, Number param2) {
+        }
+        HasConstructors(String param1, boolean param2) {
         }
     }
 

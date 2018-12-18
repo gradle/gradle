@@ -262,7 +262,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Unable to determine Thing argument #1: missing parameter value of type interface Unknown, or no service of type interface Unknown')
+        failure.assertHasCause('Unable to determine constructor argument #1: missing parameter of interface Unknown, or no service of type interface Unknown')
     }
 
     def "object creation fails with ObjectInstantiationException when constructor throws an exception"() {

@@ -20,9 +20,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 
 public interface SelectedConstructor {
-    // For backwards compatibility
-    boolean allowsNullParameters();
-
     Constructor<?> getConstructor();
 
     @Nullable

@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -48,6 +49,10 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 return builder.build();
             }
         });
+
+        if (constructors.size() == 1) {
+            return constructors.get(0);
+        }
 
         CachedConstructor match = null;
         for (CachedConstructor constructor : constructors) {
@@ -78,13 +83,26 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 if (match == null || parameterTypes.length < match.constructor.getParameterTypes().length) {
                     // Choose the shortest match
                     match = constructor;
+                } else if (parameterTypes.length == match.constructor.getParameterTypes().length) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Multiple constructors of ");
+                    formatter.append(type);
+                    formatter.append(" match parameters: ");
+                    formatter.appendValues(params);
+                    return new BrokenSelection(new IllegalArgumentException(formatter.toString()));
                 }
             }
         }
         if (match != null) {
             return match;
         }
-        return new BrokenSelection(new IllegalArgumentException("Could not find constructor for " + type));
+
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("No constructors of ");
+        formatter.append(type);
+        formatter.append(" match parameters: ");
+        formatter.appendValues(params);
+        return new BrokenSelection(new IllegalArgumentException(formatter.toString()));
     }
 
     public static class CachedConstructor implements SelectedConstructor {
@@ -92,11 +110,6 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
 
         public CachedConstructor(Constructor<?> constructor) {
             this.constructor = constructor;
-        }
-
-        @Override
-        public boolean allowsNullParameters() {
-            return true;
         }
 
         @Nullable
@@ -116,11 +129,6 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
 
         public BrokenSelection(IllegalArgumentException failure) {
             this.failure = failure;
-        }
-
-        @Override
-        public boolean allowsNullParameters() {
-            return true;
         }
 
         @Override
