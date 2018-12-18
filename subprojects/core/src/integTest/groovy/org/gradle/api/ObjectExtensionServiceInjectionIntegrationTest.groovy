@@ -170,6 +170,26 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
+    def "can inject service using abstract getter"() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class Thing {
+                Thing(String a) {
+                }
+
+                @Inject
+                abstract ObjectFactory getObjects()
+            }
+            
+            def e = extensions.create("one", Thing, "a")
+            assert e.objects != null
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "can use getter injected services from constructor"() {
         buildFile << """
             import ${Inject.name}

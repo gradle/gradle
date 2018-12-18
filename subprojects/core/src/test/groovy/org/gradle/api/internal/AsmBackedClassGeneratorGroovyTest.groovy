@@ -34,8 +34,12 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
     def generator = new AsmBackedClassGenerator()
 
     private <T> T create(Class<T> clazz, Object... args) {
+        return create(clazz, Stub(ServiceRegistry), args)
+    }
+
+    private <T> T create(Class<T> clazz, ServiceRegistry services, Object... args) {
         def type = generator.generate(clazz)
-        return generator.newInstance(type.constructors[0], Stub(ServiceRegistry), Stub(Instantiator), args)
+        return generator.newInstance(type.constructors[0], services, Stub(Instantiator), args)
     }
 
     @Issue("GRADLE-2417")
@@ -298,7 +302,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         obj.callsPrivateStringMethodWithGString("$foo") == "BAR"
     }
 
-    def "can inject service using a service getter method"() {
+    def "can inject service using a service getter method with dummy method body"() {
         given:
         def services = Mock(ServiceRegistry)
         def service = Mock(Runnable)
@@ -306,6 +310,21 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         when:
         def obj = create(BeanWithServices, services)
+
+        then:
+        obj.thing == service
+        obj.getThing() == service
+        obj.getProperty("thing") == service
+    }
+
+    def "can inject service using an abstract service getter method"() {
+        given:
+        def services = Mock(ServiceRegistry)
+        def service = Mock(Runnable)
+        _ * services.get(Runnable) >> service
+
+        when:
+        def obj = create(AbstractBeanWithServices, services)
 
         then:
         obj.thing == service
@@ -580,21 +599,16 @@ class CallsPrivateMethods {
     }
 }
 
+abstract class AbstractBeanWithServices {
+    @Inject
+    abstract Runnable getThing()
+}
+
 class BeanWithServices {
-    ServiceRegistry services
-
-    BeanWithServices(ServiceRegistry services) {
-        this.services = services
-    }
-
     @Inject
     Runnable getThing() { throw new UnsupportedOperationException() }
 }
 
 class BeanWithMutableServices extends BeanWithServices {
-    BeanWithMutableServices(ServiceRegistry services) {
-        super(services)
-    }
-
     void setThing(Runnable runnnable) { throw new UnsupportedOperationException() }
 }

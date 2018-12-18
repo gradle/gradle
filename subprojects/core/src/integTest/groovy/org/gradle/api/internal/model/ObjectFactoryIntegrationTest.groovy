@@ -127,6 +127,37 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
+    def "services can be injected using abstract getter"() {
+        buildFile << """
+            class Thing1 {
+                final Property<String> name
+                
+                Thing1() { this.name = objects.property(String) }
+
+                @javax.inject.Inject
+                ObjectFactory getObjects() { null }
+            }
+            
+            abstract class Thing2 {
+                String name
+                
+                Thing2() {
+                    def t = objects.newInstance(Thing1)
+                    t.name.set("name")
+                    name = t.name.get()
+                }
+
+                @javax.inject.Inject
+                abstract ObjectFactory getObjects()
+            }
+            
+            assert objects.newInstance(Thing2).name == "name"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can create nested DSL elements using injected ObjectFactory"() {
         buildFile << """
             class Thing {
