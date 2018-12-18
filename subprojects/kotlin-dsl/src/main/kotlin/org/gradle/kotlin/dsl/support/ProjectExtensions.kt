@@ -16,8 +16,12 @@
 
 package org.gradle.kotlin.dsl.support
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
+
 import org.gradle.api.internal.project.ProjectInternal
+
+import java.io.File
 
 
 inline fun <reified T : Any> Project.serviceOf(): T =
@@ -27,3 +31,13 @@ inline fun <reified T : Any> Project.serviceOf(): T =
 internal
 fun serviceRegistryOf(project: Project) =
     (project as ProjectInternal).services
+
+
+@VisibleForTesting
+fun isGradleKotlinDslJar(file: File) =
+    isGradleKotlinDslJarName(file.name)
+
+
+internal
+fun isGradleKotlinDslJarName(jarName: String) =
+    jarName.startsWith("gradle-kotlin-dsl-")

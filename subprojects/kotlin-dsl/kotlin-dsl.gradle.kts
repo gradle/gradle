@@ -58,7 +58,9 @@ dependencies {
     testImplementation("com.tngtech.archunit:archunit:0.8.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
 
-    testRuntime(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 // --- Enable automatic generation of API extensions -------------------
@@ -105,17 +107,16 @@ tasks {
     }
 
 // -- Testing ----------------------------------------------------------
-    compileTestJava {
-        // Disable incremental compilation for Java fixture sources
-        // Incremental compilation is causing OOMEs with our low build daemon heap settings
-        options.isIncremental = false
-        // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
-        // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
-        // `-proc:none` disables annotation processing and gets rid of the warning.
-        options.compilerArgs.add("-proc:none")
+    listOf(compileTestJava, compileIntegTestJava).forEach { javaCompilationTask ->
+        javaCompilationTask {
+            // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
+            // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
+            // `-proc:none` disables annotation processing and gets rid of the warning.
+            options.compilerArgs.add("-proc:none")
+        }
     }
 
-    test {
+    integTest {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }

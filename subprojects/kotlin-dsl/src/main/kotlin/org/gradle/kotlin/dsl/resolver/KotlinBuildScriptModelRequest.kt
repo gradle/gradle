@@ -26,10 +26,12 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 
+import com.google.common.annotations.VisibleForTesting
+
 import java.io.File
 
 
-internal
+@VisibleForTesting
 sealed class GradleInstallation {
 
     data class Local(val dir: java.io.File) : GradleInstallation()
@@ -42,7 +44,7 @@ sealed class GradleInstallation {
 }
 
 
-internal
+@VisibleForTesting
 data class KotlinBuildScriptModelRequest(
     val projectDir: java.io.File,
     val scriptFile: java.io.File? = null,
@@ -58,7 +60,7 @@ internal
 typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() -> Unit
 
 
-internal
+@VisibleForTesting
 fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}

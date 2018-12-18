@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -28,7 +27,7 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.valueParameters
 
 
-class GradleApiParameterNamesTest : AbstractIntegrationTest() {
+class GradleApiParameterNamesTest {
 
     @Test
     fun `Kotlin delegation generated member has parameter names`() {

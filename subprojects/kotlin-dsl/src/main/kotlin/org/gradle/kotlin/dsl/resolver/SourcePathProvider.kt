@@ -18,8 +18,8 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.kotlin.dsl.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.filter
+import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 
 import java.io.File
 

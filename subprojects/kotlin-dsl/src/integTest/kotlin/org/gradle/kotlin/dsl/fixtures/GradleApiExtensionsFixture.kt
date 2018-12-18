@@ -20,8 +20,8 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
-import org.gradle.kotlin.dsl.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
+import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 
 import java.io.File
 
@@ -30,6 +30,7 @@ val customInstallationGradleApiExtensionsClasspath: ClassPath
     get() = DefaultClassPath.of(customInstallationGradleApiExtensionsJar)
 
 
+private
 val customInstallationGradleApiExtensionsJar: File by lazy {
     val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
     File.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
@@ -39,7 +40,7 @@ val customInstallationGradleApiExtensionsJar: File by lazy {
 }
 
 
-internal
+private
 fun generateCustomInstallationGradleApiExtensionsJarTo(jar: File) {
 
     val customInstall = customInstallation()

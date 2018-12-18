@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 
+import com.google.common.annotations.VisibleForTesting
 
-internal
+
+@VisibleForTesting
 object ProgramParser {
 
     fun parse(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program = try {

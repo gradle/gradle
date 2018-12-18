@@ -27,6 +27,8 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.tooling.BuildException
 
+import com.google.common.annotations.VisibleForTesting
+
 import java.io.File
 import java.net.URI
 
@@ -79,7 +81,7 @@ fun EditorPosition.toIdePosition(): Position =
     Position(if (line == 0) 0 else line - 1, column)
 
 
-class KotlinBuildScriptDependenciesResolver internal constructor(
+class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
 
     private
     val logger: ResolverEventLogger

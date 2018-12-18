@@ -35,7 +35,7 @@ import org.junit.Test
 import kotlin.reflect.KClass
 
 
-class TaskContainerDslTest : AbstractDslTest() {
+class TaskContainerDslIntegrationTest : AbstractDslTest() {
 
     @Test
     fun `polymorphic named domain object container api`() {

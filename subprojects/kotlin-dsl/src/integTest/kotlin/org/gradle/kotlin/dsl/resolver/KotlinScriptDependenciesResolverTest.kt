@@ -401,7 +401,7 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     val reports = mutableListOf<IdeReport>()
 
     override fun log(event: ResolverEvent) {
-        DefaultResolverEventLogger.prettyPrint(event).let { prettyPrinted ->
+        prettyPrint(event).let { prettyPrinted ->
             println(prettyPrinted)
             events.add(LogEvent(event, prettyPrinted))
         }

@@ -38,8 +38,6 @@ import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.configureWith
 
-import java.io.File
-
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -232,13 +230,3 @@ fun Project.gradleKotlinDsl(): Dependency =
             "gradleKotlinDsl"
         ) as FileCollectionInternal
     )
-
-
-internal
-fun isGradleKotlinDslJar(file: File) =
-    isGradleKotlinDslJarName(file.name)
-
-
-internal
-fun isGradleKotlinDslJarName(jarName: String) =
-    jarName.startsWith("gradle-kotlin-dsl-")

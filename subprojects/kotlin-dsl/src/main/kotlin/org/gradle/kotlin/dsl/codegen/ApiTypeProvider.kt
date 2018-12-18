@@ -45,6 +45,8 @@ import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
 import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
+import com.google.common.annotations.VisibleForTesting
+
 import java.io.Closeable
 import java.io.File
 import java.util.ArrayDeque
@@ -52,7 +54,7 @@ import java.util.ArrayDeque
 import javax.annotation.Nullable
 
 
-internal
+@VisibleForTesting
 fun apiTypeProviderFor(
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
@@ -85,8 +87,8 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
  * - does not support nested Java arrays as method parameters
  * - does not support generics with multiple bounds
  */
-internal
-class ApiTypeProvider(
+@VisibleForTesting
+class ApiTypeProvider internal constructor(
     private val repository: ClassBytesRepository,
     parameterNamesSupplier: ParameterNamesSupplier
 ) : Closeable {
@@ -152,8 +154,8 @@ class ApiTypeProvider(
 }
 
 
-internal
-class ApiType(
+@VisibleForTesting
+class ApiType internal constructor(
     val sourceName: String,
     private val delegateSupplier: () -> ClassNode,
     private val context: ApiTypeProvider.Context
@@ -249,8 +251,8 @@ class ApiType(
 }
 
 
-internal
-class ApiFunction(
+@VisibleForTesting
+class ApiFunction internal constructor(
     val owner: ApiType,
     private val delegate: MethodNode,
     private val context: ApiTypeProvider.Context
@@ -292,8 +294,8 @@ class ApiFunction(
 }
 
 
-internal
-data class ApiTypeUsage(
+@VisibleForTesting
+data class ApiTypeUsage internal constructor(
     val sourceName: String,
     val isNullable: Boolean = false,
     val type: ApiType? = null,
@@ -306,7 +308,7 @@ data class ApiTypeUsage(
 }
 
 
-internal
+@VisibleForTesting
 enum class Variance {
 
     /**
@@ -331,8 +333,8 @@ enum class Variance {
 }
 
 
-internal
-data class ApiFunctionParameter(
+@VisibleForTesting
+data class ApiFunctionParameter internal constructor(
     val index: Int,
     val isVarargs: Boolean,
     private val nameSupplier: () -> String?,

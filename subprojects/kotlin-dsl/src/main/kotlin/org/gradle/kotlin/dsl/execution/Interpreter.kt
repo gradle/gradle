@@ -39,6 +39,8 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.PluginRequests
 
+import com.google.common.annotations.VisibleForTesting
+
 import java.io.File
 
 import java.lang.reflect.InvocationTargetException
@@ -518,7 +520,7 @@ class Interpreter(val host: Host) {
 }
 
 
-internal
+@VisibleForTesting
 fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage: String): String =
     programTarget.name + "/" + programKind.name + "/" + stage
 

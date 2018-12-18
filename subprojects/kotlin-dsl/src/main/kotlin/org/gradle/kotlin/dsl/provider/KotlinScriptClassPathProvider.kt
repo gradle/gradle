@@ -34,13 +34,14 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
+import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
+import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.serviceOf
 
-import org.gradle.kotlin.dsl.isGradleKotlinDslJar
-import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
-
 import org.gradle.util.GFileUtils.moveFile
+
+import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
 
@@ -102,7 +103,7 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
-    internal
+    @VisibleForTesting
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }

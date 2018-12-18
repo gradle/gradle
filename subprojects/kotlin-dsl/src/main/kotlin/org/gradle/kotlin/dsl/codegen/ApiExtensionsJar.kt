@@ -20,10 +20,12 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
+import com.google.common.annotations.VisibleForTesting
+
 import java.io.File
 
 
-internal
+@VisibleForTesting
 fun generateApiExtensionsJar(
     outputFile: File,
     gradleJars: Collection<File>,
