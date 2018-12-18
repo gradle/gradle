@@ -13,18 +13,14 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
-
-import org.gradle.testkit.runner.TaskOutcome
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -34,7 +30,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class PrecompiledScriptPluginTest : AbstractPluginTest() {
+class PrecompiledScriptPluginTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
@@ -352,44 +348,5 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 "My_plugin_gradle"
             )
         }
-    }
-
-    private
-    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withKotlinDslPlugin()
-        withFile("src/main/kotlin/$fileName", code)
-        compileKotlin()
-    }
-
-    private
-    inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
-        loadCompiledKotlinClass(className)
-            .getConstructor(T::class.java)
-            .newInstance(target)
-
-    private
-    fun loadCompiledKotlinClass(className: String) =
-        classLoaderFor(existing("build/classes/kotlin/main"))
-            .loadClass(className)
-
-    private
-    fun withKotlinDslPlugin() =
-        withBuildScript(scriptWithKotlinDslPlugin())
-
-    private
-    fun scriptWithKotlinDslPlugin(): String =
-        """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-        """
-
-    private
-    fun compileKotlin() {
-        assertThat(
-            buildWithPlugin("classes").outcomeOf(":compileKotlin"),
-            equalTo(TaskOutcome.SUCCESS))
     }
 }
