@@ -17,5 +17,13 @@
 package org.gradle.api.internal.instantiation;
 
 public interface ConstructorSelector {
+    /**
+     * Locates the constructor that <em>should</em> be used to create instances of the given type with the given params.
+     *
+     * <p>The selected constructor does not have to accept the given parameters. It is the caller's responsibility to verify that the constructor can be
+     * called with the given parameters.
+     *
+     * <p>The selector may or may not allow null parameters. The caller should allow null parameters and delegate to the selector to make this decision.
+     */
     SelectedConstructor forParams(Class<?> type, Object[] params);
 }

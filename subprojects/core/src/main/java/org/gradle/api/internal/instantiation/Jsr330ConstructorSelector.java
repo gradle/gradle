@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.InjectUtil;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -36,6 +37,14 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
 
     @Override
     public SelectedConstructor forParams(final Class<?> type, Object[] params) {
+        for (Object param : params) {
+            if (param == null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Null value provided in parameters ");
+                formatter.appendValues(params);
+                throw new IllegalArgumentException(formatter.toString());
+            }
+        }
         return constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
             @Override
             public CachedConstructor transform(Class<?> aClass) {
@@ -54,13 +63,22 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
 
     private static <T> void validateType(Class<T> type) {
         if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
-            throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is not a class.");
+            throw new IllegalArgumentException(formatter.toString());
         }
         if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is a non-static inner class.");
+            throw new IllegalArgumentException(formatter.toString());
         }
         if (Modifier.isAbstract(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is an abstract class.");
+            throw new IllegalArgumentException(formatter.toString());
         }
     }
 
@@ -71,11 +89,6 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
         private CachedConstructor(Constructor<?> constructor, Throwable error) {
             this.constructor = constructor;
             this.error = error;
-        }
-
-        @Override
-        public boolean allowsNullParameters() {
-            return false;
         }
 
         @Override

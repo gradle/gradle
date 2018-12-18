@@ -22,6 +22,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -46,7 +47,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
             Object[] resolvedParameters = convertParameters(type, constructor, parameters);
             Object instance;
             try {
-                instance =  classGenerator.newInstance(constructor.getConstructor(), services, this, resolvedParameters);
+                instance = classGenerator.newInstance(constructor.getConstructor(), services, this, resolvedParameters);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
@@ -67,34 +68,51 @@ public class DependencyInjectingInstantiator implements Instantiator {
     private <T> Object[] convertParameters(Class<T> type, SelectedConstructor constructor, Object[] parameters) {
         Class<?>[] parameterTypes = constructor.getConstructor().getParameterTypes();
         if (parameterTypes.length < parameters.length) {
-            throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.", type.getName(), parameterTypes.length, parameters.length));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Too many parameters provided for constructor for ");
+            formatter.append(type);
+            formatter.append(String.format(". Expected %s, received %s.", parameterTypes.length, parameters.length));
+            throw new IllegalArgumentException(formatter.toString());
         }
         if (parameterTypes.length == parameters.length) {
             // No services to be mixed in
-            return verifyParameters(type, constructor, parameters);
+            return verifyParameters(constructor, parameters);
         } else {
             return addServicesToParameters(type, constructor, parameters);
         }
     }
 
-    private <T> Object[] verifyParameters(Class<T> type, SelectedConstructor constructor, Object[] parameters) {
+    private <T> Object[] verifyParameters(SelectedConstructor constructor, Object[] parameters) {
         Class<?>[] parameterTypes = constructor.getConstructor().getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> targetType = parameterTypes[i];
-            if (targetType.isPrimitive()) {
-                targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
-            }
             Object currentParameter = parameters[i];
-            if (currentParameter == null && constructor.allowsNullParameters()) {
+            if (targetType.isPrimitive()) {
+                if (currentParameter == null) {
+                    nullPrimitiveType(i, targetType);
+                }
+                targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
+            } else if (currentParameter == null) {
+                // Null is ok if the ConstructorSelector says it's ok
                 continue;
             }
             if (!targetType.isInstance(currentParameter)) {
-                StringBuilder builder = new StringBuilder(String.format("Unable to determine %s argument #%s:", type.getName(), i + 1));
-                builder.append(String.format(" value %s not assignable to type %s", currentParameter, parameterTypes[i]));
-                throw new IllegalArgumentException(builder.toString());
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Unable to determine constructor argument #" + (i + 1) + ": value ");
+                formatter.appendValue(currentParameter);
+                formatter.append(" not assignable to ");
+                formatter.append(parameterTypes[i]);
+                throw new IllegalArgumentException(formatter.toString());
             }
         }
         return parameters;
+    }
+
+    private void nullPrimitiveType(int index, Class<?> paramType) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Unable to determine constructor argument #" + (index + 1) + ": null value is not assignable to ");
+        formatter.append(paramType);
+        throw new IllegalArgumentException(formatter.toString());
     }
 
     private <T> Object[] addServicesToParameters(Class<T> type, SelectedConstructor constructor, Object[] parameters) {
@@ -104,33 +122,49 @@ public class DependencyInjectingInstantiator implements Instantiator {
         int pos = 0;
         for (int i = 0; i < resolvedParameters.length; i++) {
             Class<?> targetType = parameterTypes[i];
-            if (targetType.isPrimitive()) {
-                targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
-            }
             Type serviceType = genericTypes[i];
-            Object currentParameter;
-            if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
-                currentParameter = parameters[pos];
-                pos++;
-            } else {
-                currentParameter = services.find(serviceType);
-            }
-            if (currentParameter != null) {
-                resolvedParameters[i] = currentParameter;
-            } else {
-                StringBuilder builder = new StringBuilder(String.format("Unable to determine %s argument #%s:", type.getName(), i + 1));
-                if (pos < parameters.length) {
-                    builder.append(String.format(" value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
-                } else {
-                    builder.append(String.format(" missing parameter value of type %s", parameterTypes[i]));
+            if (pos < parameters.length) {
+                Object parameter = parameters[pos];
+                if (targetType.isPrimitive()) {
+                    if (parameter == null) {
+                        nullPrimitiveType(i, targetType);
+                    }
+                    targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
                 }
-                builder.append(String.format(", or no service of type %s", serviceType));
-                throw new IllegalArgumentException(builder.toString());
+                if (parameter == null || targetType.isInstance(parameter)) {
+                    resolvedParameters[i] = parameter;
+                    pos++;
+                    continue;
+                }
             }
+            Object service = services.find(serviceType);
+            if (service != null) {
+                resolvedParameters[i] = service;
+                continue;
+            }
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Unable to determine constructor argument #" + (i + 1) + ": ");
+            if (pos < parameters.length) {
+                formatter.append("value ");
+                formatter.appendValue(parameters[pos]);
+                formatter.append(" is not assignable to ");
+                formatter.append(parameterTypes[i]);
+            } else {
+                formatter.append("missing parameter of ");
+                formatter.append(parameterTypes[i]);
+            }
+            formatter.append(", or no service of type ");
+            formatter.append(serviceType.toString());
+            throw new IllegalArgumentException(formatter.toString());
         }
+
         if (pos != parameters.length) {
-            throw new IllegalArgumentException(String.format("Unexpected parameter provided for constructor for class %s.", type.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Unexpected parameter provided for constructor for ");
+            formatter.append(type);
+            throw new IllegalArgumentException(formatter.toString());
         }
+
         return resolvedParameters;
     }
 }

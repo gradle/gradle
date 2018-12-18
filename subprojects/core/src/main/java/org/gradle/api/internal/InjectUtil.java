@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.text.TreeFormatter;
+
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
@@ -54,9 +56,17 @@ public class InjectUtil {
                 return constructor;
             }
             if (constructor.getParameterTypes().length == 0) {
-                throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", reportAs.getName()));
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("The constructor for ");
+                formatter.append(reportAs);
+                formatter.append(" should be public or package protected or annotated with @Inject.");
+                throw new IllegalArgumentException(formatter.toString());
             } else {
-                throw new IllegalArgumentException(String.format("The constructor for class %s should be annotated with @Inject.", reportAs.getName()));
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("The constructor for ");
+                formatter.append(reportAs);
+                formatter.append(" should be annotated with @Inject.");
+                throw new IllegalArgumentException(formatter.toString());
             }
         }
 
@@ -68,10 +78,16 @@ public class InjectUtil {
         }
 
         if (injectConstructors.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", reportAs.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(reportAs);
+            formatter.append(" has no constructor that is annotated with @Inject.");
+            throw new IllegalArgumentException(formatter.toString());
         }
         if (injectConstructors.size() > 1) {
-            throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", reportAs.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(reportAs);
+            formatter.append(" has multiple constructors that are annotated with @Inject.");
+            throw new IllegalArgumentException(formatter.toString());
         }
         return injectConstructors.get(0);
     }
