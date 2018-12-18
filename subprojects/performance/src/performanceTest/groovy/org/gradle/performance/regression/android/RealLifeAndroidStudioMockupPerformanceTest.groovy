@@ -27,7 +27,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
 
         experiment(testProject) {
             minimumVersion = "4.3.1"
-            targetVersions = ["5.1-20181207101023+0000"]
+            targetVersions = ["5.2-20181218000039+0000"]
             action('org.gradle.performance.android.SyncAction') {
                 jvmArguments = ["-Xms5g", "-Xmx5g"]
             }
