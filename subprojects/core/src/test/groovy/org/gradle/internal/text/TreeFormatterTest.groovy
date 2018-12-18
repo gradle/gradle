@@ -218,6 +218,60 @@ root3:
   - some thing.""")
     }
 
+    def "can append class name"() {
+        when:
+        formatter.node("thing ")
+        formatter.append(String.class)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing class java.lang.String")
+    }
+
+    def "can append interface name"() {
+        when:
+        formatter.node("thing ")
+        formatter.append(List.class)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing interface java.util.List")
+    }
+
+    def "can append value"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValue(12)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing 12")
+    }
+
+    def "can append null value"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValue(null)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing null")
+    }
+
+    def "can append array of values"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValues(["a", 12, null] as Object[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing [a, 12, null]")
+    }
+
+    def "can append empty array of values"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValues([] as Object[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing []")
+    }
+
     def "cannot append after children started"() {
         when:
         formatter.node("Root")

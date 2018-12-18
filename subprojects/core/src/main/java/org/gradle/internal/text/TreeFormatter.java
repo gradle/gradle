@@ -16,11 +16,18 @@
 
 package org.gradle.internal.text;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.text.AbstractStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.TreeVisitor;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
+
+/**
+ * Constructs a tree of diagnostic messages.
+ */
 public class TreeFormatter extends TreeVisitor<String> {
     private final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
@@ -45,26 +52,40 @@ public class TreeFormatter extends TreeVisitor<String> {
         return buffer.toString();
     }
 
+    /**
+     * Starts a new node with the given text.
+     */
     @Override
-    public void node(String node) {
+    public void node(String text) {
         if (current.state == State.TraverseChildren) {
             // First child node
-            current = new Node(current, node);
+            current = new Node(current, text);
         } else {
             // A sibling node
             current.state = State.Done;
-            current = new Node(current.parent, node);
+            current = new Node(current.parent, text);
         }
         if (current.isTopLevelNode()) {
             if (current != current.parent.firstChild) {
                 // Not the first top level node
                 original.format("%n");
             }
-            original.append(node);
+            original.append(text);
             current.valueWritten = true;
         }
     }
 
+    /**
+     * Starts a new node with the given type name.
+     */
+    public void node(Class<?> type) {
+        // Implementation is currently dumb, can be made smarter
+        node(StringUtils.capitalize(type.toString()));
+    }
+
+    /**
+     * Appends text to the current node.
+     */
     public void append(CharSequence text) {
         if (current.state == State.CollectValue) {
             if (current.valueWritten) {
@@ -75,6 +96,30 @@ public class TreeFormatter extends TreeVisitor<String> {
         } else {
             throw new IllegalStateException("Cannot append text to node.");
         }
+    }
+
+    /**
+     * Appends a type name to the current node.
+     */
+    public void append(Class<?> type) {
+        // Implementation is currently dumb, can be made smarter
+        append(type.toString());
+    }
+
+    /**
+     * Appends some user provided value to the current node.
+     */
+    public void appendValue(@Nullable Object value) {
+        // Implementation is currently dumb, can be made smarter
+        append(value == null ? "null" : value.toString());
+    }
+
+    /**
+     * Appends some user provided values to the current node.
+     */
+    public void appendValues(Object[] values) {
+        // Implementation is currently dumb, can be made smarter
+        append(Arrays.toString(values));
     }
 
     @Override
