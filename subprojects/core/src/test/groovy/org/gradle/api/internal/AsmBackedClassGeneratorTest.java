@@ -337,26 +337,25 @@ public class AsmBackedClassGeneratorTest {
         } catch (InvocationTargetException e) {
             assertThat(e.getCause(), sameInstance(UnconstructibleBean.failure));
         }
+    }
 
-        try {
-            newInstance(AbstractBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for abstract class 'AbstractBean'."));
-        }
-
+    @Test
+    public void cannotCreateInstanceOfPrivateClass() throws Exception {
         try {
             newInstance(PrivateBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
+            assertThat(e.getMessage(), equalTo("Cannot create a decorated class for private class 'PrivateBean'."));
         }
+    }
 
+    @Test
+    public void cannotCreateInstanceOfFinalClass() throws Exception {
         try {
             newInstance(FinalBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for final class 'FinalBean'."));
+            assertThat(e.getMessage(), equalTo("Cannot create a decorated class for final class 'FinalBean'."));
         }
     }
 
@@ -1366,10 +1365,6 @@ public class AsmBackedClassGeneratorTest {
         public UnconstructibleBean() throws Throwable {
             throw failure;
         }
-    }
-
-    public static abstract class AbstractBean {
-        abstract void implementMe();
     }
 
     public static final class FinalBean {

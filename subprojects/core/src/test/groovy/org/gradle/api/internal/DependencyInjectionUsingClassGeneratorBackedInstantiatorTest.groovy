@@ -40,6 +40,17 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         result.someService == 'string'
     }
 
+    def "injects service using abstract getter injection"() {
+        given:
+        _ * services.get(String) >> "string"
+
+        when:
+        def result = instantiator.newInstance(AbstractHasGetterInjection)
+
+        then:
+        result.someService == 'string'
+    }
+
     def "constructor can use getter injected service"() {
         given:
         _ * services.get(String) >> "string"
@@ -66,6 +77,10 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     static class HasGetterInjection {
         @Inject String getSomeService() { throw new UnsupportedOperationException() }
+    }
+
+    static abstract class AbstractHasGetterInjection {
+        abstract @Inject String getSomeService()
     }
 
     static class UsesInjectedServiceFromConstructor {

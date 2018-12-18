@@ -74,12 +74,6 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
             formatter.append(" is a non-static inner class.");
             throw new IllegalArgumentException(formatter.toString());
         }
-        if (Modifier.isAbstract(type.getModifiers())) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(type);
-            formatter.append(" is an abstract class.");
-            throw new IllegalArgumentException(formatter.toString());
-        }
     }
 
     public static class CachedConstructor implements SelectedConstructor {
