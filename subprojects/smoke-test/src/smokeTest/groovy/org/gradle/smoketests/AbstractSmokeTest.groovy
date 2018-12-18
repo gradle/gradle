@@ -58,6 +58,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = "1.5.8.1"
 
+        // https://plugins.gradle.org/plugin/com.github.spotbugs
+        static spotbugs = "1.6.6"
+
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "4.1.0"
 
