@@ -26,8 +26,10 @@ gradlebuildJava {
 }
 
 dependencies {
+
     testImplementation(project(":kotlinDslTestFixtures"))
-    testImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
+
+    integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 }
 
 val pluginBundles = listOf(
@@ -47,7 +49,7 @@ tasks {
         }
     }
 
-    withType<Test>().configureEach {
+    integTest {
         dependsOn(testEnvironment)
     }
 
@@ -63,7 +65,7 @@ tasks {
 
         dependsOn(futurePluginVersionsTasks)
         inputs.files(futurePluginVersionsTasks.map { it.outputFile })
-        outputs.file(processTestResources.get().futurePluginVersionsFile)
+        outputs.file(processIntegTestResources.get().futurePluginVersionsFile)
 
         doLast {
             outputs.files.singleFile.bufferedWriter().use { writer ->
@@ -74,7 +76,7 @@ tasks {
         }
     }
 
-    processTestResources {
+    processIntegTestResources {
         dependsOn(writeFuturePluginVersions)
     }
 }
