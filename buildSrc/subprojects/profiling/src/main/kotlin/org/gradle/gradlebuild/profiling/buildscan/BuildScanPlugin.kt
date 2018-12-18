@@ -26,6 +26,7 @@ import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.build.ClasspathManifest
 import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.apply
@@ -69,7 +70,7 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer && !isTravis) {
+        if (isCiServer && !isTravis && !isJenkins) {
             extractAllReportsFromCI()
             monitorUnexpectedCacheMisses()
         }
@@ -165,14 +166,22 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                if (isTravis) {
-                    link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
-                    value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
-                    setCommitId(System.getenv("TRAVIS_COMMIT"))
-                } else {
-                    link("TeamCity Build", System.getenv("BUILD_URL"))
-                    value("Build ID", System.getenv("BUILD_ID"))
-                    setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                when {
+                    isTravis -> {
+                        link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
+                        value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
+                        setCommitId(System.getenv("TRAVIS_COMMIT"))
+                    }
+                    isJenkins -> {
+                        link("Jenkins Build", System.getenv("BUILD_URL"))
+                        value("Build ID", System.getenv("BUILD_ID"))
+                        setCommitId(System.getenv("GIT_COMMIT"))
+                    }
+                    else -> {
+                        link("TeamCity Build", System.getenv("BUILD_URL"))
+                        value("Build ID", System.getenv("BUILD_ID"))
+                        setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                    }
                 }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)

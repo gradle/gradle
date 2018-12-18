@@ -7,6 +7,7 @@ import org.gradle.internal.os.OperatingSystem
 object BuildEnvironment {
     val isCiServer = "CI" in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
+    val isJenkins = "JENKINS_HOME" in System.getenv()
     val gradleKotlinDslVersion = "1.1.1"
     val kotlinVersion = "1.3.11"
     val jvm = org.gradle.internal.jvm.Jvm.current()
