@@ -156,11 +156,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 throw new GradleException("Included build in " + build.getRootDirectory() + " has a root project whose name '" + buildName + "' is the same as a project of the main build.");
             }
         }
-        for (String buildNAme : names.keySet()) {
-            Set<IncludedBuildState> buildsWithName = names.get(buildNAme);
+        for (String buildName : names.keySet()) {
+            Set<IncludedBuildState> buildsWithName = names.get(buildName);
             if (buildsWithName.size() > 1) {
                 TreeFormatter visitor = new TreeFormatter();
-                visitor.node("Multiple included builds have the same root project name '" + buildNAme + "'");
+                visitor.node("Multiple included builds have the same root project name '" + buildName + "'");
                 visitor.startChildren();
                 for (IncludedBuildState build : buildsWithName) {
                     visitor.node("Included build in " + build.getRootDirectory());
