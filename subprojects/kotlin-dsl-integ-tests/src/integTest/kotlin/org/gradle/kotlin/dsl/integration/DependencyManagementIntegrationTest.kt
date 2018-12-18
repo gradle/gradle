@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
@@ -26,7 +25,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class DependencyManagementIntegrationTest : AbstractIntegrationTest() {
+class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `declare dependency constraints`() {
@@ -88,8 +87,7 @@ class DependencyManagementIntegrationTest : AbstractIntegrationTest() {
             repositories {
                 ivy {
                     url = uri("${existing("repo").normalisedPath}")
-                    layout("pattern") {
-                        this as IvyPatternRepositoryLayout
+                    patternLayout {
                         artifact("[organisation]/[module]-[revision].[ext]")
                     }
                 }

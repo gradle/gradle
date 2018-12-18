@@ -23,7 +23,6 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
-import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.testFixturesProjectDir
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
@@ -39,7 +38,7 @@ import org.junit.Test
 import java.io.File
 
 
-class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
+class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
@@ -130,6 +129,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withKotlinBuildSrc()
 
         withFile("buildSrc/src/main/kotlin/build/DeepThought.kt", """
@@ -172,6 +173,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             apply<build.DeepThoughtPlugin>()
         """)
 
+        executer.expectDeprecationWarning()
+
         val output = build("compute").output
         assert(output.contains("buildscript: 42"))
         assert(output.contains("*42*"))
@@ -210,6 +213,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         val differentKotlinVersion = "1.0.7"
         val expectedKotlinCompilerVersionString = "1.0.7-release-1"
 
@@ -244,6 +249,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
         """)
+
+        executer.expectDeprecationWarning()
 
         assertThat(
             build("print-kotlin-version").output,
@@ -526,7 +533,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript(usageFor("Project"))
 
         assertThat(
-            build("help").output,
+            build("help").error,
             allOf(
                 containsString("Error logging from Settings"),
                 containsString("Error logging from Project")))
@@ -804,6 +811,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `given generic extension types they can be accessed and configured`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withDefaultSettingsIn("buildSrc")
 
         withFile("buildSrc/build.gradle.kts", """
@@ -863,6 +872,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
             require(the<NamedDomainObjectContainer<my.Book>>().size == 1)
         """)
+
+        executer.expectDeprecationWarning()
 
         build("help")
     }

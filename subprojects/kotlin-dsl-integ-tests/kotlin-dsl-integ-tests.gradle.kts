@@ -31,6 +31,11 @@ dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
 
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
+
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
+        integTestRuntimeOnly(it)
+    }
 }
 
 val pluginBundles = listOf(

@@ -226,20 +226,19 @@ open class AbstractIntegrationTest {
 
     private
     val gradlePropertiesFile by lazy { existing("gradle.properties") }
+
+
+    fun canPublishBuildScan() {
+        assertThat(
+            build("tasks", "--scan").output,
+            containsBuildScanPluginOutput())
+    }
+
+    fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
+        containsString("Publishing build scan..."),
+        not(containsString("The build scan plugin was applied after other plugins."))
+    )
 }
-
-
-fun AbstractIntegrationTest.canPublishBuildScan() {
-    assertThat(
-        build("tasks", "--scan").output,
-        containsBuildScanPluginOutput())
-}
-
-
-fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
-    containsString("Publishing build scan..."),
-    not(containsString("The build scan plugin was applied after other plugins."))
-)
 
 
 fun gradleRunnerFor(projectDir: File, vararg arguments: String): GradleRunner = GradleRunner.create().run {
