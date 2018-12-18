@@ -217,6 +217,36 @@ class PropertyExtractorTest extends Specification {
         )
     }
 
+    static abstract class BaseClassWithGetters {
+        @PropertyType2
+        abstract Iterable<String> getStrings()
+    }
+
+    static class WithGetters extends BaseClassWithGetters {
+        @PropertyType1
+        boolean isBoolean() {
+            return true
+        }
+
+        @SupportingAnnotation("getBoolean")
+        boolean getBoolean() {
+            return isBoolean()
+        }
+
+        @SupportingAnnotation("getStrings")
+        @Override
+        List<String> getStrings() {
+            return ["some", "strings"]
+        }
+    }
+
+    def "annotations are gathered from different getters"() {
+        when:
+        def typeMetadata = extractor.extractPropertyMetadata(WithGetters)
+        then:
+        assertPropertyTypes(typeMetadata, boolean: PropertyType1, strings: PropertyType2)
+    }
+
     private static class BaseType {
         @PropertyType1 String baseValue
         @PropertyType1 String superclassValue
