@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -169,7 +170,7 @@ class ProjectScopeServicesTest extends Specification {
         service.is(testDslService)
 
         and:
-        1 * dependencyManagementServices.addDslServices(_) >> { ServiceRegistration registration ->
+        1 * dependencyManagementServices.addDslServices(_, _) >> { ServiceRegistration registration, DomainObjectContext context ->
             registration.add(Runnable, testDslService)
         }
     }

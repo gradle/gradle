@@ -114,7 +114,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration);
+                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerProjectServices(registration);
                 }

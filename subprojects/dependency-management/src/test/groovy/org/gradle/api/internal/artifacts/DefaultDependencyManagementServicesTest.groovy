@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.Action
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
@@ -39,6 +40,7 @@ import java.lang.reflect.ParameterizedType
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
+    def domainObjectContext = Mock(DomainObjectContext)
 
     def setup() {
         _ * parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
@@ -53,7 +55,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         def registry = new DefaultServiceRegistry(parent)
 
         when:
-        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration, domainObjectContext) } as Action)
         def resolutionServices = registry.get(DependencyResolutionServices)
 
         then:
@@ -70,7 +72,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         def registry = new DefaultServiceRegistry(parent)
 
         when:
-        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration, domainObjectContext) } as Action)
         def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
@@ -84,7 +86,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         def registry = new DefaultServiceRegistry(parent)
 
         when:
-        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration, domainObjectContext) } as Action)
         def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
