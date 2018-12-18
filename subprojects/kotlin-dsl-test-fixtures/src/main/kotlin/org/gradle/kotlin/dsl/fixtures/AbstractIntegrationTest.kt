@@ -259,9 +259,9 @@ fun customDaemonRegistry() =
 fun customInstallation() =
     customInstallationBuildDir.listFiles()?.let {
         it.singleOrNull { it.name.startsWith("gradle") } ?: throw IllegalStateException(
-            "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`."
+            "Expected 1 custom installation but found ${it.size}. Run `./gradlew :kotlinDslTestFixtures:clean`."
         )
-    } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+    } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew :kotlinDslTestFixtures:customInstallation`.")
 
 
 val testFixturesProjectDir = File("../kotlin-dsl-test-fixtures").canonicalFile!!
