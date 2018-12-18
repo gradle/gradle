@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.futurePluginVersionsFile
 
@@ -49,7 +50,8 @@ tasks {
         }
     }
 
-    integTest {
+    val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
+    integTestTasks.configureEach {
         dependsOn(testEnvironment)
     }
 

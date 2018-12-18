@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
@@ -116,7 +117,8 @@ tasks {
         }
     }
 
-    integTest {
+    val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
+    integTestTasks.configureEach {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
