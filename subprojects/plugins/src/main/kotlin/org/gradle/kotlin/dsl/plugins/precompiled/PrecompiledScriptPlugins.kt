@@ -212,13 +212,16 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
     val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
     sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
-    val generateScriptPluginAdapters by tasks.registering(GenerateScriptPluginAdapters::class) {
-        plugins = scriptPlugins
-        outputDirectory.set(generatedSourcesDir)
-    }
+    tasks {
 
-    tasks.named("compileKotlin") {
-        it.dependsOn(generateScriptPluginAdapters)
+        val generateScriptPluginAdapters by registering(GenerateScriptPluginAdapters::class) {
+            plugins = scriptPlugins
+            outputDirectory.set(generatedSourcesDir)
+        }
+
+        "compileKotlin" {
+            dependsOn(generateScriptPluginAdapters)
+        }
     }
 }
 
