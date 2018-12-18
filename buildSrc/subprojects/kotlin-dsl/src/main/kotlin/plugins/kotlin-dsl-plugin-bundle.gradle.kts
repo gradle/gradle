@@ -33,7 +33,7 @@ tasks {
     "validateTaskProperties"(ValidateTaskProperties::class) {
         failOnWarning = true
     }
-    "test" {
+    "integTest" {
         dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }
@@ -51,7 +51,7 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
 
-    tasks.named("test") {
+    tasks.named("integTest") {
         dependsOn(publishPluginsToTestRepository)
     }
 
@@ -87,7 +87,7 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
 
 fun Project.registerWriteFuturePluginVersionsTask(): TaskProvider<WriteProperties> {
-    val processTestResources = tasks["processTestResources"] as ProcessResources
+    val processTestResources = tasks["processIntegTestResources"] as ProcessResources
     return tasks.register<WriteProperties>("writeFuturePluginVersions") {
         outputFile = processTestResources.futurePluginVersionsFile
         processTestResources.dependsOn(this)

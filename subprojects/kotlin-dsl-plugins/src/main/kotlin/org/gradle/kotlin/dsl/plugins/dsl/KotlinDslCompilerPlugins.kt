@@ -77,7 +77,6 @@ fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
     )
 
 
-internal
 object KotlinCompilerArguments {
     const val javaParameters = "-java-parameters"
     const val jsr305Strict = "-Xjsr305=strict"
@@ -119,7 +118,6 @@ class KotlinCompilerWarningSilencingLogger(
 }
 
 
-internal
 fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
     "The `kotlin-dsl` plugin applied to $target enables experimental Kotlin compiler features. For more information see $link"
 

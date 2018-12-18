@@ -65,7 +65,6 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
 }
 
 
-internal
 fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
     if (kotlinVersion != embeddedKotlinVersion) {
         warn(
