@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.tasks.Internal;
+
 /**
  * Objects that can be extended at runtime with other objects.
  *
@@ -84,6 +86,7 @@ public interface ExtensionAware {
     /**
      * The container of extensions.
      */
+    @Internal
     ExtensionContainer getExtensions();
 
 }

@@ -24,14 +24,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import groovy.lang.GroovyObject;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -46,7 +40,6 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -86,7 +79,7 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
 
     // Avoid reflecting on classes we know we don't need to look at
     private static final ImmutableSet<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
-        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
+        Object.class, GroovyObject.class, ScriptOrigin.class, DynamicObjectAware.class
     );
 
     private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;

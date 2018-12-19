@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -27,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
 
@@ -37,6 +37,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -44,18 +45,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+
 public class PropertyExtractor {
 
     private final Set<Class<? extends Annotation>> primaryAnnotationTypes;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final ImmutableSet<Class<?>> ignoredSuperclasses;
+    private final ImmutableSet<Equivalence.Wrapper<Method>> ignoredMethods;
 
     public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses) {
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
         this.ignoredSuperclasses = ignoredSuperclasses;
+        Iterable<Method> ignoredMethods = Iterables.concat(Iterables.transform(ignoredSuperclasses, new Function<Class<?>, Iterable<Method>>() {
+            @Override
+            public Iterable<Method> apply(Class<?> input) {
+                return Arrays.asList(input.getMethods());
+            }
+        }));
+        this.ignoredMethods = ImmutableSet.copyOf(
+            Iterables.transform(
+                ignoredMethods, new Function<Method, Equivalence.Wrapper<Method>>() {
+                    public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
+                        return SIGNATURE_EQUIVALENCE.wrap(input);
+                    }
+                }
+            )
+        );
     }
 
     public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
@@ -72,9 +91,6 @@ public class PropertyExtractor {
                 for (Getter getter : getters) {
                     Method method = getter.getMethod();
                     if (method.isSynthetic()) {
-                        continue;
-                    }
-                    if (method.getName().equals("getContentHash") || method.getName().equals("getOriginalClassName")) {
                         continue;
                     }
                     String fieldName = getter.getName();
@@ -195,7 +211,7 @@ public class PropertyExtractor {
         return fields;
     }
 
-    private static List<Getter> getGetters(Class<?> type) {
+    private List<Getter> getGetters(Class<?> type) {
         Method[] methods = type.getDeclaredMethods();
         List<Getter> getters = Lists.newArrayListWithCapacity(methods.length);
         for (Method method : methods) {
@@ -205,7 +221,7 @@ public class PropertyExtractor {
                 continue;
             }
             // We only care about actual methods the user added
-            if (method.isBridge() || GroovyMethods.isObjectMethod(method)) {
+            if (method.isBridge() || ignoredMethods.contains(SIGNATURE_EQUIVALENCE.wrap(method))) {
                 continue;
             }
             getters.add(new Getter(method, accessorType.propertyNameFor(method)));

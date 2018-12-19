@@ -17,10 +17,17 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.HasConvention
+import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.PropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
@@ -33,6 +40,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.scripts.ScriptOrigin
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
@@ -84,7 +92,7 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
 
         when:
         def typePropertyMetadata = metadataStore.getTypePropertyMetadata(TaskWithCustomAnnotation)
-        def propertiesMetadata = typePropertyMetadata.propertiesMetadata
+        def propertiesMetadata = typePropertyMetadata.propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
         propertiesMetadata.size() == 1
@@ -194,12 +202,25 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultTypePropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def propertiesMetadata = metadataStore.getTypePropertyMetadata(ClasspathPropertyTask).propertiesMetadata
+        def propertiesMetadata = metadataStore.getTypePropertyMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
         propertiesMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
         propertiesMetadata*.propertyType as List == [Classpath, Classpath]
         propertiesMetadata*.validationMessages.flatten().empty
+    }
+
+    @Unroll
+    def "all properties on #workClass are ignored"() {
+        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+
+        when:
+        def propertiesMetadata = metadataStore.getTypePropertyMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
+        then:
+        propertiesMetadata*.fieldName.empty
+
+        where:
+        workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")

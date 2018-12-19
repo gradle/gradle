@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.scripts;
 
+import org.gradle.api.tasks.Internal;
+
 /**
  * This interface is implemented by remapped build scripts.
  */
@@ -23,10 +25,12 @@ public interface ScriptOrigin {
     /**
      * Returns the non-remapped class name.
      */
+    @Internal
     String getOriginalClassName();
 
     /**
      * Returns the hash of the bytecode of the non-remapped class.
      */
+    @Internal
     String getContentHash();
 }
