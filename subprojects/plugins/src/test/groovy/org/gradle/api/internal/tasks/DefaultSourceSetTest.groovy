@@ -41,7 +41,7 @@ class DefaultSourceSetTest extends Specification {
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, TestUtil.objectFactory(tmpDir.testDirectory), TestUtil.instantiatorFactory().decorate())
+        def s = TestUtil.instantiatorFactory().decorate().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
     }
