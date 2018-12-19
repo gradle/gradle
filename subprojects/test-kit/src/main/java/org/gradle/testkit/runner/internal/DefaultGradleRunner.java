@@ -61,6 +61,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private OutputStream standardError;
     private InputStream standardInput;
     private boolean forwardingSystemStreams;
+    private Map<String, String> environment;
 
     public DefaultGradleRunner() {
         this(new ToolingApiGradleExecutor(), calculateTestKitDirProvider(SystemProperties.getInstance()));
@@ -184,6 +185,17 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
+    public Map<String, String> getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public GradleRunner withEnvironment(Map<String, String> environment) {
+        this.environment = environment;
+        return this;
+    }
+
+    @Override
     public GradleRunner forwardStdOutput(Writer writer) {
         if (forwardingSystemStreams) {
             forwardingSystemStreams = false;
@@ -292,7 +304,8 @@ public class DefaultGradleRunner extends GradleRunner {
             debug,
             standardOutput,
             standardError,
-            standardInput
+            standardInput,
+            environment
         ));
 
         resultVerification.execute(execResult);

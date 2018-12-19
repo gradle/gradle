@@ -18,10 +18,12 @@ package org.gradle.testkit.runner;
 
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Executes a Gradle build, allowing inspection of the outcome.
@@ -296,6 +298,26 @@ public abstract class GradleRunner {
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean flag);
+
+    /**
+     * Environment variables for the build.
+     * {@code null} is valid and indicates the build will use system environment.
+     *
+     * @return environment variables
+     * @since 5.2
+     */
+    @Nullable
+    public abstract Map<String, String> getEnvironment();
+
+    /**
+     * Sets the environment variables for the build.
+     * {@code null} is permitted and will make the build use system environment.
+     *
+     * @param environmentVariables the variables to use, null ok.
+     * @return this
+     * @since 5.2
+     */
+    public abstract GradleRunner withEnvironment(Map<String, String> environmentVariables);
 
     /**
      * Configures the runner to forward standard output from builds to the given writer.
