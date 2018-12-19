@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -47,7 +47,6 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -55,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataStore {
+public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataStore {
 
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
         new InputFilePropertyAnnotationHandler(),
@@ -75,17 +74,17 @@ public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataSto
         new NoOpPropertyAnnotationHandler(OptionValues.class)
     );
 
-    private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
-    private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
+    private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
+    private final CrossBuildInMemoryCache<Class<?>, TypePropertyMetadata> cache;
     private final PropertyExtractor propertyExtractor;
-    private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
+    private Transformer<TypePropertyMetadata, Class<?>> typeMetadataFactory = new Transformer<TypePropertyMetadata, Class<?>>() {
         @Override
-        public TypeMetadata transform(Class<?> type) {
-            return createTypeMetadata(type);
+        public TypePropertyMetadata transform(Class<?> type) {
+            return createTypePropertyMetadata(type);
         }
     };
 
-    public DefaultWorkPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultTypePropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
         this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -129,62 +128,41 @@ public class DefaultWorkPropertyMetadataStore implements WorkPropertyMetadataSto
     }
 
     @Override
-    public <T> TypeMetadata getTypeMetadata(final Class<T> type) {
+    public <T> TypePropertyMetadata getTypePropertyMetadata(final Class<T> type) {
         return cache.get(type, typeMetadataFactory);
     }
 
-    private <T> TypeMetadata createTypeMetadata(Class<T> type) {
-        Set<PropertyMetadata> extractedProperties = propertyExtractor.extractPropertyMetadata(type);
-        ImmutableSet.Builder<WorkPropertyMetadata> builder = ImmutableSet.builder();
-        for (PropertyMetadata property : extractedProperties) {
-            builder.add(new DefaultWorkPropertyMetadata(property, annotationHandlers.get(property.getPropertyType())));
-        }
-        return new DefaultTypeMetadata(builder.build());
+    private <T> TypePropertyMetadata createTypePropertyMetadata(Class<T> type) {
+        return new DefaultTypePropertyMetadata(propertyExtractor.extractPropertyMetadata(type), annotationHandlers);
     }
 
-    private static class DefaultTypeMetadata implements TypeMetadata {
-        private final ImmutableSet<WorkPropertyMetadata> propertiesMetadata;
+    private static class DefaultTypePropertyMetadata implements TypePropertyMetadata {
+        private final ImmutableSet<PropertyMetadata> propertiesMetadata;
+        private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
 
-        DefaultTypeMetadata(ImmutableSet<WorkPropertyMetadata> propertiesMetadata) {
+        DefaultTypePropertyMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
             this.propertiesMetadata = propertiesMetadata;
+            this.annotationHandlers = annotationHandlers;
         }
 
         @Override
-        public Set<WorkPropertyMetadata> getPropertiesMetadata() {
+        public Set<PropertyMetadata> getPropertiesMetadata() {
             return propertiesMetadata;
         }
 
         @Override
         public boolean hasAnnotatedProperties() {
-            for (WorkPropertyMetadata metadata : propertiesMetadata) {
-                if (metadata.getPropertyMetadata().getPropertyType() != null) {
+            for (PropertyMetadata metadata : propertiesMetadata) {
+                if (metadata.getPropertyType() != null) {
                     return true;
                 }
             }
             return false;
         }
-    }
-
-    private static class DefaultWorkPropertyMetadata implements WorkPropertyMetadata {
-        private final PropertyAnnotationHandler annotationHandler;
-        private final PropertyMetadata propertyMetadata;
-
-        public DefaultWorkPropertyMetadata(PropertyMetadata propertyMetadata, @Nullable PropertyAnnotationHandler annotationHandler) {
-            this.propertyMetadata = propertyMetadata;
-            this.annotationHandler = annotationHandler;
-        }
 
         @Override
-        public PropertyMetadata getPropertyMetadata() {
-            return propertyMetadata;
-        }
-
-        @Override
-        public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-            if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
-                annotationHandler.visitPropertyValue(propertyValue, visitor, specFactory, context);
-            }
+        public PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata) {
+            return annotationHandlers.get(propertyMetadata.getPropertyType());
         }
     }
-
 }

@@ -16,34 +16,34 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.WorkPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadataStore;
 
 import java.util.Map;
 
 public class RuntimeBeanNodeFactory {
 
-    private final WorkPropertyMetadataStore metadataStore;
+    private final TypePropertyMetadataStore metadataStore;
 
-    public RuntimeBeanNodeFactory(WorkPropertyMetadataStore metadataStore) {
+    public RuntimeBeanNodeFactory(TypePropertyMetadataStore metadataStore) {
         this.metadataStore = metadataStore;
     }
 
     public RuntimeBeanNode<?> createRoot(Object bean) {
-        return new RootRuntimeBeanNode(bean, metadataStore.getTypeMetadata(bean.getClass()));
+        return new RootRuntimeBeanNode(bean, metadataStore.getTypePropertyMetadata(bean.getClass()));
     }
 
     public RuntimeBeanNode<?> create(RuntimeBeanNode parentNode, String propertyName, Object bean) {
         parentNode.checkCycles(propertyName, bean);
-        TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
-        if (!typeMetadata.hasAnnotatedProperties()) {
+        TypePropertyMetadata typePropertyMetadata = metadataStore.getTypePropertyMetadata(bean.getClass());
+        if (!typePropertyMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
-                return new MapRuntimeBeanNode(parentNode, propertyName, (Map<?, ?>) bean, typeMetadata);
+                return new MapRuntimeBeanNode(parentNode, propertyName, (Map<?, ?>) bean, typePropertyMetadata);
             }
             if (bean instanceof Iterable<?>) {
-                return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean, typeMetadata);
+                return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean, typePropertyMetadata);
             }
         }
-        return new NestedRuntimeBeanNode(parentNode, propertyName, bean, typeMetadata);
+        return new NestedRuntimeBeanNode(parentNode, propertyName, bean, typePropertyMetadata);
     }
 }

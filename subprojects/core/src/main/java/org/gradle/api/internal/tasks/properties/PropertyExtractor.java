@@ -70,7 +70,7 @@ public class PropertyExtractor {
         this.annotationOverrides = annotationOverrides;
     }
 
-    public <T> Set<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
+    public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = primaryAnnotationTypes;
         final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {

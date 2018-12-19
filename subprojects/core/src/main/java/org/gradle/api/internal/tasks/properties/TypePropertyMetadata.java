@@ -16,9 +16,14 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+
+import javax.annotation.Nullable;
 import java.util.Set;
 
-public interface TypeMetadata {
-    Set<WorkPropertyMetadata> getPropertiesMetadata();
+public interface TypePropertyMetadata {
+    Set<PropertyMetadata> getPropertiesMetadata();
     boolean hasAnnotatedProperties();
+    @Nullable
+    PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
 }

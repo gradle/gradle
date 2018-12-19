@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 public abstract class AbstractPropertyNode<T> {
     private final String propertyName;
     private final AbstractPropertyNode<T> parentNode;
-    private final TypeMetadata typeMetadata;
+    private final TypePropertyMetadata typePropertyMetadata;
 
-    public AbstractPropertyNode(@Nullable AbstractPropertyNode<T> parentNode, @Nullable String propertyName, TypeMetadata typeMetadata) {
+    public AbstractPropertyNode(@Nullable AbstractPropertyNode<T> parentNode, @Nullable String propertyName, TypePropertyMetadata typePropertyMetadata) {
         this.propertyName = propertyName;
         this.parentNode = parentNode;
-        this.typeMetadata = typeMetadata;
+        this.typePropertyMetadata = typePropertyMetadata;
     }
 
     protected String getQualifiedPropertyName(String childPropertyName) {
@@ -40,8 +40,8 @@ public abstract class AbstractPropertyNode<T> {
         return propertyName;
     }
 
-    public TypeMetadata getTypeMetadata() {
-        return typeMetadata;
+    public TypePropertyMetadata getTypePropertyMetadata() {
+        return typePropertyMetadata;
     }
 
     @Nullable

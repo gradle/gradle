@@ -46,8 +46,8 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.tasks.properties.DefaultWorkPropertyMetadataStore;
-import org.gradle.api.internal.tasks.properties.WorkPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.DefaultTypePropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -361,8 +361,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
-    WorkPropertyMetadataStore createWorkPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultWorkPropertyMetadataStore(annotationHandlers, cacheFactory);
+    TypePropertyMetadataStore createTypePropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTypePropertyMetadataStore(annotationHandlers, cacheFactory);
     }
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
