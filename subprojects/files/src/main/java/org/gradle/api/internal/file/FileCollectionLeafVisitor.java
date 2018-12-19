@@ -38,5 +38,5 @@ public interface FileCollectionLeafVisitor {
     /**
      * Visits a file tree at a root file on the file system (potentially filtered).
      */
-    void visitDirectoryTree(File root, PatternSet patterns);
+    void visitFileTree(File root, PatternSet patterns);
 }

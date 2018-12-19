@@ -77,7 +77,7 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitDirectoryTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, PatternSet patterns) {
             if (root.isDirectory()) {
                 sourceRoots.add(root);
             } else {
