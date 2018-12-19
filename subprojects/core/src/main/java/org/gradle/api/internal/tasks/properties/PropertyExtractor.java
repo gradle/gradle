@@ -27,19 +27,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import groovy.lang.GroovyObject;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
-import org.gradle.internal.scripts.ScriptOrigin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,21 +49,19 @@ public class PropertyExtractor {
     private final Set<Class<? extends Annotation>> primaryAnnotationTypes;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
-    // Avoid reflecting on classes we know we don't need to look at
-    private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
-        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
-    );
+    private final ImmutableSet<Class<?>> ignoredSuperclasses;
 
-    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides) {
+    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses) {
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
+        this.ignoredSuperclasses = ignoredSuperclasses;
     }
 
     public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = primaryAnnotationTypes;
         final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
-        Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
+        Types.walkTypeHierarchy(type, ignoredSuperclasses, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
                 if (type.isSynthetic()) {

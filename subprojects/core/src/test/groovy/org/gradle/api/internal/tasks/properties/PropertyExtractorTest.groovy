@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties
 
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import spock.lang.Issue
 import spock.lang.Specification
@@ -31,7 +30,7 @@ import java.lang.annotation.Target
 
 class PropertyExtractorTest extends Specification {
 
-    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override))
+    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class))
 
     class WithPropertyType1 {
         @PropertyType1 getFile() {}
@@ -131,7 +130,7 @@ class PropertyExtractorTest extends Specification {
         metadata*.validationMessages.flatten().empty
     }
 
-    class TaskWithAnnotationsOnPrivateProperties extends DefaultTask {
+    class WithAnnotationsOnPrivateProperties {
         @PropertyType1
         private String getInput() {
             'Input'
@@ -149,7 +148,7 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about annotations on private properties"() {
         when:
-        def metadata = extractor.extractPropertyMetadata(TaskWithAnnotationsOnPrivateProperties)
+        def metadata = extractor.extractPropertyMetadata(WithAnnotationsOnPrivateProperties)
 
         then:
         assertPropertyTypes(metadata, input: PropertyType1, outputFile: PropertyType2, notAnInput: null)
@@ -181,7 +180,7 @@ class PropertyExtractorTest extends Specification {
         ] as Set
     }
 
-    class WithNonConflictingPropertyTypes extends DefaultTask {
+    class WithNonConflictingPropertyTypes {
         @PropertyType1
         @PropertyType1Override
         FileCollection classpath

@@ -23,7 +23,15 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import groovy.lang.GroovyObject;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -38,6 +46,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -46,6 +55,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.scripts.ScriptOrigin;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
@@ -74,6 +84,11 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
         new NoOpPropertyAnnotationHandler(OptionValues.class)
     );
 
+    // Avoid reflecting on classes we know we don't need to look at
+    private static final ImmutableSet<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
+        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
+    );
+
     private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final CrossBuildInMemoryCache<Class<?>, TypePropertyMetadata> cache;
     private final PropertyExtractor propertyExtractor;
@@ -99,12 +114,7 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
                 return handler.getAnnotationType();
             }
         })).keySet());
-        this.propertyExtractor = new PropertyExtractor(((Map<Class<? extends Annotation>, PropertyAnnotationHandler>) Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
-            @Override
-            public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
-                return handler.getAnnotationType();
-            }
-        })).keySet(), relevantAnnotationTypes, annotationOverrides);
+        this.propertyExtractor = new PropertyExtractor(annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES);
         this.cache = cacheFactory.newClassCache();
     }
 
