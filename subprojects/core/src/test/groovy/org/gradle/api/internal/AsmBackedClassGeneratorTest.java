@@ -31,6 +31,7 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -93,7 +94,7 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) generator.newInstance(constructor, null, null, args);
+                    return (T) generator.newInstance(constructor, null, DirectInstantiator.INSTANCE, args);
                 }
             }
         }
@@ -101,7 +102,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInGeneratedSubclassInterface() throws Exception {
+    public void mixesInGeneratedSubclassInterface() {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(GeneratedSubclasses.unpack(generatedClass).equals(Bean.class));
         assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
@@ -110,7 +111,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void mixesInConventionAwareInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
-        assertTrue(IConventionAware.class.isInstance(bean));
+        assertTrue(bean instanceof IConventionAware);
 
         IConventionAware conventionAware = (IConventionAware) bean;
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
@@ -120,7 +121,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void mixesInDynamicObjectAwareInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
-        assertTrue(DynamicObjectAware.class.isInstance(bean));
+        assertTrue(bean instanceof DynamicObjectAware);
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
 
         dynamicBean.getAsDynamicObject().setProperty("prop", "value");
@@ -131,16 +132,35 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void mixesInExtensionAwareInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
-        assertTrue(ExtensionAware.class.isInstance(bean));
-        ExtensionAware dynamicBean = (ExtensionAware) bean;
+        assertTrue(bean instanceof ExtensionAware);
+        ExtensionAware extensionBean = (ExtensionAware) bean;
 
-        assertThat(dynamicBean.getExtensions(), notNullValue());
+        assertThat(extensionBean.getExtensions(), notNullValue());
+
+        Bean extn = extensionBean.getExtensions().create("nested", Bean.class);
+
+        DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
+        assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extn);
+    }
+
+    @Test
+    public void mixesInImplementationForExtensionAwareMethodsWhenTypeIsAbstract() throws Exception {
+        AbstractExtensibleBean bean = newInstance(AbstractExtensibleBean.class);
+        assertTrue(bean instanceof DynamicObjectAware);
+        assertTrue(bean instanceof IConventionAware);
+
+        assertThat(bean.getExtensions(), notNullValue());
+
+        Bean extension = bean.getExtensions().create("nested", Bean.class);
+
+        DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
+        assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extension);
     }
 
     @Test
     public void mixesInGroovyObjectInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
-        assertTrue(GroovyObject.class.isInstance(bean));
+        assertTrue(bean instanceof GroovyObject);
         GroovyObject groovyObject = (GroovyObject) bean;
         assertThat(groovyObject.getMetaClass(), notNullValue());
 
@@ -171,7 +191,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void includesGenericTypeInformationForOverriddenConstructor() throws Exception {
+    public void includesGenericTypeInformationForOverriddenConstructor() {
         Class<?> generatedClass = generator.generate(BeanWithComplexConstructor.class);
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
@@ -309,7 +329,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void includesAnnotationInformationForOverriddenConstructor() throws Exception {
+    public void includesAnnotationInformationForOverriddenConstructor() {
         Class<?> generatedClass = generator.generate(BeanWithAnnotatedConstructor.class);
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
@@ -824,6 +844,7 @@ public class AsmBackedClassGeneratorTest {
     public void generatesDslObjectCompatibleObject() throws Exception {
         DslObject dslObject = new DslObject(newInstance(Bean.class));
         assertEquals(Bean.class, dslObject.getDeclaredType());
+        assertEquals(Bean.class, dslObject.getImplementationType());
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
         assertNotNull(dslObject.getConvention());
@@ -838,7 +859,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void includesNotInheritedTypeAnnotations() throws IllegalAccessException, InstantiationException {
+    public void includesNotInheritedTypeAnnotations() {
         Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class);
 
         BeanAnnotation annotation = generatedClass.getAnnotation(BeanAnnotation.class);
@@ -1367,9 +1388,11 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static final class FinalBean {
+    public static abstract class AbstractExtensibleBean implements ExtensionAware {
     }
 
+    public static final class FinalBean {
+    }
 
     private static class PrivateBean {
     }
