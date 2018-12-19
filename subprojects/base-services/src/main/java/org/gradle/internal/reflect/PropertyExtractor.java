@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.reflect;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
@@ -28,8 +28,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.internal.reflect.Types;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

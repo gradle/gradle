@@ -48,6 +48,8 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.reflect.PropertyExtractor;
+import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.scripts.ScriptOrigin;
 
 import javax.inject.Inject;

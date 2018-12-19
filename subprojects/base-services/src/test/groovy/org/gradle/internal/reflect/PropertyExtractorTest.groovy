@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties
+package org.gradle.internal.reflect
 
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSet
@@ -30,7 +30,7 @@ import java.lang.annotation.Target
 
 class PropertyExtractorTest extends Specification {
 
-    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class))
+    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class))
 
     class WithPropertyType1 {
         @PropertyType1 getFile() {}
