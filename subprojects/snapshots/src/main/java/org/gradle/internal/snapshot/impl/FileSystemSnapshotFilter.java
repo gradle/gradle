@@ -65,7 +65,8 @@ public class FileSystemSnapshotFilter {
             public void visit(FileSystemLocationSnapshot fileSnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(fileSnapshot);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath(), fileSystem))) {
+                Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathForFiltering, fileSystem))) {
                     builder.visit(fileSnapshot);
                 } else {
                     hasBeenFiltered.set(true);

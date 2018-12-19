@@ -84,10 +84,11 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root file can be filtered"() {
         def root = temporaryFolder.createFile("root")
+        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234)
 
         expect:
-        filteredPaths(new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include("different")) == [] as Set
-        filteredPaths(new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include(root.name)) == [root] as Set
+        filteredPaths(regularFileSnapshot, include("different")) == [] as Set
+        filteredPaths(regularFileSnapshot, include(root.name)) == [root] as Set
     }
 
     def "returns original tree if nothing is excluded"() {
