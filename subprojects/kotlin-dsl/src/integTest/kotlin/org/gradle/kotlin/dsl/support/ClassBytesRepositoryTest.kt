@@ -19,11 +19,10 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.api.tasks.wrapper.Wrapper
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
-import org.gradle.kotlin.dsl.fixtures.customInstallation
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -36,7 +35,7 @@ import org.junit.Test
 import java.io.FileFilter
 
 
-class ClassBytesRepositoryTest : AbstractIntegrationTest() {
+class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `class file path candidates for source name`() {
@@ -131,7 +130,7 @@ class ClassBytesRepositoryTest : AbstractIntegrationTest() {
     @Test
     fun `ignores package-info and compiler generated classes`() {
 
-        val jars = customInstallation()
+        val jars = distribution.gradleHomeDir
             .resolve("lib")
             .listFiles(FileFilter { it.name.startsWith("gradle-core-api-") })
             .toList()

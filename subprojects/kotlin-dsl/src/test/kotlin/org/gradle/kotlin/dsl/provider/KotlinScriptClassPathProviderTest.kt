@@ -13,7 +13,7 @@ import org.gradle.api.internal.classpath.Module
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -21,14 +21,14 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
+class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
     @Test
     fun `should report progress based on the number of entries in gradle-api jar`() {
 
-        val gradleApiJar = existing("gradle-api-3.1.jar")
+        val gradleApiJar = file("gradle-api-3.1.jar")
 
-        val generatedKotlinExtensions = existing("kotlin-dsl-extensions.jar")
+        val generatedKotlinExtensions = file("kotlin-dsl-extensions.jar")
 
         val apiMetadataModule = mockGradleApiMetadataModule()
 
@@ -42,7 +42,7 @@ class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
             classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
             coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { listOf(gradleApiJar) },
-            jarCache = { id, generator -> existing("$id.jar").apply(generator) },
+            jarCache = { id, generator -> file("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider)
 
         assertThat(

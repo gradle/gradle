@@ -82,7 +82,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             val (settingsFile, buildFile) = cloneProject()
 
             // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
-            buildWithUniqueGradleHome("--build-cache").apply {
+            executer.withGradleUserHomeDir(newDir("guh-1"))
+            buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
                     misses(settingsFile)
@@ -98,7 +99,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             val (settingsFile, buildFile) = cloneProject()
 
             // Cache hit from build cache
-            buildWithUniqueGradleHome("--build-cache").apply {
+            executer.withGradleUserHomeDir(newDir("guh-2"))
+            buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
                     misses(settingsFile)
@@ -109,21 +111,19 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
 
             // Cache miss without build cache integration (disabled via system property)
-            withUniqueGradleHome { gradleHome ->
-
-                File(gradleHome, "gradle.properties").writeText(
+            executer.withGradleUserHomeDir(newDir("guh-3").apply {
+                resolve("gradle.properties").writeText(
                     "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
                 )
+            })
+            buildForCacheInspection("--build-cache").apply {
 
-                buildWithGradleHome(gradleHome, "--build-cache").apply {
-
-                    compilationCache {
-                        misses(settingsFile)
-                        misses(buildFile)
-                    }
-
-                    assertThat(output, containsString(expectedOutput))
+                compilationCache {
+                    misses(settingsFile)
+                    misses(buildFile)
                 }
+
+                assertThat(output, containsString(expectedOutput))
             }
         }
     }

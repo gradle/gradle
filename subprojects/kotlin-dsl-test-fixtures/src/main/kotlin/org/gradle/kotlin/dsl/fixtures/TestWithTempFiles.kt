@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.kotlin.dsl.support.zipTo
+
 import org.junit.Rule
 
 import java.io.File
@@ -35,4 +37,10 @@ abstract class TestWithTempFiles {
     protected
     fun newFolder(vararg folderNames: String): File =
         tempFolder.newFolder(*folderNames)
+
+    protected
+    fun withZip(fileName: String, entries: Sequence<Pair<String, ByteArray>>): File =
+        newFile(fileName).also {
+            zipTo(it, entries)
+        }
 }

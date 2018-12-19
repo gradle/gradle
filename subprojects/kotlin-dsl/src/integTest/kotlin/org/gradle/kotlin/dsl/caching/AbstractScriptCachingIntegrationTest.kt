@@ -16,54 +16,39 @@
 
 package org.gradle.kotlin.dsl.caching
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.normalisedPath
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-import org.gradle.testkit.runner.BuildResult
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
-import java.io.File
+import org.junit.Before
 
 
-abstract class AbstractScriptCachingIntegrationTest : AbstractIntegrationTest() {
+abstract class AbstractScriptCachingIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    protected
-    fun buildWithDaemonHeapSize(heapMb: Int, vararg arguments: String): BuildResult =
-        withGradleJvmArguments("-Xms${heapMb}m", "-Xmx${heapMb}m", "-Dfile.encoding=UTF-8").run {
-            buildForCacheInspection(*arguments)
+    @Before
+    fun isolatedDaemons() {
+        executer.apply {
+            requireDaemon()
+            requireIsolatedDaemons()
         }
+    }
 
     protected
-    fun buildForCacheInspection(vararg arguments: String): BuildResult =
+    fun buildForCacheInspection(vararg arguments: String): ExecutionResult =
+        gradleRunnerForCacheInspection(*arguments).run()
+
+    protected
+    fun buildWithDaemonHeapSize(heapMb: Int, vararg arguments: String): ExecutionResult =
         gradleRunnerForCacheInspection(*arguments)
-            .build()
-
-    protected
-    fun gradleRunnerForCacheInspection(vararg arguments: String) =
-        gradleRunnerForArguments("-d", "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}", *arguments)
-
-    protected
-    fun buildWithAnotherDaemon(vararg arguments: String): BuildResult =
-        buildWithDaemonHeapSize(160, *arguments)
-
-    protected
-    fun buildWithUniqueGradleHome(vararg arguments: String): BuildResult =
-        buildWithGradleHome(uniqueGradleHome(), *arguments)
-
-    protected
-    fun buildWithGradleHome(gradleHomePath: String, vararg arguments: String) =
-        buildForCacheInspection("-g", gradleHomePath, *arguments)
-
-    protected
-    fun <T> withUniqueGradleHome(f: (String) -> T): T =
-        f(uniqueGradleHome())
+            .withBuildJvmOpts("-Xms${heapMb}m", "-Xmx${heapMb}m")
+            .run()
 
     private
-    fun uniqueGradleHome() =
-        createTempDir(directory = uniqueGradleHomesDir).normalisedPath
-
-    private
-    val uniqueGradleHomesDir: File
-        get() = existing("unique-gradle-homes").apply {
-            mkdir()
-        }
+    fun gradleRunnerForCacheInspection(vararg arguments: String): GradleExecuter =
+        executer.withArguments(
+            "-d",
+            "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}",
+            *arguments
+        )
 }

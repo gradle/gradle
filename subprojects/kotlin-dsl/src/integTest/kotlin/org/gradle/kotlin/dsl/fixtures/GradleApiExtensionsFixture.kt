@@ -24,28 +24,33 @@ import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 
-val customInstallationGradleApiExtensionsClasspath: ClassPath
-    get() = DefaultClassPath.of(customInstallationGradleApiExtensionsJar)
+fun testInstallationGradleApiExtensionsClasspathFor(testInstallation: File): ClassPath =
+    DefaultClassPath.of(testInstallationGradleApiExtensionsJarFor(testInstallation))
 
 
 private
-val customInstallationGradleApiExtensionsJar: File by lazy {
-    val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
-    File.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
-        generateCustomInstallationGradleApiExtensionsJarTo(jar)
-        jar.deleteOnExit()
+val testInstallationGradleApiExtensionsJars =
+    ConcurrentHashMap<File, File>()
+
+
+private
+fun testInstallationGradleApiExtensionsJarFor(testInstallation: File) =
+    testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
+        val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
+        File.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
+            generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
+            jar.deleteOnExit()
+        }
     }
-}
 
 
 private
-fun generateCustomInstallationGradleApiExtensionsJarTo(jar: File) {
+fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation: File) {
 
-    val customInstall = customInstallation()
-
-    val gradleJars = customInstall
+    val gradleJars = testInstallation
         .let { listOf(it.resolve("lib"), it.resolve("lib/plugins")) }
         .flatMap { dir ->
             dir.listFiles { jar ->
@@ -53,7 +58,7 @@ fun generateCustomInstallationGradleApiExtensionsJarTo(jar: File) {
             }.toList()
         }
 
-    val gradleApiMetadataJar = customInstall
+    val gradleApiMetadataJar = testInstallation
         .resolve("lib")
         .listFiles { file -> file.name.startsWith(gradleApiMetadataModuleName) }
         .single()

@@ -20,9 +20,10 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
 
-import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
-import org.gradle.kotlin.dsl.fixtures.customInstallationGradleApiExtensionsClasspath
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
+import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -35,7 +36,12 @@ import org.junit.Test
 import kotlin.reflect.KClass
 
 
-class TaskContainerDslIntegrationTest : AbstractDslTest() {
+class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    private
+    val dslTestFixture: DslTestFixture by lazy {
+        DslTestFixture(projectRoot)
+    }
 
     @Test
     fun `polymorphic named domain object container api`() {
@@ -349,7 +355,7 @@ class TaskContainerDslIntegrationTest : AbstractDslTest() {
         script: String,
         tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
     ) {
-        newProjectBuilderProjectWith(newFolder(name)).run {
+        newProjectBuilderProjectWith(newDir(name)).run {
 
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
@@ -357,9 +363,10 @@ class TaskContainerDslIntegrationTest : AbstractDslTest() {
 
             before()
 
-            eval(
+            dslTestFixture.evalScript(
                 script,
-                scriptCompilationClassPath = testRuntimeClassPath + customInstallationGradleApiExtensionsClasspath
+                target = this,
+                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir)
             )
 
             tasksAssertions.forEach { taskAssertion ->

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 

@@ -2,10 +2,8 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.concurrent.future
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.matching
-import org.gradle.kotlin.dsl.fixtures.withTestDaemon
 
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequest
@@ -24,7 +22,7 @@ import java.io.File
 /**
  * Base class for [KotlinBuildScriptModel] integration tests.
  */
-abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
+abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     protected
     fun sourcePathFor(scriptFile: File) =
@@ -170,34 +168,27 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     protected
     fun canonicalClassPath() =
         canonicalClassPathFor(projectRoot)
-}
 
+    internal
+    fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
+        kotlinBuildScriptModelFor(projectDir, scriptFile).canonicalClassPath
 
-internal
-fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-    kotlinBuildScriptModelFor(projectDir, scriptFile).canonicalClassPath
+    private
+    fun classPathFor(importedProjectDir: File, scriptFile: File?) =
+        kotlinBuildScriptModelFor(importedProjectDir, scriptFile).classPath
 
+    internal
+    val KotlinBuildScriptModel.canonicalClassPath
+        get() = classPath.map(File::getCanonicalFile)
 
-private
-fun classPathFor(importedProjectDir: File, scriptFile: File?) =
-    kotlinBuildScriptModelFor(importedProjectDir, scriptFile).classPath
-
-
-internal
-val KotlinBuildScriptModel.canonicalClassPath
-    get() = classPath.map(File::getCanonicalFile)
-
-
-internal
-fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
-    withTestDaemon {
+    internal
+    fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
         future {
             fetchKotlinBuildScriptModelFor(
                 KotlinBuildScriptModelRequest(
                     projectDir = importedProjectDir,
                     scriptFile = scriptFile,
-                    gradleInstallation = customGradleInstallation(),
-                    jvmOptions = listOf("-Xms128m", "-Xmx256m")
+                    gradleInstallation = testGradleInstallation()
                 )
             ) {
 
@@ -205,9 +196,8 @@ fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null
                 setStandardError(System.err)
             }
         }.get()
-    }
 
-
-internal
-fun customGradleInstallation() =
-    GradleInstallation.Local(customInstallation())
+    private
+    fun testGradleInstallation() =
+        GradleInstallation.Local(distribution.gradleHomeDir)
+}

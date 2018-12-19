@@ -32,6 +32,7 @@ dependencies {
     compile(project(":kotlinDslToolingBuilders"))
 
     compile(project(":testKit"))
+    compile(project(":internalIntegTesting"))
 
     compile(library("junit"))
     compile(testLibrary("hamcrest"))

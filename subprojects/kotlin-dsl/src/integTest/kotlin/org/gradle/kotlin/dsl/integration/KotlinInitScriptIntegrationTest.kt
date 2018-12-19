@@ -1,10 +1,9 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.withFolders
-import org.gradle.kotlin.dsl.fixtures.withIsolatedTestKitDir
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -12,7 +11,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
+class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `initscript classpath`() {
@@ -64,10 +63,10 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
     @LeaksFileHandles
     fun `Kotlin init scripts from init dir can add buildscript repositories to projects`() {
 
-        val testRepositoryDir = temporaryFolder.newFolder("test-repository")
+        val testRepositoryDir = file("test-repository").apply { mkdirs() }
 
-        val isolatedTestKitDir = temporaryFolder.newFolder("test-kit")
-        isolatedTestKitDir.withFolders {
+        val guh = file("gradle-user-home").apply { mkdirs() }
+        guh.withFolders {
             "init.d" {
                 withFile("init.gradle.kts", """
                     allprojects {
@@ -90,11 +89,10 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        withIsolatedTestKitDir(isolatedTestKitDir) {
-            assertThat(
-                build().output,
-                containsString("*test-repository*"))
-        }
+        executer.withGradleUserHomeDir(guh)
+        assertThat(
+            build().output,
+            containsString("*test-repository*"))
     }
 
     @Test

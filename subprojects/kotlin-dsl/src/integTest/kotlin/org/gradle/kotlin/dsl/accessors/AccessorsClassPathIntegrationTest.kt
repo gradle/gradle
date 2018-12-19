@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.matching
 
-import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
+import org.gradle.kotlin.dsl.integration.ScriptModelIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -32,11 +31,12 @@ import org.junit.Test
 import java.io.File
 
 
-class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
+class AccessorsClassPathIntegrationTest : ScriptModelIntegrationTest() {
 
     @Test
     fun `classpath model includes jit accessors by default`() {
 
+        withDefaultSettings()
         val buildFile = withBuildScript("""
             plugins { java }
         """)
@@ -47,6 +47,7 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `jit accessors can be turned off`() {
 
+        withDefaultSettings()
         val buildFile = withBuildScript("""
             plugins { java }
         """)
@@ -88,6 +89,7 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
+        withDefaultSettings()
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
         val buildFile = withBuildScript(script, produceFile = ::newOrExisting)
         return accessorsClassFor(buildFile)!!.relativeTo(buildFile.parentFile)

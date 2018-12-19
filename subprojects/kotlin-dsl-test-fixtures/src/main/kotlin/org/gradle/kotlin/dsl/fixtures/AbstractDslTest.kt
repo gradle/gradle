@@ -25,10 +25,14 @@ import java.io.File
 
 abstract class AbstractDslTest : TestWithTempFiles() {
 
-    protected
-    val kotlinDslEvalBaseCacheDir: File by lazy {
-        newFolder("kotlin-dsl-eval-cache")
+    private
+    val dslTestFixture: DslTestFixture by lazy {
+        DslTestFixture(root)
     }
+
+    protected
+    val kotlinDslEvalBaseCacheDir: File
+        get() = dslTestFixture.kotlinDslEvalBaseCacheDir
 
     /**
      * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
@@ -40,9 +44,38 @@ abstract class AbstractDslTest : TestWithTempFiles() {
         scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
-        eval(
+        dslTestFixture.evalScript(
             script,
             this,
+            baseCacheDir,
+            scriptCompilationClassPath,
+            scriptRuntimeClassPath
+        )
+}
+
+
+class DslTestFixture(private val testDirectory: File) {
+
+    val kotlinDslEvalBaseCacheDir: File by lazy {
+        testDirectory.resolve("kotlin-dsl-eval-cache").apply {
+            mkdirs()
+        }
+    }
+
+    /**
+     * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
+     * to sub-directories of [baseCacheDir] using [scriptCompilationClassPath].
+     */
+    fun evalScript(
+        script: String,
+        target: Any,
+        baseCacheDir: File = kotlinDslEvalBaseCacheDir,
+        scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
+        scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
+    ) =
+        eval(
+            script,
+            target,
             baseCacheDir,
             scriptCompilationClassPath,
             scriptRuntimeClassPath

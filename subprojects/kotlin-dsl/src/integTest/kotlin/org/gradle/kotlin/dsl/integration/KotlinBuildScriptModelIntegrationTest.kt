@@ -25,6 +25,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withBuildSrc()
 
+        withDefaultSettings()
         withBuildScript("""
             val p =
         """)
@@ -37,6 +38,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withBuildSrc()
 
+        withDefaultSettings()
         withBuildScript("""
             buildscript { TODO() }
         """)
@@ -49,6 +51,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withFile("classes.jar")
 
+        withDefaultSettings()
         withBuildScript("""
             buildscript {
                 dependencies {
@@ -80,6 +83,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
                 }
             }
         """)
+        withDefaultSettings()
 
         assertContainsBuildSrc(canonicalClassPath())
     }
@@ -91,6 +95,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withFile("classes.jar", "")
 
+        withDefaultSettings()
         withFile("build.gradle", """
             buildscript {
                 dependencies {
@@ -114,6 +119,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withSettings("""include("sub")""")
 
+        withDefaultSettings()
         withBuildScript("val p =")
 
         val jar = withClassJar("libs/jar.jar")
@@ -309,6 +315,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch classpath of script plugin with buildscript block compilation errors`() {
 
+        withDefaultSettings()
         assertCanFetchClassPathOfScriptPlugin("buildscript { val p = }")
     }
 
@@ -325,6 +332,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         val rootProjectDependency = withFile("rootProject-dependency.jar")
 
+        withDefaultSettings()
         withFile("build.gradle", """
             buildscript {
                 dependencies { classpath(files("${rootProjectDependency.name}")) }
@@ -347,6 +355,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
     @Test
     fun `can fetch classpath of script plugin with buildscript block`() {
+
+        withDefaultSettings()
 
         val scriptPluginDependency =
             withFile("script-plugin-dependency.jar")
@@ -376,6 +386,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
     @Test
     fun `can fetch classpath of plugin portal plugin in plugins block`() {
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("org.gradle.hello-world") version "0.2"

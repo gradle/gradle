@@ -1,13 +1,13 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
+class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     val boom = """throw InternalError("BOOM!")"""
@@ -168,5 +168,5 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun assertFailingBuildOutputOf(vararg arguments: String, string: () -> String) =
-        assertThat(buildAndFail(*arguments).output, containsMultiLineString(string()))
+        assertThat(buildAndFail(*arguments).error, containsMultiLineString(string()))
 }

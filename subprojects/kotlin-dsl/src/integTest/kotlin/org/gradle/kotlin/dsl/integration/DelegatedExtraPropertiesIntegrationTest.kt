@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
 
@@ -8,7 +8,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class DelegatedExtraPropertiesIntegrationTest : AbstractIntegrationTest() {
+class DelegatedExtraPropertiesIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `non-nullable delegated extra property access of non-existing extra property throws`() {
@@ -20,7 +20,7 @@ class DelegatedExtraPropertiesIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            buildAndFail("myTask").output,
+            buildAndFail("myTask").error,
             containsString("Cannot get non-null extra property 'foo' as it does not exist"))
     }
 
@@ -36,7 +36,7 @@ class DelegatedExtraPropertiesIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            buildAndFail("myTask").output,
+            buildAndFail("myTask").error,
             containsString("Cannot get non-null extra property 'foo' as it is null"))
     }
 }

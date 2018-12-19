@@ -14,6 +14,7 @@ class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     fun `initscript classpath does not include buildSrc`() {
 
         withBuildSrc()
+        withDefaultSettings()
 
         val initScript = withFile("my.init.gradle.kts")
         val classPath = canonicalClassPathFor(initScript)
@@ -27,6 +28,7 @@ class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch initscript classpath in face of compilation errors`() {
 
+        withDefaultSettings()
         withFile("classes.jar")
 
         val initScript =
@@ -49,5 +51,6 @@ class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     private
-    fun canonicalClassPathFor(initScript: File) = canonicalClassPathFor(projectRoot, initScript)
+    fun canonicalClassPathFor(initScript: File) =
+        canonicalClassPathFor(projectRoot, initScript)
 }

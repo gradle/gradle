@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
@@ -12,7 +12,7 @@ import org.junit.Test
 /**
  * See https://docs.gradle.org/current/userguide/build_environment.html
  */
-class DelegatedGradlePropertiesIntegrationTest : AbstractIntegrationTest() {
+class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `non-nullable delegated property access of non-existing gradle property throws`() {
@@ -23,7 +23,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            buildAndFail("help").output,
+            buildAndFail("help").error,
             containsString("Cannot get non-null property 'nonExisting' on settings '${projectRoot.name}' as it does not exist"))
 
         withSettings("")
@@ -33,7 +33,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            buildAndFail("help").output,
+            buildAndFail("help").error,
             containsString("Cannot get non-null property 'nonExisting' on root project '${projectRoot.name}' as it does not exist"))
     }
 
@@ -64,8 +64,8 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractIntegrationTest() {
         """.trimIndent())
 
         // and: gradle command line with properties
+        executer.withGradleUserHomeDir(existing("gradle-user-home"))
         val buildArguments = arrayOf(
-            "-g", "gradle-user-home",
             "-PsetCliProperty=cli value",
             "-PemptyCliProperty=",
             "-PcliOverriddenBuildProperty=cli value",

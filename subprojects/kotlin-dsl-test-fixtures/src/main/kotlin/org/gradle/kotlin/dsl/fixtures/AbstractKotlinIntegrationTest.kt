@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.integration
+package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
 
@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.hamcrest.CoreMatchers.allOf
@@ -50,6 +49,28 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                 gradlePluginPortal()
             }
         """
+
+    protected
+    val projectRoot: File
+        get() = customProjectRoot ?: testDirectory
+
+    private
+    var customProjectRoot: File? = null
+
+    protected
+    fun <T> withProjectRoot(dir: File, action: () -> T): T {
+        val previousProjectRoot = customProjectRoot
+        try {
+            customProjectRoot = dir
+            return action()
+        } finally {
+            customProjectRoot = previousProjectRoot
+        }
+    }
+
+    protected
+    fun withFolders(folders: FoldersDslExpression) =
+        testDirectory.withFolders(folders)
 
     protected
     fun withDefaultSettings() =

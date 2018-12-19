@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+
 import org.gradle.kotlin.dsl.execution.Program
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
 import org.gradle.kotlin.dsl.execution.ProgramParser
@@ -23,12 +25,8 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.kotlin.dsl.fixtures.IsolatedTestKitDir
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
-import org.gradle.testkit.runner.BuildResult
-
-import org.junit.ClassRule
 import org.junit.Test
 
 import java.io.File
@@ -39,14 +37,6 @@ import java.io.File
     This should be revisited once TestKit provides a mechanism to control daemon termination.
 """)
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
-
-    companion object {
-
-        @Suppress("unused")
-        @get:ClassRule
-        @JvmStatic
-        val isolatedTestKitDir = IsolatedTestKitDir()
-    }
 
     @Test
     fun `same script, target type & classpath`() {
@@ -93,7 +83,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
 
             // when: other daemon
-            buildWithAnotherDaemon("help").apply {
+            buildForCacheInspection("--stop")
+            buildForCacheInspection("help").apply {
 
                 // then: single class loading only
                 compilationCache {
@@ -151,7 +142,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
 
         // when: other daemon
-        buildWithAnotherDaemon("help", "-I", initScriptFile.absolutePath).apply {
+        buildForCacheInspection("--stop")
+        buildForCacheInspection("help", "-I", initScriptFile.absolutePath).apply {
 
             // then: class loading only
             compilationCache {
@@ -210,7 +202,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
 
             // when: other daemon
-            buildWithAnotherDaemon("help").apply {
+            buildForCacheInspection("--stop")
+            buildForCacheInspection("help").apply {
 
                 // then: class loading only
                 compilationCache {
@@ -299,12 +292,12 @@ data class MultiProjectCachedScripts(
 
 
 private
-fun BuildResult.classLoadingCache(action: ClassLoadingCache.() -> Unit) =
+fun ExecutionResult.classLoadingCache(action: ClassLoadingCache.() -> Unit) =
     action(ClassLoadingCache(this))
 
 
 private
-class ClassLoadingCache(val result: BuildResult) {
+class ClassLoadingCache(val result: ExecutionResult) {
 
     fun misses(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertClassLoads(it, 1) }
@@ -324,12 +317,12 @@ class ClassLoadingCache(val result: BuildResult) {
 
 
 internal
-fun BuildResult.assertOccurrenceCountOf(actionDisplayName: String, stage: CachedScript.CompilationStage, count: Int) {
+fun ExecutionResult.assertOccurrenceCountOf(actionDisplayName: String, stage: CachedScript.CompilationStage, count: Int) {
     val expectedCount = if (stage.enabled) count else 0
     val logStatement = "${actionDisplayName.capitalize()} ${stage.templateId} from ${stage.source}"
     val observedCount = output.occurrenceCountOf(logStatement)
     require(observedCount == expectedCount) {
-        "Expected $actionDisplayName $expectedCount ${stage.templateId} from ${stage.source}, but got $observedCount\n" +
+        "Expected $expectedCount but got $observedCount\n" +
             "  Looking for statement: $logStatement\n" +
             "  Build output was:\n" + output.prependIndent("    ")
     }

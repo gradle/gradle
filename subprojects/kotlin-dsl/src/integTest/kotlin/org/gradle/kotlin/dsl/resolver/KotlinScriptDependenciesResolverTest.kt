@@ -19,8 +19,7 @@ package org.gradle.kotlin.dsl.resolver
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -45,7 +44,7 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
-class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
+class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `succeeds with no script`() {
@@ -333,7 +332,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     fun environment(vararg entries: Pair<String, Any?>) =
         mapOf(
             "projectRoot" to projectRoot,
-            "gradleHome" to customInstallation()
+            "gradleHome" to distribution.gradleHomeDir
         ) + entries.toMap()
 
     private

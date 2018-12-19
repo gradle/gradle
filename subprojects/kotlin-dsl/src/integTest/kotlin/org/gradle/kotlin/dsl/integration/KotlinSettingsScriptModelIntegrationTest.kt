@@ -44,6 +44,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     fun `can fetch classpath of settings script plugin`() {
 
         withBuildSrc()
+        withDefaultSettings()
 
         val settingsDependency = withFile("settings-dependency.jar", "")
         val settings = withFile("my.settings.gradle.kts", """

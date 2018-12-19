@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
@@ -62,6 +61,9 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 }
 
 // --- Enable automatic generation of API extensions -------------------
@@ -115,10 +117,5 @@ tasks {
             // `-proc:none` disables annotation processing and gets rid of the warning.
             options.compilerArgs.add("-proc:none")
         }
-    }
-
-    val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
-    integTestTasks.configureEach {
-        dependsOn(":kotlinDslTestFixtures:customInstallation")
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.api.plugins.PluginCollection
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance
 import org.gradle.kotlin.dsl.support.canonicalNameOf
 
@@ -39,7 +39,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 
-class ApiTypeProviderTest : AbstractIntegrationTest() {
+class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `provides a source code generation oriented model over a classpath`() {

@@ -3,7 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 
 import org.hamcrest.CoreMatchers.containsString
@@ -12,7 +12,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
+class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
@@ -73,7 +73,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            buildAndFail("help").output,
+            buildAndFail("help").error,
             containsString("settings.gradle.kts:3:13: Unexpected `pluginManagement` block found. Only one `pluginManagement` block is allowed per script."))
     }
 

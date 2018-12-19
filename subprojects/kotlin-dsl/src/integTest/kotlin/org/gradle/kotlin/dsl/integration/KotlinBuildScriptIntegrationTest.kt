@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.hamcrest.CoreMatchers.containsString
@@ -10,7 +10,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
+class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can use Kotlin 1 dot 3 language features`() {
@@ -56,7 +56,7 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         buildAndFail("help").apply {
-            assertThat(output, containsString("The plugins {} block must not be used here"))
+            assertThat(error, containsString("The plugins {} block must not be used here"))
         }
     }
 
@@ -76,12 +76,14 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         buildAndFail("help").apply {
-            assertThat(output, containsString("The plugins {} block must not be used here"))
+            assertThat(error, containsString("The plugins {} block must not be used here"))
         }
     }
 
     @Test
     fun `accepts lambda as SAM argument to Kotlin function`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
 

@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+
 import org.gradle.kotlin.dsl.execution.ProgramKind
 import org.gradle.kotlin.dsl.execution.ProgramKind.ScriptPlugin
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
@@ -25,16 +27,14 @@ import org.gradle.kotlin.dsl.execution.ProgramTarget.Project
 import org.gradle.kotlin.dsl.execution.ProgramTarget.Settings
 import org.gradle.kotlin.dsl.execution.templateIdFor
 
-import org.gradle.testkit.runner.BuildResult
-
 import java.io.File
 
 
-fun BuildResult.compilationCache(action: CompilationCache.() -> Unit) =
+fun ExecutionResult.compilationCache(action: CompilationCache.() -> Unit) =
     action(CompilationCache(this))
 
 
-class CompilationCache(val result: BuildResult) {
+class CompilationCache(val result: ExecutionResult) {
 
     fun misses(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertCompilations(it, 1) }

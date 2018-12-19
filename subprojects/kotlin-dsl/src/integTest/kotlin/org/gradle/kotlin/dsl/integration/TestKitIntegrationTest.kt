@@ -16,15 +16,17 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.junit.Test
 
 
-class TestKitIntegrationTest : AbstractIntegrationTest() {
+class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `withPluginClasspath works`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
 
@@ -119,6 +121,8 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
                 @Rule @JvmField val temporaryFolder = TemporaryFolder()
             }
         """)
+
+        executer.expectDeprecationWarning()
 
         println(
             build("test").output)

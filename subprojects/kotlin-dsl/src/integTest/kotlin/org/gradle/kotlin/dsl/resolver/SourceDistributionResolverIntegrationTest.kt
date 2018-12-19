@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -10,7 +10,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
+class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can download source distribution`() {
