@@ -179,7 +179,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean conventionAware;
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
-        private boolean shouldImplementWithServices;
+        private final boolean shouldImplementWithServices;
 
         private ClassBuilderImpl(Class<T> type, ClassMetaData classMetaData) {
             this.type = type;
@@ -192,11 +192,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             conventionAware = classMetaData.isConventionAware();
             requiresInstantiator = !DynamicObjectAware.class.isAssignableFrom(type) && extensible;
             providesOwnDynamicObject = classMetaData.providesDynamicObjectImplementation();
+            shouldImplementWithServices = classMetaData.isShouldImplementWithServiceRegistry();
         }
 
-        public void startClass(boolean shouldImplementWithServices) {
-            this.shouldImplementWithServices = shouldImplementWithServices;
-
+        public void startClass() {
             List<String> interfaceTypes = new ArrayList<String>();
 
             interfaceTypes.add(GENERATED_SUBCLASS_TYPE.getInternalName());

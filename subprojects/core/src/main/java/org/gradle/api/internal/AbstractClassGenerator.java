@@ -24,7 +24,6 @@ import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -107,12 +106,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             ClassBuilder<T> builder = start(type, classMetaData);
 
-            builder.startClass(classMetaData.isShouldImplementWithServiceRegistry());
+            builder.startClass();
 
             if (!DynamicObjectAware.class.isAssignableFrom(type)) {
-                if (ExtensionAware.class.isAssignableFrom(type)) {
-                    throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
-                }
                 builder.mixInDynamicAware();
             }
             if (!GroovyObject.class.isAssignableFrom(type)) {
@@ -447,7 +443,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface ClassBuilder<T> {
-        void startClass(boolean shouldImplementWithServices);
+        void startClass();
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 
