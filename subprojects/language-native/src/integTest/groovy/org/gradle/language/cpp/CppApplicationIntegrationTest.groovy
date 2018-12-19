@@ -26,6 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeatur
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import spock.lang.Ignore
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
 
@@ -1032,5 +1034,33 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle-native/issues/950")
+    def "can handle candidate header directory which happens to match an existing file"() {
+        def app = new CppApp()
+
+        given:
+        app.sources.writeToSourceDir(file('src/main/cpp'))
+        app.greeter.headers.writeToSourceDir(file('src/main/headers'))
+        app.sum.headers.writeToSourceDir(file('src/sumHeaders/foo'))
+
+        file("src/main/cpp/main.cpp").text = file("src/main/cpp/main.cpp").text.replace("sum.h", "foo/sum.h")
+        file("src/main/cpp/sum.cpp").text = file("src/main/cpp/sum.cpp").text.replace("sum.h", "foo/sum.h")
+
+        // poison file
+        file('src/main/headers/foo').createNewFile()
+
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                privateHeaders.from 'src/main/headers', 'src/sumHeaders'
+            }
+        """
+
+        expect:
+        succeeds "assemble"
     }
 }
