@@ -256,14 +256,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency)) {
-                    if (dependency instanceof ProjectDependency) {
+                    if (PlatformSupport.isTargettingPlatform(dependency)) {
+                        if (dependency instanceof ProjectDependency) {
+                            addImportDependencyConstraint((ProjectDependency) dependency);
+                        } else {
+                            addImportDependencyConstraint(dependency);
+                        }
+                    } else if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            addImportDependencyConstraint(dependency);
-                        } else {
-                            addModuleDependency(dependency, globalExcludes, dependencies);
-                        }
+                        addModuleDependency(dependency, globalExcludes, dependencies);
                     }
                 }
             }
@@ -274,6 +276,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
         }
+    }
+
+    private void addImportDependencyConstraint(ProjectDependency dependency) {
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
+        importDependencyConstraints.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), "pom"));
     }
 
     private void addImportDependencyConstraint(ModuleDependency dependency) {

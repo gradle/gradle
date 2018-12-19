@@ -866,7 +866,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                     maven { url "${mavenRepo.uri}" }
                 }
             }
-
             group = 'org.gradle.test'
             version = '1.9'
 
@@ -986,4 +985,81 @@ $append
 
     }
 
+    @Unroll
+    def 'can publish java library with a #config dependency on a java-platform subproject"'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        settingsFile << """
+include(':platform')
+"""
+        createBuildScripts("""
+            dependencies {
+                ${config} "org.test:bar"
+                ${config} platform(project(':platform'))
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            project(':platform') {
+                apply plugin: 'java-platform'
+                apply plugin: 'maven-publish'
+
+                group = 'org.gradle.test'
+                version = '1.9'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+                
+                dependencies {
+                    constraints {
+                        api 'org.test:bar:1.0'
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        def mavenModule = javaLibrary.mavenModule
+        mavenModule.parsedPom.scopes['import'].expectDependencyManagement('org.gradle.test:platform:1.9').hasType('pom')
+        mavenModule.parsedPom.scopes[scope].assertDependsOn('org.test:bar:')
+
+        and:
+        if (config == "api") {
+            javaLibrary.parsedModuleMetadata.variant('api') {
+                dependency('org.test:bar:').exists()
+                dependency('org.gradle.test:platform:1.9') {
+                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                }
+                noMoreDependencies()
+            }
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:').exists()
+            dependency('org.gradle.test:platform:1.9') {
+                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+            }
+            noMoreDependencies()
+        }
+
+        where:
+        config           | scope
+        "api"            | "compile"
+        "implementation" | "runtime"
+
+    }
 }

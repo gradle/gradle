@@ -334,6 +334,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         and:
         projectDependency.excludeRules >> []
+        projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
