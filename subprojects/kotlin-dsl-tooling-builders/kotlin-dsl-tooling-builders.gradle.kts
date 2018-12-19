@@ -15,7 +15,6 @@
  */
 
 import build.withCompileOnlyGradleApiModulesWithParameterNames
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -35,12 +34,4 @@ dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
 
     integTestImplementation(project(":kotlinDslTestFixtures"))
-}
-
-// -- Testing ----------------------------------------------------------
-tasks {
-    val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
-    integTestTasks.configureEach {
-        dependsOn(":kotlinDslTestFixtures:customInstallation")
-    }
 }

@@ -5,10 +5,8 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
-import org.gradle.kotlin.dsl.fixtures.customInstallation
-import org.gradle.kotlin.dsl.fixtures.withTestDaemon
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
@@ -20,13 +18,13 @@ import org.junit.Test
 import java.io.File
 
 
-class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() {
+class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles
     fun `can load script template using classpath model`() {
 
-        withBuildScript("")
+        withDefaultSettings()
 
         val model = fetchKotlinScriptTemplateClassPathModelFor(projectRoot)
 
@@ -37,19 +35,18 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
     }
 
     private
-    fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File) =
-        withTestDaemon {
-            val connection = GradleConnector.newConnector()
-                .forProjectDirectory(projectDir)
-                .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))
-                .useInstallation(customInstallation())
-                .connect()
-            try {
-                connection.getModel(KotlinBuildScriptTemplateModel::class.java)
-            } finally {
-                connection.close()
-            }
+    fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File): KotlinBuildScriptTemplateModel {
+        val connection = GradleConnector.newConnector()
+            .forProjectDirectory(projectDir)
+            .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))
+            .useInstallation(distribution.gradleHomeDir)
+            .connect()
+        try {
+            return connection.getModel(KotlinBuildScriptTemplateModel::class.java)
+        } finally {
+            connection.close()
         }
+    }
 
     private
     fun loadClassesFrom(classPath: List<File>, vararg classNames: String) {
