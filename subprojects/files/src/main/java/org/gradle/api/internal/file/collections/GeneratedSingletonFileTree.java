@@ -18,10 +18,8 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -40,10 +38,9 @@ import java.util.Arrays;
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree implements SingletonFileTree, PatternFilterableFileTree {
+public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
-    private final PatternSet patternSet;
 
     private final String fileName;
     private final Action<OutputStream> contentWriter;
@@ -53,9 +50,9 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, PatternFil
     }
 
     public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, Action<OutputStream> contentWriter) {
+        super(patternSet);
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
-        this.patternSet = patternSet;
         this.contentWriter = contentWriter;
     }
 
@@ -67,11 +64,9 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, PatternFil
         return "file tree";
     }
 
-    public void visit(FileVisitor visitor) {
-        FileVisitDetailsImpl fileVisitDetails = new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
-        if (patternSet.isEmpty() || patternSet.getAsSpec().isSatisfiedBy(fileVisitDetails)) {
-            visitor.visitFile(fileVisitDetails);
-        }
+    @Override
+    protected FileVisitDetails createFileVisitDetails() {
+        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
     }
 
     public File getFileWithoutCreating() {
@@ -83,20 +78,13 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, PatternFil
         return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem).getFile();
     }
 
-    @Override
-    public PatternSet getPatterns() {
-        return patternSet;
-    }
-
     private File createFileInstance(String fileName) {
         return new File(getTmpDir(), fileName);
     }
 
     @Override
     public MinimalFileTree filter(PatternFilterable patterns) {
-        PatternSet patternSet = this.patternSet.intersect();
-        patternSet.copyFrom(patterns);
-        return new GeneratedSingletonFileTree(tmpDirSource, fileName, patternSet, contentWriter);
+        return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), contentWriter);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
@@ -200,10 +188,5 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, PatternFil
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-    }
-
-    @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visitor.visitFile(new DefaultFileVisitDetails(getFile(), fileSystem, fileSystem));
     }
 }

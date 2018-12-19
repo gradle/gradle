@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -25,9 +25,8 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 
-public class DefaultSingletonFileTree implements SingletonFileTree, PatternFilterableFileTree {
+public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
     private final File file;
-    private final PatternSet patternSet;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     public DefaultSingletonFileTree(File file) {
@@ -35,19 +34,17 @@ public class DefaultSingletonFileTree implements SingletonFileTree, PatternFilte
     }
 
     public DefaultSingletonFileTree(File file, PatternSet patternSet) {
+        super(patternSet);
         this.file = file;
-        this.patternSet = patternSet;
     }
 
     public String getDisplayName() {
         return String.format("file '%s'", file);
     }
 
-    public void visit(FileVisitor visitor) {
-        DefaultFileVisitDetails fileVisitDetails = new DefaultFileVisitDetails(file, fileSystem, fileSystem);
-        if (patternSet.isEmpty() || patternSet.getAsSpec().isSatisfiedBy(fileVisitDetails)) {
-            visitor.visitFile(fileVisitDetails);
-        }
+    @Override
+    protected FileVisitDetails createFileVisitDetails() {
+        return new DefaultFileVisitDetails(file, fileSystem, fileSystem);
     }
 
     @Override
@@ -56,24 +53,11 @@ public class DefaultSingletonFileTree implements SingletonFileTree, PatternFilte
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
-    @Override
     public File getFile() {
         return file;
     }
 
-    @Override
-    public PatternSet getPatterns() {
-        return patternSet;
-    }
-
-    @Override
     public MinimalFileTree filter(PatternFilterable patterns) {
-        PatternSet patternSet = this.patternSet.intersect();
-        patternSet.copyFrom(patterns);
-        return new DefaultSingletonFileTree(file, patternSet);
+        return new DefaultSingletonFileTree(file, filterPatternSet(patterns));
     }
 }
