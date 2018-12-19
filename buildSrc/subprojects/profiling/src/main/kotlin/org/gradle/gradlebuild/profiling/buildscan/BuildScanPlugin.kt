@@ -38,6 +38,7 @@ import kotlin.collections.component2
 import kotlin.collections.filter
 import kotlin.collections.forEach
 import org.gradle.kotlin.dsl.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -56,6 +57,9 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     lateinit var buildScan: BuildScanExtension
+
+    private
+    val cacheMissTagged = AtomicBoolean(false)
 
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "com.gradle.build-scan")
@@ -76,23 +80,29 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.monitorUnexpectedCacheMisses() {
         gradle.taskGraph.afterTask {
-            if (!state.skipped && !isExcludedBuild() && this.isMonitoredForCacheMiss()) {
+            if (isCacheMiss() && !isExpectedCacheMiss() && isNotTaggedYet()) {
                 buildScan.tag("CACHE_MISS")
             }
         }
     }
 
     private
-    fun Task.isMonitoredForCacheMiss() =
-        this is AbstractCompile || this is ClasspathManifest
+    fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
 
     private
-    fun Project.isExcludedBuild() =
+    fun Task.isCacheMiss() = !state.skipped && isMonitoredForCacheMiss()
+
+    private
+    fun Task.isMonitoredForCacheMiss() = this is AbstractCompile || this is ClasspathManifest
+
+    private
+    fun Project.isExpectedCacheMiss() =
     // Expected cache-miss:
     // 1. compileAll is seed build
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-        gradle.startParameter.taskNames.contains("compileAll") || System.getenv("BUILD_TYPE_ID") in listOf("Enterprise_Master_Components_BuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+        gradle.startParameter.taskNames.contains("compileAll")
+            || System.getenv("BUILD_TYPE_ID") in listOf("Enterprise_Master_Components_BuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {
