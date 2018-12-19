@@ -115,14 +115,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 
     buildType.steps {
         gradleWrapper {
-            name = "CLEAN_BUILD_SRC"
-            tasks = "clean"
-            gradleParams = gradleParameterString
-            workingDir = "buildSrc"
-            gradleWrapperPath = ".."
-            buildFile = "build.gradle.kts"
-        }
-        gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
