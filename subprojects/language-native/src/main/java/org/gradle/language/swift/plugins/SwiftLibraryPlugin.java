@@ -26,6 +26,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Dimensions;
@@ -86,6 +87,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final ConfigurationContainer configurations = project.getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
+        final ProviderFactory providers = project.getProviders();
 
         final DefaultSwiftLibrary library = componentFactory.newInstance(SwiftLibrary.class, DefaultSwiftLibrary.class, "main");
         project.getExtensions().add(SwiftLibrary.class, "library", library);
@@ -129,7 +131,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Dimensions.variants(library, project, attributesFactory, variantIdentity -> {
+                // TODO: make build type configurable for components
+                Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
                     if (isBuildable(variantIdentity)) {
                         ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
 

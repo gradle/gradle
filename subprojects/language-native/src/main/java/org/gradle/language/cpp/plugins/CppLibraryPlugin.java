@@ -137,7 +137,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Dimensions.variants(library, project, attributesFactory, variantIdentity -> {
+                // TODO: make build type configurable for components
+                Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
                     if (isBuildable(variantIdentity)) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
 

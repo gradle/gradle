@@ -54,15 +54,13 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
-    private final ProviderFactory providerFactory;
 
     @Inject
-    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory, ProviderFactory providerFactory) {
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
         this.targetMachineFactory = targetMachineFactory;
-        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -70,6 +68,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final ObjectFactory objectFactory = project.getObjects();
+        final ProviderFactory providers = project.getProviders();
 
         // Add the application and extension
         final DefaultCppApplication application = componentFactory.newInstance(CppApplication.class, DefaultCppApplication.class, "main");
@@ -103,7 +102,10 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                Dimensions.variants(application, project, attributesFactory, variantIdentity -> {
+                // TODO: make build type configurable for components
+                Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
                     if (isBuildable(variantIdentity)) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                         application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

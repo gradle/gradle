@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -110,6 +111,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(SwiftBasePlugin.class);
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
+        final ProviderFactory providers = project.getProviders();
+
         // Create test suite component
         final DefaultSwiftXCTestSuite testComponent = createTestSuite(project);
 
@@ -165,7 +168,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
                 validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
-                Dimensions.variants(testComponent, project, attributesFactory, variantIdentity -> {
+                Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
                     if (isBuildable(variantIdentity)) {
                         ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
 

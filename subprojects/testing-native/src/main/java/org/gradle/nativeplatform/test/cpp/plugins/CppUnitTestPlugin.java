@@ -28,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -88,6 +89,8 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
+        final ProviderFactory providers = project.getProviders();
+
         // Add the unit test and extension
         final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "test");
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
@@ -115,7 +118,9 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
                 validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
-                Dimensions.variants(testComponent, project, attributesFactory, variantIdentity -> {
+                Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
                     if (isBuildable(variantIdentity)) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                         // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
