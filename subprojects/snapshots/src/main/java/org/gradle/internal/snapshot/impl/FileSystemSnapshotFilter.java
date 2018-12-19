@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
@@ -64,7 +65,7 @@ public class FileSystemSnapshotFilter {
             public void visit(FileSystemLocationSnapshot fileSnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(fileSnapshot);
-                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath(), fileSystem))) {
                     builder.visit(fileSnapshot);
                 } else {
                     hasBeenFiltered.set(true);

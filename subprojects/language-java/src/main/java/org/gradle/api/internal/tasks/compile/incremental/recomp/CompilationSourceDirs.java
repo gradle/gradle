@@ -21,8 +21,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 import java.util.List;
@@ -77,11 +77,15 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            sourceRoots.add(directoryTree.getDir());
+        public void visitDirectoryTree(File root, PatternSet patterns) {
+            if (root.isDirectory()) {
+                sourceRoots.add(root);
+            } else {
+                cannotInferSourceRoots("file '" + root + "'");
+            }
         }
 
-        private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
+        private void cannotInferSourceRoots(Object fileCollection) {
             canInferSourceRoots = false;
             LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
         }

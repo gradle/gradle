@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.tasks.util.PatternSet;
+
+import java.io.File;
 
 /**
  * Used with {@link FileCollectionInternal#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
@@ -34,7 +36,7 @@ public interface FileCollectionLeafVisitor {
     void visitGenericFileTree(FileTreeInternal fileTree);
 
     /**
-     * Visits a {@link DirectoryFileTree} that represents the (potentially filtered) contents of a directory on the file system.
+     * Visits a file tree at a root file on the file system (potentially filtered).
      */
-    void visitDirectoryTree(DirectoryFileTree directoryTree);
+    void visitDirectoryTree(File root, PatternSet patterns);
 }

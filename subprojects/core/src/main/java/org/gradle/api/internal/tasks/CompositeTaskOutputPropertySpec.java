@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
 import org.gradle.util.DeferredUtil;
@@ -97,7 +97,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 }
 
                 @Override
-                public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                public void visitDirectoryTree(File root, PatternSet patterns) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     nonFileRoot.set(true);

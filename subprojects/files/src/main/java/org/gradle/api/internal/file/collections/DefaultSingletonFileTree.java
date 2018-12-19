@@ -18,17 +18,25 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 
-public class DefaultSingletonFileTree implements SingletonFileTree {
+public class DefaultSingletonFileTree implements SingletonFileTree, PatternFilterableFileTree {
     private final File file;
+    private final PatternSet patternSet;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     public DefaultSingletonFileTree(File file) {
+        this(file, new PatternSet());
+    }
+
+    public DefaultSingletonFileTree(File file, PatternSet patternSet) {
         this.file = file;
+        this.patternSet = patternSet;
     }
 
     public String getDisplayName() {
@@ -36,7 +44,10 @@ public class DefaultSingletonFileTree implements SingletonFileTree {
     }
 
     public void visit(FileVisitor visitor) {
-        visitor.visitFile(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+        DefaultFileVisitDetails fileVisitDetails = new DefaultFileVisitDetails(file, fileSystem, fileSystem);
+        if (patternSet.isEmpty() || patternSet.getAsSpec().isSatisfiedBy(fileVisitDetails)) {
+            visitor.visitFile(fileVisitDetails);
+        }
     }
 
     @Override
@@ -52,5 +63,17 @@ public class DefaultSingletonFileTree implements SingletonFileTree {
     @Override
     public File getFile() {
         return file;
+    }
+
+    @Override
+    public PatternSet getPatterns() {
+        return patternSet;
+    }
+
+    @Override
+    public MinimalFileTree filter(PatternFilterable patterns) {
+        PatternSet patternSet = this.patternSet.intersect();
+        patternSet.copyFrom(patterns);
+        return new DefaultSingletonFileTree(file, patternSet);
     }
 }

@@ -111,9 +111,6 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
             return new FileTreeAdapter(filterableTree.filter(patterns), patternSetFactory);
         }
-        if (tree instanceof SingletonFileTree) {
-            return this;
-        }
         return super.matching(patterns);
     }
 
@@ -126,10 +123,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
-            visitor.visitDirectoryTree(directoryFileTree);
+            visitor.visitDirectoryTree(directoryFileTree.getDir(), directoryFileTree.getPatterns());
         } else if (tree instanceof SingletonFileTree) {
             SingletonFileTree singletonFileTree = (SingletonFileTree) tree;
-            visitor.visitCollection(ImmutableFileCollection.of(singletonFileTree.getFile()));
+            visitor.visitDirectoryTree(singletonFileTree.getFile(), singletonFileTree.getPatterns());
         } else if (tree instanceof ArchiveFileTree) {
             ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
             File backingFile = archiveFileTree.getBackingFile();

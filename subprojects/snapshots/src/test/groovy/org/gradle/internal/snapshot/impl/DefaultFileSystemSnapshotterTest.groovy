@@ -17,7 +17,9 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Action
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
@@ -29,6 +31,7 @@ import org.gradle.api.resources.ReadableResource
 import org.gradle.api.resources.ResourceException
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
@@ -124,13 +127,13 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def tree = dirTree(d)
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(tree)
+        def snapshot = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
         getSnapshotInfo(snapshot) == [d.path, 5]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
+        def snapshot2 = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
         snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot3 = snapshotter.snapshotDirectoryTree(tree.getDir(), tree.getPatterns())
         snapshot3.is(snapshot)
     }
 
@@ -144,20 +147,20 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("d2/f2")
         def patterns = TestFiles.patternSetFactory.create()
         patterns.include "**/*1"
-        def tree = TestFiles.directoryFileTreeFactory().create(d, patterns)
+        def emptyPatterns = new PatternSet()
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(tree)
+        def snapshot = snapshotter.snapshotDirectoryTree(d, patterns)
         getSnapshotInfo(snapshot) == [d.path, 6]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
+        def snapshot2 = snapshotter.snapshotDirectoryTree(d, patterns)
         !snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot3 = snapshotter.snapshotDirectoryTree(d, emptyPatterns)
         !snapshot3.is(snapshot)
         getSnapshotInfo(snapshot3) == [d.path, 8]
 
-        def snapshot4 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot4 = snapshotter.snapshotDirectoryTree(d, emptyPatterns)
         !snapshot4.is(snapshot)
         snapshot4.is(snapshot3)
     }
@@ -168,19 +171,14 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("f1")
         d.createFile("d1/f2")
         d.createFile("d1/f1")
-        def unfilteredTree = dirTree(d)
-        snapshotter.snapshotDirectoryTree(unfilteredTree)
+        snapshotter.snapshotDirectoryTree(d, new PatternSet())
 
         and: "A filtered tree over the same directory"
         def patterns = TestFiles.patternSetFactory.create()
         patterns.include "**/*1"
-        DirectoryFileTree filteredTree = Mock(DirectoryFileTree) {
-            getDir() >> d
-            getPatterns() >> patterns
-        }
 
         when:
-        def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
+        def snapshot = snapshotter.snapshotDirectoryTree(d, patterns)
         def relativePaths = [] as Set
         snapshot.accept(new FileSystemSnapshotVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()
@@ -223,7 +221,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.file("dir")
 
         when:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot = snapshotter.snapshotDirectoryTree(d, new PatternSet())
 
         then:
         getSnapshotInfo(snapshot) == [null, 0]
@@ -234,7 +232,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createFile("fileAsTree")
 
         when:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot = snapshotter.snapshotDirectoryTree(d, new PatternSet())
 
         then:
         getSnapshotInfo(snapshot) == [null, 1]
@@ -265,83 +263,42 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         def tree = new FileTreeAdapter(new DefaultSingletonFileTree(file), TestFiles.patternSetFactory)
-        def snapshots = snapshotter.snapshot(tree)
 
         then:
-        assertSingleFileSnapshot(snapshots)
+        assertSingleFileTree(tree)
 
-
-        when:
-        def includedTree = tree.matching(new Action<PatternFilterable>() {
+        assertSingleFileTree(tree.matching(new Action<PatternFilterable>() {
             @Override
             void execute(PatternFilterable patternFilterable) {
-                patternFilterable.include("**")
+                patternFilterable.include(file.name)
             }
-        })
-        snapshots = snapshotter.snapshot(includedTree)
+        }))
 
-        then:
-        assertSingleFileSnapshot(snapshots)
-
-
-        when:
-        def excludedTree = tree.matching(new Action<PatternFilterable>() {
+        assertEmptyTree(tree.matching(new Action<PatternFilterable>() {
             @Override
             void execute(PatternFilterable patternFilterable) {
-                patternFilterable.exclude("**")
+                patternFilterable.exclude(file.name)
             }
-        })
-        snapshots = snapshotter.snapshot(excludedTree)
-
-        then:
-        assertSingleFileSnapshot(snapshots)
-
+        }))
 
         when:
         def singleFileTree = TestFiles.fileOperations(tempDir).fileTree(file)
-        snapshots = snapshotter.snapshot(singleFileTree)
 
         then:
-        assertSingleFileSnapshot(snapshots)
-
-
-        when:
-        snapshots = snapshotter.snapshot(singleFileTree.matching { true })
-
-        then:
-        assertSingleFileSnapshot(snapshots)
-
-
-        when:
-        snapshots = snapshotter.snapshot(singleFileTree.matching { false })
-
-        then:
-        assertSingleFileSnapshot(snapshots)
-
+        assertSingleFileTree(singleFileTree)
+        assertSingleFileTree(singleFileTree.matching { include(file.name) })
+        assertEmptyTree(singleFileTree.matching { exclude(file.name) })
 
         when:
         def fromConfigurableFiles = TestFiles.fileOperations(tempDir).configurableFiles(file).asFileTree
-        snapshots = snapshotter.snapshot(fromConfigurableFiles)
 
         then:
-        assertSingleFileSnapshot(snapshots)
-
-
-        when:
-        snapshots = snapshotter.snapshot(fromConfigurableFiles.matching { true })
-
-        then:
-        assertSingleFileSnapshot(snapshots)
-
-
-        when:
-        snapshots = snapshotter.snapshot(fromConfigurableFiles.matching { false })
-
-        then:
-        assertSingleFileSnapshot(snapshots)
+        assertSingleFileTree(fromConfigurableFiles)
+        assertSingleFileTree(fromConfigurableFiles.matching { include(file.name) })
+        assertEmptyTree(fromConfigurableFiles.matching { exclude(file.name) })
     }
 
-    def "snapshots a archive trees as RegularFileSnapshot"() {
+    def "snapshots archive trees as RegularFileSnapshot"() {
         given:
         def tempDir = tmpDir.createDir('tmpDir')
         def archiveBaseDir = tempDir.createDir('archiveBase')
@@ -349,7 +306,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         file.text = "content"
 
         when:
-        TestFile zip = tempDir.file('archive.zip');
+        TestFile zip = tempDir.file('archive.zip')
         archiveBaseDir.zipTo(zip)
         def zipTree = TestFiles.fileOperations(tempDir, testFileProvider()).zipTree(zip)
         def snapshots = snapshotter.snapshot(zipTree)
@@ -358,7 +315,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         assertSingleFileSnapshot(snapshots)
 
         when:
-        TestFile tar = tempDir.file('archive.tar');
+        TestFile tar = tempDir.file('archive.tar')
         archiveBaseDir.tarTo(tar)
         def tarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
         snapshots = snapshotter.snapshot(tarTree)
@@ -368,7 +325,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         def tarDir = tmpDir.createDir('tarDir')
-        TestFile emptyTar = tempDir.file('emptyArchive.tar');
+        TestFile emptyTar = tempDir.file('emptyArchive.tar')
         tarDir.tarTo(emptyTar)
         def emtpyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
         snapshots = snapshotter.snapshot(emtpyTarTree)
@@ -378,9 +335,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         def tgzDir = tmpDir.createDir('tgzDir')
-        TestFile tgz = tempDir.file('emptyArchive.tgz');
+        TestFile tgz = tempDir.file('emptyArchive.tgz')
         tgzDir.tgzTo(tgz)
-        def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz));
+        def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz))
         def emtpyTgzTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
         snapshots = snapshotter.snapshot(emtpyTgzTree)
 
@@ -408,38 +365,13 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             String getBaseName() {
                 return tgz.getName()
             }
-        };
+        }
         def recourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
         snapshots = snapshotter.snapshot(recourceTarTree)
 
         then:
         assert snapshots.size() == 1
         assert getSnapshotInfo(snapshots[0]) == [null, 0]
-    }
-
-    private TemporaryFileProvider testFileProvider() {
-        new TemporaryFileProvider() {
-            @Override
-            File newTemporaryFile(String... path) {
-                return tmpDir.createFile(path)
-            }
-
-            @Override
-            File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path) {
-                return null
-            }
-
-            @Override
-            File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
-                return tmpDir.createDir(path)
-            }
-        }
-    }
-
-    def assertSingleFileSnapshot(def snapshots) {
-        assert snapshots.size() == 1
-        assert getSnapshotInfo(snapshots[0]) == [null, 1]
-        true
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
@@ -462,15 +394,54 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, file.name, action))
-        def snapshots = snapshotter.snapshot(tree)
 
         then:
-        snapshots.size() == 1
-        getSnapshotInfo(snapshots[0]) == [null, 1]
+        assertSingleFileTree(tree)
+        assertSingleFileTree(tree.matching { include file.name })
+        assertEmptyTree(tree.matching { exclude file.name })
     }
 
     private static DirectoryFileTree dirTree(File dir) {
         TestFiles.directoryFileTreeFactory().create(dir)
+    }
+
+    private TemporaryFileProvider testFileProvider() {
+        new TemporaryFileProvider() {
+            @Override
+            File newTemporaryFile(String... path) {
+                return tmpDir.createFile(path)
+            }
+
+            @Override
+            File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path) {
+                return null
+            }
+
+            @Override
+            File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
+                return tmpDir.createDir(path)
+            }
+        }
+    }
+
+    void assertSingleFileSnapshot(snapshots) {
+        assert snapshots.size() == 1
+        assert getSnapshotInfo(snapshots[0]) == [null, 1]
+    }
+
+    void assertEmptyTree(FileCollection fileCollection) {
+        def snapshots = snapshotter.snapshot((FileCollectionInternal) fileCollection)
+        assert snapshots.size() == 1
+        assert snapshots[0] == FileSystemSnapshot.EMPTY
+        assert fileCollection.files.empty
+    }
+
+    void assertSingleFileTree(FileCollection fileCollection) {
+        assert fileCollection.files.size() == 1
+        def file = fileCollection.files[0]
+        def snapshots = snapshotter.snapshot((FileCollectionInternal) fileCollection)
+        assertSingleFileSnapshot(snapshots)
+        assert snapshots[0].absolutePath == file.absolutePath
     }
 
     private static List getSnapshotInfo(FileSystemSnapshot tree) {
