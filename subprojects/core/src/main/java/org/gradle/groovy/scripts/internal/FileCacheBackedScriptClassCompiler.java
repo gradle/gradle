@@ -56,17 +56,15 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
-    private final ScriptSourceHasher hasher;
     private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, ScriptSourceHasher hasher, ClassLoaderCache classLoaderCache,
+                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache,
                                               ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.hasher = hasher;
         this.classLoaderCache = classLoaderCache;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
@@ -83,7 +81,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        HashCode sourceHashCode = hasher.hash(source);
+        HashCode sourceHashCode = source.getResource().getContentHash();
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);

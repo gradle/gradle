@@ -20,9 +20,8 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationCategory
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class BuildOperationSettingsProcessorTest extends Specification {
@@ -71,8 +70,6 @@ class BuildOperationSettingsProcessorTest extends Specification {
     private void settings() {
         _ * settingsInternal.gradle >> gradleInternal
         _ * settingsLocation.settingsDir >> rootDir
-        def scriptSource = Mock(ScriptSource)
-        _ * scriptSource.getFileName() >> "settings.gradle"
-        _ * settingsLocation.settingsScriptSource >> scriptSource
+        _ * settingsLocation.settingsFile >> new File("settings.gradle")
     }
 }

@@ -16,54 +16,13 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.PrimitiveHasher;
-import org.gradle.internal.resource.TextResource;
-
-import java.io.File;
-import java.io.FileNotFoundException;
 
 public class DefaultScriptSourceHasher implements ScriptSourceHasher {
-    private static final HashCode SIGNATURE = Hashing.signature(DefaultScriptSourceHasher.class);
-
-    private final FileHasher fileHasher;
-
-    public DefaultScriptSourceHasher(FileHasher fileHasher) {
-        this.fileHasher = fileHasher;
-    }
 
     @Override
     public HashCode hash(ScriptSource scriptSource) {
-        TextResource resource = scriptSource.getResource();
-        if (resource.isContentCached()) {
-            return hashText(resource.getText());
-        }
-        File file = resource.getFile();
-        if (file == null) {
-            return hashText(resource.getText());
-        }
-        return hashFile(file, scriptSource.getDisplayName());
-    }
-
-    private HashCode hashFile(File file, String displayName) {
-        try {
-            return fileHasher.hash(file);
-        } catch (UncheckedIOException e) {
-            if (e.getCause() instanceof FileNotFoundException) {
-                throw new UncheckedIOException("Could not read " + displayName + " as it does not exist.", e.getCause());
-            }
-            throw e;
-        }
-    }
-
-    private HashCode hashText(String text) {
-        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
-        hasher.putHash(SIGNATURE);
-        hasher.putString(text);
-        return hasher.hash();
+        return scriptSource.getResource().getContentHash();
     }
 }
