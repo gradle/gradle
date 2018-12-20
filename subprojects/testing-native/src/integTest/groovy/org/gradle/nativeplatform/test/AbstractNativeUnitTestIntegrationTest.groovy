@@ -144,7 +144,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         fails("test")
 
         and:
-        failure.assertHasCause("The target machine ${currentOsFamilyName}:${otherArchitecture} was specified for the unit test, but this target machine was not specified on the main component.")
+        failure.assertHasCause("The target machine ${currentOsFamilyName}:${otherArchitecture} was specified for the unit test, but this target machine was not specified on the component under test.")
     }
 
     def "skips test tasks as up-to-date when nothing changes between invocation"() {

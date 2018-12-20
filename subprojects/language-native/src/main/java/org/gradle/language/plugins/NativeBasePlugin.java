@@ -35,7 +35,6 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -106,7 +105,7 @@ import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
  * @since 4.5
  */
 @Incubating
-public class NativeBasePlugin implements Plugin<ProjectInternal> {
+public class NativeBasePlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
@@ -115,7 +114,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         addTargetMachineFactoryAsExtension(project.getExtensions(), targetMachineFactory);
@@ -339,7 +338,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addPublicationsFromVariants(final ProjectInternal project, final SoftwareComponentContainer components) {
+    private void addPublicationsFromVariants(final Project project, final SoftwareComponentContainer components) {
         project.getPluginManager().withPlugin("maven-publish", plugin -> {
             components.withType(PublicationAwareComponent.class, component -> {
                 project.getExtensions().configure(PublishingExtension.class, publishing -> {
@@ -364,7 +363,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addPublicationFromVariant(SoftwareComponent child, PublishingExtension publishing, ProjectInternal project) {
+    private void addPublicationFromVariant(SoftwareComponent child, PublishingExtension publishing, Project project) {
         if (child instanceof PublishableComponent) {
             publishing.getPublications().create(child.getName(), MavenPublication.class, publication -> {
                 MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
@@ -375,7 +374,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private void fillInCoordinates(ProjectInternal project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
+    private void fillInCoordinates(Project project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
         final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
         MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
         identity.getGroupId().set(project.provider(() -> coordinates.getGroup()));
