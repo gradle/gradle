@@ -291,6 +291,15 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         obj.callsPrivateStringMethodWithGString("$foo") == "BAR"
     }
 
+    def "class can implement interface methods using Groovy property"() {
+        when:
+        def i = create(ImplementsInterface)
+        i.prop = "prop"
+
+        then:
+        i.prop == "prop"
+    }
+
     def "can inject service using a service getter method with dummy method body"() {
         given:
         def services = Mock(ServiceRegistry)
@@ -600,4 +609,12 @@ class BeanWithServices {
 
 class BeanWithMutableServices extends BeanWithServices {
     void setThing(Runnable runnnable) { throw new UnsupportedOperationException() }
+}
+
+interface WithProperties {
+    String getProp()
+}
+
+class ImplementsInterface implements WithProperties {
+    String prop
 }

@@ -24,6 +24,7 @@ import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,17 +130,17 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                if (!property.getters.isEmpty() && isModelProperty(property)) {
-                    builder.addPropertySetters(property, property.getters.get(0));
+                if (property.isReadable() && isModelProperty(property)) {
+                    builder.addPropertySetters(property, property.mainGetter);
                     continue;
                 }
 
                 if (property.injector) {
                     builder.addInjectorProperty(property);
-                    for (Method getter : property.getters) {
+                    for (Method getter : property.getOverridableGetters()) {
                         builder.applyServiceInjectionToGetter(property, getter);
                     }
-                    for (Method setter : property.setters) {
+                    for (Method setter : property.getOverridableSetters()) {
                         builder.applyServiceInjectionToSetter(property, setter);
                     }
                     continue;
@@ -146,8 +148,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
                 boolean needsConventionMapping = false;
                 if (classMetaData.isExtensible()) {
-                    for (Method getter : property.getters) {
-                        if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+                    for (Method getter : property.getOverridableGetters()) {
+                        if (!getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
                             needsConventionMapping = true;
                             break;
                         }
@@ -157,14 +159,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 if (needsConventionMapping) {
                     conventionProperties.add(property);
                     builder.addConventionProperty(property);
-                    for (Method getter : property.getters) {
+                    for (Method getter : property.getOverridableGetters()) {
                         builder.applyConventionMappingToGetter(property, getter);
                     }
 
-                    for (Method setter : property.setters) {
-                        if (!Modifier.isFinal(setter.getModifiers())) {
-                            builder.applyConventionMappingToSetter(property, setter);
-                        }
+                    for (Method setter : property.getOverridableSetters()) {
+                        builder.applyConventionMappingToSetter(property, setter);
                     }
                 }
             }
@@ -287,23 +287,24 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         for (PropertyDetails property : classDetails.getProperties()) {
             PropertyMetaData propertyMetaData = classMetaData.property(property.getName());
             for (Method method : property.getGetters()) {
+                if (method.getAnnotation(Inject.class) == null && !method.getDeclaringClass().equals(ExtensionAware.class)) {
+                    assertNotAbstract(type, method);
+                }
                 propertyMetaData.addGetter(method);
             }
             for (Method method : property.getSetters()) {
+                assertNotAbstract(type, method);
                 propertyMetaData.addSetter(method);
             }
         }
 
         PropertyMetaData servicesProperty = classMetaData.getProperty("services");
-        if (servicesProperty != null) {
-            for (Method getter : servicesProperty.getters) {
-                if (getter.getReturnType().equals(ServiceRegistry.class)) {
-                    hasGetServicesMethod = true;
-                }
-            }
+        if (servicesProperty != null && servicesProperty.isReadable() && ServiceRegistry.class.isAssignableFrom(servicesProperty.getType())) {
+            hasGetServicesMethod = true;
         }
 
         for (Method method : classDetails.getInstanceMethods()) {
+            assertNotAbstract(type, method);
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 1) {
                 classMetaData.addCandidateSetMethod(method);
@@ -321,6 +322,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
         }
+    }
+
+    private void assertNotAbstract(Class<?> type, Method method) {
+        if (Modifier.isAbstract(type.getModifiers()) && Modifier.isAbstract(method.getModifiers())) {
+            throw new IllegalArgumentException(String.format("Cannot have abstract method %s.%s().", method.getDeclaringClass().getSimpleName(), method.getName()));
+        }
+        // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
     protected static class ClassMetaData {
@@ -377,7 +385,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         public boolean providesDynamicObjectImplementation() {
             PropertyMetaData property = properties.get("asDynamicObject");
-            return property != null && !property.getters.isEmpty();
+            return property != null && property.isReadable();
         }
 
         public boolean isExtensible() {
@@ -394,11 +402,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected static class PropertyMetaData {
-        final String name;
-        final List<Method> getters = new ArrayList<Method>();
-        final List<Method> setters = new ArrayList<Method>();
-        final List<Method> setMethods = new ArrayList<Method>();
-        boolean injector;
+        private final String name;
+        private final List<Method> overridableGetters = new ArrayList<Method>();
+        private final List<Method> overridableSetters = new ArrayList<Method>();
+        private final List<Method> setters = new ArrayList<Method>();
+        private final List<Method> setMethods = new ArrayList<Method>();
+        private Method mainGetter;
+        private boolean injector;
 
         private PropertyMetaData(String name) {
             this.name = name;
@@ -413,21 +423,56 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             return name;
         }
 
+        public boolean isReadable() {
+            return mainGetter != null;
+        }
+
+        public Iterable<Method> getOverridableGetters() {
+            return overridableGetters;
+        }
+
+        public Iterable<Method> getOverridableSetters() {
+            return overridableSetters;
+        }
+
         public Class<?> getType() {
-            if (!getters.isEmpty()) {
-                return getters.get(0).getReturnType();
+            if (mainGetter != null) {
+                return mainGetter.getReturnType();
             }
             return setters.get(0).getParameterTypes()[0];
         }
 
+        public Type getGenericType() {
+            if (mainGetter != null) {
+                return mainGetter.getGenericReturnType();
+            }
+            return setters.get(0).getGenericParameterTypes()[0];
+        }
+
         public void addGetter(Method method) {
-            if (getters.add(method) && method.getAnnotation(Inject.class) != null) {
+            if (!Modifier.isFinal(method.getModifiers()) && !method.isBridge()) {
+                overridableGetters.add(method);
+            }
+            if (method.getAnnotation(Inject.class) != null) {
                 injector = true;
+            }
+            if (mainGetter == null) {
+                mainGetter = method;
+            } else if (mainGetter.isBridge() && !method.isBridge()) {
+                mainGetter = method;
             }
         }
 
         public void addSetter(Method method) {
+            for (Method setter : setters) {
+                if (setter.getParameterTypes()[0].equals(method.getParameterTypes()[0])) {
+                    return;
+                }
+            }
             setters.add(method);
+            if (!Modifier.isFinal(method.getModifiers()) && !method.isBridge()) {
+                overridableSetters.add(method);
+            }
         }
 
         public void addSetMethod(Method method) {

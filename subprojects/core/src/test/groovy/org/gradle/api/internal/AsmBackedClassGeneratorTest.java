@@ -380,6 +380,39 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void cannotCreateInstanceOfClassWithAbstractMethod() throws Exception {
+        try {
+            newInstance(AbstractMethodBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractMethodBean.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractMethodBean.implementMe()."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfClassWithAbstractGetter() throws Exception {
+        try {
+            newInstance(AbstractGetterBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractGetterBean.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing()."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfClassWithAbstractSetter() throws Exception {
+        try {
+            newInstance(AbstractSetterBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetterBean.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing()."));
+        }
+    }
+
+    @Test
     public void appliesConventionMappingToEachProperty() throws Exception {
         Bean bean = newInstance(Bean.class);
 
@@ -456,6 +489,27 @@ public class AsmBackedClassGeneratorTest {
 
         bean.setValue(12);
         assertThat(bean.getValue(), equalTo("12"));
+    }
+
+    @Test
+    public void appliesConventionMappingToPropertyWithCovariantOverrideOfAbstractGetter() throws Exception {
+        BeanWithCovariantAbstract bean = newInstance(BeanWithCovariantAbstract.class);
+
+        ConventionMapping conventionMapping = new DslObject(bean).getConventionMapping();
+        conventionMapping.map("prop", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+        conventionMapping.map("number", new Callable<Integer>() {
+            public Integer call() {
+                return 123;
+            }
+        });
+
+        assertThat(bean.getNumber(), equalTo(123));
+        assertThat(bean.getProp(), equalTo("conventionValue"));
+        assertThat(bean.getTypedProp(), equalTo(12L));
     }
 
     @Test
@@ -1397,6 +1451,22 @@ public class AsmBackedClassGeneratorTest {
     private static class PrivateBean {
     }
 
+    public static abstract class AbstractMethodBean {
+        abstract void implementMe();
+    }
+
+    public static abstract class AbstractGetterBean {
+        abstract String getThing();
+    }
+
+    public static abstract class AbstractSetterBean {
+        String getThing() {
+            return "";
+        }
+
+        abstract void setThing(String value);
+    }
+
     public enum AnnotationEnum {
         A, B
     }
@@ -1478,4 +1548,33 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public interface WithProperties {
+        Number getNumber();
+    }
+
+    public static abstract class AbstractWithProperties<T> {
+        abstract Object getProp();
+
+        abstract T getTypedProp();
+
+        final void setTypedProp(T t) {
+        }
+    }
+
+    public static class BeanWithCovariantAbstract extends AbstractWithProperties<Long> implements WithProperties {
+        @Override
+        public String getProp() {
+            return "string";
+        }
+
+        @Override
+        public Integer getNumber() {
+            return 12;
+        }
+
+        @Override
+        public final Long getTypedProp() {
+            return 12L;
+        }
+    }
 }
