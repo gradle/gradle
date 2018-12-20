@@ -121,7 +121,7 @@ The following are the features that have been promoted in this Gradle release.
 
 [In a recent blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time), we described a new API for creating and configuration `Task` instances that allow Gradle to avoid creating and configuring tasks that do not need to be executed.
 
-In this release, we now [recommend that you use this new API when working with tasks](userguide/task_configuration_avoidance.html). 
+In this release, we now [recommend that you use this new API when working with tasks in your plugins](userguide/task_configuration_avoidance.html). We've updated our [Gradle Guide for implementing plugins](https://guides.gradle.org/implementing-gradle-plugins/) to use this new API.
 
 By default, the Kotlin DSL [uses the new APIs](current/userguide/kotlin_dsl.html#type-safe-accessors).
 
@@ -133,14 +133,14 @@ task myTask(type: MyTask) {
 }
 ```
 
-In Groovy, to use the new API:
+In the Groovy DSL, to use the new API:
 ```
 tasks.register("myTask", MyTask) {
     
 }
 ```
 
-The existing API is not deprecated, but as builds transition to the new API, we will consider deprecating the API in a future release.
+The existing API is not deprecated in this release, but as builds transition to the new API, we will consider deprecating the API in a future release.
 
 ## Fixed issues
 
