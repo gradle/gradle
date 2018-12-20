@@ -24,7 +24,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
-    final ClassGenerator classGenerator = new AsmBackedClassGenerator()
+    final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceRegistry services = Mock()
     final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), classGenerator, services)
@@ -63,7 +63,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         result.someService == 'string'
     }
 
-    def "class generation doesn't prevent injection of missing parameters from provided service registry"() {
+    def "constructor can receive injected service and parameter"() {
         given:
         _ * services.find(String) >> "string"
 

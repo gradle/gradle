@@ -147,7 +147,7 @@ public class ProjectBuilderImpl {
         return userHomeScopeServiceRegistry.getServicesFor(userHomeDir);
     }
 
-    private ServiceRegistry getGlobalServices() {
+    private static ServiceRegistry getGlobalServices() {
         if (globalServices == null) {
             globalServices = ServiceRegistryBuilder
                 .builder()
@@ -162,7 +162,7 @@ public class ProjectBuilderImpl {
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory, BootstrapSecurityManager and GradleWorkerMain.)
             // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
-            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
+            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
         }
         return globalServices;
     }

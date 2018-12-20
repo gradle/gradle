@@ -17,7 +17,6 @@ package org.gradle.util
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
@@ -56,8 +55,7 @@ class TestUtil {
     }
 
     static InstantiatorFactory instantiatorFactory() {
-        def generator = new AsmBackedClassGenerator()
-        return new DefaultInstantiatorFactory(generator, new TestCrossBuildInMemoryCacheFactory())
+        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory())
     }
 
     static ObjectFactory objectFactory() {

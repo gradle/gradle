@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
@@ -783,14 +782,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
-        final Class decorated = project.getServices().get(ClassGenerator).generate(type)
         final String name = "task"
         TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
-                    return type.cast(decorated.constructors[0].newInstance(params))
+                    return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return JavaReflectionUtil.newInstance(decorated)
+                    return JavaReflectionUtil.newInstance(type)
                 }
             }
         })

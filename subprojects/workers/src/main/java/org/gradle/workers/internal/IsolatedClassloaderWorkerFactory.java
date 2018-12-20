@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
@@ -159,7 +158,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         @Override
         public Object call() throws Exception {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
-            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             WorkerProtocol worker = new DefaultWorkerServer(instantiatorFactory.inject());
             return worker.execute(spec);
         }

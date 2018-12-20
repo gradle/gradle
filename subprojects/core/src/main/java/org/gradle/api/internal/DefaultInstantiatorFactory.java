@@ -36,14 +36,14 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final Instantiator undecoraredInjectingInstantiator;
     private final Instantiator undecoratedLenientInjectingInstantiator;
 
-    public DefaultInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
-        decorated = classGenerator;
-        undecorated = new IdentityClassGenerator();
+    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
+        decorated = AsmBackedClassGenerator.decorateAndInject();
+        undecorated = AsmBackedClassGenerator.injectOnly();
         ServiceRegistry noServices = new DefaultServiceRegistry();
         undecoratedJsr330Selector = new Jsr330ConstructorSelector(undecorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
-        decoratedJsr330Selector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
-        decoratedLenientSelector = new ParamsMatchingConstructorSelector(classGenerator, cacheFactory.<List<ParamsMatchingConstructorSelector.CachedConstructor>>newClassCache());
-        decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, classGenerator, noServices);
+        decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+        decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<List<ParamsMatchingConstructorSelector.CachedConstructor>>newClassCache());
+        decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, decorated, noServices);
         undecoraredInjectingInstantiator = new DependencyInjectingInstantiator(undecoratedJsr330Selector, undecorated, noServices);
         undecoratedLenientInjectingInstantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(undecorated, cacheFactory.<List<ParamsMatchingConstructorSelector.CachedConstructor>>newClassCache()), undecorated, noServices);
     }
