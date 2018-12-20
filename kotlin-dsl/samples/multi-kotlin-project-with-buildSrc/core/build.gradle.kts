@@ -1,5 +1,0 @@
-plugins {
-    kotlin("jvm")
-}
-
-kotlinProject()
