@@ -174,6 +174,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         executer.withArguments(*arguments).runWithFailure()
 
     protected
+    fun build(rootDir: File, vararg arguments: String): ExecutionResult =
+        executer.inDirectory(rootDir).withArguments(*arguments).run()
+
+    protected
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
     }

@@ -12,7 +12,7 @@ import java.util.*
  * Base class for Gradle plugins tests.
  * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
  */
-open class AbstractPluginTest : AbstractIntegrationTest() {
+open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
 
     override val defaultSettingsScript: String
         get() = pluginManagementBlock

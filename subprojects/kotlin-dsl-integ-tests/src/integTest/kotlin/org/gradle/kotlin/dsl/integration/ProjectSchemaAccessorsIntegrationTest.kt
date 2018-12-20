@@ -35,6 +35,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of internal type made public`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         lateinit var extensionSourceFile: File
 
         withBuildSrc {
@@ -92,6 +94,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of default package type`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withBuildSrc {
 
             "src/main/kotlin" {
@@ -130,6 +134,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access task of default package type`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withBuildSrc {
             "src/main/kotlin" {
 
@@ -164,6 +170,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can access extension of nested type`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withBuildSrc {
             "src/main/kotlin/my" {
@@ -220,6 +228,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `multiple generic extension targets`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withBuildSrc {
 
             "src/main/kotlin" {
@@ -272,6 +282,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build scripts with same body`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withFolders {
 
             "buildSrc" {
@@ -312,11 +324,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """)
         }
 
+        executer.expectDeprecationWarning()
         build("tasks")
     }
 
     @Test
     fun `conflicting extensions across build runs`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withFolders {
 
@@ -346,7 +361,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             withDefaultSettings()
         }
 
+        executer.expectDeprecationWarning()
         build("tasks", "-Pmy=lib")
+
+        executer.expectDeprecationWarning()
         build("tasks", "-Pmy=app")
     }
 
@@ -401,6 +419,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withBuildSrc {
             withFile("src/main/kotlin/my/DocumentationPlugin.kt", """
                 package my
@@ -451,6 +471,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
         """)
+
+        executer.expectDeprecationWarning()
         assertThat(
             build("books").output,
             containsString("quickStart, userGuide")
@@ -537,6 +559,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can add artifacts using generated accessors for configurations`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -668,6 +692,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withDefaultSettingsIn("buildSrc")
 
         withFile("buildSrc/build.gradle.kts", """
@@ -714,12 +740,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        executer.expectDeprecationWarning()
         val result = build("help")
         assertThat(result.output, containsString("Type of `mine` receiver is Any"))
     }
 
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -808,11 +837,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        executer.expectDeprecationWarning()
         build("help")
     }
 
     @Test
     fun `convention accessors honor HasPublicType`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -867,6 +899,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        executer.expectDeprecationWarning()
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is Any"))
@@ -885,6 +918,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        executer.expectDeprecationWarning()
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
@@ -1002,6 +1036,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to extensions of the dependency handler`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/Mine.kt", """
             open class Mine {
@@ -1023,6 +1059,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """.trimIndent())
 
+        executer.expectDeprecationWarning()
         build("help").apply {
             assertThat(output, containsString("42"))
         }

@@ -24,17 +24,21 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
-import org.gradle.testkit.runner.TaskOutcome
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Before
 import org.junit.Test
 
 
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
+
+    @Before
+    fun setup() {
+        executer.expectDeprecationWarning()
+    }
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
@@ -230,6 +234,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     @Test
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withFolders {
 
             "plugins" {
@@ -388,8 +394,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     private
     fun compileKotlin() {
-        assertThat(
-            buildWithPlugin("classes").outcomeOf(":compileKotlin"),
-            equalTo(TaskOutcome.SUCCESS))
+        buildWithPlugin("classes")
+            .assertTaskExecuted(":compileKotlin")
     }
 }

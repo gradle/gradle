@@ -2,23 +2,24 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
 
-import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
-import org.gradle.kotlin.dsl.fixtures.customInstallation
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
-import org.gradle.testkit.runner.TaskOutcome
-
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 
 
 class KotlinDslPluginTest : AbstractPluginTest() {
+
+    @Before
+    fun setup() {
+        executer.expectDeprecationWarning()
+    }
 
     @Test
     fun `gradle kotlin dsl api dependency is added`() {
@@ -37,11 +38,13 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("classes")
 
-        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withBuildScript("""
 
@@ -96,6 +99,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withBuildScript("""
 
@@ -160,12 +165,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
                     // and:
                     System.setProperty("org.gradle.daemon.idletimeout", "1000")
-                    System.setProperty("org.gradle.daemon.registry.base", "${customDaemonRegistry().normalisedPath}")
+                    System.setProperty("org.gradle.daemon.registry.base", "${existing("daemons-registry").normalisedPath}")
                     File(projectRoot, "gradle.properties").writeText("org.gradle.jvmargs=-Xmx128m")
 
                     // and:
                     val runner = GradleRunner.create()
-                        .withGradleInstallation(File("${customInstallation().normalisedPath}"))
+                        .withGradleInstallation(File("${distribution.gradleHomeDir.normalisedPath}"))
                         .withProjectDir(projectRoot)
                         .withPluginClasspath()
                         .forwardOutput()
@@ -174,7 +179,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     val result = runner.withArguments("help").build()
 
                     // then:
-                    assert("Plugin Using Embedded Kotlin " in result.output)
+                    require("Plugin Using Embedded Kotlin " in result.output)
                 }
             }
 
@@ -210,7 +215,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("classes")
 
-        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test
@@ -276,6 +281,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         kotlinDslPluginExperimentalWarning(
             "project '$projectPath'",
             DocumentationRegistry().getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
+                .substringBefore("docs.gradle.org") // Dropping the Gradle Version
         )
 
     private

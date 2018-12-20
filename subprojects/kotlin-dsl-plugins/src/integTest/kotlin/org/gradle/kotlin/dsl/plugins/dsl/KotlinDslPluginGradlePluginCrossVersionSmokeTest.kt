@@ -95,6 +95,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         """)
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
+        executer.expectDeprecationWarning()
+
         buildWithPlugin("classes").apply {
             assertThat(
                 output,

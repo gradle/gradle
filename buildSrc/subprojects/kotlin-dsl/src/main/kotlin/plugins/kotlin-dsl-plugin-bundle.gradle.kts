@@ -33,9 +33,6 @@ tasks {
     "validateTaskProperties"(ValidateTaskProperties::class) {
         failOnWarning = true
     }
-    "integTest" {
-        dependsOn(":kotlinDslTestFixtures:customInstallation")
-    }
 }
 
 

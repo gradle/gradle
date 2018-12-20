@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import plugins.bundledGradlePlugin
@@ -35,6 +34,11 @@ dependencies {
     implementation(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
 }
 
 
@@ -69,12 +73,3 @@ bundledGradlePlugin(
     shortDescription = "Gradle Kotlin DSL Precompiled Script Plugins",
     pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
     pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins")
-
-
-// testing ------------------------------------------------------------
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
-integTestTasks.configureEach {
-    dependsOn(tasks.publishPluginsToTestRepository)
-    dependsOn(":kotlinDslTestFixtures:customInstallation")
-}

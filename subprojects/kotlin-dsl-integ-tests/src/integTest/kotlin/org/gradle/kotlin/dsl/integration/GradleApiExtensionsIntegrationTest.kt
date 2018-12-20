@@ -138,6 +138,8 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can use Gradle API generated extensions in buildSrc`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withDefaultSettingsIn("buildSrc")
 
         withBuildScriptIn("buildSrc", """
@@ -179,16 +181,22 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        executer.expectDeprecationWarning()
+
         build("foo")
     }
 
     @Test
     fun `generated jar contains Gradle API extensions sources and byte code and is reproducible`() {
 
-        withBuildScript("")
-        build("help", "-g", "guh")
+        val guh = newDir("guh")
 
-        val generatedJar = generatedExtensionsJarFromGradleUserHome(existing("guh"))
+        withBuildScript("")
+
+        executer.withGradleUserHomeDir(guh)
+        build("help")
+
+        val generatedJar = generatedExtensionsJarFromGradleUserHome(guh)
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
             .use { it.entries().toList().map { entry -> entry.name } }

@@ -20,19 +20,22 @@ import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.api.logging.Logger
 
-import org.gradle.testkit.runner.TaskOutcome
-
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 
 
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
+
+    @Before
+    fun setup() {
+        executer.expectDeprecationWarning()
+    }
 
     @Test
     fun `applies the kotlin plugin`() {
@@ -47,7 +50,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("assemble")
 
-        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.NO_SOURCE))
+        result.assertOutputContains(":compileKotlin NO-SOURCE")
     }
 
     @Test
@@ -204,7 +207,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("assemble")
 
-        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test

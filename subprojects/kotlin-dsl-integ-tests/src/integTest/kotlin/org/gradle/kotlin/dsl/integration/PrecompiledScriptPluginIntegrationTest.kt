@@ -1,14 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
-import org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-
-import org.gradle.kotlin.dsl.fixtures.gradleRunnerFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
 import org.junit.Test
 
 
@@ -26,17 +19,22 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             repositories { jcenter() }
         """)
 
-        withFile("src/main/kotlin/plugin-without-package.gradle.kts")
+        withFile("src/main/kotlin/plugin-without-package.gradle.kts", "\n")
         withFile("src/main/kotlin/plugins/plugin-with-package.gradle.kts", """
             package plugins
         """)
 
+        executer.expectDeprecationWarning()
         build("generateScriptPluginAdapters")
+
+        executer.expectDeprecationWarnings(2)
         build("ktlintC")
     }
 
     @Test
     fun `precompiled script plugins adapters generation is cached and relocatable`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         val firstLocation = "first-location"
         val secondLocation = "second-location"
@@ -68,14 +66,19 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         val generationTask = ":generateScriptPluginAdapters"
 
-        gradleRunnerFor(firstDir, "classes", "--build-cache").build().apply {
-            assertThat(outcomeOf(generationTask), equalTo(SUCCESS))
+        executer.expectDeprecationWarning()
+        build(firstDir, "classes", "--build-cache").apply {
+            assertTaskExecuted(generationTask)
         }
-        gradleRunnerFor(firstDir, "classes", "--build-cache").build().apply {
-            assertThat(outcomeOf(generationTask), equalTo(UP_TO_DATE))
+
+        executer.expectDeprecationWarning()
+        build(firstDir, "classes", "--build-cache").apply {
+            assertOutputContains("$generationTask UP-TO-DATE")
         }
-        gradleRunnerFor(secondDir, "classes", "--build-cache").build().apply {
-            assertThat(outcomeOf(generationTask), equalTo(FROM_CACHE))
+
+        executer.expectDeprecationWarning()
+        build(secondDir, "classes", "--build-cache").apply {
+            assertOutputContains("$generationTask FROM-CACHE")
         }
     }
 }

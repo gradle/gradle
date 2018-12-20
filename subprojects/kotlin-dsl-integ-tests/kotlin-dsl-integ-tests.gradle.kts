@@ -49,7 +49,6 @@ tasks {
 
     val testEnvironment by registering {
         dependsOn(":kotlinDslTestFixtures:prepareIntegrationTestFixtures")
-        dependsOn(":kotlinDslTestFixtures:customInstallation")
         pluginBundles.forEach {
             dependsOn(":$it:publishPluginsToTestRepository")
         }
