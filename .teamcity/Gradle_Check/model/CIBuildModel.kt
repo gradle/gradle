@@ -163,6 +163,14 @@ data class CIBuildModel (
             GradleSubproject("soak", unitTests = false, functionalTests = false),
 
             GradleSubproject("apiMetadata", unitTests = false, functionalTests = false),
+            GradleSubproject("kotlinDsl", unitTests = true, functionalTests = true),
+            GradleSubproject("kotlinDslProviderPlugins", unitTests = false, functionalTests = false),
+            GradleSubproject("kotlinDslToolingModels", unitTests = false, functionalTests = false),
+            GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true),
+            GradleSubproject("kotlinDslPlugins", unitTests = true, functionalTests = true),
+            GradleSubproject("kotlinDslTestFixtures", unitTests = true, functionalTests = false),
+            GradleSubproject("kotlinDslIntegTests", unitTests = false, functionalTests = true),
+
             GradleSubproject("architectureTest", unitTests = false, functionalTests = false),
             GradleSubproject("distributionsDependencies", unitTests = false, functionalTests = false),
             GradleSubproject("buildScanPerformance", unitTests = false, functionalTests = false),
