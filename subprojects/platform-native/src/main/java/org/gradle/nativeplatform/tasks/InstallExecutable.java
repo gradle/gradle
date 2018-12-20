@@ -218,7 +218,7 @@ public class InstallExecutable extends DefaultTask {
         return getInstallDirectory().dir("lib");
     }
 
-    private void installWindows(final File executable, File runScript) {
+    private void installWindows(File executable, File runScript) {
         StringBuilder toolChainPath = new StringBuilder();
 
         NativeToolChain toolChain = getToolChain().get();
@@ -243,7 +243,7 @@ public class InstallExecutable extends DefaultTask {
         GFileUtils.writeFile(runScriptText, runScript);
     }
 
-    private void installUnix(final File executable, File runScript) {
+    private void installUnix(File executable, File runScript) {
         String runScriptText =
               "#!/bin/sh"
             + "\nAPP_BASE_NAME=`dirname \"$0\"`"
