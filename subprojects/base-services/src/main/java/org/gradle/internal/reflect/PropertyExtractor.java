@@ -53,12 +53,12 @@ public class PropertyExtractor {
     private final ImmutableSet<Class<?>> ignoredSuperclasses;
     private final ImmutableSet<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses) {
+    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodFromClasses) {
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
         this.ignoredSuperclasses = ignoredSuperclasses;
-        Iterable<Method> ignoredMethods = Iterables.concat(Iterables.transform(ignoredSuperclasses, new Function<Class<?>, Iterable<Method>>() {
+        Iterable<Method> ignoredMethods = Iterables.concat(Iterables.transform(ignoreMethodFromClasses, new Function<Class<?>, Iterable<Method>>() {
             @Override
             public Iterable<Method> apply(Class<?> input) {
                 return Arrays.asList(input.getMethods());

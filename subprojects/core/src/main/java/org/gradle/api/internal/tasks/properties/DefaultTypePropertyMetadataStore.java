@@ -91,6 +91,8 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
         ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
     );
 
+    private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
+
     private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final CrossBuildInMemoryCache<Class<?>, TypePropertyMetadata> cache;
     private final PropertyExtractor propertyExtractor;
@@ -116,7 +118,7 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
                 return handler.getAnnotationType();
             }
         })).keySet());
-        this.propertyExtractor = new PropertyExtractor(annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES);
+        this.propertyExtractor = new PropertyExtractor(annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
         this.cache = cacheFactory.newClassCache();
     }
 

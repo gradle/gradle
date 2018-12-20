@@ -30,7 +30,7 @@ import java.lang.annotation.Target
 
 class PropertyExtractorTest extends Specification {
 
-    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class))
+    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class), ImmutableSet.of(Object, GroovyObject))
 
     class WithPropertyType1 {
         @PropertyType1 getFile() {}
