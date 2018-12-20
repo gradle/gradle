@@ -23,7 +23,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-tasks.named("test") {
+test {
     useJUnit()
 
     maxHeapSize = '1G'
@@ -57,7 +57,7 @@ dependencies {
     asciidoclet 'org.asciidoctor:asciidoclet:1.+'
 }
 
-tasks.register("configureJavadoc") {
+task configureJavadoc {
     doLast {
         javadoc {
             options.doclet = 'org.asciidoctor.Asciidoclet'
@@ -66,20 +66,18 @@ tasks.register("configureJavadoc") {
     }
 }
 
-tasks.named("javadoc") {
+javadoc {
     dependsOn configureJavadoc
 }
 // end::using-custom-doclet[]
 
 
 // tag::skip-tests-condition[]
-tasks.named("test") {
-    onlyIf { !project.hasProperty('mySkipTests') }
-}
+test.onlyIf { !project.hasProperty('mySkipTests') }
 // end::skip-tests-condition[]
 
 // tag::java-compiler-options[]
-tasks.named("compileJava") {
+compileJava {
     options.incremental = true
     options.fork = true
     options.failOnError = false
@@ -87,7 +85,7 @@ tasks.named("compileJava") {
 // end::java-compiler-options[]
 
 // tag::integ-test-task[]
-tasks.register("integrationTest", Test) {
+task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group = 'verification'
 
@@ -96,13 +94,11 @@ tasks.register("integrationTest", Test) {
     shouldRunAfter test
 }
 
-tasks.named("check") {
-    dependsOn integrationTest
-}
+check.dependsOn integrationTest
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-tasks.register("sourcesJar", Jar) {
+task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
 }
@@ -110,7 +106,7 @@ tasks.register("sourcesJar", Jar) {
 
 
 // tag::defining-custom-javadoc-task[]
-tasks.register("testJavadoc",Javadoc) {
+task testJavadoc(type: Javadoc) {
     source = sourceSets.test.allJava
 }
 // end::defining-custom-javadoc-task[]

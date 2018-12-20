@@ -1,4 +1,4 @@
-tasks.register("action") {
+task action {
     doLast {
         println("Consuming message: ${rootProject.producerMessage}")
     }

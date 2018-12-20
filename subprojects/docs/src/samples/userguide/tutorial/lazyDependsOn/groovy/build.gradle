@@ -1,10 +1,10 @@
-tasks.register("taskX") {
+task taskX {
     dependsOn 'taskY'
     doLast {
         println 'taskX'
     }
 }
-tasks.register("taskY") {
+task taskY {
     doLast {
         println 'taskY'
     }

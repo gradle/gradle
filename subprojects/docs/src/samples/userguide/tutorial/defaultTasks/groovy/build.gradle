@@ -1,18 +1,18 @@
 defaultTasks 'clean', 'run'
 
-tasks.register("clean") {
+task clean {
     doLast {
         println 'Default Cleaning!'
     }
 }
 
-tasks.register("run") {
+task run {
     doLast {
         println 'Default Running!'
     }
 }
 
-tasks.register("other") {
+task other {
     doLast {
         println "I'm not a default task!"
     }

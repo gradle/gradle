@@ -1,5 +1,5 @@
 println "configuring $project"
-tasks.register("hello") {
+task hello {
     doLast {
         println 'hello from other script'
     }

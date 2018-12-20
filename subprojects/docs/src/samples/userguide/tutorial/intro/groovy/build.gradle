@@ -1,9 +1,9 @@
-tasks.register("hello") {
+task hello {
     doLast {
         println 'Hello world!'
     }
 }
-tasks.register("intro") {
+task intro {
     dependsOn hello
     doLast {
         println "I'm Gradle"

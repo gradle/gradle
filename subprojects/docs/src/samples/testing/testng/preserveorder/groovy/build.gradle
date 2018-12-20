@@ -27,13 +27,13 @@ dependencies {
  */
 
 // tag::test-config[]
-tasks.named("test") {
+test {
     useTestNG {
         preserveOrder true
     }
 }
 // end::test-config[]
 
-tasks.named("test") {
+test {
     testLogging.showStandardStreams = true
 }

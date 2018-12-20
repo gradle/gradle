@@ -1,5 +1,5 @@
 // tag::mkdir-example[]
-tasks.register("ensureDirectory") {
+task ensureDirectory {
     doLast {
         mkdir "images"
     }
@@ -7,7 +7,7 @@ tasks.register("ensureDirectory") {
 // end::mkdir-example[]
 
 // tag::move-example[]
-tasks.register("moveReports") {
+task moveReports {
     doLast {
         ant.move file: "${buildDir}/reports",
                  todir: "${buildDir}/toArchive"
@@ -16,13 +16,13 @@ tasks.register("moveReports") {
 // end::move-example[]
 
 // tag::delete-example[]
-tasks.register("myClean", Delete) {
+task myClean(type: Delete) {
     delete buildDir
 }
 // end::delete-example[]
 
 // tag::delete-with-filter-example[]
-tasks.register("cleanTempFiles", Delete) {
+task cleanTempFiles(type: Delete) {
     delete fileTree("src").matching {
         include "**/*.tmp"
     }

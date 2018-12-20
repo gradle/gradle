@@ -24,7 +24,7 @@ signing {
 // end::sign-archives[]
 
 // tag::sign-pom[]
-tasks.named("uploadArchives") {
+uploadArchives {
     repositories {
         mavenDeployer {
 // end::sign-pom[]

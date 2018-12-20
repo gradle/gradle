@@ -2,6 +2,6 @@ tasks.whenTaskAdded { task ->
     task.ext.srcDir = 'src/main/java'
 }
 
-tasks.register("a")
+task a
 
 println "source dir is $a.srcDir"

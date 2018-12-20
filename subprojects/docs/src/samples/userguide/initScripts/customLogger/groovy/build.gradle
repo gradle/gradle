@@ -1,20 +1,16 @@
-tasks.register("compile") {
+task compile {
     doLast {
         println "compiling source"
     }
 }
-tasks.register("testCompile") {
-    dependsOn compile
+task testCompile(dependsOn: compile) {
     doLast {
         println "compiling test source"
     }
 }
-tasks.register("test") {
-    dependsOn compile, testCompile
+task test(dependsOn: [compile, testCompile]) {
     doLast {
         println "running unit tests"
     }
 }
-tasks.register("build") {
-    dependsOn test
-}
+task build(dependsOn: [test])

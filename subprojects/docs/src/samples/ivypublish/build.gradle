@@ -1,3 +1,4 @@
+
 allprojects {
     apply plugin: 'java'
 }
@@ -20,7 +21,7 @@ repositories {
     mavenCentral()
 }
 
-tasks.register("sourceJar", Jar) {
+task sourceJar(type: Jar) {
     baseName = 'ivypublishSource'
     from sourceSets.main.java
     classifier = 'src'
@@ -30,7 +31,7 @@ artifacts {
     archives sourceJar
 }
 
-tasks.named("uploadArchives") {
+uploadArchives {
     uploadDescriptor = true
     repositories {
         ivy {
@@ -62,15 +63,13 @@ tasks.named("uploadArchives") {
 // moment (e.g. https://issues.apache.org/jira/browse/IVY-1110). As soon as this bug is fixed, we
 // should uncomment the below.
 
-//tasks.register("ivyConfigure").configure {
-//    doLast {
-//        def cacheDir = ant.properties['ivy.cache.dir'] + '/org.gradle.test'
-//        println cacheDir
-//        ant.delete(dir: cacheDir, verbose: true)
-//    }
+//ivyConfigure.doLast {
+//    def cacheDir = ant.properties['ivy.cache.dir'] + '/org.gradle.test'
+//    println cacheDir
+//    ant.delete(dir: cacheDir, verbose: true)
 //}
 //
-//tasks.register("retrieveFromAnt") {
+//retrieveFromAnt {
 //    dependsOn uploadArchives
 //    doLast {
 //        File retrieveDir = new File("$buildDir/antRetrieve")

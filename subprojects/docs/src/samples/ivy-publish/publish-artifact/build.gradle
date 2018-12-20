@@ -12,7 +12,7 @@ def rpmArtifact = artifacts.add("archives", rpmFile) {
 }
 // end::custom-artifact[]
 
-tasks.register("rpm") {
+task rpm() {
     outputs.file rpmFile
     doLast {
         // produce real RPM here

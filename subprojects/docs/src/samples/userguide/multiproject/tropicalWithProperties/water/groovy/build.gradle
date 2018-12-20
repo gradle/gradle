@@ -1,14 +1,12 @@
 allprojects {
-    tasks.register("hello") {
+    task hello {
         doLast { task ->
             println "I'm $task.project.name"
         }
     }
 }
 subprojects {
-    def hello = tasks.named("hello") 
-    
-    hello.configure { 
+    hello {
         doLast {println "- I depend on water"}
     }
 

@@ -9,14 +9,13 @@ dependencies {
     }
 }
 
-tasks.register("compile") {
+task compile {
     doLast {
         println 'compiling classes'
     }
 }
 
-tasks.register("list") {
-    dependsOn configurations.compile
+task list(dependsOn: configurations.compile) {
     doLast {
         println "classpath = ${configurations.compile.collect { File file -> file.name }}"
     }

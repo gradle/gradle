@@ -15,7 +15,7 @@ file('src2/dir1').mkdirs()
 file('src2/dir2').mkdirs()
 
 // tag::closure[]
-tasks.register("list") {
+task list {
     doLast {
         File srcDir
 
@@ -33,7 +33,7 @@ tasks.register("list") {
 }
 // end::closure[]
 
-tasks.register("usage") {
+task usage {
     doLast {
         collection = layout.files('src/file1.txt')
 
@@ -58,7 +58,7 @@ tasks.register("usage") {
     }
 }
 
-tasks.register("filterTextFiles") {
+task filterTextFiles {
     doLast {
         // tag::filtering-file-collections[]
         FileCollection textFiles = collection.filter { File f ->

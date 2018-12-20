@@ -1,29 +1,27 @@
-tasks.register("taskX") {
+task taskX {
     doLast {
         println 'taskX'
     }
 }
 
 // Using a Groovy Closure
-tasks.named("taskX") {
-    dependsOn {
-        tasks.findAll { task -> task.name.startsWith('lib') }
-    }
+taskX.dependsOn {
+    tasks.findAll { task -> task.name.startsWith('lib') }
 }
 
-tasks.register("lib1") {
+task lib1 {
     doLast {
         println 'lib1'
     }
 }
 
-tasks.register("lib2") {
+task lib2 {
     doLast {
         println 'lib2'
     }
 }
 
-tasks.register("notALib") {
+task notALib {
     doLast {
         println 'notALib'
     }

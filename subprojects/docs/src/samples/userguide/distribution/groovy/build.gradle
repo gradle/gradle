@@ -24,7 +24,7 @@ distributions {
 
 // tag::publish-distribution[]
 
-tasks.named("uploadArchives") {
+uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: "file://some/repo")

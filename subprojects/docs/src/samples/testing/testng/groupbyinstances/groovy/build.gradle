@@ -11,13 +11,13 @@ dependencies {
 }
 
 // tag::test-config[]
-tasks.named("test") {
+test {
     useTestNG {
         groupByInstances = true
     }
 }
 // end::test-config[]
 
-tasks.named("test") {
+test {
     testLogging.showStandardStreams = true
 }

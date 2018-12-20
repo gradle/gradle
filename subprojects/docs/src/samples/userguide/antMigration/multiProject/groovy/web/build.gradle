@@ -1,3 +1,3 @@
 ant.importBuild 'build.xml'
 
-tasks.named("compile") { dependsOn = [ ':util:build' ] }
+compile.dependsOn = [ ':util:build' ]

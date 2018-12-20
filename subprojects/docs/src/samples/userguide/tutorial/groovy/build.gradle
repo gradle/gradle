@@ -16,20 +16,18 @@ getProject().setBuildDir('target')
 // end::propertyAccessors[]
 
 // tag::methodCallWithoutParentheses[]
-tasks.named("test") {
-    systemProperty 'some.prop', 'value'
-    systemProperty('some.prop', 'value')
-}
+test.systemProperty 'some.prop', 'value'
+test.systemProperty('some.prop', 'value')
 // end::methodCallWithoutParentheses[]
 
 // tag::listAndMapLiterals[]
 // List literal
-tasks.named("test") { includes = ['org/gradle/api/**', 'org/gradle/internal/**'] }
+test.includes = ['org/gradle/api/**', 'org/gradle/internal/**']
 
 List<String> list = new ArrayList<String>()
 list.add('org/gradle/api/**')
 list.add('org/gradle/internal/**')
-tasks.named("test") { includes = list }
+test.includes = list
 
 // Map literal.
 Map<String, String> map = [key1:'value1', key2: 'value2']

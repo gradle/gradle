@@ -2,12 +2,10 @@ dependencies {
     compile 'junit:junit:4.12', project(':prod')
 }
 
-tasks.register("test", Test) {
+task test(type: Test) {
     testClassesDirs = sourceSets.main.output.classesDirs
     classpath = sourceSets.main.runtimeClasspath
 }
 
-tasks.named("check") {
-    dependsOn test
-}
+check.dependsOn test
 

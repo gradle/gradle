@@ -1,6 +1,6 @@
 apply plugin: 'c'
 
-tasks.register("idl", DummyIdlCompiler) {
+task idl(type: DummyIdlCompiler) {
     idlFiles = project.fileTree("src/main/idl")
     headerDir = project.file("${buildDir}/src/generated/headers")
     sourceDir = project.file("${buildDir}/src/generated/c")

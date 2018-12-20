@@ -2,7 +2,7 @@
 File configFile = file("$rootDir/shared/config.xml")
 // end::using-root-dir-property[]
 
-tasks.register("checkConfigFile") {
+task checkConfigFile {
     doLast {
         assert configFile.exists()
     }

@@ -1,4 +1,4 @@
-tasks.register("hello") {
+task hello {
     doLast {
         String greeting = 'hello from Ant'
         ant.echo(message: greeting)

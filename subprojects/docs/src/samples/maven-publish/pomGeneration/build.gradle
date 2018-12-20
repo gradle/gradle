@@ -20,7 +20,7 @@ publishing {
 }
 
 // tag::generate[]
-tasks.named("generatePomFileForMavenCustomPublication") {
+generatePomFileForMavenCustomPublication {
     destination = file("$buildDir/generated-pom.xml")
 }
 // end::generate[]
