@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.zipTo
 
 import java.io.File
 
@@ -93,8 +94,6 @@ class JarPatcher(
                 }
             }
         }
-        ant.withGroovyBuilder {
-            "zip"("basedir" to baseDir, "destfile" to destFile)
-        }
+        zipTo(destFile, baseDir)
     }
 }

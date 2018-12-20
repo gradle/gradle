@@ -400,3 +400,10 @@ tasks.register<Zip>("allIncubationReportsZip") {
 }
 
 fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
+
+allprojects {
+    tasks.withType<AbstractArchiveTask>() {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
+}

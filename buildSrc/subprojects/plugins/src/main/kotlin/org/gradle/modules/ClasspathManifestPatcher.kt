@@ -13,6 +13,7 @@ import org.objectweb.asm.commons.Remapper
 import java.io.File
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.zipTo
 
 
 // Map of internal APIs that have been renamed since the last release
@@ -100,9 +101,7 @@ open class ClasspathManifestPatcher(
 
     private
     fun pack(baseDir: File, destFile: File): Unit = project.run {
-        ant.withGroovyBuilder {
-            "zip"("basedir" to baseDir, "destfile" to destFile)
-        }
+        zipTo(destFile, baseDir)
     }
 
     private
