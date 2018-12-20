@@ -715,6 +715,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
             Type serviceType = Type.getType(property.getType());
+            java.lang.reflect.Type genericServiceType = property.getGenericType();
             String propFieldName = propFieldName(property);
 
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor, signature(getter), EMPTY_STRINGS);
@@ -735,13 +736,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getServices", RETURN_SERVICE_REGISTRY, false);
 
-            java.lang.reflect.Type genericReturnType = getter.getGenericReturnType();
-            if (genericReturnType instanceof Class) {
+            if (genericServiceType instanceof Class) {
                 // if the return type doesn't use generics, then it's faster to just rely on the type name directly
-                methodVisitor.visitLdcInsn(Type.getType((Class) genericReturnType));
+                methodVisitor.visitLdcInsn(Type.getType((Class) genericServiceType));
             } else {
                 // load the static type descriptor from class constants
-                String constantFieldName = getConstantNameForGenericReturnType(genericReturnType, getterName);
+                String constantFieldName = getConstantNameForGenericReturnType(genericServiceType, getterName);
                 methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), constantFieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
             }
 

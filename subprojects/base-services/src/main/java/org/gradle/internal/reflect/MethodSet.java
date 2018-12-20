@@ -17,22 +17,25 @@
 package org.gradle.internal.reflect;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 class MethodSet implements Iterable<Method> {
-    private final Set<MethodSignature> signatures = new HashSet<MethodSignature>();
     private final List<Method> methods = new ArrayList<Method>();
 
     /**
      * @return true if the method was added, false if not
      */
     public boolean add(Method method) {
-        MethodSignature methodSignature = new MethodSignature(method.getName(), method.getParameterTypes());
-        if (signatures.add(methodSignature)) {
-            methods.add(method);
-            return true;
+        for (Method current : methods) {
+            if (current.getName().equals(method.getName()) && current.getReturnType().equals(method.getReturnType()) && Arrays.equals(current.getParameterTypes(), method.getParameterTypes())) {
+                return false;
+            }
         }
-        return false;
+        methods.add(method);
+        return true;
     }
 
     public Iterator<Method> iterator() {

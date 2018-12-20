@@ -16,11 +16,10 @@
 
 package org.gradle.internal.reflect;
 
-import com.google.common.collect.Lists;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +43,7 @@ public class ClassInspector {
         // fully visit the class hierarchy before any interfaces in order to meet the contract
         // of PropertyDetails.getGetters() etc.
         queue.add(type);
-        Collections.addAll(queue, superClasses(type));
+        superClasses(type, queue);
         while (!queue.isEmpty()) {
             Class<?> current = queue.remove(0);
             if (!seen.add(current)) {
@@ -58,21 +57,19 @@ public class ClassInspector {
         }
     }
 
-    private static Class<?>[] superClasses(Class<?> current) {
-        List<Class<?>> supers = Lists.newArrayList();
+    private static void superClasses(Class<?> current, Collection<Class<?>> supers) {
         Class<?> superclass = current.getSuperclass();
-        while (superclass != null && superclass != Object.class) {
+        while (superclass != null) {
             supers.add(superclass);
             superclass = superclass.getSuperclass();
         }
-        return supers.toArray(new Class<?>[0]);
     }
 
     private static void inspectClass(Class<?> type, MutableClassDetails classDetails) {
         for (Method method : type.getDeclaredMethods()) {
             classDetails.method(method);
 
-            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
+            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
                 continue;
             }
 
