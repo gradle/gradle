@@ -112,14 +112,14 @@ task copyWithTruncate(type: Copy) {
 
 
 // tag::copy-task[]
-tasks.register("copyTask", Copy) {
+task copyTask(type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
 }
 // end::copy-task[]
 
 // tag::copy-task-with-patterns[]
-tasks.register("copyTaskWithPatterns", Copy) {
+task copyTaskWithPatterns (type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     include '**/*.html'
@@ -132,7 +132,7 @@ tasks.register("copyTaskWithPatterns", Copy) {
 // end::copy-task-with-patterns[]
 
 // tag::copy-task-2[]
-tasks.register("anotherCopyTask", Copy) {
+task anotherCopyTask (type: Copy) {
     // Copy everything under src/main/webapp
     from 'src/main/webapp'
     // Copy a single file
@@ -153,7 +153,7 @@ def getDestDir() {
 }
 
 // tag::copy-method[]
-tasks.register("copyMethod") {
+task copyMethod {
     doLast {
         copy {
             from 'src/main/webapp'
@@ -166,7 +166,7 @@ tasks.register("copyMethod") {
 // end::copy-method[]
 
 // tag::copy-method-with-dependency[]
-tasks.register("copyMethodWithExplicitDependencies") {
+task copyMethodWithExplicitDependencies {
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files copyTask
     outputs.dir 'some-dir' // up-to-date check for outputs
@@ -183,7 +183,7 @@ tasks.register("copyMethodWithExplicitDependencies") {
 configurations { runtime }
 
 // tag::rename-files[]
-tasks.register("rename", Copy) {
+task rename (type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     // Use a closure to convert all file names to upper case
@@ -200,7 +200,7 @@ tasks.register("rename", Copy) {
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
-tasks.register("filter", Copy) {
+task filter(type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     // Substitute property tokens in files
@@ -221,7 +221,7 @@ tasks.register("filter", Copy) {
 }
 // end::filter-files[]
 
-tasks.register("test") {
+task test {
     dependsOn tasks.withType(Copy)
     dependsOn copyMethod
     dependsOn copyMethodWithExplicitDependencies
@@ -236,12 +236,12 @@ CopySpec webAssetsSpec = copySpec {
     rename '(.+)-staging(.+)', '$1$2'
 }
 
-tasks.register("copyAssets", Copy) {
+task copyAssets (type: Copy) {
     into "$buildDir/inPlaceApp"
     with webAssetsSpec
 }
 
-tasks.register("distApp", Zip) {
+task distApp(type: Zip) {
     archiveName = 'my-app-dist.zip'
     destinationDir = file("$buildDir/dists")
 
@@ -255,12 +255,12 @@ def webAssetPatterns = {
     include '**/*.html', '**/*.png', '**/*.jpg'
 }
 
-tasks.register("copyAppAssets", Copy) {
+task copyAppAssets(type: Copy) {
     into "$buildDir/inPlaceApp"
     from 'src/main/webapp', webAssetPatterns
 }
 
-tasks.register("archiveDistAssets", Zip) {
+task archiveDistAssets(type: Zip) {
     archiveName = 'distribution-assets.zip'
     destinationDir = file("$buildDir/dists")
 
@@ -269,7 +269,7 @@ tasks.register("archiveDistAssets", Zip) {
 // end::shared-copy-patterns[]
 
 // tag::change-default-exclusions[]
-tasks.register("forcedCopy", Copy) {
+task forcedCopy (type: Copy) {
     into "$buildDir/inPlaceApp"
     from 'src/main/webapp'
 
