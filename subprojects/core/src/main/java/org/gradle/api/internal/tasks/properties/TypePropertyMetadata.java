@@ -16,28 +16,15 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.reflect.PropertyMetadata;
+
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Set;
 
-public interface PropertyMetadata {
-    String getFieldName();
-
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
-
+public interface TypePropertyMetadata {
+    Set<PropertyMetadata> getPropertiesMetadata();
+    boolean hasAnnotatedProperties();
     @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
-
-    List<String> getValidationMessages();
-
-    @Nullable
-    PropertyValueVisitor getPropertyValueVisitor();
-
-    @Nullable
-    Class<? extends Annotation> getPropertyType();
-
-    Class<?> getDeclaredType();
-
-    Method getMethod();
+    PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
 }

@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Queue;
@@ -30,8 +30,8 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<Object> {
 
     private final T bean;
 
-    protected RuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, T bean, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, typeMetadata);
+    protected RuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, T bean, TypePropertyMetadata typePropertyMetadata) {
+        super(parentNode, propertyName, typePropertyMetadata);
         this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName);
     }
 

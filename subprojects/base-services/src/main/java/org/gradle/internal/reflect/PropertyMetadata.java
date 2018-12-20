@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.reflect;
 
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.List;
 
-public interface TypeMetadata {
-    Set<PropertyMetadata> getPropertiesMetadata();
-    boolean hasAnnotatedProperties();
+public interface PropertyMetadata {
+    String getFieldName();
+
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
+    @Nullable
+    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+
+    List<String> getValidationMessages();
+
+    @Nullable
+    Class<? extends Annotation> getPropertyType();
+
+    Class<?> getDeclaredType();
+
+    Method getGetterMethod();
 }

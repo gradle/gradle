@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -26,15 +26,15 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyMetadata;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
@@ -45,25 +45,24 @@ import java.lang.reflect.Method;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypePropertyMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
     public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
-        TypeMetadata typeMetadata = getTypeMetadata();
-        for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
-            PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            if (propertyValueVisitor == null || !propertyValueVisitor.shouldVisit(visitor)) {
-                continue;
+        TypePropertyMetadata typeMetadata = getTypePropertyMetadata();
+        for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
+            PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
+            if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
+                String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
+                PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean());
+                annotationHandler.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
+                    @Override
+                    public void addNested(String propertyName, Object bean) {
+                        queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
+                    }
+                });
             }
-            String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean(), propertyMetadata.getMethod());
-            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
-                @Override
-                public void addNested(String propertyName, Object bean) {
-                    queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
-                }
-            });
         }
     }
 
@@ -90,11 +89,11 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean, Method method) {
+        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean) {
             this.propertyName = propertyName;
             this.propertyMetadata = propertyMetadata;
             this.bean = bean;
-            this.method = method;
+            this.method = propertyMetadata.getGetterMethod();
             method.setAccessible(true);
         }
 
