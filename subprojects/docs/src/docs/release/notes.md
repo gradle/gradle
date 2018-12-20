@@ -70,6 +70,7 @@ We would like to thank the following community members for making contributions 
  - [Stefan M.](https://github.com/StefMa) - Deprecate ProjectBuilder constructor (gradle/gradle#7444)
  - [Roberto Perez Alcolea](https://github.com/rpalcolea) - Ignore ProjectBuilder deprecation warning when using builder (gradle/gradle#8067)
  - [Ian Kerins](https://github.com/isker) - Fix links to CreateStartScripts DSL docs in Application Plugin user manual chapter (gradle/gradle#7938)
+ - [Kim Brouer](https://github.com/brouer) - Fix issue with leading zero in version numbers (gradle/gradle#7806)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
