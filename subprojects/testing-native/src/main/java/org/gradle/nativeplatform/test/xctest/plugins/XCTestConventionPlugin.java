@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -65,11 +66,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Set;
 
 import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
@@ -106,7 +105,19 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         final ProviderFactory providers = project.getProviders();
 
         // Create test suite component
-        final DefaultSwiftXCTestSuite testComponent = createTestSuite(project);
+        // TODO - Reuse logic from Swift*Plugin
+        // TODO - component name and extension name aren't the same
+        // TODO - should use `src/xctest/swift` as the convention?
+        // Add the test suite and extension
+        DefaultSwiftXCTestSuite testSuite = componentFactory.newInstance(SwiftXCTestSuite.class, DefaultSwiftXCTestSuite.class, "test");
+
+        project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
+        project.getComponents().add(testSuite);
+
+        // Setup component
+        testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
+
+        final DefaultSwiftXCTestSuite testComponent = testSuite;
 
         testComponent.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         final String mainComponentName = "main";
@@ -114,7 +125,7 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         project.getComponents().withType(ProductionSwiftComponent.class, component -> {
             if (mainComponentName.equals(component.getName())) {
                 testComponent.getTargetMachines().convention(component.getTargetMachines());
-                testComponent.getTestedComponent().set(component);
+                testComponent.getTestedComponent().convention(component);
             }
         });
 
@@ -128,29 +139,24 @@ public class XCTestConventionPlugin implements Plugin<Project> {
 
         testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, binary -> {
             // Create test suite test task
-            TaskProvider<XCTest> testingTask = createTestingTask(project);
-            binary.getRunTask().set(testingTask);
-
-            // Configure tasks
-            testingTask.configure(task -> {
+            TaskProvider<XCTest> testingTask = project.getTasks().register("xcTest", XCTest.class, task -> {
+                task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                task.setDescription("Executes XCTest suites");
                 task.getTestInstallDirectory().set(binary.getInstallDirectory());
                 task.getRunScriptFile().set(binary.getRunScriptFile());
                 task.getWorkingDirectory().set(binary.getInstallDirectory());
             });
-
+            binary.getRunTask().set(testingTask);
 
             configureTestSuiteBuildingTasks(project, binary);
             configureTestSuiteWithTestedComponentWhenAvailable(project, testComponent, binary);
         });
 
         project.afterEvaluate(p -> {
-            final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName(mainComponentName);
-
-            testComponent.getTargetMachines().finalizeValue();
-            Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
-            validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
-
-            Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
+            final SwiftComponent mainComponent = testComponent.getTestedComponent().getOrNull();
+            final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
+            Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), mainTargetMachines,
+                    objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
@@ -159,7 +165,6 @@ public class XCTestConventionPlugin implements Plugin<Project> {
                             // Create test suite executable
                             if (result.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
                                 testComponent.addBundle(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
                             } else {
                                 testComponent.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                             }
@@ -226,29 +231,6 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         }
     }
 
-    private TaskProvider<XCTest> createTestingTask(Project project) {
-        return project.getTasks().register("xcTest", XCTest.class, task -> {
-            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            task.setDescription("Executes XCTest suites");
-        });
-    }
-
-    private DefaultSwiftXCTestSuite createTestSuite(final Project project) {
-        // TODO - Reuse logic from Swift*Plugin
-        // TODO - component name and extension name aren't the same
-        // TODO - should use `src/xctest/swift` as the convention?
-        // Add the test suite and extension
-        DefaultSwiftXCTestSuite testSuite = componentFactory.newInstance(SwiftXCTestSuite.class, DefaultSwiftXCTestSuite.class, "test");
-
-        project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
-        project.getComponents().add(testSuite);
-
-        // Setup component
-        testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
-
-        return testSuite;
-    }
-
     private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project, final DefaultSwiftXCTestSuite testSuite, final DefaultSwiftXCTestBinary testExecutable) {
         SwiftComponent target = testSuite.getTestedComponent().getOrNull();
         if (!(target instanceof ProductionSwiftComponent)) {
@@ -258,54 +240,40 @@ public class XCTestConventionPlugin implements Plugin<Project> {
 
         final TaskContainer tasks = project.getTasks();
         testedComponent.getBinaries().whenElementFinalized(testedBinary -> {
-                if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
-                    return;
-                }
-
-                // If nothing was configured for the test suite source compatibility, use the tested component one.
-                if (testSuite.getSourceCompatibility().getOrNull() == null) {
-                    testExecutable.getSourceCompatibility().set(testedBinary.getSourceCompatibility());
-                }
-
-                // Setup the dependency on the main binary
-                // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
-
-                // Inherit implementation dependencies
-                testExecutable.getImplementationDependencies().extendsFrom(((DefaultSwiftBinary) testedBinary).getImplementationDependencies());
-
-                // Configure test binary to compile against binary under test
-                Dependency compileDependency = project.getDependencies().create(project.files(testedBinary.getModuleFile()));
-                testExecutable.getImportPathConfiguration().getDependencies().add(compileDependency);
-
-                // Configure test binary to link against tested component compiled objects
-                ConfigurableFileCollection testableObjects = project.files();
-                if (testedComponent instanceof SwiftApplication) {
-                    TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register("relocateMainForTest", UnexportMainSymbol.class, task -> {
-                            task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
-                            task.getObjects().from(testedBinary.getObjects());
-                    });
-                    // TODO: builtBy unnecessary?
-                    testableObjects.builtBy(unexportMainSymbol);
-                    testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
-                } else {
-                    testableObjects.from(testedBinary.getObjects());
-                }
-                Dependency linkDependency = project.getDependencies().create(testableObjects);
-                testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
-        });
-    }
-
-    private void validateTargetMachines(Set<TargetMachine> testTargetMachines, @Nullable Set<TargetMachine> mainTargetMachines) {
-        if (testTargetMachines.isEmpty()) {
-            throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
-        }
-
-        if (mainTargetMachines != null) {
-            for (TargetMachine machine : testTargetMachines) {
-                if (!mainTargetMachines.contains(machine)) {
-                    throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
-                }
+            if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
+                return;
             }
-        }
+
+            // If nothing was configured for the test suite source compatibility, use the tested component one.
+            if (testSuite.getSourceCompatibility().getOrNull() == null) {
+                testExecutable.getSourceCompatibility().set(testedBinary.getSourceCompatibility());
+            }
+
+            // Setup the dependency on the main binary
+            // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
+
+            // Inherit implementation dependencies
+            testExecutable.getImplementationDependencies().extendsFrom(((DefaultSwiftBinary) testedBinary).getImplementationDependencies());
+
+            // Configure test binary to compile against binary under test
+            Dependency compileDependency = project.getDependencies().create(project.files(testedBinary.getModuleFile()));
+            testExecutable.getImportPathConfiguration().getDependencies().add(compileDependency);
+
+            // Configure test binary to link against tested component compiled objects
+            ConfigurableFileCollection testableObjects = project.files();
+            if (testedComponent instanceof SwiftApplication) {
+                TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register("relocateMainForTest", UnexportMainSymbol.class, task -> {
+                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                    task.getObjects().from(testedBinary.getObjects());
+                });
+                // TODO: builtBy unnecessary?
+                testableObjects.builtBy(unexportMainSymbol);
+                testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
+            } else {
+                testableObjects.from(testedBinary.getObjects());
+            }
+            Dependency linkDependency = project.getDependencies().create(testableObjects);
+            testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
+        });
     }
 }

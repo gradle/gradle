@@ -24,17 +24,17 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
-import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
-import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
@@ -48,9 +48,7 @@ import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
 import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Set;
 
 import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 
@@ -84,6 +82,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
         final ProviderFactory providers = project.getProviders();
+        final TaskContainer tasks = project.getTasks();
 
         // Add the unit test and extension
         final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "test");
@@ -91,125 +90,96 @@ public class CppUnitTestPlugin implements Plugin<Project> {
         project.getComponents().add(testComponent);
 
         testComponent.getBaseName().convention(project.getName() + "Test");
-
         testComponent.getTargetMachines().convention(Dimensions.useHostAsDefaultTargetMachine(targetMachineFactory));
 
         final String mainComponentName = "main";
-
         project.getComponents().withType(ProductionCppComponent.class, component -> {
             if (mainComponentName.equals(component.getName())) {
                 testComponent.getTargetMachines().convention(component.getTargetMachines());
-                testComponent.getTestedComponent().set(component);
+                testComponent.getTestedComponent().convention(component);
             }
         });
 
+        testComponent.getTestBinary().convention(project.provider(() -> {
+            return testComponent.getBinaries().get().stream()
+                    .filter(CppTestExecutable.class::isInstance)
+                    .map(CppTestExecutable.class::cast)
+                    .findFirst()
+                    .orElse(null);
+        }));
+
+        testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, binary -> {
+            // TODO: Replace with native test task
+            final TaskProvider<RunTestExecutable> testTask = tasks.register(binary.getNames().getTaskName("run"), RunTestExecutable.class, task -> {
+                task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                task.setDescription("Executes C++ unit tests.");
+
+                final InstallExecutable installTask = binary.getInstallTask().get();
+                task.onlyIf(element -> binary.getInstallDirectory().get().getAsFile().exists());
+                task.getInputs().dir(binary.getInstallDirectory());
+                task.setExecutable(installTask.getRunScriptFile().get().getAsFile());
+                task.dependsOn(binary.getInstallDirectory());
+                // TODO: Honor changes to build directory
+                task.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + binary.getNames().getDirName()).get().getAsFile());
+            });
+            binary.getRunTask().set(testTask);
+
+            configureTestSuiteWithTestedComponentWhenAvailable(project, testComponent, binary);
+        });
+
         project.afterEvaluate(p -> {
-            final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName(mainComponentName);
-
-            testComponent.getTargetMachines().finalizeValue();
-            Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
-            validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
-
-            Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
+            final CppComponent mainComponent = testComponent.getTestedComponent().getOrNull();
+            final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
+            Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), mainTargetMachines,
+                    objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
                             CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
                             testComponent.getTestBinary().set(testExecutable);
                         }
                     });
-
             // TODO: Publishing for test executable?
-
-            final TaskContainer tasks = project.getTasks();
-            testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, testExecutable -> {
-                if (mainComponent != null) {
-                    mainComponent.getBinaries().whenElementFinalized(testedBinary -> {
-                        if (!isTestedBinary(testExecutable, mainComponent, testedBinary)) {
-                            return;
-                        }
-
-                        // TODO - move this to a base plugin
-                        // Setup the dependency on the main binary
-                        // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
-
-                        // Inherit implementation dependencies
-                        testExecutable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
-
-                        // Configure test binary to link against tested component compiled objects
-                        ConfigurableFileCollection testableObjects = project.files();
-                        if (mainComponent instanceof CppApplication) {
-                            TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register(testExecutable.getNames().getTaskName("relocateMainFor"), UnexportMainSymbol.class, task -> {
-                                task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
-                                task.getObjects().from(testedBinary.getObjects());
-                            });
-                            // TODO: builtBy unnecessary?
-                            testableObjects.builtBy(unexportMainSymbol);
-                            testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
-                        } else {
-                            testableObjects.from(testedBinary.getObjects());
-                        }
-                        Dependency linkDependency = project.getDependencies().create(testableObjects);
-                        testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
-
-                        // Set this as the main test binary if it tests the main development binary
-                        if (testedBinary == mainComponent.getDevelopmentBinary().get() && !testComponent.getTestBinary().isPresent()) {
-                            testComponent.getTestBinary().set(testExecutable);
-                        }
-                    });
-                }
-
-                // TODO: Replace with native test task
-                final TaskProvider<RunTestExecutable> testTask = tasks.register(testExecutable.getNames().getTaskName("run"), RunTestExecutable.class, task -> {
-                    task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                    task.setDescription("Executes C++ unit tests.");
-
-                    final InstallExecutable installTask = testExecutable.getInstallTask().get();
-                    task.onlyIf(element -> testExecutable.getInstallDirectory().get().getAsFile().exists());
-                    task.getInputs().dir(testExecutable.getInstallDirectory());
-                    task.setExecutable(installTask.getRunScriptFile().get().getAsFile());
-                    task.dependsOn(testExecutable.getInstallDirectory());
-                    // TODO: Honor changes to build directory
-                    task.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + testExecutable.getNames().getDirName()).get().getAsFile());
-                });
-                testExecutable.getRunTask().set(testTask);
-            });
-
             testComponent.getBinaries().realizeNow();
         });
     }
 
-    private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, ProductionCppComponent mainComponent, CppBinary testedBinary) {
-        // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
-        return testedBinary.getTargetPlatform().getOperatingSystemFamily().getName() == testExecutable.getTargetPlatform().getOperatingSystemFamily().getName()
-                && testedBinary.getTargetPlatform().getArchitecture().getName() == testExecutable.getTargetPlatform().getArchitecture().getName()
-                && !testedBinary.isOptimized()
-                && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
-    }
-
-    private boolean hasDevelopmentBinaryLinkage(ProductionCppComponent mainComponent, CppBinary testedBinary) {
-        if (!(testedBinary instanceof ConfigurableComponentWithLinkUsage)) {
-            return true;
+    private void configureTestSuiteWithTestedComponentWhenAvailable(Project project, DefaultCppTestSuite testSuite, DefaultCppTestExecutable testExecutable) {
+        CppComponent target = testSuite.getTestedComponent().getOrNull();
+        if (!(target instanceof ProductionCppComponent)) {
+            return;
         }
-        ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
-        ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage) testedBinary;
-        return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
-    }
+        final ProductionCppComponent testedComponent = (ProductionCppComponent) target;
 
-    private void validateTargetMachines(Set<TargetMachine> testTargetMachines, @Nullable Set<TargetMachine> mainTargetMachines) {
-        if (testTargetMachines.isEmpty()) {
-            throw new IllegalArgumentException("A target machine needs to be specified for the unit test.");
-        }
-
-        if (mainTargetMachines != null) {
-            for (TargetMachine machine : testTargetMachines) {
-                if (!mainTargetMachines.contains(machine)) {
-                    throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the main component.");
-                }
+        final TaskContainer tasks = project.getTasks();
+        testedComponent.getBinaries().whenElementFinalized(testedBinary -> {
+            if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
+                return;
             }
-        }
+            // TODO - move this to a base plugin
+            // Setup the dependency on the main binary
+            // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
+
+            // Inherit implementation dependencies
+            testExecutable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
+
+            // Configure test binary to link against tested component compiled objects
+            ConfigurableFileCollection testableObjects = project.files();
+            if (target instanceof CppApplication) {
+                TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register(testExecutable.getNames().getTaskName("relocateMainFor"), UnexportMainSymbol.class, task -> {
+                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                    task.getObjects().from(testedBinary.getObjects());
+                });
+                // TODO: builtBy unnecessary?
+                testableObjects.builtBy(unexportMainSymbol);
+                testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
+            } else {
+                testableObjects.from(testedBinary.getObjects());
+            }
+            Dependency linkDependency = project.getDependencies().create(testableObjects);
+            testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
+        });
     }
 }

@@ -36,6 +36,7 @@ import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,11 +66,15 @@ public class Dimensions {
         return multivalueProperty.size() > 1;
     }
 
-    public static void unitTestVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines,
+    public static void unitTestVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines, @Nullable SetProperty<TargetMachine> declaredTargetMachinesOfTestedComponent,
                                         ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
                                         Provider<String> group, Provider<String> version,
                                         Action<NativeVariantIdentity> action) {
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "unit test", declaredTargetMachines);
+        if (declaredTargetMachinesOfTestedComponent != null) {
+            Collection<TargetMachine> targetMachinesOfTestedComponent = extractAndValidate("target machine", "component under test", declaredTargetMachinesOfTestedComponent);
+            validateTargetMachines(targetMachines, targetMachinesOfTestedComponent);
+        }
         variants(baseName, Arrays.asList(BuildType.DEBUG), targetMachines, objectFactory, attributesFactory, group, version, action);
     }
 
@@ -102,6 +107,14 @@ public class Dimensions {
     private static void assertNonEmpty(String propertyName, String componentName, Collection<?> property) {
         if (property.isEmpty()) {
             throw new IllegalArgumentException(String.format("A %s needs to be specified for the %s.", propertyName, componentName));
+        }
+    }
+
+    private static void validateTargetMachines(Collection<TargetMachine> testTargetMachines, Collection<TargetMachine> mainTargetMachines) {
+        for (TargetMachine machine : testTargetMachines) {
+            if (!mainTargetMachines.contains(machine)) {
+                throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the component under test.");
+            }
         }
     }
 

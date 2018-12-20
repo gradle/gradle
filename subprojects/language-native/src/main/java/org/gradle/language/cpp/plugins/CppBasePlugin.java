@@ -76,7 +76,7 @@ public class CppBasePlugin implements Plugin<Project> {
         project.getComponents().withType(DefaultCppBinary.class, binary -> {
             final Names names = binary.getNames();
             String language = "cpp";
-;
+            
             TaskProvider<CppCompile> compile = tasks.register(names.getCompileTaskName(language), CppCompile.class, task -> {
                 final Callable<List<File>> systemIncludes = () -> binary.getPlatformToolProvider().getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
 
