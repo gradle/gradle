@@ -24,7 +24,7 @@ import net.jcip.annotations.ThreadSafe;
  * Note that this implementation should only be used to create global scoped services.
  * Note that this implementation currently retains strong references to keys and values during the whole lifetime of a build session.
  *
- * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session. All other values are referenced only by soft references.
+ * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session. All other values are referenced only by weak or soft references.
  *
  * NOTE: this is an abstract class rather than an interface because it is consumed by Kotlin DSL as a class.
  */

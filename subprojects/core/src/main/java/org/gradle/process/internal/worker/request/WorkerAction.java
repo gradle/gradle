@@ -17,7 +17,6 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
@@ -54,7 +53,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             }
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);

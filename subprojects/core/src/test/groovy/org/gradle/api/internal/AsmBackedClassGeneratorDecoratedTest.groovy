@@ -21,26 +21,15 @@ import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.BiAction
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
-import spock.lang.Specification
 
 import javax.inject.Inject
 
-class AsmBackedClassGeneratorGroovyTest extends Specification {
-    def generator = new AsmBackedClassGenerator()
-
-    private <T> T create(Class<T> clazz, Object... args) {
-        return create(clazz, Stub(ServiceRegistry), args)
-    }
-
-    private <T> T create(Class<T> clazz, ServiceRegistry services, Object... args) {
-        def type = generator.generate(clazz)
-        return generator.newInstance(type.constructors[0], services, Stub(Instantiator), args)
-    }
+class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject()
 
     @Issue("GRADLE-2417")
     def "can use dynamic object as closure delegate"() {

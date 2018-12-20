@@ -76,7 +76,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
-    private final AbstractClassGenerator generator = new AsmBackedClassGenerator();
+    private final AbstractClassGenerator generator = AsmBackedClassGenerator.decorateAndInject();
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         Class<? extends T> type = generator.generate(clazz);

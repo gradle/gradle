@@ -16,8 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -135,11 +133,6 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesAMessagingServer() {
         assertThat(registry().get(MessagingServer.class), instanceOf(MessagingServer.class));
-    }
-
-    @Test
-    public void providesAClassGenerator() {
-        assertThat(registry().get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
     }
 
     @Test

@@ -54,6 +54,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,15 +80,36 @@ import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
+    private final boolean decorate;
 
     // Used by generated code
+    @SuppressWarnings("unused")
     public static ServiceRegistry getServicesForNext() {
         return SERVICES_FOR_NEXT_OBJECT.get().serviceRegistry;
     }
 
     // Used by generated code
+    @SuppressWarnings("unused")
     public static Instantiator getInstantiatorForNext() {
         return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
+    }
+
+    private AsmBackedClassGenerator(boolean decorate) {
+        this.decorate = decorate;
+    }
+
+    /**
+     * Returns a generator that apply DSL mix-in, extensibility and service injection for generated classes.
+     */
+    public static AsmBackedClassGenerator decorateAndInject() {
+        return new AsmBackedClassGenerator(true);
+    }
+
+    /**
+     * Returns a generator that apply service injection only for generated classes, and will generate classes only if required.
+     */
+    public static AsmBackedClassGenerator injectOnly() {
+        return new AsmBackedClassGenerator(false);
     }
 
     @Override
@@ -102,8 +124,20 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
-    protected <T> ClassBuilder<T> start(Class<T> type, ClassMetaData classMetaData) {
-        return new ClassBuilderImpl<T>(type, classMetaData);
+    protected <T> ClassBuilder<T> start(final Class<T> type, ClassMetaData classMetaData) {
+        if (!decorate && !classMetaData.isShouldImplementWithServiceRegistry() && !Modifier.isAbstract(type.getModifiers())) {
+            return new NoOpBuilder<T>(type);
+        }
+        int modifiers = type.getModifiers();
+        if (Modifier.isPrivate(modifiers)) {
+            throw new ClassGenerationException(String.format("Cannot create a decorated class for private class '%s'.",
+                    type.getSimpleName()));
+        }
+        if (Modifier.isFinal(modifiers)) {
+            throw new ClassGenerationException(String.format("Cannot create a decorated class for final class '%s'.",
+                type.getSimpleName()));
+        }
+        return new ClassBuilderImpl<T>(type, classMetaData, decorate);
     }
 
     private static class ClassBuilderImpl<T> implements ClassBuilder<T> {
@@ -177,19 +211,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean requiresInstantiator;
         private boolean hasMappingField;
         private final boolean conventionAware;
+        private final boolean mixInDsl;
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
         private final boolean shouldImplementWithServices;
 
-        private ClassBuilderImpl(Class<T> type, ClassMetaData classMetaData) {
+        private ClassBuilderImpl(Class<T> type, ClassMetaData classMetaData, boolean decorated) {
             this.type = type;
 
             classGenerator = new AsmClassGenerator(type, "_Decorated");
             visitor = classGenerator.getVisitor();
             generatedType = classGenerator.getGeneratedType();
             superclassType = Type.getType(type);
-            extensible = classMetaData.isExtensible();
-            conventionAware = classMetaData.isConventionAware();
+            mixInDsl = decorated;
+            extensible = decorated && classMetaData.isExtensible();
+            conventionAware = decorated && classMetaData.isConventionAware();
             requiresInstantiator = !DynamicObjectAware.class.isAssignableFrom(type) && extensible;
             providesOwnDynamicObject = classMetaData.providesDynamicObjectImplementation();
             shouldImplementWithServices = classMetaData.isShouldImplementWithServiceRegistry();
@@ -209,8 +245,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 interfaceTypes.add(HAS_CONVENTION_TYPE.getInternalName());
             }
 
-            interfaceTypes.add(DYNAMIC_OBJECT_AWARE_TYPE.getInternalName());
-            interfaceTypes.add(GROOVY_OBJECT_TYPE.getInternalName());
+            if (mixInDsl) {
+                interfaceTypes.add(DYNAMIC_OBJECT_AWARE_TYPE.getInternalName());
+                interfaceTypes.add(GROOVY_OBJECT_TYPE.getInternalName());
+            }
 
             includeNotInheritedAnnotations();
 
@@ -264,6 +302,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void mixInDynamicAware() throws Exception {
+            if (!mixInDsl) {
+                return;
+            }
 
             // GENERATE private DynamicObject dynamicObjectHelper
             visitor.visitField(Opcodes.ACC_PRIVATE, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(), null, null);
@@ -413,6 +454,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void mixInGroovyObject() throws Exception {
+            if (!mixInDsl) {
+                return;
+            }
 
             // GENERATE private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
 
@@ -466,6 +510,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addPropertySetters(PropertyMetaData property, Method getter) {
+            if (!mixInDsl) {
+                return;
+            }
 
             // GENERATE public void set<Name>(Object p) {
             //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
@@ -524,6 +571,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addDynamicMethods() throws Exception {
+            if (!mixInDsl) {
+                return;
+            }
 
             // GENERATE public Object getProperty(String name) { return getAsDynamicObject().getProperty(name); }
 
@@ -744,6 +794,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addConventionProperty(PropertyMetaData property) {
+            if (!conventionAware) {
+                return;
+            }
+
             // GENERATE private boolean <flag-name>;
             String flagName = propFieldName(property);
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
@@ -754,6 +808,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) throws Exception {
+            if (!conventionAware) {
+                return;
+            }
+
             // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__); }
             String flagName = propFieldName(property);
             String getterName = getter.getName();
@@ -818,6 +876,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyConventionMappingToSetter(PropertyMetaData property, Method setter) {
+            if (!conventionAware) {
+                return;
+            }
+
             // GENERATE public <return-type> <setter>(<type> v) { <return-type> v = super.<setter>(v); __<prop>__ = true; return v; }
 
             Type paramType = Type.getType(setter.getParameterTypes()[0]);
@@ -849,6 +911,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addSetMethod(PropertyMetaData property, Method setter) {
+            if (!mixInDsl) {
+                return;
+            }
+
             Type paramType = Type.getType(setter.getParameterTypes()[0]);
             Type returnType = Type.getType(setter.getReturnType());
             String setterDescriptor = Type.getMethodDescriptor(returnType, paramType);
@@ -873,6 +939,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyConventionMappingToSetMethod(PropertyMetaData property, Method method) {
+            if (!mixInDsl || !conventionAware) {
+                return;
+            }
+
             Type paramType = Type.getType(method.getParameterTypes()[0]);
             Type returnType = Type.getType(method.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType, paramType);
@@ -902,6 +972,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addActionMethod(Method method) {
+            if (!mixInDsl) {
+                return;
+            }
+
             Type returnType = Type.getType(method.getReturnType());
 
             Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, new Transformer<Type, Class>() {
@@ -1094,4 +1168,84 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
+    private static class NoOpBuilder<T> implements ClassBuilder<T> {
+        private final Class<T> type;
+
+        public NoOpBuilder(Class<T> type) {
+            this.type = type;
+        }
+
+        @Override
+        public void startClass() {
+        }
+
+        @Override
+        public void addConstructor(Constructor<?> constructor) {
+        }
+
+        @Override
+        public void mixInDynamicAware() {
+        }
+
+        @Override
+        public void mixInConventionAware() {
+        }
+
+        @Override
+        public void mixInGroovyObject() {
+        }
+
+        @Override
+        public void addDynamicMethods() {
+        }
+
+        @Override
+        public void addInjectorProperty(PropertyMetaData property) {
+        }
+
+        @Override
+        public void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) {
+        }
+
+        @Override
+        public void applyServiceInjectionToSetter(PropertyMetaData property, Method setter) {
+        }
+
+        @Override
+        public void addConventionProperty(PropertyMetaData property) {
+        }
+
+        @Override
+        public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) {
+        }
+
+        @Override
+        public void applyConventionMappingToSetter(PropertyMetaData property, Method setter) {
+        }
+
+        @Override
+        public void applyConventionMappingToSetMethod(PropertyMetaData property, Method metaMethod) {
+        }
+
+        @Override
+        public void addSetMethod(PropertyMetaData propertyMetaData, Method setter) {
+        }
+
+        @Override
+        public void addActionMethod(Method method) {
+        }
+
+        @Override
+        public void addPropertySetters(PropertyMetaData property, Method getter) {
+        }
+
+        @Override
+        public void generateServiceRegistrySupportMethods() {
+        }
+
+        @Override
+        public Class<? extends T> generate() {
+            return type;
+        }
+    }
 }

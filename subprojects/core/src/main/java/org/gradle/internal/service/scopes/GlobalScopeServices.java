@@ -19,8 +19,6 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.api.execution.internal.DefaultTaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -234,10 +232,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return messagingServices.get(MessagingServer.class);
     }
 
-    ClassGenerator createClassGenerator() {
-        return new AsmBackedClassGenerator();
-    }
-
     Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
         return instantiatorFactory.decorate();
     }
@@ -300,8 +294,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new StringInterner();
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultInstantiatorFactory(classGenerator, cacheFactory);
+    InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultInstantiatorFactory(cacheFactory);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
