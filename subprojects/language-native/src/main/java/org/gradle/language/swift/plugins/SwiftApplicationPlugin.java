@@ -36,7 +36,7 @@ import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -102,7 +102,7 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
             Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (isBuildable(variantIdentity)) {
+                        if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
                             application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }

@@ -34,7 +34,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
@@ -101,7 +101,7 @@ public class CppApplicationPlugin implements Plugin<Project> {
             Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (isBuildable(variantIdentity)) {
+                        if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                             application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         } else {

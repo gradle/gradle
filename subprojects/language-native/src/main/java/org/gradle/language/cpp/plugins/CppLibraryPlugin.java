@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
@@ -135,7 +135,7 @@ public class CppLibraryPlugin implements Plugin<Project> {
             Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (isBuildable(variantIdentity)) {
+                        if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
 
                             if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {

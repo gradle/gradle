@@ -52,7 +52,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 
 /**
  * A plugin that sets up the infrastructure for testing C++ binaries using a simple test executable.
@@ -113,7 +113,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (isBuildable(variantIdentity)) {
+                        if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
                             CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

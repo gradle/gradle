@@ -29,6 +29,8 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.MachineArchitecture;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
@@ -118,8 +120,8 @@ public class Dimensions {
                     // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
                     variantNameToken.add(buildType.getName());
                     variantNameToken.add(createDimensionSuffix(linkage, linkages));
-                    variantNameToken.add(createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet())));
-                    variantNameToken.add(createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet())));
+                    variantNameToken.add(createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachinesToOperatingSystems(targetMachines)));
+                    variantNameToken.add(createDimensionSuffix(targetMachine.getArchitecture(), targetMachinesToArchitectures(targetMachines)));
 
                     String variantName = StringUtils.uncapitalize(String.join("", variantNameToken));
 
@@ -144,7 +146,6 @@ public class Dimensions {
         }
     }
 
-
     private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<TargetMachine> targetMachines,
                                  ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
                                  // TODO: These should come from somewhere else, probably
@@ -157,8 +158,8 @@ public class Dimensions {
                 List<String> variantNameToken = Lists.newArrayList();
                 // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
                 variantNameToken.add(buildType.getName());
-                variantNameToken.add(createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet())));
-                variantNameToken.add(createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet())));
+                variantNameToken.add(createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachinesToOperatingSystems(targetMachines)));
+                variantNameToken.add(createDimensionSuffix(targetMachine.getArchitecture(), targetMachinesToArchitectures(targetMachines)));
 
                 String variantName = StringUtils.uncapitalize(String.join("", variantNameToken));
 
@@ -175,6 +176,14 @@ public class Dimensions {
                 action.execute(variantIdentity);
             }
         }
+    }
+
+    private static Set<OperatingSystemFamily> targetMachinesToOperatingSystems(Collection<TargetMachine> targetMachines) {
+        return targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet());
+    }
+
+    private static Set<MachineArchitecture> targetMachinesToArchitectures(Collection<TargetMachine> targetMachines) {
+        return targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet());
     }
 
     private static void addCommonAttributes(BuildType buildType, TargetMachine targetMachine, AttributeContainer runtimeAttributes) {
@@ -195,7 +204,7 @@ public class Dimensions {
         return Collections.singleton(((DefaultTargetMachineFactory) targetMachineFactory).host());
     }
 
-    public static boolean isBuildable(NativeVariantIdentity identity) {
+    public static boolean tryToBuildOnHost(NativeVariantIdentity identity) {
         return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(identity.getTargetMachine().getOperatingSystemFamily().getName());
     }
 }
