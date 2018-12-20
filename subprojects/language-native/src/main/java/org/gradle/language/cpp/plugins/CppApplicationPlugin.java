@@ -16,12 +16,10 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
@@ -36,8 +34,8 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
@@ -49,7 +47,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable
  * @since 4.5
  */
 @Incubating
-public class CppApplicationPlugin implements Plugin<ProjectInternal> {
+public class CppApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -64,7 +62,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final ObjectFactory objectFactory = project.getObjects();
@@ -76,9 +74,8 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(application);
 
         // Configure the component
-        application.getBaseName().set(project.getName());
-
-        application.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        application.getBaseName().convention(project.getName());
+        application.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         application.getDevelopmentBinary().convention(project.provider(() -> {
             // Use the debug variant as the development binary
             // Prefer the host architecture, if present, else use the first architecture specified
@@ -99,25 +96,22 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
             application.getMainPublication().addVariant(binary);
         });
 
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                // TODO: make build type configurable for components
-                Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
-                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                        variantIdentity -> {
-                    if (isBuildable(variantIdentity)) {
-                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
-                        application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    } else {
-                        // Known, but not buildable
-                        application.getMainPublication().addVariant(variantIdentity);
-                    }
-                });
+        project.afterEvaluate(p -> {
+            // TODO: make build type configurable for components
+            Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    variantIdentity -> {
+                        if (isBuildable(variantIdentity)) {
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
+                            application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        } else {
+                            // Known, but not buildable
+                            application.getMainPublication().addVariant(variantIdentity);
+                        }
+                    });
 
-                // Configure the binaries
-                application.getBinaries().realizeNow();
-            }
+            // Configure the binaries
+            application.getBinaries().realizeNow();
         });
     }
 }

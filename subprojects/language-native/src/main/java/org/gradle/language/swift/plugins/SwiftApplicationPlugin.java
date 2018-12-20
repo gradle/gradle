@@ -16,13 +16,11 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -50,7 +48,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable
  * @since 4.5
  */
 @Incubating
-public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
+public class SwiftApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -70,7 +68,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         final ObjectFactory objectFactory = project.getObjects();
@@ -82,9 +80,9 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(application);
 
         // Setup component
-        application.getModule().set(GUtil.toCamelCase(project.getName()));
+        application.getModule().convention(GUtil.toCamelCase(project.getName()));
 
-        application.getTargetMachines().convention(Dimensions.getDefaultTargetMachines(targetMachineFactory));
+        application.getTargetMachines().convention(Dimensions.useHostAsDefaultTargetMachine(targetMachineFactory));
         application.getDevelopmentBinary().convention(project.provider(() -> {
             return application.getBinaries().get().stream()
                     .filter(SwiftExecutable.class::isInstance)
@@ -99,22 +97,19 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                             .orElse(null));
         }));
 
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                // TODO: make build type configurable for components
-                Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
-                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                        variantIdentity -> {
-                    if (isBuildable(variantIdentity)) {
-                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
-                        application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    }
-                });
+        project.afterEvaluate(p -> {
+            // TODO: make build type configurable for components
+            Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    variantIdentity -> {
+                        if (isBuildable(variantIdentity)) {
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
+                            application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        }
+                    });
 
-                // Configure the binaries
-                application.getBinaries().realizeNow();
-            }
+            // Configure the binaries
+            application.getBinaries().realizeNow();
         });
     }
 }

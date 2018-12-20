@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -24,9 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -51,8 +48,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -64,7 +61,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable
  * @since 4.1
  */
 @Incubating
-public class CppLibraryPlugin implements Plugin<ProjectInternal> {
+public class CppLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -84,7 +81,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final TaskContainer tasks = project.getTasks();
@@ -97,9 +94,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(library);
 
         // Configure the component
-        library.getBaseName().set(project.getName());
-
-        library.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        library.getBaseName().convention(project.getName());
+        library.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         library.getDevelopmentBinary().convention(project.provider(new Callable<CppBinary>() {
             @Override
             public CppBinary call() throws Exception {
@@ -134,59 +130,47 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             library.getMainPublication().addVariant(binary);
         });
 
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                // TODO: make build type configurable for components
-                Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                        variantIdentity -> {
-                    if (isBuildable(variantIdentity)) {
-                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
+        project.afterEvaluate(p -> {
+            // TODO: make build type configurable for components
+            Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    variantIdentity -> {
+                        if (isBuildable(variantIdentity)) {
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
 
-                        if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
-                            library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        } else {
-                            library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        }
-                    } else {
-                        // Known, but not buildable
-                        library.getMainPublication().addVariant(variantIdentity);
-                    }
-                });
-
-                final Configuration apiElements = library.getApiElements();
-                // TODO - deal with more than one header dir, e.g. generated public headers
-                Provider<File> publicHeaders = providers.provider(new Callable<File>() {
-                    @Override
-                    public File call() throws Exception {
-                        Set<File> files = library.getPublicHeaderDirs().getFiles();
-                        if (files.size() != 1) {
-                            throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s", files.size(), files));
-                        }
-                        return files.iterator().next();
-                    }
-                });
-                apiElements.getOutgoing().artifact(publicHeaders);
-
-                project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
-                    @Override
-                    public void execute(AppliedPlugin appliedPlugin) {
-                        final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, new Action<Zip>() {
-                            @Override
-                            public void execute(Zip headersZip) {
-                                headersZip.from(library.getPublicHeaderFiles());
-                                headersZip.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
-                                headersZip.getArchiveClassifier().set("cpp-api-headers");
-                                headersZip.getArchiveFileName().set("cpp-api-headers.zip");
+                            if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
+                                library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            } else {
+                                library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                             }
-                        });
-                        library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip));
-                    }
-                });
+                        } else {
+                            // Known, but not buildable
+                            library.getMainPublication().addVariant(variantIdentity);
+                        }
+                    });
 
-                library.getBinaries().realizeNow();
-            }
+            // TODO - deal with more than one header dir, e.g. generated public headers
+            final Configuration apiElements = library.getApiElements();
+            Provider<File> publicHeaders = providers.provider(() -> {
+                Set<File> files = library.getPublicHeaderDirs().getFiles();
+                if (files.size() != 1) {
+                    throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s", files.size(), files));
+                }
+                return files.iterator().next();
+            });
+            apiElements.getOutgoing().artifact(publicHeaders);
+
+            project.getPluginManager().withPlugin("maven-publish", appliedPlugin -> {
+                final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, task -> {
+                    task.from(library.getPublicHeaderFiles());
+                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
+                    task.getArchiveClassifier().set("cpp-api-headers");
+                    task.getArchiveFileName().set("cpp-api-headers.zip");
+                });
+                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip));
+            });
+
+            library.getBinaries().realizeNow();
         });
     }
 }

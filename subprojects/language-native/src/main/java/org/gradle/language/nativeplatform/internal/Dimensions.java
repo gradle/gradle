@@ -191,7 +191,7 @@ public class Dimensions {
      *
      * @since 5.1
      */
-    public static Set<TargetMachine> getDefaultTargetMachines(TargetMachineFactory targetMachineFactory) {
+    public static Set<TargetMachine> useHostAsDefaultTargetMachine(TargetMachineFactory targetMachineFactory) {
         return Collections.singleton(((DefaultTargetMachineFactory) targetMachineFactory).host());
     }
 

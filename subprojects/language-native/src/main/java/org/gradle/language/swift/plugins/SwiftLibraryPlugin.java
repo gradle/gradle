@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -54,8 +53,8 @@ import java.util.stream.Stream;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
-import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
 import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
+import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -97,7 +96,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
-        library.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        library.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {
             @Override
             public SwiftBinary call() throws Exception {
@@ -128,64 +127,55 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
             }
         }));
 
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                // TODO: make build type configurable for components
-                Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                        variantIdentity -> {
-                    if (isBuildable(variantIdentity)) {
-                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
+        project.afterEvaluate(p -> {
+            // TODO: make build type configurable for components
+            Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    variantIdentity -> {
+                        if (isBuildable(variantIdentity)) {
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
 
-                        if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
-                            library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        } else {
-                            library.addStaticLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
+                                library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            } else {
+                                library.addStaticLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            }
                         }
-                    }
-                });
+                    });
 
-                library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
-                    @Override
-                    public void execute(SwiftSharedLibrary sharedLibrary) {
-                        Names names = ((ComponentWithNames) sharedLibrary).getNames();
-                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
-                        // TODO This should actually extend from the api dependencies, but since Swift currently
-                        // requires all dependencies to be treated like api dependencies (with transitivity) we just
-                        // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                        apiElements.extendsFrom(((DefaultSwiftSharedLibrary)sharedLibrary).getImplementationDependencies());
-                        apiElements.setCanBeResolved(false);
-                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                        apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
-                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
-                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
-                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetPlatform().getOperatingSystemFamily());
-                        apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
-                    }
-                });
+            library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, sharedLibrary -> {
+                Names names = ((ComponentWithNames) sharedLibrary).getNames();
+                Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                // TODO This should actually extend from the api dependencies, but since Swift currently
+                // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                apiElements.extendsFrom(((DefaultSwiftSharedLibrary) sharedLibrary).getImplementationDependencies());
+                apiElements.setCanBeResolved(false);
+                apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
+                apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
+                apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
+                apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetPlatform().getOperatingSystemFamily());
+                apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
+            });
 
-                library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
-                    @Override
-                    public void execute(SwiftStaticLibrary staticLibrary) {
-                        Names names = ((ComponentWithNames) staticLibrary).getNames();
-                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
-                        // TODO This should actually extend from the api dependencies, but since Swift currently
-                        // requires all dependencies to be treated like api dependencies (with transitivity) we just
-                        // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                        apiElements.extendsFrom(((DefaultSwiftStaticLibrary)staticLibrary).getImplementationDependencies());
-                        apiElements.setCanBeResolved(false);
-                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                        apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
-                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
-                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
-                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetPlatform().getOperatingSystemFamily());
-                        apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
-                    }
-                });
+            library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, staticLibrary -> {
+                Names names = ((ComponentWithNames) staticLibrary).getNames();
+                Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                // TODO This should actually extend from the api dependencies, but since Swift currently
+                // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                apiElements.extendsFrom(((DefaultSwiftStaticLibrary) staticLibrary).getImplementationDependencies());
+                apiElements.setCanBeResolved(false);
+                apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+                apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
+                apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
+                apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetPlatform().getOperatingSystemFamily());
+                apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
+            });
 
-                library.getBinaries().realizeNow();
-            }
+            library.getBinaries().realizeNow();
         });
     }
 }
