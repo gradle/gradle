@@ -64,8 +64,8 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
-        binary.name == "mainDebug"
+        def binary = library.addStaticLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
+        binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable
@@ -83,8 +83,8 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
-        binary.name == "mainDebug"
+        def binary = library.addSharedLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
+        binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable

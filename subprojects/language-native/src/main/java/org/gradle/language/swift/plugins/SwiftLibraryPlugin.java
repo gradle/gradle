@@ -22,19 +22,17 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.internal.DefaultUsageContext;
-import org.gradle.language.cpp.internal.NativeVariantIdentity;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.internal.NativeComponentFactory;
-import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
+import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftPlatform;
@@ -44,23 +42,20 @@ import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
-import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
-import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 import static org.gradle.language.nativeplatform.internal.Dimensions.getDefaultTargetMachines;
+import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -92,6 +87,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final ConfigurationContainer configurations = project.getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
+        final ProviderFactory providers = project.getProviders();
 
         final DefaultSwiftLibrary library = componentFactory.newInstance(SwiftLibrary.class, DefaultSwiftLibrary.class, "main");
         project.getExtensions().add(SwiftLibrary.class, "library", library);
@@ -102,93 +98,53 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         module.set(GUtil.toCamelCase(project.getName()));
 
         library.getTargetMachines().convention(getDefaultTargetMachines(targetMachineFactory));
+        library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {
+            @Override
+            public SwiftBinary call() throws Exception {
+                return getDebugSharedHostStream().findFirst().orElse(
+                        getDebugStaticHostStream().findFirst().orElse(
+                                getDebugSharedStream().findFirst().orElse(
+                                        getDebugStaticStream().findFirst().orElse(null))));
+            }
+
+            private Stream<SwiftBinary> getDebugStream() {
+                return library.getBinaries().get().stream().filter(binary -> !binary.isOptimized());
+            }
+
+            private Stream<SwiftBinary> getDebugSharedStream() {
+                return getDebugStream().filter(SwiftSharedLibrary.class::isInstance);
+            }
+
+            private Stream<SwiftBinary> getDebugSharedHostStream() {
+                return getDebugSharedStream().filter(binary -> binary.getTargetPlatform().getArchitecture().equals(DefaultNativePlatform.host().getArchitecture()));
+            }
+
+            private Stream<SwiftBinary> getDebugStaticStream() {
+                return getDebugStream().filter(SwiftStaticLibrary.class::isInstance);
+            }
+
+            private Stream<SwiftBinary> getDebugStaticHostStream() {
+                return getDebugStaticStream().filter(binary -> binary.getTargetPlatform().getArchitecture().equals(DefaultNativePlatform.host().getArchitecture()));
+            }
+        }));
 
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                library.getTargetMachines().finalizeValue();
-                Set<TargetMachine> targetMachines = library.getTargetMachines().get();
-                if (targetMachines.isEmpty()) {
-                    throw new IllegalArgumentException("A target machine needs to be specified for the library.");
-                }
+                // TODO: make build type configurable for components
+                Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
+                    if (isBuildable(variantIdentity)) {
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
 
-                library.getLinkage().finalizeValue();
-                Set<Linkage> linkages = library.getLinkage().get();
-                if (linkages.isEmpty()) {
-                    throw new IllegalArgumentException("A linkage needs to be specified for the library.");
-                }
-
-                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
-
-                for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
-                    for (TargetMachine targetMachine : targetMachines) {
-                        for (Linkage linkage : linkages) {
-
-                            String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
-                            String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
-                            String linkageSuffix = createDimensionSuffix(linkage, linkages);
-                            String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix + architectureSuffix;
-
-                            Provider<String> group = project.provider(new Callable<String>() {
-                                @Override
-                                public String call() throws Exception {
-                                    return project.getGroup().toString();
-                                }
-                            });
-
-                            Provider<String> version = project.provider(new Callable<String>() {
-                                @Override
-                                public String call() throws Exception {
-                                    return project.getVersion().toString();
-                                }
-                            });
-
-                            AttributeContainer runtimeAttributes = attributesFactory.mutable();
-                            runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                            runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
-                            runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                            runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                            runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-                            runtimeAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
-
-                            AttributeContainer linkAttributes = attributesFactory.mutable();
-                            linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                            linkAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
-                            linkAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                            linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                            linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-                            linkAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
-
-                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
-                                new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes),
-                                new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
-                            // TODO: publish Swift libraries
-                            // library.getMainPublication().addVariant(variantIdentity);
-
-                            if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
-                                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, targetMachine);
-
-                                if (linkage == Linkage.SHARED) {
-                                    SwiftSharedLibrary sharedLibrary = library.addSharedLibrary(variantName, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
-
-                                    // Use the debug shared library as the development binary
-                                    if (buildType == BuildType.DEBUG) {
-                                        library.getDevelopmentBinary().set(sharedLibrary);
-                                    }
-
-                                } else {
-                                    SwiftStaticLibrary staticLibrary = library.addStaticLibrary(variantName, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
-
-                                    if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
-                                        // Use the debug static library as the development binary
-                                        library.getDevelopmentBinary().set(staticLibrary);
-                                    }
-                                }
-                            }
+                        if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
+                            library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        } else {
+                            library.addStaticLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
                     }
-                }
+                });
 
                 library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
                     @Override

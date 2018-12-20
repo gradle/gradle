@@ -23,14 +23,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -40,19 +38,14 @@ import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
-import org.gradle.language.cpp.internal.DefaultUsageContext;
-import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
-import org.gradle.nativeplatform.MachineArchitecture;
-import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -64,12 +57,8 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
-import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
+import static org.gradle.language.nativeplatform.internal.Dimensions.isBuildable;
 
 /**
  * A plugin that sets up the infrastructure for testing C++ binaries using a simple test executable.
@@ -100,6 +89,8 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
+        final ProviderFactory providers = project.getProviders();
+
         // Add the unit test and extension
         final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "test");
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
@@ -127,60 +118,19 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
                 validateTargetMachines(targetMachines, mainComponent != null ? mainComponent.getTargetMachines().get() : null);
 
-                CppTestExecutable lastExecutable = null;
-                for (TargetMachine targetMachine : targetMachines) {
-                    Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                    Provider<String> group = project.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return project.getGroup().toString();
-                        }
-                    });
+                Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), objectFactory, attributesFactory,
+                        providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                        variantIdentity -> {
+                    if (isBuildable(variantIdentity)) {
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
+                        // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
+                        CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
-                    Provider<String> version = project.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return project.getVersion().toString();
-                        }
-                    });
-
-                    AttributeContainer attributesDebug = attributesFactory.mutable();
-                    attributesDebug.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                    attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
-                    attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
-                    attributesDebug.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
-                    attributesDebug.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-
-                    String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines.stream().map(TargetMachine::getOperatingSystemFamily).collect(Collectors.toSet()));
-                    String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines.stream().map(TargetMachine::getArchitecture).collect(Collectors.toSet()));
-                    String variantName = operatingSystemSuffix + architectureSuffix;
-
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + variantName, testComponent.getBaseName(), group, version, true, false, targetMachine,
-                            null,
-                            new DefaultUsageContext("debug" + variantName + "Runtime", runtimeUsage, attributesDebug));
-
-                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
-                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, targetMachine);
-                        CppTestExecutable testExecutable = testComponent.addExecutable(variantName, debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                        // If we have a main component set, we'll derive the main test binary from the main component development binary later,
-                        // otherwise we set it to the executable that matches the current architecture.
-                        if (mainComponent == null && DefaultNativePlatform.getCurrentArchitecture().equals(result.getTargetPlatform().getArchitecture()) && !testComponent.getTestBinary().isPresent()) {
-                            testComponent.getTestBinary().set(testExecutable);
-                        }
-
-                        lastExecutable = testExecutable;
-
-                        // TODO: Publishing for test executable?
+                        testComponent.getTestBinary().set(testExecutable);
                     }
-                }
+                });
 
-                // There is no main component, and none of our target platforms match the current platform, so we just pick the last one
-                if (mainComponent == null && !testComponent.getTestBinary().isPresent()) {
-                    if (lastExecutable != null) {
-                        testComponent.getTestBinary().set(lastExecutable);
-                    }
-                }
+                // TODO: Publishing for test executable?
 
                 final TaskContainer tasks = project.getTasks();
                 testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, new Action<DefaultCppTestExecutable>() {
