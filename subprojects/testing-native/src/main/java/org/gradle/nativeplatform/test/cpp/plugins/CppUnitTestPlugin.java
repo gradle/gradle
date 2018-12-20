@@ -29,12 +29,14 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
@@ -155,7 +157,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
 
         final TaskContainer tasks = project.getTasks();
         testedComponent.getBinaries().whenElementFinalized(testedBinary -> {
-            if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
+            if (!isTestedBinary(testExecutable, testedComponent, testedBinary)) {
                 return;
             }
             // TODO - move this to a base plugin
@@ -181,5 +183,22 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             Dependency linkDependency = project.getDependencies().create(testableObjects);
             testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
         });
+    }
+
+    private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, ProductionCppComponent mainComponent, CppBinary testedBinary) {
+        // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
+        return testedBinary.getTargetPlatform().getOperatingSystemFamily().getName().equals(testExecutable.getTargetPlatform().getOperatingSystemFamily().getName())
+                && testedBinary.getTargetPlatform().getArchitecture().getName().equals(testExecutable.getTargetPlatform().getArchitecture().getName())
+                && !testedBinary.isOptimized()
+                && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
+    }
+
+    private boolean hasDevelopmentBinaryLinkage(ProductionCppComponent mainComponent, CppBinary testedBinary) {
+        if (!(testedBinary instanceof ConfigurableComponentWithLinkUsage)) {
+            return true;
+        }
+        ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
+        ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
+        return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
     }
 }
