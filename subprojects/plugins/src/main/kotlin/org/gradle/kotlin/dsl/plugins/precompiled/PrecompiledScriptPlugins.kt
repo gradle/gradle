@@ -130,13 +130,25 @@ fun Project.enableScriptCompilation() {
         "kotlinCompilerPluginClasspath"(gradleApi())
     }
 
-    tasks.named<KotlinCompile>("compileKotlin") {
-        kotlinOptions {
-            freeCompilerArgs += listOf(
-                "-script-templates", scriptTemplates,
-                // Propagate implicit imports and other settings
-                "-Xscript-resolver-environment=${resolverEnvironment()}"
-            )
+    val generatedPluginSpecBuilders = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugin-accessors/kotlin")
+    sourceSets["main"].kotlin.srcDir(generatedPluginSpecBuilders)
+
+    tasks {
+
+        val generatePluginSpecBuilders by registering(GeneratePluginSpecBuilders::class) {
+            classPath = sourceSets["main"].compileClasspath
+            outputDirectory.set(generatedPluginSpecBuilders)
+        }
+
+        named<KotlinCompile>("compileKotlin") {
+            dependsOn(generatePluginSpecBuilders)
+            kotlinOptions {
+                freeCompilerArgs += listOf(
+                    "-script-templates", scriptTemplates,
+                    // Propagate implicit imports and other settings
+                    "-Xscript-resolver-environment=${resolverEnvironment(implicitImports() + (generatePluginSpecBuilders.get().kotlinPackageName + ".*"))}"
+                )
+            }
         }
     }
 }
@@ -156,9 +168,9 @@ val scriptTemplates by lazy {
 
 
 private
-fun Project.resolverEnvironment() =
+fun resolverEnvironment(implicitImports: List<String>) =
     (PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
-        + "=\"" + implicitImports().joinToString(separator = ":") + "\"")
+        + "=\"" + implicitImports.joinToString(separator = ":") + "\"")
 
 
 private

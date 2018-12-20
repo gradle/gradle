@@ -22,14 +22,14 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
-import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.fixtures.jarWithPluginDescriptors
 import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
 
 import org.gradle.kotlin.dsl.support.useToRun
-import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -50,6 +50,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // given:
         val pluginsJar = jarWithPluginDescriptors(
+            file("plugins.jar"),
             "my-plugin" to "MyPlugin",
             "my.own.plugin" to "my.own.Plugin"
         )
@@ -146,24 +147,4 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
             verifyNoMoreInteractions(plugins)
         }
     }
-
-    private
-    fun jarWithPluginDescriptors(vararg pluginIdsToImplClasses: Pair<String, String>) =
-        file("plugins.jar").also {
-            zipTo(it, pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
-                "META-INF/gradle-plugins/$id.properties" to "implementation-class=$implClass".toByteArray()
-            })
-        }
-}
-
-
-internal
-inline fun withSynchronousIO(action: IO.() -> Unit) {
-    action(SynchronousIO)
-}
-
-
-internal
-object SynchronousIO : IO {
-    override fun io(action: () -> Unit) = action()
 }

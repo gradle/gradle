@@ -113,7 +113,7 @@ fun writeClassFileTo(rootDir: File, className: InternalName, classBytes: ByteArr
 }
 
 
-private
+internal
 fun classBytesOf(modifiers: Int, internalName: InternalName): ByteArray =
     beginClass(modifiers, internalName).run {
         publicDefaultConstructor()

@@ -46,9 +46,9 @@ fun File.walkReproducibly(): Sequence<File> = sequence {
     while (directories.isNotEmpty()) {
         val subDirectories = mutableListOf<File>()
         directories.forEach { dir ->
-            dir.listFiles()?.sortedBy(fileName)?.partition { it.isDirectory }?.also { (childDirectories, childFiles) ->
+            dir.listFiles()?.sortedBy(fileName)?.partition { it.isDirectory }?.let { (childDirectories, childFiles) ->
                 yieldAll(childFiles)
-                childDirectories.also {
+                childDirectories.let {
                     yieldAll(it)
                     subDirectories.addAll(it)
                 }

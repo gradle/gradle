@@ -93,7 +93,12 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
 
 
 internal
-fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, builder: (File, File) -> Unit): AccessorsClassPath {
+fun cachedAccessorsClassPathFor(
+    project: Project,
+    cacheKeySpec: CacheKeySpec,
+    builder: (File, File) -> Unit
+): AccessorsClassPath {
+
     val cacheDir =
         scriptCacheOf(project)
             .cacheDirFor(cacheKeySpec) { baseDir ->
@@ -102,6 +107,7 @@ fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, bu
                     accessorsClassesDir(baseDir)
                 )
             }
+
     return AccessorsClassPath(
         DefaultClassPath.of(accessorsClassesDir(cacheDir)),
         DefaultClassPath.of(accessorsSourceDir(cacheDir))

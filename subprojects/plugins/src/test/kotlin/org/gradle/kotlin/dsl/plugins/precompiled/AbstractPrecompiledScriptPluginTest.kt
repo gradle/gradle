@@ -30,11 +30,17 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
     protected
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
         withKotlinDslPlugin()
-        withFile("src/main/kotlin/$fileName", code)
+        withPrecompiledKotlinScript(fileName, code)
         compileKotlin()
     }
 
-    protected inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
+    protected
+    fun withPrecompiledKotlinScript(fileName: String, code: String) {
+        withFile("src/main/kotlin/$fileName", code)
+    }
+
+    protected
+    inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
         loadCompiledKotlinClass(className)
             .getConstructor(T::class.java)
             .newInstance(target)
@@ -59,9 +65,9 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
         """
 
     protected
-    fun compileKotlin() {
+    fun compileKotlin(taskName: String = "classes") {
         assertThat(
-            buildWithPlugin("classes").outcomeOf(":compileKotlin"),
+            buildWithPlugin(taskName).outcomeOf(":compileKotlin"),
             equalTo(TaskOutcome.SUCCESS)
         )
     }

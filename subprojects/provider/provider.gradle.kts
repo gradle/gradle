@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation(project(":test-fixtures"))
     testImplementation("com.tngtech.archunit:archunit:0.8.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0")
 }
 
 // --- Enable automatic generation of API extensions -------------------

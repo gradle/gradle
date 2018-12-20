@@ -20,7 +20,6 @@ abstract class TestWithTempFiles {
     fun newFolder(): File =
         tempFolder.newFolder()
 
-    protected
     fun file(fileName: String) =
         File(root, fileName)
 
