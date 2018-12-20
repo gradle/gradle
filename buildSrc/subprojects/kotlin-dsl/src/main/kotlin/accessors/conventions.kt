@@ -22,12 +22,9 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 
 import com.gradle.publish.PluginBundleExtension
-
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 
 internal
@@ -37,11 +34,6 @@ val Project.sourceSets
 
 internal
 fun Project.publishing(action: PublishingExtension.() -> Unit) =
-    configure(action)
-
-
-internal
-fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
     configure(action)
 
 
