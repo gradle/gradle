@@ -42,52 +42,6 @@ dependencies {
     compile("org.ow2.asm:asm:6.2.1")
 }
 
-// Custom Integration Testing
-
 val prepareIntegrationTestFixtures by tasks.registering(GradleBuild::class) {
     dir = file("fixtures")
-}
-
-val distributionProjects =
-    listOf(
-        project(":kotlinDsl"),
-        project(":kotlinDslProviderPlugins"),
-        project(":kotlinDslToolingModels"),
-        project(":kotlinDslToolingBuilders"))
-
-val distribution by configurations.creating
-dependencies {
-    distributionProjects.forEach {
-        distribution(it)
-    }
-}
-
-val customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
-
-val copyCurrentDistro by tasks.registering(Copy::class) {
-    description = "Copies the current Gradle distro into '$customInstallationDir'."
-
-    from(gradle.gradleHomeDir)
-    into(customInstallationDir)
-    exclude("**/*kotlin*")
-
-    // preserve last modified date on each file to make it easier
-    // to check which files were patched by next step
-    val copyDetails = mutableListOf<FileCopyDetails>()
-    eachFile { copyDetails.add(this) }
-    doLast {
-        copyDetails.forEach { details ->
-            File(customInstallationDir, details.path).setLastModified(details.lastModified)
-        }
-    }
-
-    // don't bother recreating it
-    onlyIf { !customInstallationDir.exists() }
-}
-
-val customInstallation by tasks.registering(Copy::class) {
-    description = "Copies latest gradle-kotlin-dsl snapshot over the custom installation."
-    dependsOn(copyCurrentDistro)
-    from(distribution)
-    into("$customInstallationDir/lib")
 }
