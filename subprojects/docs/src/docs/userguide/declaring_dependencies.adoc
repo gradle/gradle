@@ -125,77 +125,89 @@ Declares that specific version(s) are not accepted for the module.
 This will cause dependency resolution to fail if the only versions selectable are also rejected.
 This term supports dynamic versions.
 
-The following table gives a couple use cases and how to combine the different terms for a rich version declaration:
+The following table illustrates a number of use cases and how to combine the different terms for rich version declaration:
 
 .Rich version use cases
 [%header%autowidth,compact]
 |===
-| Use case | `strictly` | `require` | `prefer` | `rejects` | Locking recommended? | Potential result
+| Which version(s) of this dependency are acceptable? | `strictly` | `require` | `prefer` | `rejects` | Selection result
 
-| No strong opinion, works with 1.5
-|
+| Tested with version `1.5`, believe all future versions should work
 |
 | 1.5
 |
 |
-| 1.5 if no other opinion, any otherwise
+| Any version starting from `1.5`, equivalent of `org:foo:1.5`. An upgrade to `2.4` is accepted.
 
-| Should not be downgraded below 1.5, but can be upgraded
+| Tested with `1.5`, soft constraint upgrades according to semantic versioning
 |
+| [1.0, 2.0[
 | 1.5
 |
-|
-|
-| any starting from 1.5, equivalent of `org:foo:1.5`
+| Any version between `1.0` and `2.0`, `1.5` if nobody else cares. An upgrade to `2.4` is accepted. +
+🔒
 
-| Any version between 1.0 and below 2.0, tested with 1.5
+| Tested with `1.5`, but follows semantic versioning
 | [1.0, 2.0[
 |
 | 1.5
 |
-| yes
-| any between 1.0 and 2.0 excluded, 1.5 if nobody else cares
+| Any version between `1.0` and `2.0` excluded, `1.5` if nobody else cares. +
+🔒
 
-| Any version between 1.0 and below 2.0, tested with 1.5, 1.4 known broken
+| Same as above, with `1.4` known broken
 | [1.0, 2.0[
 |
 | 1.5
 | 1.4
-| yes
-| any between 1.0 and 2.0 excluded, 1.4 excluded, 1.5 if nobody else cares
+| Any version between `1.0` and `2.0` excluded except for `1.4`, `1.5` if nobody else cares. +
+🔒
 
-| Give me whatever the latest release version is, cannot downgrade
+| No opinion, works with `1.5`
+|
+|
+| 1.5
+|
+| `1.5` if no other opinion, any otherwise
+
+| No opinion, prefer latest release
+|
+|
+| `latest.release`
+|
+| The latest release at build time +
+🔒
+
+| On the edge, latest release, no downgrade
 |
 | `latest.release`
 |
 |
-| yes
-| the latest release at build time
-
-| Give me whatever the latest release version is, previous versions work
-|
-|
-| `latest.release`
-|
-| yes
-| the latest release at build time
+| The latest release at build time +
+🔒
 
 | No other version than 1.5
 | 1.5
 |
 |
 |
-|
-| 1.5, or failure if another `strict` or `require` constraint disagrees
+| 1.5, or failure if another `strict` or higher `require` constraint disagrees
 
-| No other version than 1.5 or a patch version
+| `1.5` or a patch version of it exclusively
 | [1.5,1.6[
 |
 |
 |
-| yes
-| latest release between 1.5 and 1.6 excluded, or failure if another `strict` or `require` constraint disagrees
+| Latest `1.5.x` patch release, or failure if another `strict` or higher `require` constraint disagrees +
+🔒
 |===
+
+Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking.adoc#,dependency locking>> makes sense in this context.
+Another concept that relates with rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
+
+
+Using `strictly`, especially for a library, must be a well thought process as it can have a serious impact on downstream consumers.
+At the same time, used correctly, it will help consumers understand what combination of libraries do not work together in their context.
 
 
 [NOTE]
