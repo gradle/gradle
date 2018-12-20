@@ -332,7 +332,8 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun environment(vararg entries: Pair<String, Any?>) =
         mapOf(
             "projectRoot" to projectRoot,
-            "gradleHome" to distribution.gradleHomeDir
+            "gradleHome" to distribution.gradleHomeDir,
+            "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath
         ) + entries.toMap()
 
     private

@@ -188,7 +188,8 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                 KotlinBuildScriptModelRequest(
                     projectDir = importedProjectDir,
                     scriptFile = scriptFile,
-                    gradleInstallation = testGradleInstallation()
+                    gradleInstallation = testGradleInstallation(),
+                    gradleUserHome = buildContext.gradleUserHomeDir
                 )
             ) {
 
