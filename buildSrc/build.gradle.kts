@@ -29,55 +29,55 @@ plugins {
 }
 
 subprojects {
+    if (name != "buildPlatform") {
+        apply(plugin = "java-library")
 
-    apply(plugin = "java-library")
 
-    if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+        if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+            applyGroovyProjectConventions()
+        }
 
-        applyGroovyProjectConventions()
+        if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
+            applyKotlinProjectConventions()
+        }
+
+        configure<JavaPluginExtension> {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+
+        dependencies {
+            compile(gradleApi())
+        }
+
+        afterEvaluate {
+            if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
+                val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+                    outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
+
+                    val mainSourceSet = project.sourceSets.main.get()
+                    classes.setFrom(mainSourceSet.output.classesDirs)
+                    classpath.setFrom(mainSourceSet.compileClasspath)
+                    dependsOn(mainSourceSet.output)
+                }
+                tasks.check { dependsOn(validateTaskProperties) }
+            }
+        }
+
+        tasks.withType<ValidateTaskProperties> {
+            failOnWarning = true
+            enableStricterValidation = true
+        }
+
+        apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     }
 
-    if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-
-        applyKotlinProjectConventions()
-    }
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    
     apply(plugin = "idea")
     apply(plugin = "eclipse")
 
     configure<IdeaModel> {
         module.name = "buildSrc-${this@subprojects.name}"
     }
-
-    dependencies {
-        compile(gradleApi())
-    }
-
-    afterEvaluate {
-        if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-            val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
-                outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
-
-                val mainSourceSet = project.sourceSets.main.get()
-                classes.setFrom(mainSourceSet.output.classesDirs)
-                classpath.setFrom(mainSourceSet.compileClasspath)
-                dependsOn(mainSourceSet.output)
-            }
-            tasks.check { dependsOn(validateTaskProperties) }
-        }
-    }
-
-    tasks.withType<ValidateTaskProperties> {
-        failOnWarning = true
-        enableStricterValidation = true
-    }
-
-    apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 allprojects {
