@@ -35,8 +35,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
-import java.io.File
-
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -178,36 +176,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         val output = build("compute").output
         assert(output.contains("buildscript: 42"))
         assert(output.contains("*42*"))
-    }
-
-    @Test
-    fun `given a plugin compiled against Kotlin one dot one, it will run against the embedded Kotlin version`() {
-
-        assumeJavaLessThan9()
-
-        withBuildScript("""
-            buildscript {
-                repositories {
-                    ivy(url = "${fixturesRepository.toURI()}")
-                    jcenter()
-                }
-                dependencies {
-                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.1:1.0")
-                }
-            }
-
-            apply<fixtures.ThePlugin>()
-
-            tasks.withType<fixtures.ThePluginTask> {
-                from = "new value"
-                doLast {
-                    println(transform { "*[" + it + "]*" })
-                }
-            }
-        """)
-
-        assert(
-            build("the-plugin-task").output.contains("*[new value]*"))
     }
 
     @Test
@@ -894,8 +862,4 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             equalTo("default-value")
         )
     }
-
-    private
-    val fixturesRepository: File
-        get() = File("../kotlin-dsl-test-fixtures/fixtures/repository").absoluteFile
 }

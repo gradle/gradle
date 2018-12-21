@@ -43,7 +43,3 @@ dependencies {
     compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
     compile("org.ow2.asm:asm:6.2.1")
 }
-
-val prepareIntegrationTestFixtures by tasks.registering(GradleBuild::class) {
-    dir = file("fixtures")
-}

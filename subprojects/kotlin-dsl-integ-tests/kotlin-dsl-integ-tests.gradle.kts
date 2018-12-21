@@ -50,9 +50,8 @@ pluginBundles.forEach {
 tasks {
 
     val testEnvironment by registering {
-        dependsOn(":kotlinDslTestFixtures:prepareIntegrationTestFixtures")
         pluginBundles.forEach {
-            dependsOn(":$it:publishPluginsToTestRepository")
+            dependsOn("$it:publishPluginsToTestRepository")
         }
     }
 
