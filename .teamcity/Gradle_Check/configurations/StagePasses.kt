@@ -23,7 +23,10 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
     artifactRules = "build/build-receipt.properties"
 
     val triggerExcludes = """
-        -:design-docs
+        -:.idea
+        -:.github
+        -:.teamcity
+        -:.teamcityTest
         -:subprojects/docs/src/docs/release
     """.trimIndent()
     val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
