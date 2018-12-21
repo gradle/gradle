@@ -22,6 +22,8 @@ plugins {
     `kotlin-dsl-plugin-bundle`
 }
 
+version = "1.1.1"
+
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }

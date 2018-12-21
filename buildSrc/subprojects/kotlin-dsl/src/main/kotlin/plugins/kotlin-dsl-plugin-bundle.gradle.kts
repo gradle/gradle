@@ -22,9 +22,13 @@ pluginBundle {
 
 
 afterEvaluate {
-
-    pluginBundle {
-        mavenCoordinates.artifactId = base.archivesBaseName
+    publishing {
+        publications {
+            named<MavenPublication>("pluginMaven") {
+                groupId = project.group.toString()
+                artifactId = base.archivesBaseName
+            }
+        }
     }
 }
 
