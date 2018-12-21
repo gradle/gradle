@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="355487d7-45b9-4387-9fc5-713e7683e6d0"
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="355487d7-45b9-4387-9fc5-713e7683e6d1"
             xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
     <name>Master - Start Release Cycle Test</name>
     <description>Run daily to test Start Release Cycle job</description>
