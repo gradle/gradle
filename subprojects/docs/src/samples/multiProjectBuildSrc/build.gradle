@@ -1,7 +1,7 @@
 apply plugin: "plugina"
 apply plugin: "pluginb"
 
-tasks.register("showPlugins") {
+task showPlugins {
     doLast {
         project.plugins.each {
             println it.getClass().name

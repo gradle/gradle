@@ -4,9 +4,9 @@ apply plugin: GreetingPlugin
 // our default greeting
 greeting = "Hello!"
 
-tasks.register("hello", GreetingTask)
+task hello(type: GreetingTask)
 
-tasks.register("bonjour", GreetingTask) {
+task bonjour(type: GreetingTask) {
     greeting = "Bonjour!"
 }
 // end::tasks[]

@@ -5,17 +5,17 @@ plugins {
 version = 1.0
 archivesBaseName = "gradle"
 
-tasks.register("myZip", Zip) {
+task myZip(type: Zip) {
     from 'somedir'
 }
 
-tasks.register("myOtherZip", Zip) {
+task myOtherZip(type: Zip) {
     appendix = 'wrapper'
     classifier = 'src'
     from 'somedir'
 }
 
-tasks.register("echoNames") {
+task echoNames {
     doLast {
         println "Project name: ${project.name}"
         println myZip.archiveName

@@ -9,10 +9,10 @@ class GreetingTask extends DefaultTask {
 }
 
 // Use the default greeting
-tasks.register("hello", GreetingTask)
+task hello(type: GreetingTask)
 
 // Customize the greeting
-tasks.register("greeting", GreetingTask) {
+task greeting(type: GreetingTask) {
     greeting = 'greetings from GreetingTask'
 }
 // end::add-property[]

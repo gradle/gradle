@@ -1,7 +1,7 @@
-tasks.register("hello") {
+task hello {
     doLast {
         println 'hello world'
     }
 }
 
-tasks.named("hello") { onlyIf { !project.hasProperty('skipHello') } }
+hello.onlyIf { !project.hasProperty('skipHello') }

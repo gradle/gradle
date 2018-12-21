@@ -1,18 +1,18 @@
-tasks.register("taskX") {
+task taskX {
     doLast {
         println 'taskX'
     }
 }
-tasks.register("taskY") {
+task taskY {
     doLast {
         println 'taskY'
     }
 }
-tasks.register("taskZ") {
+task taskZ {
     doLast {
         println 'taskZ'
     }
 }
-tasks.named("taskX") { dependsOn taskY }
-tasks.named("taskY") { dependsOn taskZ }
-tasks.named("taskZ") { shouldRunAfter taskX }
+taskX.dependsOn taskY
+taskY.dependsOn taskZ
+taskZ.shouldRunAfter taskX

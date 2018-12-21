@@ -256,7 +256,7 @@ repositories {
 }
 // end::authenticated-ivy-repo[]
 
-tasks.register("lookup") {
+task lookup {
     doLast {
         repositories.each { assert it.name }
         assert repositories[0].name

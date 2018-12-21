@@ -13,7 +13,7 @@ dependencies {
 }
 
 // tag::walk-task[]
-tasks.register("walkDependencyGraph", DependencyGraphWalk) {
+task walkDependencyGraph(type: DependencyGraphWalk) {
     dependsOn configurations.scm
 }
 

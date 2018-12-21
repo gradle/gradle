@@ -12,7 +12,7 @@ dependencies {
     libs 'com.google.guava:guava:23.0'
 }
 
-tasks.register("copyLibs", Copy) {
+task copyLibs(type: Copy) {
     from configurations.libs
     into "$buildDir/libs"
 }

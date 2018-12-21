@@ -1,4 +1,4 @@
-tasks.register("copy", Copy)
+task copy(type: Copy)
 
 task copy(overwrite: true) {
     doLast {

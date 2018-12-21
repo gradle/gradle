@@ -37,12 +37,12 @@ dependencies {
     runtime configurations.implRuntime
 }
 
-tasks.named("jar") {
+jar {
     from sourceSets.api.output
     from sourceSets.impl.output
 }
 
-tasks.named("uploadArchives"){
+uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))

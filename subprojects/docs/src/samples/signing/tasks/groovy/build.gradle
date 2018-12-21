@@ -8,7 +8,7 @@ project.ext['signing.password'] = 'gradle'
 project.ext['signing.secretKeyRingFile'] = file('secKeyRingFile.gpg').absolutePath
 
 // tag::sign-task[]
-tasks.register("stuffZip", Zip) {
+task stuffZip (type: Zip) {
     baseName = 'stuff'
     from 'src/stuff'
 }

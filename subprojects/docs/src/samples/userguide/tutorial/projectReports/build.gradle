@@ -24,17 +24,17 @@ allprojects {
     }
 }
 
-tasks.register("docs") {
+task docs {
     description = 'Builds the documentation'
 }
 
-tasks.register("dists") {
+task dists {
     dependsOn { subprojects*.libs }
     dependsOn docs
 }
 
 // tag::add-task-to-report[]
-tasks.named("dists") {
+dists {
     description = 'Builds the distribution'
     group = 'build'
 }
@@ -48,10 +48,10 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    tasks.register("compile") {
+    task compile {
         description = 'Compiles the source files'
     }
-    tasks.register("libs") {
+    task libs {
         group = 'build'
         description = 'Builds the JAR'
         dependsOn compile

@@ -1,6 +1,6 @@
 apply plugin: "base"
 
-tasks.register("doIt", Copy) {
+task doIt(type: Copy) {
     from projectDir, {
         include "README.md"
     }

@@ -8,4 +8,4 @@ gradle.afterProject { project ->
 }
 // end::evaluate-events[]
 
-tasks.register("test")
+task test

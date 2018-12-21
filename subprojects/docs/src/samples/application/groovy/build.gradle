@@ -41,7 +41,7 @@ application {
 // end::executableDir-conf[]
 
 // tag::distribution-spec[]
-def createDocs = tasks.register("createDocs") {
+task createDocs {
     def docs = file("$buildDir/docs")
     outputs.dir docs
     doLast {

@@ -1,4 +1,4 @@
-tasks.register("checksum") {
+task checksum {
     doLast {
         fileList('./antLoadfileResources').each { File file ->
             ant.checksum(file: file, property: "cs_$file.name")
@@ -7,7 +7,7 @@ tasks.register("checksum") {
     }
 }
 
-tasks.register("loadfile") {
+task loadfile {
     doLast {
         fileList('./antLoadfileResources').each { File file ->
             ant.loadfile(srcFile: file, property: file.name)

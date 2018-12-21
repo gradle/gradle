@@ -26,35 +26,33 @@ def javaExecutables = [:].withDefault { execName ->
     assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
     executable
 }
-tasks.withType(AbstractCompile).configureEach {
+tasks.withType(AbstractCompile) {
     options.with {
         fork = true
         forkOptions.javaHome = file(javaHome)
     }
 }
-tasks.withType(Javadoc).configureEach {
+tasks.withType(Javadoc) {
     executable = javaExecutables.javadoc
 }
-tasks.withType(Test).configureEach {
+tasks.withType(Test) {
     executable = javaExecutables.java
 }
-tasks.withType(JavaExec).configureEach {
+tasks.withType(JavaExec) {
     executable = javaExecutables.java
 }
 // end::java-cross-compilation[]
 
-tasks.withType(Test).configureEach {
+tasks.withType(Test) {
     systemProperty 'targetJavaVersion', targetJavaVersion
 }
 
-tasks.register("checkJavadocOutput") {
+task checkJavadocOutput {
     dependsOn javadoc
     doLast {
         assert new File(docsDir, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')
     }
 }
 
-tasks.named("build") {
-    dependsOn checkJavadocOutput
-}
+build.dependsOn checkJavadocOutput
 

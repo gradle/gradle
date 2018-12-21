@@ -17,7 +17,7 @@ ext {
     archivesDirPath = "$buildDir/archives"
 }
 
-tasks.register("packageClasses", Zip) {
+task packageClasses(type: Zip) {
     appendix = "classes"
     destinationDir = file(archivesDirPath)
 
@@ -26,7 +26,7 @@ tasks.register("packageClasses", Zip) {
 // end::link-task-properties[]
 
 // tag::nested-specs[]
-tasks.register("nestedSpecs", Copy) {
+task nestedSpecs(type: Copy) {
     into "$buildDir/explodedWar"
     exclude '**/*staging*'
     from('src/dist') {

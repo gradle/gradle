@@ -1,4 +1,4 @@
-tasks.register("zip") {
+task zip {
     doLast {
         ant.zip(destfile: 'archive.zip') {
             fileset(dir: 'src') {

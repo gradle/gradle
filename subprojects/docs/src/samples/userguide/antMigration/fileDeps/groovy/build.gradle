@@ -17,7 +17,7 @@ dependencies {
 // end::file-deps[]
 
 // tag::retrieve-deps[]
-tasks.register("retrieveRuntimeDependencies", Copy) {
+task retrieveRuntimeDependencies(type: Copy) {
     into "$buildDir/libs"
     from configurations.runtimeClasspath
 }
@@ -28,12 +28,12 @@ ext {
     tmpDistDir = file("$buildDir/dist")
 }
 
-tasks.register("javadocJar", Jar) {
+task javadocJar(type: Jar) {
     from javadoc  // <1>
     classifier = 'javadoc'
 }
 
-tasks.register("unpackJavadocs", Copy) {
+task unpackJavadocs(type: Copy) {
     from zipTree(javadocJar.archivePath)  // <2>
     into tmpDistDir  // <3>
 }

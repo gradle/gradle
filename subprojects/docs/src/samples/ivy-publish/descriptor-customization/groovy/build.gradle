@@ -35,7 +35,7 @@ publishing {
 }
 
 // tag::generate[]
-tasks.named("generateDescriptorFileForIvyCustomPublication") {
+generateDescriptorFileForIvyCustomPublication {
     destination = file("$buildDir/generated-ivy.xml")
 }
 // end::generate[]

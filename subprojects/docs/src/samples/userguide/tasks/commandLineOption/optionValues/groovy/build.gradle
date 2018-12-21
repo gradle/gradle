@@ -1,2 +1,2 @@
-tasks.register("processUrl", UrlProcess)
+task processUrl(type: UrlProcess)
 
