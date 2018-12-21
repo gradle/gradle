@@ -1041,7 +1041,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 
 Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.layout.configurableFiles()` in place of `project.fileTree()`:
 
-.Setting up an inferred task dependency with filesFor()
+.Setting up an inferred task dependency with `layout.files()`
 ====
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]

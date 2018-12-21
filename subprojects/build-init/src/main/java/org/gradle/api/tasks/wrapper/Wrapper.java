@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.wrapper;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -41,16 +42,15 @@ import org.gradle.wrapper.WrapperExecutor;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * <p>Generates scripts (for *nix and windows) which allow you to build your project with Gradle, without having to
@@ -141,8 +141,8 @@ public class Wrapper extends DefaultTask {
         if (jarFileSource == null) {
             throw new GradleException("Cannot locate wrapper JAR resource.");
         }
-        try (InputStream stream = jarFileSource.openStream()) {
-            Files.copy(stream, destination.toPath(), REPLACE_EXISTING);
+        try (InputStream in = jarFileSource.openStream(); OutputStream out = new FileOutputStream(destination)) {
+            ByteStreams.copy(in, out);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to write wrapper JAR to " + destination, e);
         }
@@ -229,7 +229,7 @@ public class Wrapper extends DefaultTask {
     public File getPropertiesFile() {
         File jarFileDestination = getJarFile();
         return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$",
-                ".properties"));
+            ".properties"));
     }
 
     /**

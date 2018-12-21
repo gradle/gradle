@@ -330,4 +330,34 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':tag').outcome == SUCCESS
         result.task(':checkout').outcome == SUCCESS
     }
+
+    @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
+    def 'spotbugs plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'com.github.spotbugs' version '${TestedVersions.spotbugs}'
+            }
+
+            ${jcenterRepository()}
+
+            """.stripIndent()
+
+        file('src/main/java/example/Application.java') << """
+            package example;
+
+            public class Application {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+
+
+        when:
+        runner('check').build()
+
+        then:
+        file('build/reports/spotbugs').isDirectory()
+    }
+
 }
