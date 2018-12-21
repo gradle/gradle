@@ -164,8 +164,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
-        return new DefaultScriptSourceHasher(fileHasher);
+    ScriptSourceHasher createScriptSourceHasher() {
+        return new DefaultScriptSourceHasher();
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {

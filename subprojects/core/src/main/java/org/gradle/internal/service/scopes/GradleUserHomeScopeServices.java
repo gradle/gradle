@@ -140,12 +140,12 @@ public class GradleUserHomeScopeServices {
         return fileHasher;
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
-        return new DefaultScriptSourceHasher(fileHasher);
+    ScriptSourceHasher createScriptSourceHasher() {
+        return new DefaultScriptSourceHasher();
     }
 
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
     ValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
