@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.caching
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.execution.Program
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
@@ -25,7 +26,6 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
 import org.junit.Test
 

@@ -1,6 +1,9 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.UncheckedIOException
+
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.util.GFileUtils
 
 import org.junit.rules.TemporaryFolder
@@ -8,7 +11,6 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import kotlin.annotation.AnnotationTarget.FUNCTION
-import kotlin.annotation.AnnotationTarget.CLASS
 
 
 /**
@@ -58,16 +60,6 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
         description.getAnnotation(LeaksFileHandles::class.java) != null
             || description.testClass.getAnnotation(LeaksFileHandles::class.java) != null
 }
-
-
-/**
- * Declares that the test holds files open and therefore not to error if the temporary test directory
- * can't be forcefully deleted.
- *
- * @see ForcefullyDeletedTemporaryFolder
- */
-@Target(FUNCTION, CLASS)
-annotation class LeaksFileHandles(val why: String = "")
 
 
 /**
