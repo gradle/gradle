@@ -20,6 +20,8 @@ plugins {
     `kotlin-library`
 }
 
+description = "Kotlin DSL Test Fixtures"
+
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }

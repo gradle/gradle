@@ -20,6 +20,8 @@ plugins {
     `kotlin-dsl-module`
 }
 
+description = "Kotlin DSL Tooling Models for IDEs"
+
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }

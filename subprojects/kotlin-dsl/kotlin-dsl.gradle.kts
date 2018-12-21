@@ -25,6 +25,8 @@ plugins {
     `kotlin-dsl-module`
 }
 
+description = "Kotlin DSL Provider"
+
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }

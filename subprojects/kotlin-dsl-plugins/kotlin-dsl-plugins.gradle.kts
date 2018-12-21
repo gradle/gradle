@@ -22,6 +22,7 @@ plugins {
     `kotlin-dsl-plugin-bundle`
 }
 
+description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 version = "1.1.1"
 
 gradlebuildJava {
