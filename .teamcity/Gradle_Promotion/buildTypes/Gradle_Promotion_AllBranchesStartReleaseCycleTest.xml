@@ -9,7 +9,7 @@
         <parameters>
           <param name="teamcity.step.mode" value="default" />
           <param name="teamcity.tool.jacoco" value="%teamcity.tool.jacoco.DEFAULT%" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean promoteStartReleaseCycle" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
