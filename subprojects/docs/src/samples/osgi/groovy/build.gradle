@@ -22,7 +22,7 @@ dependencies {
     compile 'org.eclipse:osgi:3.5.0.v20090520'
 }
 
-tasks.named("jar") {
+jar {
     manifest {
         version = '1.0.0'
         name = 'Example Gradle Activator'

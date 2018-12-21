@@ -28,7 +28,7 @@ jacoco {
     applyTo run
 }
 
-tasks.register("applicationCodeCoverageReport", JacocoReport) {
+task applicationCodeCoverageReport(type:JacocoReport) {
     executionData run
     sourceSets sourceSets.main
 }

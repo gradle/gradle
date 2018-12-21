@@ -6,7 +6,7 @@ repositories {
 }
 // end::custom-repository[]
 
-tasks.register("checkRepositories") {
+task checkRepositories {
     doLast {
         assert repositories.size() == 1
         assert repositories[0] instanceof MavenArtifactRepository

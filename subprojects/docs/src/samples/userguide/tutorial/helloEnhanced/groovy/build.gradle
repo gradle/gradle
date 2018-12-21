@@ -1,12 +1,10 @@
-def hello = tasks.register("hello") {
+task hello {
     doLast {
         println 'Hello Earth'
     }
 }
-hello.configure {
-    doFirst {
-        println 'Hello Venus'
-    }
+hello.doFirst {
+    println 'Hello Venus'
 }
 hello.configure {
     doLast {

@@ -30,7 +30,7 @@ dependencies {
 // end::jupiter-dependencies[]
 
 // tag::enabling-junit-platform[]
-tasks.named("test") {
+test {
     useJUnitPlatform()
 }
 // end::enabling-junit-platform[]

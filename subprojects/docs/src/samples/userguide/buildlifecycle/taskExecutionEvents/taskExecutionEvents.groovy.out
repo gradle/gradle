@@ -6,7 +6,7 @@ FAILED
 FAILURE: Build failed with an exception.
 
 * Where:
-Build file '/home/user/gradle/samples/groovy/build.gradle' line: 6
+Build file '/home/user/gradle/samples/groovy/build.gradle' line: 5
 
 * What went wrong:
 Execution failed for task ':broken'.

@@ -1,6 +1,6 @@
 ant.lifecycleLogLevel = "INFO"
 
-tasks.register("hello") {
+task hello {
     doLast {
         ant.echo(level: "info", message: "hello from info priority!")
     }

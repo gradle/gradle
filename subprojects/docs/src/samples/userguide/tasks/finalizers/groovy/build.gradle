@@ -1,12 +1,12 @@
-tasks.register("taskX") {
+task taskX {
     doLast {
         println 'taskX'
     }
 }
-tasks.register("taskY") {
+task taskY {
     doLast {
         println 'taskY'
     }
 }
 
-tasks.named("taskX") { finalizedBy taskY }
+taskX.finalizedBy taskY

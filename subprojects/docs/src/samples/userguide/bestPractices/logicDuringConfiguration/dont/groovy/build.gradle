@@ -17,7 +17,7 @@ dependencies {
     implementation 'log4j:log4j:1.2.17'
 }
 
-tasks.register("printArtifactNames") {
+task printArtifactNames {
     // always executed
     def libraryNames = configurations.compileClasspath.collect { it.name }
 

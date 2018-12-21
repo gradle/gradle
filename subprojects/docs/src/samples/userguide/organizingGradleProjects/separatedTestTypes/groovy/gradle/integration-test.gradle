@@ -10,7 +10,7 @@ sourceSets {
 // end::custom-source-set[]
 
 // tag::test-task[]
-tasks.register("integTest", Test) {
+task integTest(type: Test) {
     description = 'Runs the integration tests.'
     group = 'verification'
     testClassesDirs = sourceSets.integTest.output.classesDirs
@@ -18,5 +18,5 @@ tasks.register("integTest", Test) {
     mustRunAfter test
 }
 
-tasks.named("check") { dependsOn integTest }
+check.dependsOn integTest
 // end::test-task[]

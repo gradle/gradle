@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-tasks.register("show") {
+task show {
     doLast {
         // Access the convention property as a project property
         println relativePath(sourceSets.main.java.outputDir)

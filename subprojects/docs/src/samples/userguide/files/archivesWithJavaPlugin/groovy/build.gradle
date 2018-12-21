@@ -13,7 +13,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.6'
 }
 
-tasks.register("uberJar", Jar) {
+task uberJar(type: Jar) {
     appendix = 'uber'
 
     from sourceSets.main.output

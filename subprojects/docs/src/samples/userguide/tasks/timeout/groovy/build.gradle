@@ -1,4 +1,4 @@
-tasks.register("hangingTask") {
+task hangingTask() {
     doLast {
         Thread.sleep(100000)
     }

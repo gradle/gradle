@@ -3,7 +3,7 @@ allprojects {
     afterEvaluate { project ->
         if (project.hasTests) {
             println "Adding test task to $project"
-            project.tasks.register('test') {
+            project.task('test') {
                 doLast {
                     println "Running tests for $project"
                 }

@@ -1,4 +1,4 @@
-tasks.register("check") {
+task check {
     doLast {
         ant.taskdef(resource: 'checkstyletask.properties') {
             classpath {

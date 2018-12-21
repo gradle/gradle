@@ -12,7 +12,7 @@ buildscript {
 }
 // end::declare-classpath[]
 
-tasks.register("encode") {
+task encode {
     doLast {
         def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
         println new String(encodedString)

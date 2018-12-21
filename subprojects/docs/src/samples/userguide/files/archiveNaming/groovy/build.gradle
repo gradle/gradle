@@ -5,7 +5,7 @@ plugins {
 
 version = 1.0
 
-tasks.register("myZip", Zip) {
+task myZip(type: Zip) {
     from 'somedir'
 
     doLast {
@@ -17,7 +17,7 @@ tasks.register("myZip", Zip) {
 // end::zip-task[]
 
 // tag::zip-task-with-custom-base-name[]
-tasks.register("myCustomZip", Zip) {
+task myCustomZip(type: Zip) {
     baseName = 'customName'
     from 'somedir'
 

@@ -13,7 +13,7 @@ dependencies {
 }
 
 // tag::filter-engine[]
-tasks.named("test") {
+test {
     useJUnitPlatform {
         includeEngines 'junit-vintage'
         // excludeEngines 'junit-jupiter'

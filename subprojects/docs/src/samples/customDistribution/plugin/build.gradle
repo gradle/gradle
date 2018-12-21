@@ -16,7 +16,7 @@ dependencies {
     compile 'com.google.guava:guava:11.0.2'
 }
 
-tasks.register("dist", Zip) {
+task dist(type: Zip) {
     description = 'Creates a custom Gradle distribution containing the custom plugins'
     // Make sure you give this distribution a name that indicates that it is not the standard distribution
     archiveName = "custom-gradle-${gradle.gradleVersion}.zip"
