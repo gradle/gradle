@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.util.TextUtil
 
 import org.hamcrest.CoreMatchers.instanceOf
@@ -78,4 +79,4 @@ fun standardOutputOf(action: () -> Unit): String =
         } finally {
             System.setOut(out)
         }
-    }.toString("utf8")
+    }.toString("utf8").normaliseLineSeparators()

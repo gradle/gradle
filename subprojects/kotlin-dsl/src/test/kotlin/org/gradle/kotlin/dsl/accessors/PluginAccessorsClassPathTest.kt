@@ -26,8 +26,8 @@ import org.gradle.kotlin.dsl.concurrent.IO
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
 
+import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 
@@ -68,7 +68,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // then:
         assertThat(
-            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().toPlatformLineSeparators(),
+            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().normaliseLineSeparators(),
             allOf(
                 containsString("import MyPlugin"),
                 containsMultiLineString("""
