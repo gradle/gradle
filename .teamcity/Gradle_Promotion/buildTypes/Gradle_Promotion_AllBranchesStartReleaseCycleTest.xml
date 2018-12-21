@@ -5,11 +5,12 @@
   <settings>
     <parameters />
     <build-runners>
-      <runner id="RUNNER_29" name="" type="gradle-runner">
+      <runner id="RUNNER_29" name="PromoteTest" type="gradle-runner">
         <parameters>
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean build" />
-          <param name="ui.gradleRunner.gradle.wrapper.path" value="" />
+          <param name="teamcity.tool.jacoco" value="%teamcity.tool.jacoco.DEFAULT%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean promoteStartReleaseCycle" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
