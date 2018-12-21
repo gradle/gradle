@@ -39,7 +39,7 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationT
     fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File): KotlinBuildScriptTemplateModel {
         val connection = GradleConnector.newConnector()
             .forProjectDirectory(projectDir)
-            .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))
+            .useGradleUserHomeDir(buildContext.gradleUserHomeDir)
             .useInstallation(distribution.gradleHomeDir)
             .connect()
         try {
