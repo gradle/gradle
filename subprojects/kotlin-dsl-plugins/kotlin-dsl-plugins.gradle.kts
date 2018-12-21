@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import plugins.bundledGradlePlugin
@@ -76,3 +77,11 @@ bundledGradlePlugin(
     shortDescription = "Gradle Kotlin DSL Precompiled Script Plugins",
     pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
     pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins")
+
+
+// testing ------------------------------------------------------------
+
+val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
+integTestTasks.configureEach {
+    dependsOn("publishPluginsToTestRepository")
+}

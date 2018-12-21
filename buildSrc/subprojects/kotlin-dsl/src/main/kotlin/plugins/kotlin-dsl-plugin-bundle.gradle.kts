@@ -52,10 +52,6 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
 
-    tasks.named("integTest") {
-        dependsOn(publishPluginsToTestRepository)
-    }
-
     val writeFuturePluginVersions = registerWriteFuturePluginVersionsTask()
 
     afterEvaluate {
