@@ -36,16 +36,16 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractKotlinIntegrationT
 
     protected
     fun buildForCacheInspection(vararg arguments: String): ExecutionResult =
-        gradleRunnerForCacheInspection(*arguments).run()
+        executerForCacheInspection(*arguments).run()
 
     protected
     fun buildWithDaemonHeapSize(heapMb: Int, vararg arguments: String): ExecutionResult =
-        gradleRunnerForCacheInspection(*arguments)
+        executerForCacheInspection(*arguments)
             .withBuildJvmOpts("-Xms${heapMb}m", "-Xmx${heapMb}m")
             .run()
 
     private
-    fun gradleRunnerForCacheInspection(vararg arguments: String): GradleExecuter =
+    fun executerForCacheInspection(vararg arguments: String): GradleExecuter =
         executer.withArguments(
             "-d",
             "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}",

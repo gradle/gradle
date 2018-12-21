@@ -46,7 +46,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         withMultiProjectBuild(left = sameContent, right = sameContent).apply {
 
             // when: first use
-            buildForCacheInspection("--stop")
             buildForCacheInspection("help").apply {
                 compilationTrace(projectRoot) {
                     assertScriptCompile(settingsFile.stage1)
@@ -115,7 +114,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         val sameOnProject = cachedProjectScript(same, false, true)
 
         // when: first use
-        buildForCacheInspection("--stop")
         buildForCacheInspection("help", "-I", initScriptFile.absolutePath).apply {
 
             // then: compilation and classloading
@@ -176,7 +174,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         withMultiProjectBuild(left = sameContent, right = sameContent).apply {
 
             // when: first use
-            buildForCacheInspection("--stop")
             buildForCacheInspection("help").apply {
 
                 // then: compilation and classloading
