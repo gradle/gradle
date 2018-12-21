@@ -200,7 +200,12 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findCygwin() {
         // Search in the standard installation locations
-        File compilerExe = new File("C:/cygwin/bin/g++.exe");
+        File compilerExe = new File("C:/cygwin64/bin/g++.exe");
+        if (compilerExe.isFile()) {
+            return new InstalledWindowsGcc(ToolFamily.CYGWIN_GCC_64, VersionNumber.UNKNOWN).inPath(compilerExe.getParentFile());
+        }
+
+        compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
             return new InstalledWindowsGcc(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compilerExe.getParentFile());
         }
@@ -286,6 +291,7 @@ public class AvailableToolChains {
         VISUAL_CPP("visual c++"),
         MINGW_GCC("mingw"),
         CYGWIN_GCC("gcc cygwin"),
+        CYGWIN_GCC_64("gcc cygwin64"),
         SWIFTC("swiftc");
 
         private final String displayName;
@@ -571,7 +577,7 @@ public class AvailableToolChains {
                 case WINDOWS_GCC:
                     return true;
                 case SUPPORTS_32_AND_64:
-                    return false;
+                    return getFamily() == ToolFamily.CYGWIN_GCC_64;
                 default:
                     return super.meets(requirement);
             }

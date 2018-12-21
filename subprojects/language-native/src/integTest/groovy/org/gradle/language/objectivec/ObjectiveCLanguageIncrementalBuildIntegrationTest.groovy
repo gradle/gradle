@@ -32,8 +32,8 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest {
 
     @Override
-    boolean isCanBuildForMultiplePlatforms() {
-        false
+    boolean languageBuildsOnMultiplePlatforms() {
+        return false
     }
 
     @Ignore("Demos a problem with clang on ubuntu creating randomly different object files")
