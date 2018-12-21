@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.Workspace;

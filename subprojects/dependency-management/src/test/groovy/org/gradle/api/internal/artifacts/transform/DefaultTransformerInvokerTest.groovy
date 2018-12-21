@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -25,11 +26,15 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.execution.TaskFingerprinter
+import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -84,14 +89,15 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
     def invoker = new DefaultTransformerInvoker(
         workExecutorTestFixture.workExecutor,
-        fileSystemSnapshotter,
         artifactTransformListener,
         transformationWorkspaceProvider,
-        dependencyFingerprinter,
         outputFilesFingerprinter,
         classloaderHasher,
         projectFinder,
-        true
+        true,
+        propertyWalker,
+        taskFingerprinter,
+        fileResolver
     )
 
     private static class TestTransformer implements Transformer {
@@ -130,6 +136,11 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         @Override
         HashCode getSecondaryInputHash() {
             return secondaryInputsHash
+        }
+
+        @Override
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints(TaskFingerprinter taskFingerprinter, File primaryInput, PropertyWalker propertyWalker, FileResolver pathToFileResolver, Object owner, ArtifactTransformDependencies artifactTransformDependencies) {
+            return null
         }
 
         @Override

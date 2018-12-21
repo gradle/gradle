@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -48,4 +53,6 @@ public interface Transformer extends Describable {
      * This includes the parameters and the implementation.
      */
     HashCode getSecondaryInputHash();
+
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints(TaskFingerprinter taskFingerprinter, File primaryInput, PropertyWalker propertyWalker, FileResolver pathToFileResolver, Object owner, ArtifactTransformDependencies artifactTransformDependencies);
 }

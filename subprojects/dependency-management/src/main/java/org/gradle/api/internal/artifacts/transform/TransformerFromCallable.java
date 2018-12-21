@@ -16,9 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
+import org.gradle.api.internal.tasks.properties.DefaultUnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
@@ -43,5 +50,13 @@ public class TransformerFromCallable extends AbstractTransformer<Callable<List<F
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints(TaskFingerprinter taskFingerprinter, File primaryInput, PropertyWalker propertyWalker, FileResolver pathToFileResolver, Object owner, ArtifactTransformDependencies artifactTransformDependencies) {
+        Callable<List<File>> transformerInstance = newTransformer(primaryInput, null, artifactTransformDependencies);
+
+        UnitOfWorkProperties properties = DefaultUnitOfWorkProperties.resolve(propertyWalker, pathToFileResolver, owner.toString(), transformerInstance);
+        return taskFingerprinter.fingerprintTaskFiles(owner.toString(), properties.getInputFileProperties());
     }
 }

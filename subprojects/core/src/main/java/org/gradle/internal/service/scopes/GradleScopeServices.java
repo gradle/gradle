@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -30,7 +31,10 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.execution.DefaultTaskFingerprinter;
+import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
@@ -73,6 +77,14 @@ import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -104,6 +116,8 @@ import static java.util.Arrays.asList;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 public class GradleScopeServices extends DefaultServiceRegistry {
+    private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
+        AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
     private final CompositeStoppable registries = new CompositeStoppable();
 
@@ -265,6 +279,24 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected BuildScanScopeIds createBuildScanScopeIds(BuildInvocationScopeId buildInvocationScopeId, WorkspaceScopeId workspaceScopeId, UserScopeId userScopeId) {
         return new DefaultBuildScanScopeIds(buildInvocationScopeId, workspaceScopeId, userScopeId);
+    }
+
+    TaskFingerprinter createTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        return new DefaultTaskFingerprinter(fingerprinterRegistry);
+    }
+
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(
+        ServiceRegistry serviceRegistry,
+        List<FileFingerprintingPropertyAnnotationHandler> handlers
+    ) {
+        ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
+        for (Class<? extends FileCollectionFingerprinter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
+            fingerprinterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
+        }
+        for (FileFingerprintingPropertyAnnotationHandler handler : handlers) {
+            fingerprinterImplementations.add(serviceRegistry.get(handler.getFingerprinterImplementationType()));
+        }
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
     @Override

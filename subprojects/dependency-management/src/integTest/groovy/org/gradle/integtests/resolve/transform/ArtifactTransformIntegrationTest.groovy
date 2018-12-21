@@ -86,6 +86,51 @@ $fileSizer
         """
     }
 
+    private static String getFileSizerWithConfiguration() {
+        """                          
+            import org.gradle.api.artifacts.transform.PrimaryInput
+            import org.gradle.api.artifacts.transform.Workspace
+            import java.util.concurrent.Callable
+            import javax.inject.Inject
+            
+            class FileSizerConfiguration {
+                FileCollection additionalInputs
+            }
+            
+            abstract class FileSizer implements Callable<List<File>> {
+                
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputFiles
+                final Iterable<File> additionalInputs
+            
+                @Inject
+                FileSizer(FileSizerConfiguration configuration) {
+                    println "Creating FileSizer"
+                    this.additionalInputs = configuration.additionalInputs.files
+                }
+                
+                @PathSensitive(PathSensitivity.NONE)
+                @InputFiles
+                @PrimaryInput
+                abstract File getPrimaryInput()
+                @Workspace
+                abstract File getWorkspace()
+                
+                List<File> call() {
+                    assert workspace.directory && workspace.list().length == 0
+                    def output = new File(workspace, primaryInput.name + ".txt")
+                    println "Transforming \${primaryInput.name} to \${output.name}"
+                    output.text = String.valueOf(primaryInput.length())
+                    additionalInputs.each {
+                        output << '\\n' << "\${it.name}:\${it.length()}"
+                    }
+                    
+                    return [output]
+                }
+            }
+        """
+    }
+
     def "applies transforms to artifacts for external dependencies matching on implicit format attribute"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -127,6 +172,99 @@ $fileSizer
 
         then:
         output.count("Transforming") == 0
+    }
+
+    def "can pass a configuration object to the transform action"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+        given:
+        buildFile.text = """
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+                
+            allprojects {
+            
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes { attribute usage, 'api' }
+                    }
+                }
+            }
+        """
+        buildFile << fileSizerWithConfiguration << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            dependencies {
+                registerTransform {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                    artifactTransform(FileSizer)
+                    configuration(FileSizerConfiguration) {
+                        additionalInputs = files("my-input.txt")
+                    }
+                }
+            }
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                    if (project.hasProperty("lenient")) {
+                        lenient(true)
+                    }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("variants: [{artifactType=size}, {artifactType=size}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
+        outputContains("components: [test:test:1.3, test:test2:2.3]")
+        file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs/test-1.3.jar.txt").text == "4\nmy-input.txt:0"
+        file("build/libs/test2-2.3.jar.txt").text == "2\nmy-input.txt:0"
+
+        and:
+        output.count("Transforming") == 2
+        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
+        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming") == 0
+
+        when:
+        file("my-input.txt").text = "changed"
+        run "resolve"
+        then:
+        output.count("Transforming") == 2
     }
 
     def "can use transformations in build script dependencies"() {
@@ -1991,6 +2129,6 @@ Found the following transforms:
                     println "variants: " + artifacts.collect { it.variant.attributes }
                 }
             }
-"""
+    """
     }
 }

@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -37,7 +36,6 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
