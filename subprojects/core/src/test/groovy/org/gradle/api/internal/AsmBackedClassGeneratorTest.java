@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
@@ -144,7 +145,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInImplementationForExtensionAwareMethodsWhenTypeIsAbstract() throws Exception {
+    public void mixesInImplementationForExtensionAwareMethodsWhenGetterIsAbstract() throws Exception {
         AbstractExtensibleBean bean = newInstance(AbstractExtensibleBean.class);
         assertTrue(bean instanceof DynamicObjectAware);
         assertTrue(bean instanceof IConventionAware);
@@ -155,6 +156,56 @@ public class AsmBackedClassGeneratorTest {
 
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
         assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extension);
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToMethodsOfExtensionAware() {
+        try {
+            generator.generate(BadlyFormedExtensibleBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot use @Inject annotation on method BadlyFormedExtensibleBean.getExtensions().", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToFinalMethod() {
+        try {
+            generator.generate(FinalInjectBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot attach @Inject to method FinalInjectBean.getThing() as it is final.", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToStaticMethod() {
+        try {
+            generator.generate(StaticInjectBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot attach @Inject to method StaticInjectBean.getThing() as it is static.", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToPrivateMethod() {
+        try {
+            generator.generate(PrivateInjectBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot attach @Inject to method PrivateInjectBean.getThing() as it is not public or protected.", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToNonGetterMethod() {
+        try {
+            generator.generate(NonGetterInjectBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot attach @Inject to method NonGetterInjectBean.thing() as it is not a property getter.", e.getCause().getMessage());
+        }
     }
 
     @Test
@@ -409,6 +460,17 @@ public class AsmBackedClassGeneratorTest {
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetterBean.class.getName() + "."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing()."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfClassWithAbstractSetMethod() throws Exception {
+        try {
+            newInstance(AbstractSetMethodBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetMethodBean.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing()."));
         }
     }
 
@@ -669,13 +731,27 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void doesNotMixInExtensionAwareToClassWithAnnotation() throws Exception {
+        NotExtensibleBean bean = newInstance(NotExtensibleBean.class);
+        assertFalse(bean instanceof ExtensionContainer);
+        assertFalse(bean instanceof IConventionAware);
+        assertFalse(bean instanceof HasConvention);
+
+        // Check dynamic object behaviour still works
+        assertTrue(bean instanceof DynamicObjectAware);
+        assertTrue(bean instanceof GroovyObject);
+    }
+
+    @Test
     public void doesNotMixInConventionMappingToClassWithAnnotation() throws Exception {
         NoMappingBean bean = newInstance(NoMappingBean.class);
         assertFalse(bean instanceof IConventionAware);
         assertNull(bean.getInterfaceProperty());
 
-        // Check dynamic object behaviour still works
+        // Check other behaviour still works
+        assertTrue(bean instanceof ExtensionAware);
         assertTrue(bean instanceof DynamicObjectAware);
+        assertTrue(bean instanceof GroovyObject);
     }
 
     @Test
@@ -948,8 +1024,8 @@ public class AsmBackedClassGeneratorTest {
         dynamicObject.setProperty("prop", providerFactory.provider(new Callable<String>() {
             int count;
             @Override
-            public String call() throws Exception {
-                return "[" + String.valueOf(++count) + "]";
+            public String call() {
+                return "[" + ++count + "]";
             }
         }));
         assertEquals("[1]", bean.getProp().get());
@@ -969,8 +1045,8 @@ public class AsmBackedClassGeneratorTest {
         dynamicObject.setProperty("aProp", providerFactory.provider(new Callable<String>() {
             int count;
             @Override
-            public String call() throws Exception {
-                return "[" + String.valueOf(++count) + "]";
+            public String call() {
+                return "[" + ++count + "]";
             }
         }));
         assertEquals("[1]", bean.getaProp().get());
@@ -993,12 +1069,22 @@ public class AsmBackedClassGeneratorTest {
         dynamicObject.setProperty("prop2", providerFactory.provider(new Callable<String>() {
             int count;
             @Override
-            public String call() throws Exception {
-                return "[" + String.valueOf(++count) + "]";
+            public String call() {
+                return "[" + ++count + "]";
             }
         }));
         assertEquals("[1]", bean.getProp2().get());
         assertEquals("[2]", bean.getProp2().get());
+    }
+
+    @Test
+    public void cannotAttachInjectAnnotationToPropertyWhoseTypeIsProperty() {
+        try {
+            generator.generate(InjectPropertyBean.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertEquals("Cannot use @Inject annotation on method InjectPropertyBean.getProp().", e.getCause().getMessage());
+        }
     }
 
     public static class Bean {
@@ -1388,6 +1474,11 @@ public class AsmBackedClassGeneratorTest {
         String getInterfaceProperty();
     }
 
+    @NonExtensible
+    public static class NotExtensibleBean {
+
+    }
+
     @NoConventionMapping
     public static class NoMappingBean implements SomeType {
         public String getProperty() {
@@ -1445,10 +1536,45 @@ public class AsmBackedClassGeneratorTest {
     public static abstract class AbstractExtensibleBean implements ExtensionAware {
     }
 
+    public static class BadlyFormedExtensibleBean implements ExtensionAware {
+        @Override @Inject
+        public ExtensionContainer getExtensions() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     public static final class FinalBean {
     }
 
     private static class PrivateBean {
+    }
+
+    public static class FinalInjectBean {
+        @Inject
+        final Number getThing() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class PrivateInjectBean {
+        @Inject
+        private Number getThing() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class NonGetterInjectBean {
+        @Inject
+        Number thing() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class StaticInjectBean {
+        @Inject
+        static Number getThing() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public static abstract class AbstractMethodBean {
@@ -1465,6 +1591,17 @@ public class AsmBackedClassGeneratorTest {
         }
 
         abstract void setThing(String value);
+    }
+
+    public static abstract class AbstractSetMethodBean {
+        String getThing() {
+            return "";
+        }
+
+        void setThing(String value) {
+        }
+
+        abstract void thing(String value);
     }
 
     public enum AnnotationEnum {
@@ -1548,6 +1685,13 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static class InjectPropertyBean {
+        @Inject
+        public Property<String> getProp() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     public interface WithProperties {
         Number getNumber();
     }
@@ -1558,6 +1702,25 @@ public class AsmBackedClassGeneratorTest {
         abstract T getTypedProp();
 
         final void setTypedProp(T t) {
+        }
+    }
+
+    public static abstract class AbstractBean {
+        String a;
+
+        public AbstractBean(String a) {
+            this.a = a;
+        }
+    }
+
+    public static class BeanWithServiceGetters {
+        String getCalculated() {
+            return "[" + getSomeValue() + "]";
+        }
+
+        @Inject
+        protected Number getSomeValue() {
+            throw new UnsupportedOperationException();
         }
     }
 
