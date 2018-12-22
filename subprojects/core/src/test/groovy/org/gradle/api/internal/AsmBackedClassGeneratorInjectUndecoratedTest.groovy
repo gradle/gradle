@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.internal.AsmBackedClassGeneratorTest.FinalBean
+
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.service.ServiceRegistry
 
@@ -40,9 +40,9 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         create(PrivateBean) != null
     }
 
-    def "generates subclass when class is abstract"() {
+    def "generates subclass that is not decorated when class is abstract"() {
         expect:
-        def bean = create(AbstractBean, "a")
+        def bean = create(AsmBackedClassGeneratorTest.AbstractBean, "a")
         bean.a == "a"
 
         bean instanceof GeneratedSubclass
@@ -50,6 +50,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         !(bean instanceof ExtensionAware)
         !(bean instanceof HasConvention)
         !(bean instanceof IConventionAware)
+        !(bean instanceof GroovyObject)
     }
 
     def "generates subclass when service getter methods present"() {
@@ -57,7 +58,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         services.get(Number) >> 12
 
         expect:
-        def bean = create(BeanWithServiceGetters, services)
+        def bean = create(AsmBackedClassGeneratorTest.BeanWithServiceGetters, services)
         bean.someValue == 12
         bean.calculated == "[12]"
 
@@ -66,6 +67,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         !(bean instanceof ExtensionAware)
         !(bean instanceof HasConvention)
         !(bean instanceof IConventionAware)
+        !(bean instanceof GroovyObject)
     }
 
     static class Bean {
@@ -74,30 +76,9 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         }
     }
 
-    static abstract class AbstractBean {
-        String a
-
-        AbstractBean(String a) {
-            this.a = a
-        }
+    static final class FinalBean {
     }
 
-    static class BeanWithServiceGetters {
-        String getCalculated() {
-            return "[$someValue]"
-        }
-
-        @Inject
-        Number getSomeValue() {
-            throw new UnsupportedOperationException()
-        }
-    }
-
-    static final class FinalBean
-    {
-    }
-
-    private static final class PrivateBean
-    {
+    private static final class PrivateBean {
     }
 }

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-class MethodSet implements Iterable<Method> {
+public class MethodSet implements Iterable<Method> {
     private final List<Method> methods = new ArrayList<Method>();
 
     /**

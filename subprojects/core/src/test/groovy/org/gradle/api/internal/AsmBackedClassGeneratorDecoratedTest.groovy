@@ -152,6 +152,18 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         tester.lastArgs.last() instanceof Action
     }
 
+    def "property set method can take an action"() {
+        given:
+        def bean = create(ActionMethodWithSameNameAsProperty)
+        bean.prop = "value"
+
+        when:
+        bean.prop { assert it == "value" }
+
+        then:
+        bean.prop == "called"
+    }
+
     def "can coerce enum values"() {
         given:
         def i = create(EnumCoerceTestSubject)
@@ -523,6 +535,14 @@ class ActionsTester {
         [] as Object[]
     }
 
+}
+
+class ActionMethodWithSameNameAsProperty {
+    String prop
+    void prop(Action<String> action) {
+        action.execute(prop)
+        prop = "called"
+    }
 }
 
 class CallsMethodDuringConstruction {
