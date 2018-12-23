@@ -13,6 +13,9 @@ There are several [useful services](userguide/custom_tasks.html#service_injectio
 
 See the [User Manual](userguide/custom_plugins.html#service_injection) for details.
 
+TBD - can have abstract service getter
+TBD - can use server getter on plugins
+
 ## The Java Platform plugin
 
 A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) allows the declaration and publication of platforms for the Java ecosystem.
