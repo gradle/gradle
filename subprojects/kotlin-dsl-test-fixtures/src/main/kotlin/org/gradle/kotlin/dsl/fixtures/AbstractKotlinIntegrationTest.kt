@@ -40,7 +40,7 @@ import java.io.File
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Before
-    fun pushCiFurther() {
+    fun kotlinDslIntegrationTestSetup() {
         assumeNonEmbeddedGradleExecuter()
         executer.requireIsolatedDaemons()
     }
