@@ -157,6 +157,16 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == "Unable to determine constructor argument #1: value 12 is not assignable to class java.lang.String, or no service of type class java.lang.String"
     }
 
+    def "fails on non-static inner class"() {
+        when:
+        instantiator.newInstance(NonStatic, "param")
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Class ${NonStatic.name} is a non-static inner class."
+    }
+
     def "fails when class has multiple constructors and none are annotated"() {
         when:
         instantiator.newInstance(HasNoInjectConstructor, new StringBuilder("param"))
@@ -412,5 +422,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
         public HasDefaultAndInjectConstructors() {
             message = "default"
         }
+    }
+
+    class NonStatic {
     }
 }

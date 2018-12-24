@@ -74,7 +74,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         result.param2 == null
     }
 
-    def "does allows null parameters when services expected"() {
+    def "allows null parameters when services expected"() {
         given:
         services.find(Number) >> 12
 
@@ -136,6 +136,41 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         e.cause.message == "Multiple constructors of class $HasConstructors.name match parameters: [a]"
     }
 
+    def "fails on non-static inner class when outer type not provided as first parameter"() {
+        when:
+        def inst = instantiator.newInstance(NonStatic, this)
+
+        then:
+        inst.owner == this
+
+        when:
+        instantiator.newInstance(NonStatic)
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Class ${NonStatic.name} is a non-static inner class."
+    }
+
+    def "fails on non-static inner class when outer type not provided as first parameter when type takes constructor params"() {
+        given:
+        services.find(Number) >> 12
+
+        when:
+        def inst = instantiator.newInstance(NonStaticWithParams, this, "param")
+
+        then:
+        inst.owner == this
+
+        when:
+        instantiator.newInstance(NonStaticWithParams, "param")
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Class ${NonStaticWithParams.name} is a non-static inner class."
+    }
+
     static class HasDefaultConstructor {
     }
 
@@ -163,6 +198,21 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         AcceptsPrimitiveTypes(int param1, boolean param2) {
             this.param1 = param1
             this.param2 = param2
+        }
+    }
+
+    class NonStatic {
+        Object getOwner() {
+            return DependencyInjectionUsingLenientConstructorSelectorTest.this
+        }
+    }
+
+    class NonStaticWithParams {
+        NonStaticWithParams(String p, Number n) {
+        }
+
+        Object getOwner() {
+            return DependencyInjectionUsingLenientConstructorSelectorTest.this
         }
     }
 }

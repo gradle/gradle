@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
@@ -416,7 +417,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(PrivateBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot create a decorated class for private class 'PrivateBean'."));
+            assertThat(e.getMessage(), equalTo("Class " + PrivateBean.class.getName() + " is private."));
         }
     }
 
@@ -426,7 +427,17 @@ public class AsmBackedClassGeneratorTest {
             newInstance(FinalBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot create a decorated class for final class 'FinalBean'."));
+            assertThat(e.getMessage(), equalTo("Class " + FinalBean.class.getName() + " is final."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfInterface() throws Exception {
+        try {
+            newInstance(Named.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Interface " + Named.class.getName() + " is not a class."));
         }
     }
 

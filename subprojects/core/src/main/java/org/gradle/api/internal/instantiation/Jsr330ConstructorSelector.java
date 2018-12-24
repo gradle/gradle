@@ -62,12 +62,6 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
     }
 
     private static <T> void validateType(Class<T> type) {
-        if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(type);
-            formatter.append(" is not a class.");
-            throw new IllegalArgumentException(formatter.toString());
-        }
         if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
