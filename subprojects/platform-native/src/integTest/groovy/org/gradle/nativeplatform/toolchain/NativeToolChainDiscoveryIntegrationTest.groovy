@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 
 /**
@@ -32,7 +33,7 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
 
     def "can discover tool chain in environment"() {
         given:
-        toolChain.initialiseEnvironment();
+        toolChain.initialiseEnvironment()
 
         and:
         buildFile << """
@@ -47,6 +48,20 @@ model {
 }
         """
 
+        // For software model builds, windows defaults to 32-bit target, so if we discard the toolchain init script,
+        // we need to reapply the 32-bit platform config for cygwin64
+        if (toolChain instanceof AvailableToolChains.InstalledCygwinGcc64) {
+            buildFile << """
+                model {
+                    toolChains {
+                        tc { 
+                            ${AvailableToolChains.InstalledCygwinGcc64.platform32Configuration()}
+                        }
+                    }
+                }
+            """
+        }
+
         and:
         helloWorldApp.writeSources(file("src/main"))
 
@@ -59,7 +74,7 @@ model {
         mainExecutable.exec().out == helloWorldApp.expectedOutput(toolChain)
 
         cleanup:
-        toolChain.resetEnvironment();
+        toolChain.resetEnvironment()
     }
 
     def "uses correct tool chain when explicitly configured"() {

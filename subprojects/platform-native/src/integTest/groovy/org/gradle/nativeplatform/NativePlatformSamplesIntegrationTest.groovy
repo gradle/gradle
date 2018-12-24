@@ -149,7 +149,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         releaseX86.exec().out == "Hello world!\n"
 
         // x86_64 binaries not supported on MinGW or cygwin
-        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
+        if (toolChain.id == "mingw") {
             debugX64.assertDoesNotExist()
             releaseX64.assertDoesNotExist()
         } else {

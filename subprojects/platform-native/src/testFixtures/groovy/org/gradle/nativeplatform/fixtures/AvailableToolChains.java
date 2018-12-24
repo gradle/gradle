@@ -600,8 +600,14 @@ public class AvailableToolChains {
             for (File pathEntry : getPathEntries()) {
                 config += String.format("     path file('%s')\n", pathEntry.toURI());
             }
-            config += "     eachPlatform { platformToolChain ->\n";
-            config += "         if (platformToolChain.platform.architecture.isI386()) {\n";
+            config += platform32Configuration();
+            config += "}\n";
+            return config;
+        }
+
+        public static String platform32Configuration() {
+            String config = "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386() || platformToolChain.platform.architecture.isArm()) {\n";
             config += "             platformToolChain.cCompiler.executable='i686-pc-cygwin-gcc.exe'\n";
             config += "             platformToolChain.cppCompiler.executable='i686-pc-cygwin-g++.exe'\n";
             config += "             platformToolChain.linker.executable='i686-pc-cygwin-g++.exe'\n";
@@ -609,7 +615,6 @@ public class AvailableToolChains {
             config += "             platformToolChain.staticLibArchiver.executable='i686-pc-cygwin-ar.exe'\n";
             config += "         }\n";
             config += "     }\n";
-            config += "}\n";
             return config;
         }
 
