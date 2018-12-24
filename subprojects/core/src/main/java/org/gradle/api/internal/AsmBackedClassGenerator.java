@@ -36,6 +36,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -125,6 +126,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
     @Override
     protected ClassInspectionVisitor start(Class<?> type) {
+        if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is not a class.");
+            throw new ClassGenerationException(formatter.toString());
+        }
         return new ClassInspectionVisitorImpl(type, decorate);
     }
 
@@ -174,12 +181,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             int modifiers = type.getModifiers();
             if (Modifier.isPrivate(modifiers)) {
-                throw new ClassGenerationException(String.format("Cannot create a decorated class for private class '%s'.",
-                        type.getSimpleName()));
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node(type);
+                formatter.append(" is private.");
+                throw new ClassGenerationException(formatter.toString());
             }
             if (Modifier.isFinal(modifiers)) {
-                throw new ClassGenerationException(String.format("Cannot create a decorated class for final class '%s'.",
-                    type.getSimpleName()));
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node(type);
+                formatter.append(" is final.");
+                throw new ClassGenerationException(formatter.toString());
             }
             ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, extensible, conventionAware, providesOwnDynamicObjectImplementation, serviceInjection);
             builder.startClass();

@@ -412,6 +412,30 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'direct call' | 2        | "tasks.create('myTask', CustomTask, 'abc', null)"
     }
 
+    def "reports failure when non-static inner class used"() {
+        given:
+        buildFile << """
+            class MyPlugin implements Plugin<Project> {
+                class MyTask extends DefaultTask {
+                }
+                
+                void apply(Project p) {
+                    p.tasks.register("myTask", MyTask)
+                }
+            }
+            
+            apply plugin: MyPlugin
+        """
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'MyTask'.")
+        failure.assertHasCause("Class MyPlugin\$MyTask is a non-static inner class.")
+    }
+
     @Requires(KOTLIN_SCRIPT)
     def 'can run custom task with constructor arguments via Kotlin friendly DSL'() {
         given:

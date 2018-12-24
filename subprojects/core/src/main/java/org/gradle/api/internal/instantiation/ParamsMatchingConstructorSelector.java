@@ -25,6 +25,7 @@ import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class ParamsMatchingConstructorSelector implements ConstructorSelector {
@@ -49,6 +50,13 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 return builder.build();
             }
         });
+
+        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers()) && (params.length == 0 || !type.getEnclosingClass().isInstance(params[0]))) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is a non-static inner class.");
+            throw new IllegalArgumentException(formatter.toString());
+        }
 
         if (constructors.size() == 1) {
             return constructors.get(0);

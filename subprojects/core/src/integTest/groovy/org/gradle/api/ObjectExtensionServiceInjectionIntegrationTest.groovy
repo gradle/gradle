@@ -64,6 +64,35 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of class java.lang.String, or no service of type class java.lang.String")
     }
 
+    def "fails when interface provided"() {
+        buildFile << """
+            interface Thing {
+            }
+            
+            extensions.create("one", Thing, "a")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Interface Thing is not a class.")
+    }
+
+    def "fails when non-static inner class provided"() {
+        buildFile << """
+            class Things {
+                class Thing { }
+            }
+            
+            extensions.create("one", Things.Thing, "a")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Things\$Thing.")
+        failure.assertHasCause("Class Things\$Thing is a non-static inner class.")
+    }
+
     def "fails when mismatched construction parameters provided"() {
         buildFile << """
             class Thing {

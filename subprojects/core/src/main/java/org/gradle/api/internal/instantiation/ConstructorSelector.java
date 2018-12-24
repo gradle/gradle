@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.instantiation;
 
+/**
+ * Encapsulates the differences, due to backwards compatibility, in instantiation for several different types.
+ */
 public interface ConstructorSelector {
     /**
      * Locates the constructor that <em>should</em> be used to create instances of the given type with the given params.
@@ -24,6 +27,8 @@ public interface ConstructorSelector {
      * called with the given parameters.
      *
      * <p>The selector may or may not allow null parameters. The caller should allow null parameters and delegate to the selector to make this decision.
+     *
+     * <p>The selector may or may not allow instances of non-static inner classes to be created.</p>
      */
     SelectedConstructor forParams(Class<?> type, Object[] params);
 }

@@ -271,6 +271,49 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
     }
 
+    def "object creation fails with ObjectInstantiationException given interface"() {
+        given:
+        buildFile << """
+        interface Thing {}
+        
+        task fail {
+            doLast {
+                project.objects.newInstance(Thing, 'bogus') 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Thing.')
+        failure.assertHasCause('Interface Thing is not a class.')
+    }
+
+    def "object creation fails with ObjectInstantiationException given non-static inner class"() {
+        given:
+        buildFile << """
+        class Things { 
+            class Thing {
+            }
+        }
+
+        task fail {
+            doLast {
+                project.objects.newInstance(Things.Thing, 'bogus') 
+            }
+        }
+"""
+
+        when:
+        fails "fail"
+
+        then:
+        failure.assertHasCause('Could not create an instance of type Things$Thing.')
+        failure.assertHasCause('Class Things$Thing is a non-static inner class.')
+    }
+
     def "object creation fails with ObjectInstantiationException given unknown service requested"() {
         given:
         buildFile << """
