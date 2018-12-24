@@ -221,7 +221,7 @@ root3:
     def "can append class name"() {
         when:
         formatter.node("thing ")
-        formatter.append(String.class)
+        formatter.appendType(String.class)
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing class java.lang.String")
@@ -230,10 +230,19 @@ root3:
     def "can append interface name"() {
         when:
         formatter.node("thing ")
-        formatter.append(List.class)
+        formatter.appendType(List.class)
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing interface java.util.List")
+    }
+
+    def "can append method name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendMethod(String.getMethod("length"))
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing String.length()")
     }
 
     def "can append value"() {
@@ -243,6 +252,15 @@ root3:
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing 12")
+    }
+
+    def "can append string value"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValue("value")
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing 'value'")
     }
 
     def "can append null value"() {
@@ -260,7 +278,7 @@ root3:
         formatter.appendValues(["a", 12, null] as Object[])
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing [a, 12, null]")
+        formatter.toString() == toPlatformLineSeparators("thing ['a', 12, null]")
     }
 
     def "can append empty array of values"() {

@@ -36,6 +36,7 @@ import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -124,7 +125,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         } catch (ClassGenerationException e) {
             throw e;
         } catch (Throwable e) {
-            throw new ClassGenerationException(String.format("Could not generate a decorated class for class %s.", type.getName()), e);
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Could not generate a decorated class for ");
+            formatter.appendType(type);
+            formatter.append(".");
+            throw new ClassGenerationException(formatter.toString(), e);
         }
 
         cache.put(type, subclass);
@@ -214,7 +219,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     private void assertNotAbstract(Class<?> type, Method method) {
         if (Modifier.isAbstract(type.getModifiers()) && Modifier.isAbstract(method.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Cannot have abstract method %s.%s().", method.getDeclaringClass().getSimpleName(), method.getName()));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot have abstract method ");
+            formatter.appendMethod(method);
+            formatter.append(".");
+            throw new IllegalArgumentException(formatter.toString());
         }
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
@@ -592,16 +601,32 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         public void validateMethod(Method method) {
             if (method.getAnnotation(Inject.class) != null) {
                 if (Modifier.isStatic(method.getModifiers())) {
-                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.appendMethod(method);
+                    formatter.append(" as it is static.");
+                    throw new IllegalArgumentException(formatter.toString());
                 }
                 if (PropertyAccessorType.of(method) != PropertyAccessorType.GET_GETTER) {
-                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not a property getter.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.appendMethod(method);
+                    formatter.append(" as it is not a property getter.");
+                    throw new IllegalArgumentException(formatter.toString());
                 }
                 if (Modifier.isFinal(method.getModifiers())) {
-                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is final.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.appendMethod(method);
+                    formatter.append(" as it is final.");
+                    throw new IllegalArgumentException(formatter.toString());
                 }
                 if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
-                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not public or protected.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.appendMethod(method);
+                    formatter.append(" as it is not public or protected.");
+                    throw new IllegalArgumentException(formatter.toString());
                 }
             }
         }
@@ -625,7 +650,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void ambiguous(PropertyMetaData property) {
             for (Method method : property.getters) {
                 if (method.getAnnotation(Inject.class) != null) {
-                    throw new IllegalArgumentException(String.format("Cannot use @Inject annotation on method %s.%s().", method.getDeclaringClass().getSimpleName(), method.getName()));
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.appendMethod(method);
+                    formatter.append(".");
+                    throw new IllegalArgumentException(formatter.toString());
                 }
             }
             super.ambiguous(property);

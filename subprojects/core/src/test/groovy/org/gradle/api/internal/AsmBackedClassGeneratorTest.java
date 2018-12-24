@@ -175,7 +175,7 @@ public class AsmBackedClassGeneratorTest {
             generator.generate(FinalInjectBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertEquals("Cannot attach @Inject to method FinalInjectBean.getThing() as it is final.", e.getCause().getMessage());
+            assertEquals("Cannot use @Inject annotation on method FinalInjectBean.getThing() as it is final.", e.getCause().getMessage());
         }
     }
 
@@ -185,7 +185,7 @@ public class AsmBackedClassGeneratorTest {
             generator.generate(StaticInjectBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertEquals("Cannot attach @Inject to method StaticInjectBean.getThing() as it is static.", e.getCause().getMessage());
+            assertEquals("Cannot use @Inject annotation on method StaticInjectBean.getThing() as it is static.", e.getCause().getMessage());
         }
     }
 
@@ -195,7 +195,7 @@ public class AsmBackedClassGeneratorTest {
             generator.generate(PrivateInjectBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertEquals("Cannot attach @Inject to method PrivateInjectBean.getThing() as it is not public or protected.", e.getCause().getMessage());
+            assertEquals("Cannot use @Inject annotation on method PrivateInjectBean.getThing() as it is not public or protected.", e.getCause().getMessage());
         }
     }
 
@@ -205,7 +205,7 @@ public class AsmBackedClassGeneratorTest {
             generator.generate(NonGetterInjectBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertEquals("Cannot attach @Inject to method NonGetterInjectBean.thing() as it is not a property getter.", e.getCause().getMessage());
+            assertEquals("Cannot use @Inject annotation on method NonGetterInjectBean.thing() as it is not a property getter.", e.getCause().getMessage());
         }
     }
 
