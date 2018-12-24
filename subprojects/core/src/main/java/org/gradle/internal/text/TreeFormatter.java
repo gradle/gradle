@@ -23,7 +23,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.TreeVisitor;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
+import java.lang.reflect.Method;
 
 /**
  * Constructs a tree of diagnostic messages.
@@ -101,9 +101,20 @@ public class TreeFormatter extends TreeVisitor<String> {
     /**
      * Appends a type name to the current node.
      */
-    public void append(Class<?> type) {
+    public void appendType(Class<?> type) {
         // Implementation is currently dumb, can be made smarter
         append(type.toString());
+    }
+
+    /**
+     * Appends a method name to the current node.
+     */
+    public void appendMethod(Method method) {
+        // Implementation is currently dumb, can be made smarter
+        append(method.getDeclaringClass().getSimpleName());
+        append(".");
+        append(method.getName());
+        append("()");
     }
 
     /**
@@ -111,7 +122,15 @@ public class TreeFormatter extends TreeVisitor<String> {
      */
     public void appendValue(@Nullable Object value) {
         // Implementation is currently dumb, can be made smarter
-        append(value == null ? "null" : value.toString());
+        if (value == null) {
+            append("null");
+        } else if (value instanceof String) {
+            append("'");
+            append(value.toString());
+            append("'");
+        } else {
+            append(value.toString());
+        }
     }
 
     /**
@@ -119,14 +138,22 @@ public class TreeFormatter extends TreeVisitor<String> {
      */
     public void appendValues(Object[] values) {
         // Implementation is currently dumb, can be made smarter
-        append(Arrays.toString(values));
+        append("[");
+        for (int i = 0; i < values.length; i++) {
+            Object value = values[i];
+            if (i > 0) {
+                append(", ");
+            }
+            appendValue(value);
+        }
+        append("]");
     }
 
     @Override
     public void startChildren() {
         if (current.state == State.CollectValue) {
             current.state = State.TraverseChildren;
-        } else  {
+        } else {
             throw new IllegalStateException("Cannot start children again");
         }
     }
@@ -218,7 +245,7 @@ public class TreeFormatter extends TreeVisitor<String> {
 
         boolean canCollapseFirstChild() {
             return collapseFirstChild &&
-                (firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild());
+                    (firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild());
         }
 
         boolean isTopLevelNode() {

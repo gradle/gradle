@@ -58,13 +58,13 @@ public class InjectUtil {
             if (constructor.getParameterTypes().length == 0) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("The constructor for ");
-                formatter.append(reportAs);
+                formatter.appendType(reportAs);
                 formatter.append(" should be public or package protected or annotated with @Inject.");
                 throw new IllegalArgumentException(formatter.toString());
             } else {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("The constructor for ");
-                formatter.append(reportAs);
+                formatter.appendType(reportAs);
                 formatter.append(" should be annotated with @Inject.");
                 throw new IllegalArgumentException(formatter.toString());
             }

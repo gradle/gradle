@@ -124,7 +124,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("No constructors of class Thing match parameters: [a, 12]")
+        failure.assertHasCause("No constructors of class Thing match parameters: ['a', 12]")
     }
 
     def "fails when constructor is ambiguous"() {
@@ -142,7 +142,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Multiple constructors of class Thing match parameters: [a, b]")
+        failure.assertHasCause("Multiple constructors of class Thing match parameters: ['a', 'b']")
     }
 
     def "fails when too many construction parameters provided"() {

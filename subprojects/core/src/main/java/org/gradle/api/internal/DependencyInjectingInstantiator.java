@@ -70,7 +70,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
         if (parameterTypes.length < parameters.length) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Too many parameters provided for constructor for ");
-            formatter.append(type);
+            formatter.appendType(type);
             formatter.append(String.format(". Expected %s, received %s.", parameterTypes.length, parameters.length));
             throw new IllegalArgumentException(formatter.toString());
         }
@@ -101,7 +101,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 formatter.node("Unable to determine constructor argument #" + (i + 1) + ": value ");
                 formatter.appendValue(currentParameter);
                 formatter.append(" not assignable to ");
-                formatter.append(parameterTypes[i]);
+                formatter.appendType(parameterTypes[i]);
                 throw new IllegalArgumentException(formatter.toString());
             }
         }
@@ -111,7 +111,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
     private void nullPrimitiveType(int index, Class<?> paramType) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Unable to determine constructor argument #" + (index + 1) + ": null value is not assignable to ");
-        formatter.append(paramType);
+        formatter.appendType(paramType);
         throw new IllegalArgumentException(formatter.toString());
     }
 
@@ -148,10 +148,10 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 formatter.append("value ");
                 formatter.appendValue(parameters[pos]);
                 formatter.append(" is not assignable to ");
-                formatter.append(parameterTypes[i]);
+                formatter.appendType(parameterTypes[i]);
             } else {
                 formatter.append("missing parameter of ");
-                formatter.append(parameterTypes[i]);
+                formatter.appendType(parameterTypes[i]);
             }
             formatter.append(", or no service of type ");
             formatter.append(serviceType.toString());
@@ -161,7 +161,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
         if (pos != parameters.length) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Unexpected parameter provided for constructor for ");
-            formatter.append(type);
+            formatter.appendType(type);
             throw new IllegalArgumentException(formatter.toString());
         }
 

@@ -110,7 +110,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         and:
         failure.assertHasCause("Could not create an instance of type FirstLevelRunnable.")
-        failure.assertHasCause("Unable to determine constructor argument #1: value Hello World is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Unable to determine constructor argument #1: value 'Hello World' is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -132,7 +132,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         and:
         failure.assertHasCause("Could not create an instance of type FirstLevelRunnable.")
-        failure.assertHasCause("Unable to determine constructor argument #1: value Hello World is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Unable to determine constructor argument #1: value 'Hello World' is not assignable to interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
