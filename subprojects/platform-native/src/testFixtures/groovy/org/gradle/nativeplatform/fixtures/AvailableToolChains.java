@@ -207,17 +207,11 @@ public class AvailableToolChains {
                 File cygwin32RuntimePath = new File(compiler32Exe.getParentFile().getParentFile(), "usr/i686-pc-cygwin/sys-root/usr/bin");
                 return new InstalledCygwinGcc64(ToolFamily.CYGWIN_GCC_64, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
             } else {
-                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
+                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC_64);
             }
         }
 
-        // Fall back to just 32-bit toolchain if available
-        File compilerExe = new File("C:/cygwin/bin/g++.exe");
-        if (compilerExe.isFile()) {
-            return new InstalledWindowsGcc(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compilerExe.getParentFile());
-        }
-
-        return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
+        return new UnavailableToolChain(ToolFamily.CYGWIN_GCC_64);
     }
 
     static private List<ToolChainCandidate> findGccs(boolean mustFind) {
@@ -297,7 +291,6 @@ public class AvailableToolChains {
         CLANG("clang"),
         VISUAL_CPP("visual c++"),
         MINGW_GCC("mingw"),
-        CYGWIN_GCC("gcc cygwin"),
         CYGWIN_GCC_64("gcc cygwin"),
         SWIFTC("swiftc");
 
@@ -603,19 +596,19 @@ public class AvailableToolChains {
 
         @Override
         public String getBuildScriptConfig() {
-            String config =  String.format("%s_32(%s) {\n", getId(), getImplementationClass());
+            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("path file('%s')\n", pathEntry.toURI());
+                config += String.format("     path file('%s')\n", pathEntry.toURI());
             }
-            config += "eachPlatform { platformToolChain ->\n";
-            config += "if (platformToolChain.platform.architecture.isI386()) {\n";
-            config += "platformToolChain.cCompiler.executable='i686-pc-cygwin-gcc.exe'\n";
-            config += "platformToolChain.cppCompiler.executable='i686-pc-cygwin-g++.exe'\n";
-            config += "platformToolChain.linker.executable='i686-pc-cygwin-g++.exe'\n";
-            config += "platformToolChain.assembler.executable='i686-pc-cygwin-gcc.exe'\n";
-            config += "platformToolChain.staticLibArchiver.executable='i686-pc-cygwin-ar.exe'\n";
-            config += "}\n";
-            config += "}\n";
+            config += "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386()) {\n";
+            config += "             platformToolChain.cCompiler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.cppCompiler.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.linker.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.assembler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.staticLibArchiver.executable='i686-pc-cygwin-ar.exe'\n";
+            config += "         }\n";
+            config += "     }\n";
             config += "}\n";
             return config;
         }
