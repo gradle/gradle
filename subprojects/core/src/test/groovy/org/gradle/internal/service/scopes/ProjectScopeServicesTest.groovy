@@ -20,7 +20,6 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
@@ -110,7 +109,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyManagementServices) >> dependencyManagementServices
         parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
         parent.get(FileSystem) >> Stub(FileSystem)
-        parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)

@@ -24,7 +24,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
@@ -35,6 +34,7 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.util.TestUtil;
 
 import java.io.File;
 
@@ -92,7 +92,7 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
-        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
+        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
     }
 
     public static TextResourceLoader textResourceLoader() {
@@ -124,11 +124,11 @@ public class TestFiles {
     }
 
     public static ExecHandleFactory execHandleFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), DirectInstantiator.INSTANCE);
+        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
     }
 
     public static JavaExecHandleFactory javaExecHandleFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), DirectInstantiator.INSTANCE);
+        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {

@@ -20,7 +20,7 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * <p>Allows default values for the properties of this object to be declared. Most implementations are generated at
- * run-time from existing classes, by a {@link org.gradle.api.internal.ClassGenerator} implementation.</p>
+ * run-time from existing classes, by a {@link org.gradle.api.internal.Instantiator} implementation.</p>
  *
  * <p>Each getter of an {@code IConventionAware} object should use the mappings to determine the value for the property,
  * when no value has been explicitly set for the property.</p>

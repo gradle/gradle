@@ -152,7 +152,6 @@ import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -263,13 +262,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,
                                                                FileCacheBackedScriptClassCompiler scriptCompiler,
-                                                               CrossBuildInMemoryCachingScriptClassCache cache) {
+                                                               CrossBuildInMemoryCachingScriptClassCache cache,
+                                                               InstantiatorFactory instantiatorFactory) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
             new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
             new DefaultScriptRunnerFactory(
                 scriptExecutionListener,
-                DirectInstantiator.INSTANCE
+                instantiatorFactory.inject()
             )
         );
     }

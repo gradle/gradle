@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -213,7 +212,6 @@ class BuildScopeServicesTest extends Specification {
     def providesAProjectFactory() {
         setup:
         expectParentServiceLocated(Instantiator)
-        expectParentServiceLocated(ClassGenerator)
         expect:
         assertThat(registry.get(IProjectFactory), instanceOf(ProjectFactory))
         assertThat(registry.get(IProjectFactory), sameInstance(registry.get(IProjectFactory)))

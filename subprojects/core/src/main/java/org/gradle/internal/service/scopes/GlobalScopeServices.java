@@ -206,12 +206,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
     }
 
-    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport, InstantiatorFactory instantiatorFactory) {
         if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
 
-        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport);
+        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, instantiatorFactory.inject());
     }
 
     LegacyTypesSupport createLegacyTypesSupport() {
