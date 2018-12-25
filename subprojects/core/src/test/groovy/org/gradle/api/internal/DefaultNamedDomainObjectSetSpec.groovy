@@ -24,7 +24,7 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {
-    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final Namer<Bean> namer = new Namer<Bean>() {
         String determineName(Bean bean) {
             return bean.name

@@ -20,10 +20,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.InjectUtil;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.internal.Cast;
 import org.gradle.internal.text.TreeFormatter;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 
 public class Jsr330ConstructorSelector implements ConstructorSelector {
@@ -36,29 +35,38 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
     }
 
     @Override
-    public SelectedConstructor forParams(final Class<?> type, Object[] params) {
-        for (Object param : params) {
+    public void vetoParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
+        for (Object param : parameters) {
             if (param == null) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Null value provided in parameters ");
-                formatter.appendValues(params);
+                formatter.appendValues(parameters);
                 throw new IllegalArgumentException(formatter.toString());
             }
         }
-        return constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
+    }
+
+    @Override
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(Class<T> type, Object[] params) {
+        return forType(type);
+    }
+
+    @Override
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(final Class<T> type) throws UnsupportedOperationException {
+        CachedConstructor constructor = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
             @Override
             public CachedConstructor transform(Class<?> aClass) {
                 try {
                     validateType(type);
-                    Class<?> implClass = classGenerator.generate(type);
-                    Constructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
-                    constructor.setAccessible(true);
+                    ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
+                    ClassGenerator.GeneratedConstructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
                     return CachedConstructor.of(constructor);
-                } catch (Throwable e) {
+                } catch (RuntimeException e) {
                     return CachedConstructor.of(e);
                 }
             }
         });
+        return Cast.uncheckedCast(constructor.getConstructor());
     }
 
     private static <T> void validateType(Class<T> type) {
@@ -70,31 +78,27 @@ public class Jsr330ConstructorSelector implements ConstructorSelector {
         }
     }
 
-    public static class CachedConstructor implements SelectedConstructor {
-        private final Constructor<?> constructor;
-        private final Throwable error;
+    public static class CachedConstructor {
+        private final ClassGenerator.GeneratedConstructor<?> constructor;
+        private final RuntimeException error;
 
-        private CachedConstructor(Constructor<?> constructor, Throwable error) {
+        private CachedConstructor(ClassGenerator.GeneratedConstructor<?> constructor, RuntimeException error) {
             this.constructor = constructor;
             this.error = error;
         }
 
-        @Override
-        public Constructor<?> getConstructor() {
+        public ClassGenerator.GeneratedConstructor<?> getConstructor() {
+            if (error != null) {
+                throw error;
+            }
             return constructor;
         }
 
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return error;
-        }
-
-        public static CachedConstructor of(Constructor<?> ctor) {
+        public static CachedConstructor of(ClassGenerator.GeneratedConstructor<?> ctor) {
             return new CachedConstructor(ctor, null);
         }
 
-        public static CachedConstructor of(Throwable err) {
+        public static CachedConstructor of(RuntimeException err) {
             return new CachedConstructor(null, err);
         }
     }

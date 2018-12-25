@@ -32,7 +32,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container = createResolverContainer()
     }
 
-    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = TestUtil.instantiatorFactory().decorate()) {
+    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()) {
         new DefaultArtifactRepositoryContainer(instantiator, CollectionCallbackActionDecorator.NOOP)
     }
 

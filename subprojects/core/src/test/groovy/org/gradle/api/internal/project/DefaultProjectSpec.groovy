@@ -149,7 +149,7 @@ class DefaultProjectSpec extends Specification {
     }
 
     def project(String name, ProjectInternal parent, GradleInternal build) {
-        def instantiator = TestUtil.instantiatorFactory().decorate()
+        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 

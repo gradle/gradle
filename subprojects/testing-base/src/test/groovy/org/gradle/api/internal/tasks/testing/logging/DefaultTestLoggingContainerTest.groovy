@@ -27,7 +27,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.instantiatorFactory().decorate())
+    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.instantiatorFactory().decorateLenient())
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)

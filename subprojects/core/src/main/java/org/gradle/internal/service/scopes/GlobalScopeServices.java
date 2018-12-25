@@ -233,7 +233,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
-        return instantiatorFactory.decorate();
+        return instantiatorFactory.decorateLenient();
     }
 
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {

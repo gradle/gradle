@@ -179,7 +179,7 @@ class SimpleTransform extends ArtifactTransform {
 """
     }
 
-    def "transform can access artifact dependencies as FileCollection when using ArtifactView"() {
+    def "transform can access artifact dependencies as a set of files when using ArtifactView"() {
 
         given:
 
@@ -205,7 +205,7 @@ project(':app') {
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
-    def "transform can access artifact dependencies as FileCollection when using ArtifactView, even if first step did not use dependencies"() {
+    def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
 
         given:
 
@@ -241,7 +241,7 @@ project(':app') {
         )
     }
 
-    def "transform can access artifact dependencies, in previous transform step, as FileCollection when using ArtifactView"() {
+    def "transform can access artifact dependencies, in previous transform step, as set of files when using ArtifactView"() {
 
         given:
 
@@ -277,7 +277,7 @@ project(':app') {
         )
     }
 
-    def "transform can access artifact dependencies as FileCollection when using configuration attributes"() {
+    def "transform can access artifact dependencies as a set of files when using configuration attributes"() {
 
         given:
 

@@ -79,9 +79,10 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
-public class AsmBackedClassGenerator extends AbstractClassGenerator {
+public abstract class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
     private final boolean decorate;
+    private final String suffix;
 
     // Used by generated code
     @SuppressWarnings("unused")
@@ -95,29 +96,33 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
     }
 
-    private AsmBackedClassGenerator(boolean decorate) {
+    private AsmBackedClassGenerator(boolean decorate, String suffix) {
         this.decorate = decorate;
+        this.suffix = suffix;
     }
 
     /**
-     * Returns a generator that apply DSL mix-in, extensibility and service injection for generated classes.
+     * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
     public static AsmBackedClassGenerator decorateAndInject() {
-        return new AsmBackedClassGenerator(true);
+        return new AsmBackedClassGenerator(true, "$Dsl") {
+        };
     }
 
     /**
-     * Returns a generator that apply service injection only for generated classes, and will generate classes only if required.
+     * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
     public static AsmBackedClassGenerator injectOnly() {
-        return new AsmBackedClassGenerator(false);
+        return new AsmBackedClassGenerator(false, "$Inject") {
+        };
     }
 
     @Override
-    public <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    protected <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
         SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services));
         try {
+            constructor.setAccessible(true);
             return constructor.newInstance(params);
         } finally {
             SERVICES_FOR_NEXT_OBJECT.set(previous);
@@ -132,20 +137,22 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             formatter.append(" is not a class.");
             throw new ClassGenerationException(formatter.toString());
         }
-        return new ClassInspectionVisitorImpl(type, decorate);
+        return new ClassInspectionVisitorImpl(type, decorate, suffix);
     }
 
     private static class ClassInspectionVisitorImpl implements ClassInspectionVisitor {
         private final Class<?> type;
         private final boolean decorate;
+        private final String suffix;
         private boolean extensible;
         private boolean serviceInjection;
         private boolean conventionAware;
         private boolean providesOwnDynamicObjectImplementation;
 
-        public ClassInspectionVisitorImpl(Class<?> type, boolean decorate) {
+        public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix) {
             this.type = type;
             this.decorate = decorate;
+            this.suffix = suffix;
         }
 
         @Override
@@ -192,7 +199,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 formatter.append(" is final.");
                 throw new ClassGenerationException(formatter.toString());
             }
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, extensible, conventionAware, providesOwnDynamicObjectImplementation, serviceInjection);
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, extensible, conventionAware, providesOwnDynamicObjectImplementation, serviceInjection);
             builder.startClass();
             if (serviceInjection) {
                 builder.generateServiceRegistrySupportMethods();
@@ -283,10 +290,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean providesOwnDynamicObject;
         private final boolean shouldImplementWithServices;
 
-        private ClassBuilderImpl(Class<?> type, boolean decorated, boolean extensible, boolean conventionAware, boolean providesOwnDynamicObject, boolean serviceInjection) {
+        private ClassBuilderImpl(Class<?> type, boolean decorated, String suffix, boolean extensible, boolean conventionAware, boolean providesOwnDynamicObject, boolean serviceInjection) {
             this.type = type;
-
-            classGenerator = new AsmClassGenerator(type, "_Decorated");
+            classGenerator = new AsmClassGenerator(type, suffix);
             visitor = classGenerator.getVisitor();
             generatedType = classGenerator.getGeneratedType();
             superclassType = Type.getType(type);

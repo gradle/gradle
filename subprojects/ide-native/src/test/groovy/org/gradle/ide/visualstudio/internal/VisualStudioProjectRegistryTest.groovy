@@ -26,7 +26,7 @@ import spock.lang.Specification
 class VisualStudioProjectRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def ideArtifactRegistry = Mock(IdeArtifactRegistry)
-    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorate(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP)
+    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP)
 
     def "creates a matching visual studio project configuration for target binary"() {
         def executableBinary = targetBinary("vsConfig")

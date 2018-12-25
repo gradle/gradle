@@ -24,7 +24,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CreateDefaultFlavorsTest extends Specification {
-    def flavorContainer = new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
+    def flavorContainer = new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
     def rule = new NativeComponentModelPlugin.Rules()
 
     def "has a single default flavor when not configured"() {

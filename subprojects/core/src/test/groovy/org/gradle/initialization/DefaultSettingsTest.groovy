@@ -67,7 +67,7 @@ class DefaultSettingsTest extends Specification {
            1 * createFor(_) >> settingsServices
         }
 
-        settings = TestUtil.instantiatorFactory().decorate().newInstance(DefaultSettings.class, serviceRegistryFactory,
+        settings = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSettings.class, serviceRegistryFactory,
                 gradleMock, classLoaderScope, rootClassLoaderScope, settingsScriptHandler,
                 settingsDir, scriptSourceMock, startParameter)
     }

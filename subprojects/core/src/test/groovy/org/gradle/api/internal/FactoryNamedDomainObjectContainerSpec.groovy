@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
-    final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final namer = { it } as Namer
 
     def usesFactoryToCreateContainerElements() {

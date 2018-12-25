@@ -36,7 +36,7 @@ import spock.lang.Specification
 class GccToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationExecutor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(SystemLibraryDiscovery), Stub(WorkerLeaseService))
 

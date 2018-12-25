@@ -122,7 +122,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorate(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorateLenient(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
                 realizePublishingTasksLater(project, extension);
             }
         });

@@ -626,7 +626,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Caching disabled for task ':customTask': Task class was loaded with an unknown classloader (class 'CustomTask_Decorated')."
+        output.contains "Caching disabled for task ':customTask': Task class was loaded with an unknown classloader (class 'CustomTask\$Dsl')."
     }
 
     def "task with custom action loaded with custom classloader is not cached"() {

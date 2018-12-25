@@ -16,10 +16,17 @@
 
 package org.gradle.api.internal.instantiation;
 
+import org.gradle.api.internal.ClassGenerator;
+
 /**
  * Encapsulates the differences, due to backwards compatibility, in instantiation for several different types.
  */
 public interface ConstructorSelector {
+    /**
+     * Allows this selector to veto the parameters to use with the given constructor.
+     */
+    void vetoParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters);
+
     /**
      * Locates the constructor that <em>should</em> be used to create instances of the given type with the given params.
      *
@@ -30,5 +37,12 @@ public interface ConstructorSelector {
      *
      * <p>The selector may or may not allow instances of non-static inner classes to be created.</p>
      */
-    SelectedConstructor forParams(Class<?> type, Object[] params);
+    <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(Class<T> type, Object[] params);
+
+    /**
+     * Locates the constructor that <em>should</em> be used to create instances of the given type.
+     *
+     * @throws UnsupportedOperationException When this selector requires the parameters in order to select a constructor.
+     */
+    <T> ClassGenerator.GeneratedConstructor<? extends T> forType(Class<T> type) throws UnsupportedOperationException;
 }

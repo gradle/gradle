@@ -29,7 +29,7 @@ public class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
 
-    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), TestUtil.instantiatorFactory().decorate(), true)
+    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), TestUtil.instantiatorFactory().decorateLenient(), true)
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {

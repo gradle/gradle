@@ -35,6 +35,7 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -81,8 +82,8 @@ public class AsmBackedClassGeneratorTest {
     private final AbstractClassGenerator generator = AsmBackedClassGenerator.decorateAndInject();
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
-        Class<? extends T> type = generator.generate(clazz);
-        for (Constructor<?> constructor : type.getConstructors()) {
+        ClassGenerator.GeneratedClass<? extends T> type = generator.generate(clazz);
+        for (ClassGenerator.GeneratedConstructor<?> constructor : type.getConstructors()) {
             if (constructor.getParameterTypes().length == args.length) {
                 int i = 0;
                 for (; i < args.length; i++) {
@@ -96,7 +97,7 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) generator.newInstance(constructor, null, DirectInstantiator.INSTANCE, args);
+                    return (T) constructor.newInstance(new DefaultServiceRegistry(), DirectInstantiator.INSTANCE, args);
                 }
             }
         }
@@ -105,7 +106,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInGeneratedSubclassInterface() {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class).getGeneratedClass();
         assertTrue(GeneratedSubclasses.unpack(generatedClass).equals(Bean.class));
         assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
     }
@@ -229,8 +230,8 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotDecorateAlreadyDecoratedClass() {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertSame(generatedClass, generator.generate(generatedClass));
+        ClassGenerator.GeneratedClass<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertSame(generatedClass, generator.generate(generatedClass.getGeneratedClass()));
     }
 
     @Test
@@ -244,7 +245,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesGenericTypeInformationForOverriddenConstructor() {
-        Class<?> generatedClass = generator.generate(BeanWithComplexConstructor.class);
+        Class<?> generatedClass = generator.generate(BeanWithComplexConstructor.class).getGeneratedClass();
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getTypeParameters().length, equalTo(3));
@@ -382,7 +383,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesAnnotationInformationForOverriddenConstructor() {
-        Class<?> generatedClass = generator.generate(BeanWithAnnotatedConstructor.class);
+        Class<?> generatedClass = generator.generate(BeanWithAnnotatedConstructor.class).getGeneratedClass();
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getAnnotation(Inject.class), notNullValue());
@@ -391,7 +392,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void canConstructInstance() throws Exception {
         Bean bean = newInstance(BeanWithConstructor.class, "value");
-        assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class)));
+        assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class).getGeneratedClass()));
         assertThat(bean.getProp(), equalTo("value"));
 
         bean = newInstance(BeanWithConstructor.class);
@@ -1001,7 +1002,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void includesNotInheritedTypeAnnotations() {
-        Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class);
+        Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class).getGeneratedClass();
 
         BeanAnnotation annotation = generatedClass.getAnnotation(BeanAnnotation.class);
         assertThat(annotation, notNullValue());
@@ -1019,7 +1020,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void generatedTypeIsMarkedSynthetic() {
-        assertTrue(generator.generate(Bean.class).isSynthetic());
+        assertTrue(generator.generate(Bean.class).getGeneratedClass().isSynthetic());
     }
 
     @Test
@@ -1370,7 +1371,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorate()).getConvention();
+        Convention conv = new ExtensibleDynamicObject(this, DynamicObjectAwareBean.class, TestUtil.instantiatorFactory().decorateLenient()).getConvention();
 
         public Convention getConvention() {
             return conv;

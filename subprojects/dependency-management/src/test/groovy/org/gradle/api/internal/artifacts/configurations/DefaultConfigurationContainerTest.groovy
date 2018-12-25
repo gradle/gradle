@@ -63,7 +63,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
 
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->

@@ -69,7 +69,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def workerLeaseService = Stub(WorkerLeaseService)
     def systemLibraryDiscovery = Stub(SystemLibraryDiscovery)
 
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, systemLibraryDiscovery, instantiator, workerLeaseService)
     def platform = Stub(NativePlatformInternal)
 

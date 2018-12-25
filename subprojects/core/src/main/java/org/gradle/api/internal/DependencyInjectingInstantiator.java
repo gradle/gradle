@@ -17,10 +17,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.instantiation.ConstructorSelector;
-import org.gradle.api.internal.instantiation.SelectedConstructor;
+import org.gradle.api.internal.instantiation.InstanceFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 
@@ -31,42 +32,61 @@ import java.lang.reflect.Type;
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
 public class DependencyInjectingInstantiator implements Instantiator {
-    private final ClassGenerator classGenerator;
+    private static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
     private final ServiceRegistry services;
     private final ConstructorSelector constructorSelector;
 
-    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ClassGenerator classGenerator, ServiceRegistry services) {
-        this.classGenerator = classGenerator;
+    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ServiceRegistry services) {
         this.services = services;
         this.constructorSelector = constructorSelector;
     }
 
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            SelectedConstructor constructor = findConstructor(type, parameters);
-            Object[] resolvedParameters = convertParameters(type, constructor, parameters);
-            Object instance;
+            ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);
+            Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
             try {
-                instance = classGenerator.newInstance(constructor.getConstructor(), services, this, resolvedParameters);
+                return constructor.newInstance(services, this, resolvedParameters);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
-            return type.cast(instance);
         } catch (Throwable t) {
             throw new ObjectInstantiationException(type, t);
         }
     }
 
-    private SelectedConstructor findConstructor(Class<?> type, Object[] parameters) throws Throwable {
-        SelectedConstructor constructor = constructorSelector.forParams(type, parameters);
-        if (constructor.getFailure() != null) {
-            throw constructor.getFailure();
-        }
-        return constructor;
+    public <T> InstanceFactory<T> factoryFor(final Class<T> type) {
+        final ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forType(type);
+        return new InstanceFactory<T>() {
+            @Override
+            public boolean requiresService(Class<?> serviceType) {
+                return constructor.requiresService(serviceType);
+            }
+
+            @Override
+            public T newInstance(ServiceRegistry services, Object... parameters) {
+                try {
+                    Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
+                    try {
+                        return constructor.newInstance(services, DependencyInjectingInstantiator.this, resolvedParameters);
+                    } catch (InvocationTargetException e) {
+                        throw e.getCause();
+                    }
+                } catch (Throwable t) {
+                    throw new ObjectInstantiationException(type, t);
+                }
+            }
+
+            @Override
+            public T newInstance(Object... params) {
+                return newInstance(NO_SERVICES, params);
+            }
+        };
     }
 
-    private <T> Object[] convertParameters(Class<T> type, SelectedConstructor constructor, Object[] parameters) {
-        Class<?>[] parameterTypes = constructor.getConstructor().getParameterTypes();
+    private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceRegistry services, Object[] parameters) {
+        constructorSelector.vetoParameters(constructor, parameters);
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Too many parameters provided for constructor for ");
@@ -78,12 +98,12 @@ public class DependencyInjectingInstantiator implements Instantiator {
             // No services to be mixed in
             return verifyParameters(constructor, parameters);
         } else {
-            return addServicesToParameters(type, constructor, parameters);
+            return addServicesToParameters(type, constructor, services, parameters);
         }
     }
 
-    private <T> Object[] verifyParameters(SelectedConstructor constructor, Object[] parameters) {
-        Class<?>[] parameterTypes = constructor.getConstructor().getParameterTypes();
+    private <T> Object[] verifyParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> targetType = parameterTypes[i];
             Object currentParameter = parameters[i];
@@ -115,9 +135,9 @@ public class DependencyInjectingInstantiator implements Instantiator {
         throw new IllegalArgumentException(formatter.toString());
     }
 
-    private <T> Object[] addServicesToParameters(Class<T> type, SelectedConstructor constructor, Object[] parameters) {
-        Class<?>[] parameterTypes = constructor.getConstructor().getParameterTypes();
-        Type[] genericTypes = constructor.getConstructor().getGenericParameterTypes();
+    private Object[] addServicesToParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceRegistry services, Object[] parameters) {
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
+        Type[] genericTypes = constructor.getGenericParameterTypes();
         Object[] resolvedParameters = new Object[parameterTypes.length];
         int pos = 0;
         for (int i = 0; i < resolvedParameters.length; i++) {

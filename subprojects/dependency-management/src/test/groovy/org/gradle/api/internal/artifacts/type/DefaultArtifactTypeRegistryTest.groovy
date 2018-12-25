@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class DefaultArtifactTypeRegistryTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registry = new DefaultArtifactTypeRegistry(TestUtil.instantiatorFactory().decorate(), attributesFactory, CollectionCallbackActionDecorator.NOOP)
+    def registry = new DefaultArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), attributesFactory, CollectionCallbackActionDecorator.NOOP)
 
     def "creates as required and reuses"() {
         expect:

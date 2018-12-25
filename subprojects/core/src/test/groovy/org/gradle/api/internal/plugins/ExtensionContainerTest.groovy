@@ -28,7 +28,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 
 class ExtensionContainerTest extends Specification {
 
-    def container = new DefaultConvention(TestUtil.instantiatorFactory().decorate())
+    def container = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 

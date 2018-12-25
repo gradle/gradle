@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def fileNotationParser = Mock(NotationParser)
     def task = Mock(Task)
     def taskDependency = new DefaultTaskDependency(null, ImmutableSet.of(task))

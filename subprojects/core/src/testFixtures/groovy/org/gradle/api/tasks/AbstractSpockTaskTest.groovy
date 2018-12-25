@@ -53,7 +53,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decorate()), project).create(name, type)
+        Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decorateLenient()), project).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }

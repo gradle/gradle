@@ -202,7 +202,7 @@ class DependenciesMetadataAdapterTest extends Specification {
 
     class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
         TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
-            super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, TestUtil.instantiatorFactory().decorate(), DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
+            super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, TestUtil.instantiatorFactory().decorateLenient(), DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
         }
 
         @Override

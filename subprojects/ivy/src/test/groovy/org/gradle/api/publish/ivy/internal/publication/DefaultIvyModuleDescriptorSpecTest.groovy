@@ -25,7 +25,7 @@ import javax.xml.namespace.QName
 import static org.gradle.util.TestUtil.objectFactory
 
 class DefaultIvyModuleDescriptorSpecTest extends Specification {
-    def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal), TestUtil.instantiatorFactory().decorate(), objectFactory())
+    def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal), TestUtil.instantiatorFactory().decorateLenient(), objectFactory())
 
     def "getExtraInfo returns IvyExtraInfo with immutable map" () {
         when:

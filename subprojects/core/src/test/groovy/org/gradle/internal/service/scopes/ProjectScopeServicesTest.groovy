@@ -107,7 +107,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
+        parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorateLenient()
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)

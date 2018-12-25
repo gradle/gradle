@@ -42,7 +42,7 @@ class DefaultConventionTest {
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
 
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     @Before void setUp() {
         convention = new DefaultConvention(instantiator)
@@ -165,7 +165,7 @@ class DefaultConventionTest {
     }
 
     @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
-        def convention = new DefaultConvention(TestUtil.instantiatorFactory().decorate())
+        def convention = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
         assert convention.create("foo", FooExtension).class != FooExtension
         assert convention.schema["foo"] == typeOf(FooExtension)
     }

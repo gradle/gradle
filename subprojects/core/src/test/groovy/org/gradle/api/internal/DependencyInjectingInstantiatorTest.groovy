@@ -27,7 +27,7 @@ import javax.inject.Inject
 class DependencyInjectingInstantiatorTest extends Specification {
     def services = Mock(ServiceRegistry)
     def classGenerator = new IdentityClassGenerator()
-    def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache()), classGenerator, services)
+    def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache()), services)
 
     def "creates instance that has default constructor"() {
         when:

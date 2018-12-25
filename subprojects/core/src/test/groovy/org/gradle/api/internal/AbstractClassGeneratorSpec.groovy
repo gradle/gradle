@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
@@ -25,12 +26,19 @@ abstract class AbstractClassGeneratorSpec extends Specification {
     abstract ClassGenerator getGenerator()
 
     protected <T> T create(Class<T> clazz, Object... args) {
-        return create(clazz, Stub(ServiceRegistry), args)
+        return create(clazz, new DefaultServiceRegistry(), args)
     }
 
     protected <T> T create(Class<T> clazz, ServiceRegistry services, Object... args) {
-        def type = generator.generate(clazz)
-        return generator.newInstance(type.constructors[0], services, Stub(Instantiator), args)
+        return create(generator, clazz, services, args)
     }
 
+    protected <T> T create(ClassGenerator generator, Class<T> clazz, Object... args) {
+        return create(generator, clazz, new DefaultServiceRegistry(), args)
+    }
+
+    protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceRegistry services, Object... args) {
+        def type = generator.generate(clazz)
+        return type.constructors[0].newInstance(services, Stub(Instantiator), args)
+    }
 }
