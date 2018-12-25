@@ -37,7 +37,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
     private def dependencyConstraintSet = Mock(DependencyConstraintSet)
     private def componentMetadataHandler = Mock(ComponentMetadataHandler)
 
-    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorate().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory, componentMetadataHandler)
+    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory, componentMetadataHandler)
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

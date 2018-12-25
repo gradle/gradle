@@ -250,7 +250,7 @@ class DefaultProjectTest extends Specification {
     }
 
     private DefaultProject defaultProject(String name, def parent, File rootDir, ClassLoaderScope scope) {
-        TestUtil.instantiatorFactory().decorate().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+        TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
     }
 
     Type getProjectRegistryType() {

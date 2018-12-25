@@ -26,7 +26,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, TestUtil.instantiatorFactory().decorate(), toStringNamer, callbackActionDecorator)
+    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, TestUtil.instantiatorFactory().decorateLenient(), toStringNamer, callbackActionDecorator)
 
     final DefaultNamedDomainObjectList<String> container = list
     final StringBuffer a = new StringBuffer("a")

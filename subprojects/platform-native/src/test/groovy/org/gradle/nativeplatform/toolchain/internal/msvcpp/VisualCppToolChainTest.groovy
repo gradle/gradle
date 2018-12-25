@@ -46,7 +46,7 @@ class VisualCppToolChainTest extends Specification {
     final SearchResult<WindowsSdkInstall> windowsSdkLookup = Stub(SearchResult)
 	final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
-    final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {

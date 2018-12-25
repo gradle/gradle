@@ -27,7 +27,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
     final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceRegistry services = Mock()
-    final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), classGenerator, services)
+    final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
 
     def "injects service using getter injection"() {
         given:
@@ -73,6 +73,53 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         then:
         result.param1 == "string"
         result.param2 == 12
+    }
+
+    def "can use factory to create instance with injected service and parameter"() {
+        given:
+        def services = Stub(ServiceRegistry)
+        _ * services.find(String) >> "string"
+
+        when:
+        def factory = instantiator.factoryFor(HasInjectConstructor)
+        def result = factory.newInstance(services, 12)
+
+        then:
+        result.param1 == "string"
+        result.param2 == 12
+    }
+
+    def "can use factory to create instance with injected service using getter"() {
+        given:
+        def services = Stub(ServiceRegistry)
+        _ * services.get(String) >> "string"
+
+        when:
+        def factory = instantiator.factoryFor(HasGetterInjection)
+        def result = factory.newInstance(services)
+
+        then:
+        result.someService == "string"
+    }
+
+    def "can query whether service is required when declared as constructor parameter"() {
+        when:
+        def factory = instantiator.factoryFor(HasInjectConstructor)
+
+        then:
+        factory.requiresService(String)
+        factory.requiresService(Number)
+        !factory.requiresService(Runnable)
+    }
+
+    def "can query whether service is required when declared as getter"() {
+        when:
+        def factory = instantiator.factoryFor(HasGetterInjection)
+
+        then:
+        factory.requiresService(String)
+        !factory.requiresService(Number)
+        !factory.requiresService(Runnable)
     }
 
     static class HasGetterInjection {

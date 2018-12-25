@@ -25,7 +25,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 class AbstractNamedDomainObjectContainerTest extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     CollectionCallbackActionDecorator collectionCallbackActionDecorator = CollectionCallbackActionDecorator.NOOP
     AbstractNamedDomainObjectContainer<TestObject> container = instantiator.newInstance(TestContainer.class, instantiator)
 

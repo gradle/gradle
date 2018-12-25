@@ -30,7 +30,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), callbackActionDecorator)
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
 
     final boolean supportsBuildOperations = true
 
@@ -141,7 +141,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred")
@@ -185,7 +185,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "create elements with specified type based on type binding"() {
-        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, TestUtil.instantiatorFactory().decorate(),
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, TestUtil.instantiatorFactory().decorateLenient(),
                 { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
 
         container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
@@ -235,7 +235,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         container.create("fred", Person)

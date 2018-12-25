@@ -83,7 +83,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)

@@ -41,8 +41,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
-import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -152,7 +152,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
         }
 
         RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
-        ImplicitInputsCapturingInstantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
         IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");

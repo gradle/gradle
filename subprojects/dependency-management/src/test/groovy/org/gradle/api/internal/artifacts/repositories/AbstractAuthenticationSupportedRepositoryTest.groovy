@@ -39,7 +39,7 @@ import spock.lang.Unroll
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     AuthSupportedRepository repo() {
-        new AuthSupportedRepository(TestUtil.instantiatorFactory().decorate(), new DefaultAuthenticationContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP))
+        new AuthSupportedRepository(TestUtil.instantiatorFactory().decorateLenient(), new DefaultAuthenticationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP))
     }
 
     def "should configure default password credentials using an action only"() {

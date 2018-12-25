@@ -16,38 +16,41 @@
 
 package org.gradle.api.internal.instantiation;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.text.TreeFormatter;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class ParamsMatchingConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, List<CachedConstructor>> constructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, List<? extends ClassGenerator.GeneratedConstructor<?>>> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, List<CachedConstructor>> constructorCache) {
+    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, List<? extends ClassGenerator.GeneratedConstructor<?>>> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }
 
     @Override
-    public SelectedConstructor forParams(final Class<?> type, Object[] params) {
-        List<CachedConstructor> constructors = constructorCache.get(type, new Transformer<List<CachedConstructor>, Class<?>>() {
+    public void vetoParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
+        // Don't care
+    }
+
+    @Override
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(Class<T> type) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("This constructor selector requires the construction parameters");
+    }
+
+    @Override
+    public <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(final Class<T> type, Object[] params) {
+        List<? extends ClassGenerator.GeneratedConstructor<?>> constructors = constructorCache.get(type, new Transformer<List<? extends ClassGenerator.GeneratedConstructor<?>>, Class<?>>() {
             @Override
-            public List<CachedConstructor> transform(Class<?> aClass) {
-                Class<?> implClass = classGenerator.generate(type);
-                ImmutableList.Builder<CachedConstructor> builder = ImmutableList.builder();
-                for (Constructor<?> constructor : implClass.getConstructors()) {
-                    builder.add(new CachedConstructor(constructor));
-                }
-                return builder.build();
+            public List<? extends ClassGenerator.GeneratedConstructor<?>> transform(Class<?> aClass) {
+                return classGenerator.generate(type).getConstructors();
             }
         });
 
@@ -59,12 +62,12 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
         }
 
         if (constructors.size() == 1) {
-            return constructors.get(0);
+            return Cast.uncheckedCast(constructors.get(0));
         }
 
-        CachedConstructor match = null;
-        for (CachedConstructor constructor : constructors) {
-            Class<?>[] parameterTypes = constructor.constructor.getParameterTypes();
+        ClassGenerator.GeneratedConstructor<?> match = null;
+        for (ClassGenerator.GeneratedConstructor<?> constructor : constructors) {
+            Class<?>[] parameterTypes = constructor.getParameterTypes();
             if (parameterTypes.length < params.length) {
                 continue;
             }
@@ -88,21 +91,21 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 toParam++;
             }
             if (fromParam == params.length) {
-                if (match == null || parameterTypes.length < match.constructor.getParameterTypes().length) {
+                if (match == null || parameterTypes.length < match.getParameterTypes().length) {
                     // Choose the shortest match
                     match = constructor;
-                } else if (parameterTypes.length == match.constructor.getParameterTypes().length) {
+                } else if (parameterTypes.length == match.getParameterTypes().length) {
                     TreeFormatter formatter = new TreeFormatter();
                     formatter.node("Multiple constructors of ");
                     formatter.appendType(type);
                     formatter.append(" match parameters: ");
                     formatter.appendValues(params);
-                    return new BrokenSelection(new IllegalArgumentException(formatter.toString()));
+                    throw new IllegalArgumentException(formatter.toString());
                 }
             }
         }
         if (match != null) {
-            return match;
+            return Cast.uncheckedCast(match);
         }
 
         TreeFormatter formatter = new TreeFormatter();
@@ -110,44 +113,6 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
         formatter.appendType(type);
         formatter.append(" match parameters: ");
         formatter.appendValues(params);
-        return new BrokenSelection(new IllegalArgumentException(formatter.toString()));
-    }
-
-    public static class CachedConstructor implements SelectedConstructor {
-        private final Constructor<?> constructor;
-
-        public CachedConstructor(Constructor<?> constructor) {
-            this.constructor = constructor;
-        }
-
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return null;
-        }
-
-        @Override
-        public Constructor<?> getConstructor() {
-            return constructor;
-        }
-    }
-
-    private static class BrokenSelection implements SelectedConstructor {
-        private final IllegalArgumentException failure;
-
-        public BrokenSelection(IllegalArgumentException failure) {
-            this.failure = failure;
-        }
-
-        @Override
-        public Constructor<?> getConstructor() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Nullable
-        @Override
-        public Throwable getFailure() {
-            return failure;
-        }
+        throw new IllegalArgumentException(formatter.toString());
     }
 }

@@ -28,7 +28,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
     FileCopier copier
 
     def setup() {
-        copier = new FileCopier(TestUtil.instantiatorFactory().decorate(), TestFiles.resolver(testDirectory), TestFiles.fileLookup(), new DefaultDirectoryFileTreeFactory())
+        copier = new FileCopier(TestUtil.instantiatorFactory().decorateLenient(), TestFiles.resolver(testDirectory), TestFiles.fileLookup(), new DefaultDirectoryFileTreeFactory())
     }
 
     void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {

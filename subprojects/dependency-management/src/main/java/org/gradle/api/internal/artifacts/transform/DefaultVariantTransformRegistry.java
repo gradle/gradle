@@ -53,7 +53,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
-        RecordingRegistration reg = instantiatorFactory.decorate().newInstance(RecordingRegistration.class, immutableAttributesFactory);
+        RecordingRegistration reg = instantiatorFactory.decorateLenient().newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
         if (reg.type == null) {
             throw new VariantTransformConfigurationException("Could not register transform: an ArtifactTransform must be provided.");

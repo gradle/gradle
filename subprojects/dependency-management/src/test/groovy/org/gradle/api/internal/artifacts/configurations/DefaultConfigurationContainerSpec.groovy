@@ -46,7 +46,7 @@ import spock.lang.Specification
 class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()

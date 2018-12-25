@@ -138,7 +138,7 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesAnInstantiator() {
         ServiceRegistry registry = registry();
-        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), is(registry.get(InstantiatorFactory.class).decorate()));
+        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), is(registry.get(InstantiatorFactory.class).decorateLenient()));
     }
 
     @Test

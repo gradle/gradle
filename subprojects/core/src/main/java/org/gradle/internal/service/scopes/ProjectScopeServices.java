@@ -157,7 +157,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
-        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorate());
+        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorateLenient());
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

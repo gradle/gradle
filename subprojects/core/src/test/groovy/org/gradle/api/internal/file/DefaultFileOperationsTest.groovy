@@ -54,7 +54,7 @@ class DefaultFileOperationsTest extends Specification {
     }
     private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
-    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()

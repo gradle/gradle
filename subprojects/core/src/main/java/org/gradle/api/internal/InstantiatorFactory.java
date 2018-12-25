@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.internal.instantiation.InstanceFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -26,7 +27,6 @@ public interface InstantiatorFactory {
      * <p>Use for any non-model types for which services or user provided constructor values need to injected.
      *
      * @param registry The registry of services to make available to instances.
-     * @return The instantiator
      */
     Instantiator inject(ServiceRegistry registry);
 
@@ -34,10 +34,13 @@ public interface InstantiatorFactory {
      * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
      *
      * <p>Use for any non-model types for which user provided values, but no services, need to be injected. This is simply a convenience for {@link #inject(ServiceRegistry)}.
-     *
-     * @return The instantiator
      */
     Instantiator inject();
+
+    /**
+     * Create an {@link InstanceFactory} that can inject services and user provided values into the instances it creates, but does not decorate the instances.
+     */
+    <T> InstanceFactory<T> injectFactory(Class<T> type);
 
     /**
      * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
@@ -47,8 +50,6 @@ public interface InstantiatorFactory {
      * <p>Use for any non-model types for which user provided values, but no services, need to be injected. Use this method only for existing types
      * where backwards compatibility is required and instead prefer {@link #inject(ServiceRegistry)} for any new non DSL-types.
      * This method will be retired in the future.
-     *
-     * @return The instantiator
      */
     Instantiator injectLenient();
 
@@ -56,10 +57,8 @@ public interface InstantiatorFactory {
      * Creates an {@link Instantiator} that decorates the instances created.
      *
      * <p>Use for any model types for which no user provided constructor values or services need to be injected. This is a convenience for {@link #injectAndDecorateLenient(ServiceRegistry)} and will also be retired.
-     *
-     * @return The instantiator
      */
-    Instantiator decorate();
+    Instantiator decorateLenient();
 
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
@@ -67,7 +66,6 @@ public interface InstantiatorFactory {
      * <p>Use for any model types for which services or user provided constructor values need to injected.
      *
      * @param registry The registry of services to make available to instances.
-     * @return The instantiator
      */
     Instantiator injectAndDecorate(ServiceRegistry registry);
 
@@ -81,7 +79,6 @@ public interface InstantiatorFactory {
      * This method will be retired in the future.
      *
      * @param registry The registry of services to make available to instances.
-     * @return The instantiator
      */
     Instantiator injectAndDecorateLenient(ServiceRegistry registry);
 }

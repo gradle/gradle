@@ -99,7 +99,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.metadataParser = metadataParser;
-        this.instantiator = instantiatorFactory.decorate();
+        this.instantiator = instantiatorFactory.decorateLenient();
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;

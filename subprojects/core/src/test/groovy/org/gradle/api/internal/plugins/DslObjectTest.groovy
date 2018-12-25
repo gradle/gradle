@@ -40,7 +40,7 @@ class DslObjectTest extends Specification {
 
     def "works for dsl object"() {
         when:
-        new DslObject(TestUtil.instantiatorFactory().decorate().newInstance(Thing))
+        new DslObject(TestUtil.instantiatorFactory().decorateLenient().newInstance(Thing))
 
         then:
         notThrown(Exception)

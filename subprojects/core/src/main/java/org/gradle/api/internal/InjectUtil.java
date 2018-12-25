@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import org.gradle.internal.text.TreeFormatter;
 
 import javax.inject.Inject;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,25 +30,14 @@ public class InjectUtil {
      * or it should have a single constructor annotated with {@literal @}{@link Inject}.
      *
      * @param type the type to find the injectable constructor of.
-     */
-    public static Constructor<?> selectConstructor(Class<?> type) {
-        return selectConstructor(type, type);
-    }
-
-    /**
-     * Selects the single injectable constructor for the given type.
-     * The type must either have only one public or package-private default constructor,
-     * or it should have a single constructor annotated with {@literal @}{@link Inject}.
-     *
-     * @param type the type to find the injectable constructor of.
      * @param reportAs errors are reported against this type, useful when the real type is generated, and we'd like to show the original type in messages instead.
      */
-    public static Constructor<?> selectConstructor(Class<?> type, Class<?> reportAs) {
-        Constructor<?>[] constructors = type.getDeclaredConstructors();
+    public static <T> ClassGenerator.GeneratedConstructor<T> selectConstructor(ClassGenerator.GeneratedClass<T> type, Class<?> reportAs) {
+        List<ClassGenerator.GeneratedConstructor<T>> constructors = type.getConstructors();
 
-        if (constructors.length == 1) {
-            Constructor<?> constructor = constructors[0];
-            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
+        if (constructors.size() == 1) {
+            ClassGenerator.GeneratedConstructor<T> constructor = constructors.get(0);
+            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
@@ -70,8 +58,8 @@ public class InjectUtil {
             }
         }
 
-        List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
-        for (Constructor<?> constructor : constructors) {
+        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors = new ArrayList<ClassGenerator.GeneratedConstructor<T>>();
+        for (ClassGenerator.GeneratedConstructor<T> constructor : constructors) {
             if (constructor.getAnnotation(Inject.class) != null) {
                 injectConstructors.add(constructor);
             }
@@ -89,10 +77,11 @@ public class InjectUtil {
             formatter.append(" has multiple constructors that are annotated with @Inject.");
             throw new IllegalArgumentException(formatter.toString());
         }
+
         return injectConstructors.get(0);
     }
 
-    private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
+    private static boolean isPublicOrPackageScoped(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor) {
         if (isPackagePrivate(type.getModifiers())) {
             return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
         } else {

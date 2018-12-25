@@ -42,7 +42,7 @@ import java.awt.*
 class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final TaskResolver taskResolver = Mock()
-    final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver)
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 

@@ -26,7 +26,7 @@ import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 class DependencyStringNotationConverterTest extends Specification {
-    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorate(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
+    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
 
     def "with artifact"() {
         when:
@@ -167,7 +167,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "can create client module"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorate(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10')
@@ -187,7 +187,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "client module ignores the artifact only notation"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorate(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10@jar')

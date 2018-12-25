@@ -396,7 +396,7 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void doesNotIncludeToStringInGetPropertyErrorMessageWhenItIsNotImplemented() {
-        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorate());
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorateLenient());
 
         try {
             bean.getProperty("unknown");
@@ -420,7 +420,7 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void doesNotIncludeToStringInSetPropertyErrorMessageWhenItIsNotImplemented() {
-        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorate());
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorateLenient());
 
         try {
             bean.setProperty("unknown", "value");
@@ -772,7 +772,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canCallGroovyDynamicMethods() {
         DynamicGroovyBean bean = new DynamicGroovyBean();
-        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, TestUtil.instantiatorFactory().decorate());
+        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, TestUtil.instantiatorFactory().decorateLenient());
         Integer doubled = (Integer) object.invokeMethod("bar", 1);
         assertThat(doubled, equalTo(2));
 
@@ -792,7 +792,7 @@ public class ExtensibleDynamicObjectTest {
         final ExtensibleDynamicObject extensibleDynamicObject;
 
         public Bean() {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorate());
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorateLenient());
         }
 
         public DynamicObject getAsDynamicObject() {

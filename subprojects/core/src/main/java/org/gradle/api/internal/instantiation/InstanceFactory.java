@@ -16,12 +16,24 @@
 
 package org.gradle.api.internal.instantiation;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
+import org.gradle.internal.service.ServiceRegistry;
 
-public interface SelectedConstructor {
-    Constructor<?> getConstructor();
+/**
+ * Creates instances of the given type.
+ */
+public interface InstanceFactory<T> {
+    /**
+     * Is the given service required?
+     */
+    boolean requiresService(Class<?> serviceType);
 
-    @Nullable
-    Throwable getFailure();
+    /**
+     * Creates a new instance from the given services and parameters.
+     */
+    T newInstance(ServiceRegistry services, Object... params);
+
+    /**
+     * Creates a new instance from the given parameters (and no services).
+     */
+    T newInstance(Object... params);
 }

@@ -78,7 +78,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
             strategies.put(attribute, strategy);
             attributesByName.put(attribute.getName(), attribute);
         }

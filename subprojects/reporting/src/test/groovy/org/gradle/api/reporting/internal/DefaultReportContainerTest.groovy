@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {
 
-    static Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    static Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     static Project project = ProjectBuilder.builder().build()
 
     static class TestReportContainer extends DefaultReportContainer {

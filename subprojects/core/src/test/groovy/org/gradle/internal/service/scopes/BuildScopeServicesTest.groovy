@@ -95,7 +95,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         sessionServices.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
         sessionServices.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
-        sessionServices.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
+        sessionServices.get(Instantiator) >> TestUtil.instantiatorFactory().decorateLenient()
         sessionServices.get(FileResolver) >> Stub(FileResolver)
         sessionServices.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         sessionServices.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)

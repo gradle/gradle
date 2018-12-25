@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultPublicationContainerTest extends Specification {
 
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     DefaultPublicationContainer container = instantiator.newInstance(DefaultPublicationContainer, instantiator, CollectionCallbackActionDecorator.NOOP)
 
     def "exception is thrown on unknown access"() {

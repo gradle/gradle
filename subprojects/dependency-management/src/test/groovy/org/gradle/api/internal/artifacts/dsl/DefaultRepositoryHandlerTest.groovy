@@ -36,7 +36,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     ArtifactRepositoryContainer createRepositoryHandler(
             BaseRepositoryFactory repositoryFactory = repositoryFactory,
-            Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+            Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     ) {
         new DefaultRepositoryHandler(repositoryFactory, instantiator, CollectionCallbackActionDecorator.NOOP)
     }

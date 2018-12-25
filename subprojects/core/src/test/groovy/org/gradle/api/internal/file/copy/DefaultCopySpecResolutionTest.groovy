@@ -34,7 +34,7 @@ class DefaultCopySpecResolutionTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, instantiator)
 
     def testSpecHasRootPathAsDestinationByDefault() {

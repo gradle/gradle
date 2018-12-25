@@ -43,7 +43,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
     def domainObjectContext = Mock(DomainObjectContext)
 
     def setup() {
-        _ * parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
+        _ * parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorateLenient()
         _ * parent.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
         _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }

@@ -94,7 +94,7 @@ class AbstractIntegrationSpec extends Specification {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
-    protected TestFile getBuildFile() {
+    TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
     }
 

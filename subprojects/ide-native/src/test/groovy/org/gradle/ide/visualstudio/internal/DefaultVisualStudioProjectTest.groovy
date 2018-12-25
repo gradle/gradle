@@ -28,7 +28,7 @@ import spock.lang.Specification
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
 
 class DefaultVisualStudioProjectTest extends Specification {
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = project("projectName")

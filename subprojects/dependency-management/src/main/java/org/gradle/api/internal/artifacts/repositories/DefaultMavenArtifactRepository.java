@@ -128,7 +128,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;

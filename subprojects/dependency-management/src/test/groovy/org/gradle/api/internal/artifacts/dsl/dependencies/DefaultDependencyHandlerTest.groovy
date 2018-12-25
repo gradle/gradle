@@ -46,7 +46,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorate().newInstance(DefaultDependencyHandler,
+    private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
 

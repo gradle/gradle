@@ -181,7 +181,7 @@ class ConfigureUtilTest extends Specification {
 
     void configureByMapTriesMethodForExtensibleObjects() {
         given:
-        Bean bean = TestUtil.instantiatorFactory().decorate().newInstance(Bean)
+        Bean bean = TestUtil.instantiatorFactory().decorateLenient().newInstance(Bean)
 
         when:
         ConfigureUtil.configureByMap(bean, method: "foo")

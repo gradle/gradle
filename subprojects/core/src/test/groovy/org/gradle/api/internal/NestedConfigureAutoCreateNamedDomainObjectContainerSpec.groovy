@@ -21,13 +21,13 @@ import spock.lang.Specification
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     static class Container extends FactoryNamedDomainObjectContainer {
         String parentName
         String name
         Container(String parentName, String name, Closure factory) {
-            super(Object, TestUtil.instantiatorFactory().decorate(), new DynamicPropertyNamer(), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
+            super(Object, TestUtil.instantiatorFactory().decorateLenient(), new DynamicPropertyNamer(), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
             this.parentName = parentName
             this.name = name
         }

@@ -1317,19 +1317,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         InstantiatorFactory instantiatorFactory = getServices().get(InstantiatorFactory.class);
         // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
         ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(type, instantiatorFactory.injectLenient());
-        Instantiator instantiator = instantiatorFactory.decorate();
+        Instantiator instantiator = instantiatorFactory.decorateLenient();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), objectFactory, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorate();
+        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorateLenient();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorate();
+        Instantiator instantiator = getServices().get(InstantiatorFactory.class).decorateLenient();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
 

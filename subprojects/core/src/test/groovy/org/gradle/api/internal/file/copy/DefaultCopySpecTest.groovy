@@ -44,7 +44,7 @@ class DefaultCopySpecTest extends Specification {
     @Shared
     private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
     @Shared
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
 
     private List<String> getTestSourceFileNames() {

@@ -56,7 +56,7 @@ class SettingsFactoryTest extends Specification {
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(TestUtil.instantiatorFactory().decorate(), serviceRegistryFactory, scriptHandlerFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(TestUtil.instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory);
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
