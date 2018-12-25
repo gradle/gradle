@@ -243,6 +243,35 @@ initscript {
         succeeds()
     }
 
+    def "init script can register all projects hook from within the projects loaded callback of build listener"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+
+        and:
+        file("buildSrc").mkdir()
+
+        and:
+        executer.gradleUserHomeDir.file('init.d/a.gradle') << '''
+            gradle.addListener(new BuildAdapter() {
+                void projectsLoaded(Gradle gradle) {
+                    gradle.rootProject.allprojects {
+                        println "Project '$name'"
+                    }
+                }
+            })
+        '''
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds()
+
+        then:
+        output.contains("Project 'buildSrc'")
+        output.contains("Project 'root'")
+    }
+
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''
