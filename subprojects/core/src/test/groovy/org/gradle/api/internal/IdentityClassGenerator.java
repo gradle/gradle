@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,16 @@ class IdentityClassGenerator implements ClassGenerator {
             @Override
             public Class<T> getGeneratedClass() {
                 return type;
+            }
+
+            @Nullable
+            @Override
+            public Class<?> getOuterType() {
+                if (Modifier.isStatic(type.getModifiers())) {
+                    return null;
+                } else {
+                    return type.getEnclosingClass();
+                }
             }
 
             @Override

@@ -225,13 +225,13 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void cachesGeneratedSubclass() {
-        assertSame(generator.generate(Bean.class), generator.generate(Bean.class));
+        assertSame(generator.generate(Bean.class).getGeneratedClass(), generator.generate(Bean.class).getGeneratedClass());
     }
 
     @Test
     public void doesNotDecorateAlreadyDecoratedClass() {
-        ClassGenerator.GeneratedClass<? extends Bean> generatedClass = generator.generate(Bean.class);
-        assertSame(generatedClass, generator.generate(generatedClass.getGeneratedClass()));
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class).getGeneratedClass();
+        assertSame(generatedClass, generator.generate(generatedClass).getGeneratedClass());
     }
 
     @Test

@@ -33,6 +33,12 @@ public interface ClassGenerator {
     interface GeneratedClass<T> {
         Class<T> getGeneratedClass();
 
+        /**
+         * Returns the enclosing type, when this type is a non-static inner class.
+         */
+        @Nullable
+        Class<?> getOuterType();
+
         List<GeneratedConstructor<T>> getConstructors();
     }
 
