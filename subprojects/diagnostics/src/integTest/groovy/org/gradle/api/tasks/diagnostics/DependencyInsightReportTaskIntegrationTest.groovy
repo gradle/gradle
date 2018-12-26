@@ -471,8 +471,7 @@ dependencies {
    Selection reasons:
       - By constraint : Dependency locking
    Failures:
-      - Dependency lock state out of date:
-          - Resolved 'org:foo:1.1' which is not part of the dependency lock state
+      - Dependency lock state out of date: Resolved 'org:foo:1.1' which is not part of the dependency lock state
 
 org:foo:1.1 FAILED
 \\--- lockedConf
@@ -521,11 +520,10 @@ org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
    Failures:
-      - Could not resolve org:foo:{strictly 1.0}.:
-          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
-               Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
+      - Could not resolve org:foo:{strictly 1.0}.: Cannot find a version of 'org:foo' that satisfies the version constraints: 
+           Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
+           Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
+           Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf
@@ -1607,8 +1605,7 @@ org:leaf:[1.5,2.0] FAILED
         outputContains """
 project :A FAILED
    Failures:
-      - Could not resolve project :A.:
-          - Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
+      - Could not resolve project :A.: Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
 
 project :A FAILED
 \\--- conf
@@ -1621,8 +1618,7 @@ project :A FAILED
         outputContains """
 project :C FAILED
    Failures:
-      - Could not resolve project :C.:
-          - Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
+      - Could not resolve project :C.: Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
 
 project :C FAILED
 \\--- project :B
@@ -2604,10 +2600,9 @@ org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
    Failures:
-      - Could not resolve org:bar:{reject all versions}.:
-          - Module 'org:bar' has been rejected:
-               Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
+      - Could not resolve org:bar:{reject all versions}.: Module 'org:bar' has been rejected:
+           Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
+           Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
@@ -2621,10 +2616,9 @@ org:bar:[1.0,) FAILED
 
 org:foo: (by constraint) FAILED
    Failures:
-      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.:
-          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
-               Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
+      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.: Cannot find a version of 'org:foo' that satisfies the version constraints: 
+           Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
+           Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath
