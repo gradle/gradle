@@ -51,6 +51,8 @@ public interface InstantiatorFactory {
      * where backwards compatibility is required and instead prefer {@link #inject(ServiceRegistry)} for any new non DSL-types.
      * This method will be retired in the future.
      */
+    Instantiator injectLenient(ServiceRegistry services);
+
     Instantiator injectLenient();
 
     /**

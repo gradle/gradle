@@ -28,9 +28,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import java.util.List;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final ClassGenerator injectOnly;
-    private final ClassGenerator decorated;
     private final ConstructorSelector injectOnlyJsr330Selector;
+    private final ConstructorSelector injectOnlyLenientSelector;
     private final ConstructorSelector decoratedJsr330Selector;
     private final ConstructorSelector decoratedLenientSelector;
     private final Instantiator decoratingLenientInstantiator;
@@ -38,15 +37,16 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final Instantiator injectOnlyLenientInstantiator;
 
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
-        decorated = AsmBackedClassGenerator.decorateAndInject();
-        injectOnly = AsmBackedClassGenerator.injectOnly();
+        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly();
+        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject();
         ServiceRegistry noServices = new DefaultServiceRegistry();
         injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+        injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<List<? extends ClassGenerator.GeneratedConstructor<?>>>newClassCache());
         decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<List<? extends ClassGenerator.GeneratedConstructor<?>>>newClassCache());
         decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
         injectOnlyJsr330Instantiator = new DependencyInjectingInstantiator(injectOnlyJsr330Selector, noServices);
-        injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<List<? extends ClassGenerator.GeneratedConstructor<?>>>newClassCache()), noServices);
+        injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(injectOnlyLenientSelector, noServices);
     }
 
     @Override
@@ -67,6 +67,11 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     @Override
     public Instantiator injectLenient() {
         return injectOnlyLenientInstantiator;
+    }
+
+    @Override
+    public Instantiator injectLenient(ServiceRegistry services) {
+        return new DependencyInjectingInstantiator(injectOnlyLenientSelector, services);
     }
 
     @Override

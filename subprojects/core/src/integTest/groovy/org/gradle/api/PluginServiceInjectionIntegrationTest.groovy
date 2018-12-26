@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.api.internal.GeneratedSubclass
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import javax.inject.Inject
@@ -110,7 +111,31 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                     // is generated but not extensible
                     assert getClass() != CustomPlugin
                     assert (this instanceof ${GeneratedSubclass.name}) 
-                    assert !(this instanceof ExtensionAware) 
+                    assert !(this instanceof ${ExtensionAware.name}) 
+                }
+            }
+            
+            apply plugin: CustomPlugin
+        """
+
+        expect:
+        succeeds()
+        outputContains("got it")
+    }
+
+    def "can inject service using abstract getter method"() {
+        buildFile << """
+            abstract class CustomPlugin implements Plugin<Project> {
+                @Inject
+                abstract WorkerExecutor getExecutor()
+                
+                void apply(Project p) {
+                    println(executor != null ? "got it" : "NOT IT")
+
+                    // is generated but not extensible
+                    assert getClass() != CustomPlugin
+                    assert (this instanceof ${GeneratedSubclass.name}) 
+                    assert !(this instanceof ${ExtensionAware.name}) 
                 }
             }
             
