@@ -187,7 +187,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:2.0.
-Searched in the following locations: Git repository at ${repo.url}
+Searched in the following locations:
+  - Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -289,7 +290,8 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
-Searched in the following locations: Git repository at ${repo.url}
+Searched in the following locations:
+  - Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -348,7 +350,8 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
-Searched in the following locations: Git repository at ${repo.url}
+Searched in the following locations:
+  - Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -436,7 +439,8 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:{branch release}.
-Searched in the following locations: Git repository at ${repo.url}
+Searched in the following locations:
+  - Git repository at ${repo.url}
 Required by:
     project :""")
 

@@ -79,12 +79,13 @@ class TreeFormatterTest extends Specification {
         formatter.endChildren()
 
         then:
-        formatter.toString() == toPlatformLineSeparators("""Some things: child 1:
-  - child 1.1
-  - child 1.2""")
+        formatter.toString() == toPlatformLineSeparators("""Some things:
+  - child 1:
+      - child 1.1
+      - child 1.2""")
     }
 
-    def "formats root with multiple children"() {
+    def "formats root with multiple leaf children"() {
         when:
         formatter.node("Some things")
         formatter.startChildren()
@@ -116,6 +117,59 @@ class TreeFormatterTest extends Specification {
       - child 1.1
       - child 1.2
   - child 2""")
+    }
+
+    def "formats node with single child with long text"() {
+        def longText = (0..20).join('')
+
+        when:
+        formatter.node(longText)
+        formatter.startChildren()
+        formatter.node(longText)
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""${longText}:
+  - ${longText}""")
+    }
+
+    def "formats node with trailing '.'"() {
+        when:
+        formatter.node("Some things.")
+        formatter.startChildren()
+        formatter.node("child 1.")
+        formatter.endChildren()
+        formatter.node("Some other things.")
+        formatter.startChildren()
+        formatter.node("child 1.")
+        formatter.node("child 2.")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Some things.
+  - child 1.
+Some other things.
+  - child 1.
+  - child 2.""")
+    }
+
+    def "formats node with trailing ':'"() {
+        when:
+        formatter.node("Some things:")
+        formatter.startChildren()
+        formatter.node("child 1.")
+        formatter.endChildren()
+        formatter.node("Some other things:")
+        formatter.startChildren()
+        formatter.node("child 1.")
+        formatter.node("child 2.")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Some things: child 1.
+Some other things:
+  - child 1.
+  - child 2.""")
     }
 
     def "indents nested children that span multiple lines"() {
@@ -187,6 +241,18 @@ root3:
 
         then:
         formatter.toString() == "Some thing."
+    }
+
+    def "can append to top level node"() {
+        when:
+        formatter.node("Root")
+        formatter.node("Some ")
+        formatter.append("thing")
+        formatter.append(".")
+
+        then:
+        formatter.toString() == toPlatformLineSeparators('''Root
+Some thing.''')
     }
 
     def "can append to child node"() {

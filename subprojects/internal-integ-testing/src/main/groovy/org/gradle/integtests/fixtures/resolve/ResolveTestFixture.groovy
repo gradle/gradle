@@ -206,12 +206,21 @@ allprojects {
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
         int idx = line.indexOf('][')
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing id in '$line'")
+        }
         String id = line.substring(start, idx) // [id:
         start = idx + 5
         idx = line.indexOf('][', start)
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing module in '$line'")
+        }
         String module = line.substring(start, idx) // [mv:
         start = idx + 9
         idx = line.indexOf(']', start) // [reason:
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing reasons in '$line'")
+        }
         List<String> reasons = line.substring(start, idx).split('!!') as List<String>
         start = idx + 15
         String variant = null
@@ -872,11 +881,13 @@ class GenerateGraphTask extends DefaultTask {
 
     def formatReason(ComponentSelectionReasonInternal reason) {
         def reasons = reason.descriptions.collect {
+            def message
             if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
-                "${it.cause.defaultReason}: ${it.description}".replaceAll('\n', ' ')
+                message = "${it.cause.defaultReason}: ${it.description}"
             } else {
-                it.description
+                message = it.description
             }
+            message.readLines().join(" ")
         }.join('!!')
         return reasons
     }

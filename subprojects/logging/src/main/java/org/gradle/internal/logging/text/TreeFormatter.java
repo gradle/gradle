@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.text;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -57,9 +58,10 @@ public class TreeFormatter implements DiagnosticsVisitor {
             current = new Node(current.parent, text);
         }
         if (current.isTopLevelNode()) {
+            // A new top level node, implicitly finish the previous node
             if (current != current.parent.firstChild) {
                 // Not the first top level node
-                original.format("%n");
+                original.append(TextUtil.getPlatformLineSeparator());
             }
             original.append(text);
             current.valueWritten = true;
@@ -80,10 +82,9 @@ public class TreeFormatter implements DiagnosticsVisitor {
      */
     public void append(CharSequence text) {
         if (current.state == State.CollectValue) {
+            current.value.append(text);
             if (current.valueWritten) {
                 original.append(text);
-            } else {
-                current.value.append(text);
             }
         } else {
             throw new IllegalStateException("Cannot append text to node.");
@@ -181,25 +182,42 @@ public class TreeFormatter implements DiagnosticsVisitor {
             output.append(node.value);
         }
 
-        if (node.canCollapseFirstChild()) {
-            output.append(": ");
+        Separator separator = node.getFirstChildSeparator();
+
+        if (!separator.newLine) {
+            output.append(separator.text);
             Node firstChild = node.firstChild;
             output.append(firstChild.value);
             firstChild.valueWritten = true;
             firstChild.prefix = node.prefix;
             writeNode(firstChild);
         } else if (node.firstChild != null) {
-            original.format(":%n");
+            original.append(separator.text);
             writeNode(node.firstChild);
         }
         if (node.nextSibling != null) {
-            original.format("%n");
+            original.append(TextUtil.getPlatformLineSeparator());
             writeNode(node.nextSibling);
         }
     }
 
     private enum State {
         CollectValue, TraverseChildren, Done
+    }
+
+    private enum Separator {
+        NewLine(true, TextUtil.getPlatformLineSeparator()),
+        Empty(false, " "),
+        Colon(false, ": "),
+        ColonNewLine(true, ":" + TextUtil.getPlatformLineSeparator());
+
+        Separator(boolean newLine, String text) {
+            this.newLine = newLine;
+            this.text = text;
+        }
+
+        final boolean newLine;
+        final String text;
     }
 
     private static class Node {
@@ -214,7 +232,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
 
         private Node() {
             this.parent = null;
-            this.value = null;
+            this.value = new StringBuilder();
             prefix = "";
             state = State.TraverseChildren;
         }
@@ -232,8 +250,33 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
         }
 
-        boolean canCollapseFirstChild() {
-            return firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild();
+        Separator getFirstChildSeparator() {
+            if (firstChild == null) {
+                return Separator.NewLine;
+            }
+            if (value.length() == 0) {
+                // Always expand empty node
+                return Separator.NewLine;
+            }
+            char trailing = value.charAt(value.length() - 1);
+            if (trailing == '.') {
+                // Always expand with trailing .
+                return Separator.NewLine;
+            }
+            if (firstChild.nextSibling == null
+                    && firstChild.firstChild == null
+                    && value.length() + firstChild.value.length() < 60) {
+                // A single leaf node as child and total text is not too long, collapse
+                if (trailing == ':') {
+                    return Separator.Empty;
+                }
+                return Separator.Colon;
+            }
+            // Otherwise, expand
+            if (trailing == ':') {
+                return Separator.NewLine;
+            }
+            return Separator.ColonNewLine;
         }
 
         boolean isTopLevelNode() {

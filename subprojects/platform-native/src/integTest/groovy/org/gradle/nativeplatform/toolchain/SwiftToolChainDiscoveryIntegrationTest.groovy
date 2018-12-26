@@ -20,7 +20,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -65,7 +64,8 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}'"))
-        failure.assertThatCause(Matchers.containsString("- Tool chain '${toolChain.id}' (Swift Compiler): Could not determine SwiftC metadata: swiftc produced unexpected output."))
+        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
+  - Tool chain '${toolChain.id}' (Swift Compiler):
+      - Could not determine SwiftC metadata: swiftc produced unexpected output.""")
     }
 }

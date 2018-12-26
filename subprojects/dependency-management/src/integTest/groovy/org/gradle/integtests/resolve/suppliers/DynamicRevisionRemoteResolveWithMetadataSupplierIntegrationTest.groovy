@@ -929,7 +929,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+":["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2: Attribute 'custom string' didn't match. Requested 'v2', was: 'v1'"]
+        checkResolve "group:projectA:1.+":["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2:   - Attribute 'custom string' didn't match. Requested 'v2', was: 'v1'"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
 
@@ -982,7 +982,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2: Attribute 'custom' didn't match. Requested 'v2', was: 'v1'"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2:   - Attribute 'custom' didn't match. Requested 'v2', was: 'v1'"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
 

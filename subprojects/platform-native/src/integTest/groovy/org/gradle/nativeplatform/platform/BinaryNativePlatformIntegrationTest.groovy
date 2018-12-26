@@ -332,7 +332,8 @@ model {
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
         failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
-  - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
+  - ${toolChain.instanceDisplayName}:
+      - Don't know how to build for platform 'unavailable'.""")
 
         where:
         type                           | config
