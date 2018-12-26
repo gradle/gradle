@@ -236,14 +236,9 @@ model {
         executable("build/exe/main/x86/main").exec().out == "i386 ${os.familyName}" * 2
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86/mainCpp")).arch.name == "x86"
 
-        // x86_64 binaries not supported on MinGW
-        if (toolChain.id == "mingw") {
-            executable("build/exe/main/x86_64/main").assertDoesNotExist()
-        } else {
-            executable("build/exe/main/x86_64/main").arch.name == "x86_64"
-            executable("build/exe/main/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86_64/mainCpp")).arch.name == "x86_64"
-        }
+        executable("build/exe/main/x86_64/main").arch.name == "x86-64"
+        executable("build/exe/main/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
+        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86_64/mainCpp")).arch.name == "x86-64"
 
         // ARM only supported on visualCpp 2012+
         if (toolChain.meets(ToolChainRequirement.VISUALCPP_2012_OR_NEWER)) {

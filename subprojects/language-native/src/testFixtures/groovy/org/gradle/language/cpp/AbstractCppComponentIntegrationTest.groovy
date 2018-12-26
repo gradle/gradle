@@ -141,10 +141,6 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         return super.defaultArchitecture
     }
 
-    protected String getCurrentHostArchitectureDsl() {
-        return supports32BitArchitectureOnly() ? ".x86" : ""
-    }
-
     protected String getCurrentHostOperatingSystemFamilyDsl() {
         String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
         if (osFamily == OperatingSystemFamily.MACOS) {
