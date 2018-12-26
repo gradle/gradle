@@ -22,7 +22,7 @@ import org.gradle.internal.HasInternalProtocol;
 import java.io.File;
 
 /**
- * An injectable service that when injected into a {@link ArtifactTransform} can be used to access
+ * An injectable service that when injected into an {@link ArtifactTransform} can be used to access
  * the dependency artifacts of the artifact being transformed.
  *
  * @since 5.1
