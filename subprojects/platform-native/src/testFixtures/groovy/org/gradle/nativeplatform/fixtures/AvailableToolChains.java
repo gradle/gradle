@@ -199,10 +199,16 @@ public class AvailableToolChains {
     }
 
     static private ToolChainCandidate findCygwin() {
-        // Search in the standard installation locations
-        File compilerExe = new File("C:/cygwin/bin/g++.exe");
-        if (compilerExe.isFile()) {
-            return new InstalledWindowsGcc(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compilerExe.getParentFile());
+        // Search in the standard installation locations and construct
+        File compiler64Exe = new File("C:/cygwin64/bin/g++.exe");
+        if (compiler64Exe.isFile()) {
+            File compiler32Exe = new File("C:/cygwin64/bin/i686-pc-cygwin-gcc.exe");
+            if (compiler32Exe.isFile()) {
+                File cygwin32RuntimePath = new File(compiler32Exe.getParentFile().getParentFile(), "usr/i686-pc-cygwin/sys-root/usr/bin");
+                return new InstalledCygwinGcc64(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
+            } else {
+                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
+            }
         }
 
         return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
@@ -580,6 +586,48 @@ public class AvailableToolChains {
         @Override
         public String getId() {
             return getDisplayName().replaceAll("\\W", "");
+        }
+    }
+
+    public static class InstalledCygwinGcc64 extends InstalledWindowsGcc {
+        public InstalledCygwinGcc64(ToolFamily family, VersionNumber version) {
+            super(family, version);
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("     path file('%s')\n", pathEntry.toURI());
+            }
+            config += platform32Configuration();
+            config += "}\n";
+            return config;
+        }
+
+        public static String platform32Configuration() {
+            String config = "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386() || platformToolChain.platform.architecture.isArm()) {\n";
+            config += "             platformToolChain.cCompiler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.cppCompiler.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.linker.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.assembler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.staticLibArchiver.executable='i686-pc-cygwin-ar.exe'\n";
+            config += "         }\n";
+            config += "     }\n";
+            return config;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            switch (requirement) {
+                case SUPPORTS_32:
+                case WINDOWS_GCC:
+                case SUPPORTS_32_AND_64:
+                    return true;
+                default:
+                    return super.meets(requirement);
+            }
         }
     }
 

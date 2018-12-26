@@ -67,9 +67,9 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
         failure.assertHasCause("A target machine needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
     }
-    
+
     def "can build for current machine when multiple target machines are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+        Assume.assumeFalse(supports32BitArchitectureOnly())
 
         given:
         makeSingleProject()
@@ -114,14 +114,14 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     def "can build current architecture when other, non-buildable architectures are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+        Assume.assumeFalse(supports32BitArchitectureOnly())
 
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -129,14 +129,14 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     def "ignores duplicate target machines"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
+        Assume.assumeFalse(supports32BitArchitectureOnly())
 
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}, machines.${currentHostOperatingSystemFamilyDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -145,11 +145,11 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     @Override
     protected String getDefaultArchitecture() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? "x86" : super.defaultArchitecture
+        return supports32BitArchitectureOnly() ?  "x86" : super.defaultArchitecture
     }
 
     protected String getCurrentHostArchitectureDsl() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86" : ""
+        return supports32BitArchitectureOnly() ? ".x86" : ""
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {
