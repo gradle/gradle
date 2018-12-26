@@ -236,7 +236,7 @@ model {
         executable("build/exe/main/x86/main").exec().out == "i386 ${os.familyName}" * 2
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86/mainCpp")).arch.name == "x86"
 
-        // x86_64 binaries not supported on MinGW or cygwin
+        // x86_64 binaries not supported on MinGW
         if (toolChain.id == "mingw") {
             executable("build/exe/main/x86_64/main").assertDoesNotExist()
         } else {

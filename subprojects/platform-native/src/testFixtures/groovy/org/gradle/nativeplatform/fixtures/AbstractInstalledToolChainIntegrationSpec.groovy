@@ -53,7 +53,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
                 }
             }
         """
-        if (!toolChain.meets(ToolChainRequirement.SUPPORTS_32_AND_64)) {
+        if (supports32BitArchitectureOnly()) {
             initScript << """
                 allprojects { p ->
                     components.withType(CppComponent) { component ->

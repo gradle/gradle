@@ -205,13 +205,13 @@ public class AvailableToolChains {
             File compiler32Exe = new File("C:/cygwin64/bin/i686-pc-cygwin-gcc.exe");
             if (compiler32Exe.isFile()) {
                 File cygwin32RuntimePath = new File(compiler32Exe.getParentFile().getParentFile(), "usr/i686-pc-cygwin/sys-root/usr/bin");
-                return new InstalledCygwinGcc64(ToolFamily.CYGWIN_GCC_64, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
+                return new InstalledCygwinGcc64(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
             } else {
-                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC_64);
+                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
             }
         }
 
-        return new UnavailableToolChain(ToolFamily.CYGWIN_GCC_64);
+        return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
     }
 
     static private List<ToolChainCandidate> findGccs(boolean mustFind) {
@@ -291,7 +291,7 @@ public class AvailableToolChains {
         CLANG("clang"),
         VISUAL_CPP("visual c++"),
         MINGW_GCC("mingw"),
-        CYGWIN_GCC_64("gcc cygwin"),
+        CYGWIN_GCC("gcc cygwin"),
         SWIFTC("swiftc");
 
         private final String displayName;
