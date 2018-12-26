@@ -53,15 +53,6 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
                 }
             }
         """
-        if (supports32BitArchitectureOnly()) {
-            initScript << """
-                allprojects { p ->
-                    components.withType(CppComponent) { component ->
-                        component.targetMachines.set([machines.host().x86])        
-                    }            
-                }
-            """
-        }
         executer.beforeExecute({
             usingInitScript(initScript)
         })
@@ -191,10 +182,6 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     protected String getCurrentArchitecture() {
-        return supports32BitArchitectureOnly() ? Architectures.X86.canonicalName : DefaultNativePlatform.currentArchitecture.name
-    }
-
-    protected boolean supports32BitArchitectureOnly() {
-        return toolChain.meets(ToolChainRequirement.SUPPORTS_32) && !toolChain.meets(ToolChainRequirement.SUPPORTS_32_AND_64)
+        return DefaultNativePlatform.currentArchitecture.name
     }
 }

@@ -50,12 +50,12 @@ model {
 
         // For software model builds, windows defaults to 32-bit target, so if we discard the toolchain init script,
         // we need to reapply the 32-bit platform config for cygwin64
-        if (toolChain instanceof AvailableToolChains.InstalledCygwinGcc64) {
+        if (toolChain instanceof AvailableToolChains.InstalledCygwinGcc) {
             buildFile << """
                 model {
                     toolChains {
                         tc { 
-                            ${AvailableToolChains.InstalledCygwinGcc64.platform32Configuration()}
+                            ${AvailableToolChains.InstalledCygwinGcc.platform32Configuration()}
                         }
                     }
                 }

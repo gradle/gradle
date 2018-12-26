@@ -190,9 +190,12 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findMinGW() {
         // Search in the standard installation locations
-        File compilerExe = new File("C:/MinGW/bin/g++.exe");
-        if (compilerExe.isFile()) {
-            return new InstalledWindowsGcc(ToolFamily.MINGW_GCC, VersionNumber.UNKNOWN).inPath(compilerExe.getParentFile());
+        File compiler64Exe = new File("C:/mingw64/bin/g++.exe");
+        if (compiler64Exe.isFile()) {
+            File compiler32Exe = new File("C:/mingw32/bin/g++.exe");
+            if (compiler32Exe.isFile()) {
+                return new InstalledMingwGcc(ToolFamily.MINGW_GCC, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), compiler32Exe.getParentFile());
+            }
         }
 
         return new UnavailableToolChain(ToolFamily.MINGW_GCC);
@@ -205,7 +208,7 @@ public class AvailableToolChains {
             File compiler32Exe = new File("C:/cygwin64/bin/i686-pc-cygwin-gcc.exe");
             if (compiler32Exe.isFile()) {
                 File cygwin32RuntimePath = new File(compiler32Exe.getParentFile().getParentFile(), "usr/i686-pc-cygwin/sys-root/usr/bin");
-                return new InstalledCygwinGcc64(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
+                return new InstalledCygwinGcc(ToolFamily.CYGWIN_GCC, VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
             } else {
                 return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
             }
@@ -546,7 +549,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledWindowsGcc extends InstalledGcc {
+    public static abstract class InstalledWindowsGcc extends InstalledGcc {
         public InstalledWindowsGcc(ToolFamily family, VersionNumber version) {
             super(family, version);
         }
@@ -571,13 +574,23 @@ public class AvailableToolChains {
         }
 
         @Override
+        public String getBuildScriptConfig() {
+            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("     path file('%s')\n", pathEntry.toURI());
+            }
+            config += getAdditionalBuildConfiguration();
+            config += "}\n";
+            return config;
+        }
+
+        abstract String getAdditionalBuildConfiguration();
+
+        @Override
         public boolean meets(ToolChainRequirement requirement) {
             switch (requirement) {
-                case SUPPORTS_32:
                 case WINDOWS_GCC:
                     return true;
-                case SUPPORTS_32_AND_64:
-                    return false;
                 default:
                     return super.meets(requirement);
             }
@@ -589,20 +602,9 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledCygwinGcc64 extends InstalledWindowsGcc {
-        public InstalledCygwinGcc64(ToolFamily family, VersionNumber version) {
+    public static class InstalledCygwinGcc extends InstalledWindowsGcc {
+        public InstalledCygwinGcc(ToolFamily family, VersionNumber version) {
             super(family, version);
-        }
-
-        @Override
-        public String getBuildScriptConfig() {
-            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
-            for (File pathEntry : getPathEntries()) {
-                config += String.format("     path file('%s')\n", pathEntry.toURI());
-            }
-            config += platform32Configuration();
-            config += "}\n";
-            return config;
         }
 
         public static String platform32Configuration() {
@@ -619,15 +621,32 @@ public class AvailableToolChains {
         }
 
         @Override
-        public boolean meets(ToolChainRequirement requirement) {
-            switch (requirement) {
-                case SUPPORTS_32:
-                case WINDOWS_GCC:
-                case SUPPORTS_32_AND_64:
-                    return true;
-                default:
-                    return super.meets(requirement);
-            }
+        String getAdditionalBuildConfiguration() {
+            return platform32Configuration();
+        }
+    }
+
+    public static class InstalledMingwGcc extends InstalledWindowsGcc {
+        public InstalledMingwGcc(ToolFamily family, VersionNumber version) {
+            super(family, version);
+        }
+
+        public static String platform32Configuration() {
+            String config = "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386() || platformToolChain.platform.architecture.isArm()) {\n";
+            config += "             platformToolChain.cCompiler.executable='i686-w64-mingw32-gcc.exe'\n";
+            config += "             platformToolChain.cppCompiler.executable='i686-w64-mingw32-g++.exe'\n";
+            config += "             platformToolChain.linker.executable='i686-w64-mingw32-g++.exe'\n";
+            config += "             platformToolChain.assembler.executable='i686-w64-mingw32-gcc.exe'\n";
+            config += "             platformToolChain.staticLibArchiver.executable='i686-w64-mingw32-gcc-ar.exe'\n";
+            config += "         }\n";
+            config += "     }\n";
+            return config;
+        }
+
+        @Override
+        String getAdditionalBuildConfiguration() {
+            return platform32Configuration();
         }
     }
 
