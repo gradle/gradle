@@ -144,7 +144,7 @@ public class DependencyInsightReporter {
     }
 
     private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors) {
-        TreeFormatter formatter = new TreeFormatter(false);
+        TreeFormatter formatter = new TreeFormatter();
         collectErrorMessages(failure, formatter, alreadyReportedErrors);
         return formatter.toString();
     }

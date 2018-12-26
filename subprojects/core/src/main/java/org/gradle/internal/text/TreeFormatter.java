@@ -34,17 +34,13 @@ public class TreeFormatter extends TreeVisitor<String> {
     private Node current;
 
     public TreeFormatter() {
-        this(true);
-    }
-
-    public TreeFormatter(boolean collapseFirstChild) {
         this.original = new AbstractStyledTextOutput() {
             @Override
             protected void doAppend(String text) {
                 buffer.append(text);
             }
         };
-        this.current = new Node(collapseFirstChild);
+        this.current = new Node();
     }
 
     @Override
@@ -213,7 +209,6 @@ public class TreeFormatter extends TreeVisitor<String> {
     private static class Node {
         final Node parent;
         final StringBuilder value;
-        final boolean collapseFirstChild;
         Node firstChild;
         Node lastChild;
         Node nextSibling;
@@ -221,10 +216,9 @@ public class TreeFormatter extends TreeVisitor<String> {
         State state;
         boolean valueWritten;
 
-        private Node(boolean collapseFirstChild) {
+        private Node() {
             this.parent = null;
             this.value = null;
-            this.collapseFirstChild = collapseFirstChild;
             prefix = "";
             state = State.TraverseChildren;
         }
@@ -232,7 +226,6 @@ public class TreeFormatter extends TreeVisitor<String> {
         private Node(Node parent, String value) {
             this.parent = parent;
             this.value = new StringBuilder(value);
-            this.collapseFirstChild = parent.collapseFirstChild;
             state = State.CollectValue;
             if (parent.firstChild == null) {
                 parent.firstChild = this;
@@ -244,8 +237,7 @@ public class TreeFormatter extends TreeVisitor<String> {
         }
 
         boolean canCollapseFirstChild() {
-            return collapseFirstChild &&
-                    (firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild());
+            return firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild();
         }
 
         boolean isTopLevelNode() {
