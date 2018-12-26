@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
@@ -216,7 +217,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
                             // Unzip the headers into cache
                             ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
                             File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());
-                            files.add(headerDir);
+                            if(DefaultExternalModuleDependency.getExpandIncludePath()) {
+                                addIncludeVariants(headerDir, files);
+                            } else {
+                                files.add(headerDir);
+                            }
                         } else {
                             files.add(artifact.getFile());
                         }
@@ -225,6 +230,15 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
                 result = files;
             }
             return result;
+        }
+
+        private void addIncludeVariants(File file, Set<File> files) {
+            if(file.isDirectory()) {
+                files.add(file);
+                for(File f: file.listFiles()) {
+                    addIncludeVariants(f, files);
+                }
+            }
         }
 
         @Override

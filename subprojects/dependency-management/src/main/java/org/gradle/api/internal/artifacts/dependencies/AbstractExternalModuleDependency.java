@@ -30,6 +30,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
     private boolean force;
+    private static boolean expandIncludePath;
     private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, String configuration) {
@@ -39,6 +40,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
+        this.expandIncludePath = false;
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {
@@ -73,6 +75,15 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     public boolean isForce() {
         return force;
     }
+
+    public static boolean getExpandIncludePath() {
+        return expandIncludePath;
+    }
+
+    public void setExpandIncludePath(Boolean ex) {
+        this.expandIncludePath=ex;
+    }
+
 
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
