@@ -236,7 +236,7 @@ Gradle provides several conveniences to help create a well-behaved DSL for your 
 [[sec:nested_dsl_elements]]
 === Nested DSL elements
 
-When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
+When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support and extensibility. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
 
 .Nested DSL elements
 ====
@@ -250,12 +250,16 @@ include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",f
 include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedDslElement.out[]
 ----
 
-In this example, the plugin passes the project's `ObjectFactory` to the extension object through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
+In this example, the extension object receives an `ObjectFactory` instance through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
+
+There are several services, such as `ObjectFactory`, that are available for injection into project extensions. These are also available to the objects created using `ObjectFactory`, so these can also provide their own nested elements. The service injection works the same way as <<custom_tasks.adoc#service_injection,service injection for tasks>>.
 
 [[sec:maintaining_multiple_domain_objects]]
 === Configuring a collection of objects
 
-Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
+Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL. One such type is link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] which manages a set of objects. Gradle uses this type extensively throughout the API. For example, the `tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer`.
+
+You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method. Services are available for injection into the elements of the container. See <<custom_tasks.adoc#service_injection,service injection for tasks>>. for details.
 
 .Managing a collection of objects
 ====

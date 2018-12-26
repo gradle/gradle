@@ -387,9 +387,9 @@ Support for declaring command line options currently comes with a few limitation
 
 Gradle provides a number of services that can be used in a task implementation. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as we'll see in the following section.
 
-There are 2 ways that a task can receive the services that it needs. One option is to inject the services as parameters of the task class constructor. The constructor must be annotated with the `javax.inject.Inject` annotation.
+There are 2 ways that a task can receive the services that it needs. The first option is to add the service as a parameter of the task class constructor. The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each parameter to determine the services that the task requires. The order of the constructor parameters and their names are ignored.
 
-Alternatively, a service can be injected as a property of the task using a getter method annotated with the `javax.inject.Inject` annotation. This can be useful, for example, when you cannot change the constructor of the task class due to backwards compatibility constraints. This pattern also allows Gradle to defer creation of the service until it is required, rather than when the task instance is created, which helps with performance.
+Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the task class. This can be useful, for example, when you cannot change the constructor of the task class due to backwards compatibility constraints. This pattern also allows Gradle to defer creation of the service until it is required, rather than when the task instance is created, which helps with performance. Gradle uses the declared return type of the getter methods to determine the services that the task requires. The name of the property is ignored.
 
 Here is an example that shows these two approaches:
 

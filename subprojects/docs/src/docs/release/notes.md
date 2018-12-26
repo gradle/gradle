@@ -15,6 +15,7 @@ See the [User Manual](userguide/custom_plugins.html#service_injection) for detai
 
 TBD - can have abstract service getter
 TBD - can use server getter on plugins
+TBD - can use service injection on `project.container(Class)` elements 
 
 ## The Java Platform plugin
 
