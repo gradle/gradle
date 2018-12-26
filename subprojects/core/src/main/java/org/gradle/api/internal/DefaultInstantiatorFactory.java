@@ -25,8 +25,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-import java.util.List;
-
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ConstructorSelector injectOnlyJsr330Selector;
     private final ConstructorSelector injectOnlyLenientSelector;
@@ -42,8 +40,8 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         ServiceRegistry noServices = new DefaultServiceRegistry();
         injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
-        injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<List<? extends ClassGenerator.GeneratedConstructor<?>>>newClassCache());
-        decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<List<? extends ClassGenerator.GeneratedConstructor<?>>>newClassCache());
+        injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
+        decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
         decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
         injectOnlyJsr330Instantiator = new DependencyInjectingInstantiator(injectOnlyJsr330Selector, noServices);
         injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(injectOnlyLenientSelector, noServices);

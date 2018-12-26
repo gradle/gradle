@@ -41,7 +41,6 @@ import org.gradle.internal.text.TreeFormatter;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
-import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -141,11 +140,10 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         List<Class<?>> injectedServices = injectionHandler.getInjectedServices();
-        GeneratedClassImpl generated = new GeneratedClassImpl(subclass, injectedServices);
-        CachedClass cachedClass = new CachedClass(generated);
+        CachedClass cachedClass = new CachedClass(subclass, injectedServices);
         cache.put(type, cachedClass);
         cache.put(subclass, cachedClass);
-        return generated;
+        return cachedClass.asWrapper();
     }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
@@ -243,11 +241,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     private class GeneratedClassImpl implements GeneratedClass<Object> {
         private final Class<?> generatedClass;
+        private final Class<?> outerType;
         private final List<Class<?>> injectedServices;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, List<Class<?>> injectedServices) {
+        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices) {
             this.generatedClass = generatedClass;
+            this.outerType = outerType;
             this.injectedServices = injectedServices;
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
@@ -259,6 +259,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public Class<Object> getGeneratedClass() {
             return Cast.uncheckedCast(generatedClass);
+        }
+
+        @Nullable
+        @Override
+        public Class<?> getOuterType() {
+            return outerType;
         }
 
         @Override
@@ -319,32 +325,31 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private class CachedClass {
         // Keep a weak reference to the generated class, to allow it to be collected
         private final WeakReference<Class<?>> generatedClass;
-        // The GeneratedClass wrapper holds strong references to the generated class and its constructors, so keep in a soft reference to allow
-        // it to be reused (potentially) without preventing collection of the generated class
-        private SoftReference<GeneratedClassImpl> wrapper;
+        private final WeakReference<Class<?>> outerType;
         // This should be a list of weak references. For now, assume that all services are Gradle core services and are never collected
         private final List<Class<?>> injectedServices;
 
-        CachedClass(GeneratedClassImpl generatedClass) {
-            this.generatedClass = new WeakReference<Class<?>>(generatedClass.generatedClass);
-            this.wrapper = new SoftReference<GeneratedClassImpl>(generatedClass);
-            this.injectedServices = generatedClass.injectedServices;
+        CachedClass(Class<?> generatedClass, List<Class<?>> injectedServices) {
+            this.generatedClass = new WeakReference<Class<?>>(generatedClass);
+            this.injectedServices = injectedServices;
+
+            // This is expensive to calculate, so cache the result
+            Class<?> enclosingClass = generatedClass.getSuperclass().getEnclosingClass();
+            if (enclosingClass != null && !Modifier.isStatic(generatedClass.getSuperclass().getModifiers())) {
+                outerType = new WeakReference<Class<?>>(enclosingClass);
+            } else {
+                outerType = null;
+            }
         }
 
         @Nullable
         public GeneratedClassImpl asWrapper() {
-            GeneratedClassImpl wrapper = this.wrapper.get();
-            if (wrapper != null) {
-                return wrapper;
-            }
             // Hold a strong reference to the class, to avoid it being collected while doing this work
             Class<?> generatedClass = this.generatedClass.get();
             if (generatedClass == null) {
                 return null;
             }
-            wrapper = new GeneratedClassImpl(generatedClass, injectedServices);
-            this.wrapper = new SoftReference<GeneratedClassImpl>(wrapper);
-            return wrapper;
+            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices);
         }
     }
 

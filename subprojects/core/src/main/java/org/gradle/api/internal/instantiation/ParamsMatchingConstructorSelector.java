@@ -23,14 +23,13 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.text.TreeFormatter;
 
-import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class ParamsMatchingConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, List<? extends ClassGenerator.GeneratedConstructor<?>>> constructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, List<? extends ClassGenerator.GeneratedConstructor<?>>> constructorCache) {
+    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }
@@ -47,20 +46,21 @@ public class ParamsMatchingConstructorSelector implements ConstructorSelector {
 
     @Override
     public <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(final Class<T> type, Object[] params) {
-        List<? extends ClassGenerator.GeneratedConstructor<?>> constructors = constructorCache.get(type, new Transformer<List<? extends ClassGenerator.GeneratedConstructor<?>>, Class<?>>() {
+        ClassGenerator.GeneratedClass<?> generatedClass = constructorCache.get(type, new Transformer<ClassGenerator.GeneratedClass<?>, Class<?>>() {
             @Override
-            public List<? extends ClassGenerator.GeneratedConstructor<?>> transform(Class<?> aClass) {
-                return classGenerator.generate(type).getConstructors();
+            public ClassGenerator.GeneratedClass<?> transform(Class<?> aClass) {
+                return classGenerator.generate(type);
             }
         });
 
-        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers()) && (params.length == 0 || !type.getEnclosingClass().isInstance(params[0]))) {
+        if (generatedClass.getOuterType() != null && (params.length == 0 || !generatedClass.getOuterType().isInstance(params[0]))) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
             formatter.append(" is a non-static inner class.");
             throw new IllegalArgumentException(formatter.toString());
         }
 
+        List<? extends ClassGenerator.GeneratedConstructor<?>> constructors = generatedClass.getConstructors();
         if (constructors.size() == 1) {
             return Cast.uncheckedCast(constructors.get(0));
         }
