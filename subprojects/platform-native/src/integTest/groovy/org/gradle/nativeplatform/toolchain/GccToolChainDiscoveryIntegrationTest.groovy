@@ -117,8 +117,9 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
-        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find C compiler 'does-not-exist'"))
+        failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
+  - ${toolChain.instanceDisplayName}:
+      - Could not find C compiler 'does-not-exist'""")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

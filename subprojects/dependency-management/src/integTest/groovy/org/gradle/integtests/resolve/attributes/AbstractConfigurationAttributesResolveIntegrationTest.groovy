@@ -925,8 +925,10 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar': Required buildType 'debug' and found compatible value 'debug'.
-  - Variant 'foo': Required buildType 'debug' and found compatible value 'debug'."""
+  - Variant 'bar':
+      - Required buildType 'debug' and found compatible value 'debug'.
+  - Variant 'foo':
+      - Required buildType 'debug' and found compatible value 'debug'."""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {

@@ -247,7 +247,8 @@ Versions rejected by component selection rules:
   - 1.2
   - 1.1
   - 1.0
-Searched in the following locations: ${versionListingURI('org.utils', 'api')}
+Searched in the following locations:
+  - ${versionListingURI('org.utils', 'api')}
 Required by:
 """)
     }
