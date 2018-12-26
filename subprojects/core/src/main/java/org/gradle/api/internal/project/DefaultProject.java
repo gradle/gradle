@@ -1316,7 +1316,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         InstantiatorFactory instantiatorFactory = getServices().get(InstantiatorFactory.class);
         // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
-        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(type, instantiatorFactory.injectLenient());
+        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(type, instantiatorFactory.injectLenient(getServices()));
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), objectFactory, MutationGuards.of(getProjectConfigurator()), services.get(CollectionCallbackActionDecorator.class));
     }
