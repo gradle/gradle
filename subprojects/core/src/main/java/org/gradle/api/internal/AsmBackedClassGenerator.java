@@ -36,7 +36,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;

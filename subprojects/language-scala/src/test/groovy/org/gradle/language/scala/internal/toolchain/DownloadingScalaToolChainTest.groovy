@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.workers.internal.WorkerDaemonFactory
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
 import spock.lang.Specification
 

@@ -15,12 +15,12 @@
  */
 package org.gradle.platform.base.internal.toolchain
 
-import org.gradle.util.TreeVisitor
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import spock.lang.Specification
 
 class ToolChainAvailabilityTest extends Specification {
     def "visits message"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         def availability = new ToolChainAvailability()
@@ -30,7 +30,7 @@ class ToolChainAvailabilityTest extends Specification {
         availability.explain(visitor)
 
         then:
-        visitor.node("some reason")
+        1 * visitor.node("some reason")
     }
 
     def "ignores available tool"() {
@@ -48,7 +48,7 @@ class ToolChainAvailabilityTest extends Specification {
     }
 
     def "visits missing tool"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
         def searchResult = Mock(ToolSearchResult)
 
         given:

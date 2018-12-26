@@ -22,6 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -53,7 +54,6 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMet
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -117,7 +117,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
                     }
 
                     @Override
-                    public void explain(TreeVisitor<? super String> visitor) {
+                    public void explain(DiagnosticsVisitor visitor) {
                     }
                 };
             default:

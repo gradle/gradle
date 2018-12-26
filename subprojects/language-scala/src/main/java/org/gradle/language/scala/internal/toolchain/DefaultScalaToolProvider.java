@@ -17,15 +17,15 @@
 package org.gradle.language.scala.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
-import org.gradle.util.TreeVisitor;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Set;
@@ -70,7 +70,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
 
     }
 }

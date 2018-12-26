@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift.metadata
 
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction

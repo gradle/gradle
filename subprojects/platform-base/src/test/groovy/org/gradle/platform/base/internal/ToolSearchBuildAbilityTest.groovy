@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.internal
 
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class ToolSearchBuildAbilityTest extends Specification {
@@ -41,16 +41,16 @@ class ToolSearchBuildAbilityTest extends Specification {
     }
 
     def "explains reason when tool search is not successful" () {
-        TreeVisitor visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         when:
         result.isAvailable() >> false
-        result.explain(_) >> { TreeVisitor v ->
+        result.explain(_) >> { DiagnosticsVisitor v ->
             v.node("Tool search failed")
         }
         ability.explain(visitor)
 
         then:
-        visitor.node("Tool search failed")
+        1 * visitor.node("Tool search failed")
     }
 }

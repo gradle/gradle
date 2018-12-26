@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.VariantSelectionException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 

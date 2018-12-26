@@ -36,7 +36,7 @@ import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
