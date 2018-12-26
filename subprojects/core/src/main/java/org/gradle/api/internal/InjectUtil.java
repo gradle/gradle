@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
 import java.lang.reflect.Modifier;

@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

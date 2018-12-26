@@ -18,7 +18,7 @@ package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 

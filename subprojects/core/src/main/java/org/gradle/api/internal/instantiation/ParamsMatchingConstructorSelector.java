@@ -21,7 +21,7 @@ import org.gradle.api.internal.ClassGenerator;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 

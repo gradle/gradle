@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.text;
+package org.gradle.internal.logging.text;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.logging.text.AbstractStyledTextOutput;
-import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.TreeVisitor;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -28,7 +24,7 @@ import java.lang.reflect.Method;
 /**
  * Constructs a tree of diagnostic messages.
  */
-public class TreeFormatter extends TreeVisitor<String> {
+public class TreeFormatter implements DiagnosticsVisitor {
     private final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
     private Node current;
@@ -51,8 +47,7 @@ public class TreeFormatter extends TreeVisitor<String> {
     /**
      * Starts a new node with the given text.
      */
-    @Override
-    public void node(String text) {
+    public TreeFormatter node(String text) {
         if (current.state == State.TraverseChildren) {
             // First child node
             current = new Node(current, text);
@@ -69,6 +64,7 @@ public class TreeFormatter extends TreeVisitor<String> {
             original.append(text);
             current.valueWritten = true;
         }
+        return this;
     }
 
     /**
@@ -145,17 +141,16 @@ public class TreeFormatter extends TreeVisitor<String> {
         append("]");
     }
 
-    @Override
-    public void startChildren() {
+    public TreeFormatter startChildren() {
         if (current.state == State.CollectValue) {
             current.state = State.TraverseChildren;
         } else {
             throw new IllegalStateException("Cannot start children again");
         }
+        return this;
     }
 
-    @Override
-    public void endChildren() {
+    public TreeFormatter endChildren() {
         if (current.parent == null) {
             throw new IllegalStateException("Not visiting any node.");
         }
@@ -171,6 +166,7 @@ public class TreeFormatter extends TreeVisitor<String> {
         }
         current.state = State.Done;
         current = current.parent;
+        return this;
     }
 
     private void writeNode(Node node) {

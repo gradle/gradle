@@ -18,10 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.logging.text.DiagnosticsVisitor
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.text.TreeFormatter
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
@@ -33,7 +34,6 @@ import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
@@ -85,7 +85,7 @@ class VisualCppToolChainTest extends Specification {
     def "is not available when visual studio installation cannot be located"() {
         when:
         visualStudioLookup.available >> false
-        visualStudioLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
+        visualStudioLookup.explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("vs install not found anywhere") }
         windowsSdkLookup.available >> false
 		ucrtLookup.available >> false
 
@@ -103,7 +103,7 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.component >> Stub(VisualStudioInstall)
 
         windowsSdkLookup.available >> false
-        windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
+        windowsSdkLookup.explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("sdk not found anywhere") }
 
         and:
         def result = toolChain.select(Stub(NativePlatformInternal))

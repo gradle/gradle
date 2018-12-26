@@ -19,7 +19,7 @@ package org.gradle.internal.component;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
