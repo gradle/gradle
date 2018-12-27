@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.internal.metaobject.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
