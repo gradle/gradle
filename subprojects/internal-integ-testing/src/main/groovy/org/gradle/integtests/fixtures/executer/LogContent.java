@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.AnsiOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
@@ -31,6 +32,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class LogContent {
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+?] ");
@@ -226,16 +228,11 @@ public class LogContent {
     }
 
     /**
-     * Remove all empty lines.
+     * Remove all blank lines.
      */
-    public LogContent removeEmptyLines() {
-        List<String> nonEmptyLines = new ArrayList<String>();
-        for (String line : lines) {
-            if (!line.isEmpty()) {
-                nonEmptyLines.add(line);
-            }
-        }
-        return new LogContent(ImmutableList.copyOf(nonEmptyLines), definitelyNoDebugPrefix, rawContent);
+    public LogContent removeBlankLines() {
+        List<String> nonBlankLines = lines.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
+        return new LogContent(ImmutableList.copyOf(nonBlankLines), definitelyNoDebugPrefix, rawContent);
     }
 
     public static String stripWorkInProgressArea(String output) {
