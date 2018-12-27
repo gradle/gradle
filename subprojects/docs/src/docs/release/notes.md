@@ -28,6 +28,11 @@ Read the [Java Platform plugin section of the userguide](userguide/java_platform
 When using the [`maven-publish` plugin](userguide/publishing_maven.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
 For details, have a look at the [dedicated section](userguide/publishing_maven.html#publishing_maven:resolved_dependencies) in the plugin documentation.
 
+## Support for additional Windows native toolchains
+
+In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
+These toolchains are now officially supported by Gradle.  See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
