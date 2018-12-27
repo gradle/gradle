@@ -16,46 +16,64 @@
 
 package org.gradle.internal.instantiation;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final ConstructorSelector injectOnlyJsr330Selector;
+    private final ServiceRegistry noServices = new DefaultServiceRegistry();
     private final ConstructorSelector injectOnlyLenientSelector;
     private final ConstructorSelector decoratedJsr330Selector;
     private final ConstructorSelector decoratedLenientSelector;
     private final Instantiator decoratingLenientInstantiator;
-    private final DependencyInjectingInstantiator injectOnlyJsr330Instantiator;
     private final Instantiator injectOnlyLenientInstantiator;
+    private final CrossBuildInMemoryCacheFactory cacheFactory;
+    private final DefaultInstantiationScheme injectOnlyScheme;
+    // Assume for now that the annotations are all part of Gradle core and are never unloaded, so use strong references to the annotation types
+    private final LoadingCache<Set<Class<? extends Annotation>>, InstantiationScheme> schemes = CacheBuilder.newBuilder().build(new CacheLoader<Set<Class<? extends Annotation>>, InstantiationScheme>() {
+        @Override
+        public InstantiationScheme load(Set<Class<? extends Annotation>> annotations) {
+            ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotations);
+            Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+            return new DefaultInstantiationScheme(constructorSelector, noServices);
+        }
+    });
 
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
+        this.cacheFactory = cacheFactory;
         ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly();
         ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject();
-        ServiceRegistry noServices = new DefaultServiceRegistry();
-        injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+        ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
         decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
         decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
-        injectOnlyJsr330Instantiator = new DependencyInjectingInstantiator(injectOnlyJsr330Selector, noServices);
         injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(injectOnlyLenientSelector, noServices);
+        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, noServices);
+        schemes.put(ImmutableSet.<Class<? extends Annotation>>of(), injectOnlyScheme);
     }
 
     @Override
     public Instantiator inject(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(injectOnlyJsr330Selector, registry);
+        return injectOnlyScheme.withServices(registry);
     }
 
     @Override
     public Instantiator inject() {
-        return injectOnlyJsr330Instantiator;
+        return injectOnlyScheme.instantiator();
     }
 
     @Override
-    public <T> InstanceFactory<T> injectFactory(Class<T> type) {
-        return injectOnlyJsr330Instantiator.factoryFor(type);
+    public InstantiationScheme injectScheme(Set<Class<? extends Annotation>> injectAnnotations) {
+        return schemes.getUnchecked(ImmutableSet.copyOf(injectAnnotations));
     }
 
     @Override

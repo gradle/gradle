@@ -23,14 +23,15 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Cast;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.internal.extensibility.NoConventionMapping;
-import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,7 +40,6 @@ import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,7 +75,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <li>An {@link IConventionAware} implementation is added, unless {@link NoConventionMapping} is attached to the class.</li>
  * </ul>
  */
-public abstract class AbstractClassGenerator implements ClassGenerator {
+abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, CachedClass>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, CachedClass>>();
     private static final Lock CACHE_LOCK = new ReentrantLock();
 
@@ -103,7 +104,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
-        ServiceInjectionPropertyHandler injectionHandler = new ServiceInjectionPropertyHandler();
+        ServiceInjectionPropertyHandler injectionHandler = new ServiceInjectionPropertyHandler(getInjectAnnotations());
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
@@ -150,6 +151,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
+
+    protected abstract Set<Class<? extends Annotation>> getInjectAnnotations();
 
     protected abstract <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
@@ -722,8 +725,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ServiceInjectionPropertyHandler extends ClassGenerationHandler {
+        private final Set<Class<? extends Annotation>> injectAnnotations;
         private boolean hasServicesProperty;
         private final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
+
+        public ServiceInjectionPropertyHandler(Set<Class<? extends Annotation>> injectAnnotations) {
+            this.injectAnnotations = injectAnnotations;
+        }
 
         @Override
         public void validateMethod(Method method) {
@@ -769,6 +777,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 if (method.getAnnotation(Inject.class) != null) {
                     serviceInjectionProperties.add(property);
                     return true;
+                }
+                for (Class<? extends Annotation> annotation : injectAnnotations) {
+                    if (method.getAnnotation(annotation) != null) {
+                        serviceInjectionProperties.add(property);
+                        return true;
+                    }
                 }
             }
             return false;

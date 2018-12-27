@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
-import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.instantiation.InstanceFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
@@ -41,7 +43,7 @@ public class DefaultTransformer implements Transformer {
 
     public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
-        this.instanceFactory = instantiatorFactory.injectFactory(implementationClass);
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class)).forType(implementationClass);
         this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
@@ -59,7 +61,7 @@ public class DefaultTransformer implements Transformer {
 
     @Override
     public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransform transformer = newTransformer(dependencies);
+        ArtifactTransform transformer = newTransformer(outputDir, dependencies);
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);
@@ -89,14 +91,13 @@ public class DefaultTransformer implements Transformer {
         return outputs;
     }
 
-    private ArtifactTransform newTransformer(ArtifactTransformDependencies artifactTransformDependencies) {
+    private ArtifactTransform newTransformer(File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
         if (requiresDependencies) {
-            DefaultServiceRegistry registry = new DefaultServiceRegistry();
             registry.add(ArtifactTransformDependencies.class, artifactTransformDependencies);
-            return instanceFactory.newInstance(registry, parameters.isolate());
-        } else {
-            return instanceFactory.newInstance(parameters.isolate());
         }
+        registry.add(File.class, outputDir);
+        return instanceFactory.newInstance(registry, parameters.isolate());
     }
 
     @Override

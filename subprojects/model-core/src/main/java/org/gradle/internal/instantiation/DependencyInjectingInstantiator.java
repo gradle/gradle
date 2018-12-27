@@ -17,11 +17,11 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -29,7 +29,7 @@ import java.lang.reflect.Type;
 /**
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
-public class DependencyInjectingInstantiator implements Instantiator {
+class DependencyInjectingInstantiator implements Instantiator {
     private static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
     private final ServiceRegistry services;
     private final ConstructorSelector constructorSelector;
@@ -100,7 +100,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
     }
 
-    private <T> Object[] verifyParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
+    private Object[] verifyParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> targetType = parameterTypes[i];

@@ -19,7 +19,7 @@ package org.gradle.internal.instantiation;
 /**
  * Encapsulates the differences, due to backwards compatibility, in instantiation for several different types.
  */
-public interface ConstructorSelector {
+interface ConstructorSelector {
     /**
      * Allows this selector to veto the parameters to use with the given constructor.
      */

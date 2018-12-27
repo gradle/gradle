@@ -39,6 +39,15 @@ allprojects {
     artifacts {
         implementation producer.outputFile
     }
+    allprojects {
+        dependencies {
+            registerTransform {
+                from.attribute(color, 'blue')
+                to.attribute(color, 'green')
+                artifactTransform(MakeGreen)
+            }
+        }
+    }
     task resolve {
         def view = configurations.implementation.incoming.artifactView {
             attributes.attribute(color, 'green')

@@ -20,21 +20,12 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 
 class ArtifactTransformDependenciesInjectionTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
-    def "transform can receive dependencies via getter"() {
+    def "transform can receive dependencies via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorAttribute()
         buildFile << """
-allprojects {
-    dependencies {
-        registerTransform {
-            from.attribute(color, 'blue')
-            to.attribute(color, 'green')
-            artifactTransform(MakeGreen)
-        }
-    }
-}
 
 project(':a') {
     dependencies {
@@ -67,6 +58,44 @@ abstract class MakeGreen extends ArtifactTransform {
         then:
         outputContains("received dependencies files [] for processing c.jar")
         outputContains("received dependencies files [c.jar] for processing b.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    def "transform can receive workspace via abstract getter"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorAttribute()
+        buildFile << """
+
+project(':a') {
+    dependencies {
+        implementation project(':b')
+        implementation project(':c')
+    }
+}
+
+abstract class MakeGreen extends ArtifactTransform {
+    @Workspace
+    abstract File getWorkspace()
+    
+    List<File> transform(File input) {
+        println "processing \${input.name}"
+        assert workspace == outputDirectory
+        def output = new File(outputDirectory, input.name + ".green")
+        output.text = "ok"
+        return [output]
+    }
+}
+
+"""
+
+        when:
+        run(":a:resolve")
+
+        then:
+        outputContains("processing c.jar")
+        outputContains("processing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 }
