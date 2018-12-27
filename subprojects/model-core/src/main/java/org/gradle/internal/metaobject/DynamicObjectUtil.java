@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
-
-import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
+package org.gradle.internal.metaobject;
 
 public abstract class DynamicObjectUtil {
     public static DynamicObject asDynamicObject(Object object) {

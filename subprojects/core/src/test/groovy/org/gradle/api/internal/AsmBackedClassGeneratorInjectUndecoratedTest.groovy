@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.internal.metaobject.DynamicObjectAware
 import org.gradle.internal.service.ServiceRegistry
 
 import javax.inject.Inject

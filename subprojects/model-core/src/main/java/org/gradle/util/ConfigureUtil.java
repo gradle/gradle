@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.DynamicObjectUtil;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;

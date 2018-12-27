@@ -20,7 +20,7 @@ import groovy.util.BuilderSupport;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import groovy.util.XmlParser;
-import org.gradle.api.internal.DynamicObjectUtil;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
