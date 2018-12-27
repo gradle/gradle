@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public interface ClassGenerator {
+interface ClassGenerator {
     /**
      * Generates a proxy class for the given class. May return the given class unmodified or may generate a subclass.
      */

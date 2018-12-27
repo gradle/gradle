@@ -22,7 +22,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -33,14 +37,10 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -66,8 +66,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.instantiation.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
 import static org.gradle.api.reflect.TypeOf.typeOf;
+import static org.gradle.internal.instantiation.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
@@ -87,7 +87,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
-    private final AbstractClassGenerator generator = AsmBackedClassGenerator.decorateAndInject();
+    private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject();
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         ClassGenerator.GeneratedClass<? extends T> type = generator.generate(clazz);

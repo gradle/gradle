@@ -23,7 +23,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.lang.reflect.Modifier;
 
-public class Jsr330ConstructorSelector implements ConstructorSelector {
+class Jsr330ConstructorSelector implements ConstructorSelector {
     private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 

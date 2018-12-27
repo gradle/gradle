@@ -23,7 +23,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InjectUtil {
+class InjectUtil {
     /**
      * Selects the single injectable constructor for the given type.
      * The type must either have only one public or package-private default constructor,

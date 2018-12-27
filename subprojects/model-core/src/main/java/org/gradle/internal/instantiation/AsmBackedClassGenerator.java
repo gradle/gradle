@@ -25,25 +25,25 @@ import groovy.lang.MetaClassRegistry;
 import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -90,6 +90,7 @@ public abstract class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
     private final boolean decorate;
     private final String suffix;
+    private final Set<Class<? extends Annotation>> injectAnnotations;
 
     // Used by generated code
     @SuppressWarnings("unused")
@@ -103,25 +104,36 @@ public abstract class AsmBackedClassGenerator extends AbstractClassGenerator {
         return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
     }
 
-    private AsmBackedClassGenerator(boolean decorate, String suffix) {
+    private AsmBackedClassGenerator(boolean decorate, String suffix, Set<Class<? extends Annotation>> injectAnnotations) {
         this.decorate = decorate;
         this.suffix = suffix;
+        this.injectAnnotations = injectAnnotations;
     }
 
     /**
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
-    public static AsmBackedClassGenerator decorateAndInject() {
-        return new AsmBackedClassGenerator(true, "$Dsl") {
+    static ClassGenerator decorateAndInject() {
+        return new AsmBackedClassGenerator(true, "$Dsl", ImmutableSet.<Class<? extends Annotation>>of()) {
         };
     }
 
     /**
      * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
-    public static AsmBackedClassGenerator injectOnly() {
-        return new AsmBackedClassGenerator(false, "$Inject") {
+    static ClassGenerator injectOnly() {
+        return new AsmBackedClassGenerator(false, "$Inject", ImmutableSet.<Class<? extends Annotation>>of()) {
         };
+    }
+
+    static ClassGenerator injectOnly(Set<Class<? extends Annotation>> annotations) {
+        return new AsmBackedClassGenerator(false, "$Custom", annotations) {
+        };
+    }
+
+    @Override
+    protected Set<Class<? extends Annotation>> getInjectAnnotations() {
+        return injectAnnotations;
     }
 
     @Override

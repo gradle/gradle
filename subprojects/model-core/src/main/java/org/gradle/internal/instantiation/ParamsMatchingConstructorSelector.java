@@ -24,7 +24,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
-public class ParamsMatchingConstructorSelector implements ConstructorSelector {
+class ParamsMatchingConstructorSelector implements ConstructorSelector {
     private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache;
     private final ClassGenerator classGenerator;
 
