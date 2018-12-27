@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;

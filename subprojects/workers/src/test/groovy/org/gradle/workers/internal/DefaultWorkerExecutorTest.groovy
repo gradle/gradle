@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker

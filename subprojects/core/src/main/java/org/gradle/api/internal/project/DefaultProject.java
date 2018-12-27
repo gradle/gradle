@@ -51,7 +51,7 @@ import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;

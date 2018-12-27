@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
