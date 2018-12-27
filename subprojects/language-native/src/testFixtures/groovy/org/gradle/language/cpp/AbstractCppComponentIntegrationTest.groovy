@@ -136,11 +136,6 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    @Override
-    protected String getDefaultArchitecture() {
-        return super.defaultArchitecture
-    }
-
     protected String getCurrentHostOperatingSystemFamilyDsl() {
         String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
         if (osFamily == OperatingSystemFamily.MACOS) {
