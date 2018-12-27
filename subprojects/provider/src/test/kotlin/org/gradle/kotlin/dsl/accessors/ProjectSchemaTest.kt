@@ -1,7 +1,10 @@
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.internal.classpath.ClassPath
 
@@ -9,6 +12,7 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
@@ -199,19 +203,130 @@ class ProjectSchemaTest : TestWithClassPath() {
         )
     }
 
+    @Test
+    fun `cache key takes configurations into account`() {
+
+        assertThat(
+            cacheKeyFor(
+                configurations = listOf("api")
+            ),
+            not(equalTo(cacheKeyFor(
+                configurations = listOf("implementation")
+            )))
+        )
+    }
+
+    @Test
+    fun `cache key takes container element names into account`() {
+
+        assertThat(
+            cacheKeyFor(
+                containerElements = listOf(
+                    entry<TaskContainer, DefaultTask>("assemble")
+                )
+            ),
+            not(equalTo(cacheKeyFor(
+                containerElements = listOf(
+                    entry<TaskContainer, DefaultTask>("clean")
+                )
+            )))
+        )
+    }
+
+    @Test
+    fun `cache key takes container element types into account`() {
+
+        assertThat(
+            cacheKeyFor(
+                containerElements = listOf(
+                    entry<TaskContainer, DefaultTask>("clean")
+                )
+            ),
+            not(equalTo(cacheKeyFor(
+                containerElements = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                )
+            )))
+        )
+    }
+
+    @Test
+    fun `cache key takes task names into account`() {
+
+        assertThat(
+            cacheKeyFor(
+                tasks = listOf(
+                    entry<TaskContainer, DefaultTask>("assemble")
+                )
+            ),
+            not(equalTo(cacheKeyFor(
+                tasks = listOf(
+                    entry<TaskContainer, DefaultTask>("clean")
+                )
+            )))
+        )
+    }
+
+    @Test
+    fun `cache key takes task types into account`() {
+
+        assertThat(
+            cacheKeyFor(
+                tasks = listOf(
+                    entry<TaskContainer, DefaultTask>("clean")
+                )
+            ),
+            not(equalTo(cacheKeyFor(
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                )
+            )))
+        )
+    }
+
     private
-    fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) =
-        ProjectSchema(
-            extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) },
-            conventions = emptyList(),
-            tasks = emptyList(),
-            containerElements = emptyList(),
-            configurations = emptyList())
+    fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) = projectSchemaWith(
+        extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) }
+    )
+
+    private
+    fun cacheKeyFor(
+        extensions: TypedProjectSchemaEntryList = emptyList(),
+        conventions: TypedProjectSchemaEntryList = emptyList(),
+        tasks: TypedProjectSchemaEntryList = emptyList(),
+        containerElements: TypedProjectSchemaEntryList = emptyList(),
+        configurations: List<String> = emptyList()
+    ): String = projectSchemaWith(
+        extensions = extensions,
+        conventions = conventions,
+        tasks = tasks,
+        containerElements = containerElements,
+        configurations = configurations
+    ).toCacheKeyString()
+
+    private
+    fun projectSchemaWith(
+        extensions: TypedProjectSchemaEntryList = emptyList(),
+        conventions: TypedProjectSchemaEntryList = emptyList(),
+        tasks: TypedProjectSchemaEntryList = emptyList(),
+        containerElements: TypedProjectSchemaEntryList = emptyList(),
+        configurations: List<String> = emptyList()
+    ) = TypedProjectSchema(
+        extensions = extensions,
+        conventions = conventions,
+        tasks = tasks,
+        containerElements = containerElements,
+        configurations = configurations
+    )
 
     private
     fun <T> ProjectSchema<T>.extension(name: String) =
         extensions.single { it.name == name }
 }
+
+
+internal
+typealias TypedProjectSchemaEntryList = List<ProjectSchemaEntry<SchemaType>>
 
 
 internal

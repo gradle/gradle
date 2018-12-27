@@ -472,8 +472,8 @@ internal
 fun TypedProjectSchema.toCacheKeyString(): String =
     (cacheKeyPartsFor(extensions)
         + cacheKeyPartsFor(conventions)
-        // + cacheKeyPartsFor(tasks) // TODO:accessors - add missing test case
-        // + cacheKeyPartsFor(containerElements) // TODO:accessors - add missing test case
+        + cacheKeyPartsFor(tasks)
+        + cacheKeyPartsFor(containerElements)
         + Pair("configuration", configurations.sorted().joinToString(",")))
         .map { "${it.first}=${it.second}" }
         .sorted()
