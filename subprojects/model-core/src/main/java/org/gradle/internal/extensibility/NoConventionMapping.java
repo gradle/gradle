@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.extensibility;
 
+import org.gradle.api.internal.IConventionAware;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

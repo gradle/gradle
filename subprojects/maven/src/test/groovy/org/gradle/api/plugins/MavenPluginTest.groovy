@@ -17,7 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.internal.extensibility.DslObject
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.tasks.Upload
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 

@@ -19,7 +19,7 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.extensibility.IConventionAware;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ReportingExtension;
 

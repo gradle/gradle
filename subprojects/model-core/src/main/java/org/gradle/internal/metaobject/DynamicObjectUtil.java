@@ -16,6 +16,8 @@
 
 package org.gradle.internal.metaobject;
 
+import org.gradle.api.internal.DynamicObjectAware;
+
 public abstract class DynamicObjectUtil {
     public static DynamicObject asDynamicObject(Object object) {
         if (object instanceof DynamicObject) {

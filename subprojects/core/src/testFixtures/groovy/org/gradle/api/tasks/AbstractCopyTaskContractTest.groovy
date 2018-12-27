@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.internal.metaobject.DynamicObjectAware
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 

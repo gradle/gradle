@@ -17,6 +17,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.metaobject.AbstractDynamicObject;

@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensibility;
+package org.gradle.api.internal.plugins;
 
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.DynamicObjectAware;
+import org.gradle.api.internal.DynamicObjectAware;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 

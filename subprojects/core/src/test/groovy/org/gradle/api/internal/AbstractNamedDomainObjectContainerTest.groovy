@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.reflect.TypeOf
-import org.gradle.internal.metaobject.DynamicObjectAware
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
 import spock.lang.Issue

@@ -19,6 +19,8 @@ package org.gradle.internal.extensibility;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;

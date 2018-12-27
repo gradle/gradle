@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.extensibility.DslObject;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
