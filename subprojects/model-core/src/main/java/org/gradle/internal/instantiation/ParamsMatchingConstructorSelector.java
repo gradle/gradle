@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.instantiation;
+package org.gradle.internal.instantiation;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;

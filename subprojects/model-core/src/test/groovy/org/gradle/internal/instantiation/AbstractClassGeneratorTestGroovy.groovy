@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.instantiation
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
+class AbstractClassGeneratorTestGroovy {
 
-import javax.annotation.Nullable;
+    public static class BeanWithGroovyBoolean {
+        boolean smallB
+        Boolean bigB
+        Boolean mixedB
 
-@Contextual
-public class ClassGenerationException extends GradleException {
-    public ClassGenerationException(String message) {
-        super(message);
+        boolean getMixedB() { mixedB }
+
+        Boolean isMixedB() { mixedB }
+
+        void setMixedB(Boolean mixedB) {
+            this.mixedB = mixedB
+        }
+
+        void setMixedB(boolean mixedB) {
+            this.mixedB = mixedB
+        }
     }
 
-    public ClassGenerationException(String message, @Nullable Throwable cause) {
-        super(message, cause);
-    }
 }

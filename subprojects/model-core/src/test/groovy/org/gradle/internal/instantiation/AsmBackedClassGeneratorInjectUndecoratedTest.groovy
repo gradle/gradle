@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal.instantiation
 
-
+import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.extensibility.HasConvention
 import org.gradle.internal.extensibility.IConventionAware
@@ -25,7 +25,7 @@ import org.gradle.internal.service.ServiceRegistry
 
 import javax.inject.Inject
 
-import static org.gradle.api.internal.AsmBackedClassGeneratorTest.*
+import static AsmBackedClassGeneratorTest.*
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.injectOnly()

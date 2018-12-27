@@ -22,7 +22,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;

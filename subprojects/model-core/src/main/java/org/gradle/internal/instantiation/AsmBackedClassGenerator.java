@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.instantiation;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -25,6 +25,7 @@ import groovy.lang.MetaClassRegistry;
 import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;

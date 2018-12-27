@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;

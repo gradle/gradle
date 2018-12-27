@@ -18,7 +18,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.attributes.DisambiguationRuleChain;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.IsolatableFactory;
 

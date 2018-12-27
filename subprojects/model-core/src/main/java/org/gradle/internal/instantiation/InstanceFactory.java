@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.instantiation;
+package org.gradle.internal.instantiation;
 
 import org.gradle.internal.service.ServiceRegistry;
 

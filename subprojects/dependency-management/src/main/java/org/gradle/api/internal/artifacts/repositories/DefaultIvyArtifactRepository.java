@@ -29,7 +29,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;

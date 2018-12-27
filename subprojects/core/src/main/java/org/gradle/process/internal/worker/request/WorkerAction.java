@@ -17,8 +17,8 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;

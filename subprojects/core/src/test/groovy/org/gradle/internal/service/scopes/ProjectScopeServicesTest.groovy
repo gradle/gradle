@@ -23,7 +23,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory

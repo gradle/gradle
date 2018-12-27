@@ -29,7 +29,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;

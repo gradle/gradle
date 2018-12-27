@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;

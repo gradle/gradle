@@ -19,7 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler

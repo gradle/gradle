@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;

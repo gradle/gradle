@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.instantiation;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.extensibility.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -65,7 +66,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
+import static org.gradle.internal.instantiation.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;

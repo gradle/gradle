@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.instantiation;
-
-import org.gradle.api.internal.ClassGenerator;
+package org.gradle.internal.instantiation;
 
 /**
  * Encapsulates the differences, due to backwards compatibility, in instantiation for several different types.
