@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.api.NamedDomainObjectCollectionSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
@@ -155,10 +154,6 @@ fun isPublic(name: String): Boolean =
 
 private
 val typeOfProject = typeOf<Project>()
-
-
-private
-val typeOfConfigurationContainer = typeOf<NamedDomainObjectContainer<Configuration>>()
 
 
 private
