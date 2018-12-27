@@ -21,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Spec;

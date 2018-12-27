@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;

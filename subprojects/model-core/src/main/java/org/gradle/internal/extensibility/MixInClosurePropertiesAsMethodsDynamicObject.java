@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.metaobject;
+package org.gradle.internal.extensibility;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.CompositeDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 
 /**
  * Exposes methods for those properties whose value is a closure.

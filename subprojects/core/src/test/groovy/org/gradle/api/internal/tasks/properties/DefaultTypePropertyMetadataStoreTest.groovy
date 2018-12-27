@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.internal.metaobject.DynamicObjectAware
-import org.gradle.api.internal.HasConvention
-import org.gradle.api.internal.IConventionAware
+import org.gradle.internal.extensibility.HasConvention
+import org.gradle.internal.extensibility.IConventionAware
 import org.gradle.api.internal.tasks.PropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler

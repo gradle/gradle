@@ -18,7 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
-import org.gradle.api.internal.plugins.DslObject
+import org.gradle.internal.extensibility.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext

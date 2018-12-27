@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins
+package org.gradle.internal.extensibility;
 
-import org.gradle.api.plugins.ExtraPropertiesExtensionTest
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.Internal;
 
-public class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
+/**
+ * Demarcates objects that expose a convention.
+ *
+ * Convention objects aren't going to be around forever, so this is a temporary interface.
+ */
+public interface HasConvention {
 
-    DefaultExtraPropertiesExtension createExtension() {
-        new DefaultExtraPropertiesExtension()
-    }
+    @Internal
+    Convention getConvention();
 
 }

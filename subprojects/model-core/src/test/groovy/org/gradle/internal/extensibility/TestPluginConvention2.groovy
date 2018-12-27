@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
  
-package org.gradle.api.plugins
+package org.gradle.internal.extensibility
 
-class TestPluginConvention1 {
-    String a = 'a1'
-    String b = 'b'
-    String c = 'c' 
+class TestPluginConvention2 {
+    String a = 'a2'
 
     String meth() {
-        'called1'
+        'called2'
     }
 
     String meth(String arg) {
-        'called1' + arg
+        'called2' + arg
     }
 }

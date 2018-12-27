@@ -27,7 +27,7 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.reflect.TypeOf;

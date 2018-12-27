@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 import org.gradle.internal.exceptions.Contextual;
 
 public abstract class AbstractMutationGuard implements MutationGuard {

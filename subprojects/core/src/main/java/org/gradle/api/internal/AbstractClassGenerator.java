@@ -28,6 +28,8 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Cast;
+import org.gradle.internal.extensibility.IConventionAware;
+import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.metaobject.DynamicObjectAware;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;

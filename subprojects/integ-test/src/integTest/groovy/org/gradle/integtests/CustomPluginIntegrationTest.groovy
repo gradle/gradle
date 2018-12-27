@@ -23,7 +23,7 @@ class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project p) {
@@ -51,7 +51,7 @@ task test
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('CustomPlugin.java') << '''
 import org.gradle.api.*;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project p) {

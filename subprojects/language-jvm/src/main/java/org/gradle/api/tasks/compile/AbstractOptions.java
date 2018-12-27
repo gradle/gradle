@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.extensibility.DslObject;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 

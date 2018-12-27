@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
 
-import java.lang.annotation.Target;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.gradle.internal.extensibility;
 
-/**
- * Disables the application of convention mapping for the class it is attached to, and all superclasses.
- *
- * @see org.gradle.api.internal.IConventionAware
- */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface NoConventionMapping {
+import org.gradle.api.plugins.ExtensionContainer;
+
+import java.util.Map;
+
+public interface ExtensionContainerInternal extends ExtensionContainer {
+    /**
+     * Provides access to all known extensions.
+     * @return A map of extensions, keyed by name.
+     */
+    Map<String, Object> getAsMap();
 }

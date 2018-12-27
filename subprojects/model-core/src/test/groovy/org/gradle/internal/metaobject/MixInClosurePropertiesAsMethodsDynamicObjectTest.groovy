@@ -16,6 +16,7 @@
 
 package org.gradle.internal.metaobject
 
+import org.gradle.internal.extensibility.MixInClosurePropertiesAsMethodsDynamicObject
 import spock.lang.Specification
 
 class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
