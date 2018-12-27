@@ -21,6 +21,8 @@ import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.BiAction
+import org.gradle.internal.extensibility.HasConvention
+import org.gradle.internal.extensibility.IConventionAware
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil

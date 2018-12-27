@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.extensibility;
 
-package org.gradle.api.internal;
-
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.Internal;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Demarcates objects that expose a convention.
+ * Disables the application of convention mapping for the class it is attached to, and all superclasses.
  *
- * Convention objects aren't going to be around forever, so this is a temporary interface.
+ * @see IConventionAware
  */
-public interface HasConvention {
-
-    @Internal
-    Convention getConvention();
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface NoConventionMapping {
 }

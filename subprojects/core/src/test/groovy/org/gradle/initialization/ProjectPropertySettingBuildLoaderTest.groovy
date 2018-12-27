@@ -18,7 +18,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.internal.extensibility.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

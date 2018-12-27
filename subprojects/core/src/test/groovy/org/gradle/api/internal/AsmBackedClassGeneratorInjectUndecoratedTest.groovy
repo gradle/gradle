@@ -18,6 +18,8 @@ package org.gradle.api.internal
 
 
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.internal.extensibility.HasConvention
+import org.gradle.internal.extensibility.IConventionAware
 import org.gradle.internal.metaobject.DynamicObjectAware
 import org.gradle.internal.service.ServiceRegistry
 

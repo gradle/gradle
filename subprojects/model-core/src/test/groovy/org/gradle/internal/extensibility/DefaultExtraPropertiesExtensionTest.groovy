@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.internal.extensibility
 
-import org.gradle.api.plugins.ExtensionContainer;
+public class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
 
-import java.util.Map;
+    DefaultExtraPropertiesExtension createExtension() {
+        new DefaultExtraPropertiesExtension()
+    }
 
-public interface ExtensionContainerInternal extends ExtensionContainer {
-    /**
-     * Provides access to all known extensions.
-     * @return A map of extensions, keyed by name.
-     */
-    Map<String, Object> getAsMap();
 }

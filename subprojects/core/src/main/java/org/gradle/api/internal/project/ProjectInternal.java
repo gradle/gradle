@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasFileOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.internal.extensibility.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
