@@ -31,7 +31,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.internal.extensibility.DslObject;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
-import org.gradle.internal.extensibility.DslObject;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;

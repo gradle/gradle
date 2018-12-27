@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensibility;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.plugins.ExtensionContainer;
 
-/**
- * Demarcates objects that expose a convention.
- *
- * Convention objects aren't going to be around forever, so this is a temporary interface.
- */
-public interface HasConvention {
+import java.util.Map;
 
-    @Internal
-    Convention getConvention();
-
+public interface ExtensionContainerInternal extends ExtensionContainer {
+    /**
+     * Provides access to all known extensions.
+     * @return A map of extensions, keyed by name.
+     */
+    Map<String, Object> getAsMap();
 }

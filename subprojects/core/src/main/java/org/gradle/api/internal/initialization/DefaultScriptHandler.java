@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.internal.metaobject.DynamicObjectAware;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;

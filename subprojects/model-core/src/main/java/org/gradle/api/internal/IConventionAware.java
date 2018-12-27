@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensibility;
+package org.gradle.api.internal;
 
 import org.gradle.api.tasks.Internal;
 

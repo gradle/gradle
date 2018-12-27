@@ -14,16 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensibility;
+package org.gradle.api.internal.plugins
 
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-import java.util.Map;
+class DslObjectTest extends Specification {
+    
+    def "fails lazily for non dsl object"() {
+        when:
+        def dsl = new DslObject(new Object())
 
-public interface ExtensionContainerInternal extends ExtensionContainer {
-    /**
-     * Provides access to all known extensions.
-     * @return A map of extensions, keyed by name.
-     */
-    Map<String, Object> getAsMap();
+        then:
+        notThrown(Exception)
+
+        when:
+        dsl.asDynamicObject
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    static class Thing {}
+
+    def "works for dsl object"() {
+        when:
+        new DslObject(TestUtil.instantiatorFactory().decorateLenient().newInstance(Thing))
+
+        then:
+        notThrown(Exception)
+    }
 }

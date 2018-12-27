@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.metaobject;
+package org.gradle.api.internal;
+
+import org.gradle.internal.metaobject.DynamicObject;
 
 /**
  * An object that can present a dynamic view of itself.

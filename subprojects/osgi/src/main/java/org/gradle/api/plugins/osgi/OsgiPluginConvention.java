@@ -17,8 +17,8 @@ package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.internal.extensibility.ConventionMapping;
-import org.gradle.internal.extensibility.IConventionAware;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.ProjectInternal;

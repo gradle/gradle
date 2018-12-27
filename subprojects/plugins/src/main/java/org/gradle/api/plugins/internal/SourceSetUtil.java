@@ -18,8 +18,8 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.internal.extensibility.ConventionMapping;
-import org.gradle.internal.extensibility.DslObject;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;

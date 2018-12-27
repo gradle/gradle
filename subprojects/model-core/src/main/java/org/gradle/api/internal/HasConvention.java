@@ -14,34 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensibility
+package org.gradle.api.internal;
 
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.Internal;
 
-class DslObjectTest extends Specification {
-    
-    def "fails lazily for non dsl object"() {
-        when:
-        def dsl = new DslObject(new Object())
+/**
+ * Demarcates objects that expose a convention.
+ *
+ * Convention objects aren't going to be around forever, so this is a temporary interface.
+ */
+public interface HasConvention {
 
-        then:
-        notThrown(Exception)
+    @Internal
+    Convention getConvention();
 
-        when:
-        dsl.asDynamicObject
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    static class Thing {}
-
-    def "works for dsl object"() {
-        when:
-        new DslObject(TestUtil.instantiatorFactory().decorateLenient().newInstance(Thing))
-
-        then:
-        notThrown(Exception)
-    }
 }

@@ -18,9 +18,9 @@ package org.gradle.internal.instantiation
 
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.extensibility.HasConvention
-import org.gradle.internal.extensibility.IConventionAware
-import org.gradle.internal.metaobject.DynamicObjectAware
+import org.gradle.api.internal.HasConvention
+import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.internal.service.ServiceRegistry
 
 import javax.inject.Inject

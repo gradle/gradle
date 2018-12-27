@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.Directory;
-import org.gradle.internal.extensibility.ConventionMapping;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.SingleFileReport;

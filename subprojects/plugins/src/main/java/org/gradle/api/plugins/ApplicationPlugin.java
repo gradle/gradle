@@ -26,7 +26,7 @@ import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
-import org.gradle.internal.extensibility.IConventionAware;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;

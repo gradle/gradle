@@ -19,7 +19,7 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.internal.metaobject.DynamicObjectAware;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.api.internal.file.HasFileOperations;
 import org.gradle.internal.logging.StandardOutputCapture;
