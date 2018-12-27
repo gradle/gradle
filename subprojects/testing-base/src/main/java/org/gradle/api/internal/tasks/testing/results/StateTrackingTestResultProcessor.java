@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -24,13 +31,9 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
+    private final Set<Object> skipped = new HashSet<Object>();
     private TestDescriptorInternal currentParent;
     private final TestListenerInternal delegate;
 
@@ -74,11 +77,19 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     public final void completed(Object testId, TestCompleteEvent event) {
         ensureChildrenCompleted(testId, event.getEndTime());
 
+        if (skipped.contains(testId)) {
+            return;
+        }
+
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
                     "Received a completed event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
+        }
+
+        if (event.getResultType() == TestResult.ResultType.SKIPPED) {
+            skipped.add(testId);
         }
 
         //In case the output event arrives after completion of the test
@@ -98,6 +109,10 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
 
     @Override
     public final void failure(Object testId, Throwable result) {
+        if (skipped.contains(testId)) {
+            return;
+        }
+
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(

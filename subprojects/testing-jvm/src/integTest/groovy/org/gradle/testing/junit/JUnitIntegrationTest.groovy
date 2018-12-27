@@ -15,6 +15,16 @@
  */
 package org.gradle.testing.junit
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.matchesRegexp
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.startsWith
+import static org.junit.Assert.assertThat
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -27,16 +37,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
-import static org.gradle.util.Matchers.containsLine
-import static org.gradle.util.Matchers.matchesRegexp
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.not
-import static org.hamcrest.Matchers.startsWith
-import static org.junit.Assert.assertThat
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
@@ -247,6 +247,75 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.ExecutionOrderTest')
         result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('classUnderTestIsLoadedOnlyByRunner')
+    }
+
+    @Issue("gradle/gradle#8112")
+    def "should generate test report when a test class exceeds timeout"() {
+        given:
+        testDirectory.file('build.gradle').writelns(
+            "apply plugin: 'java'",
+            mavenCentralRepository(),
+            "dependencies { testImplementation 'junit:junit:4.12' }"
+        )
+        testDirectory.file("gradle.properties") << '''
+            org.gradle.caching=false
+        '''
+        testDirectory.file('src/test/java/org/gradle/TimeoutTest.java') << '''
+package org.gradle;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.Timeout;
+
+public class TimeoutTest {
+  @ClassRule
+  public static Timeout classTimeout = Timeout.millis(1500);
+
+  @Test
+  public void test1() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+  }
+
+  @Test
+  public void test2() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+  }
+}
+'''
+        testDirectory.file('src/test/java/org/gradle/TimeoutFailureTest.java') << '''
+package org.gradle;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.Timeout;
+
+public class TimeoutFailureTest {
+  @ClassRule
+  public static Timeout classTimeout = Timeout.millis(1500);
+
+  @Test
+  public void test1() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+    org.junit.Assert.fail("message");
+  }
+
+  @Test
+  public void test2() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+    org.junit.Assert.fail("message");
+  }
+}
+'''
+
+        when:
+        fails 'test'
+
+        then:
+        failure.assertHasCause("There were failing tests. See the report at:")
+        testDirectory.file('build/test-results/test/TEST-org.gradle.TimeoutTest.xml').assertIsFile()
+        testDirectory.file('build/test-results/test/TEST-org.gradle.TimeoutFailureTest.xml').assertIsFile()
     }
 
     def runsAllTestsInTheSameForkedJvm() {

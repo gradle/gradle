@@ -344,4 +344,48 @@ class StateTrackingTestResultProcessorTest extends Specification {
         1 * listener.output({ it instanceof UnknownTestDescriptor }, grrr)
         0 * listener.output(_, _)
     }
+
+    @Issue("gradle/gradle#8112")
+    def "does not throw error when a skipped test is completed"() {
+        given:
+        def test = new DefaultTestDescriptor("id", "Foo", "bar");
+        def startEvent = new TestStartEvent(100L)
+        def skippedEvent = new TestCompleteEvent(200L, ResultType.SKIPPED)
+        def completeEvent = new TestCompleteEvent(300L)
+
+        when:
+        adapter.started(test, startEvent)
+        adapter.completed(test.id, skippedEvent)
+        adapter.completed(test.id, completeEvent)
+
+        then:
+        1 * listener.started(_, _)
+        1 * listener.completed(
+            { it.descriptor == test },
+            { it.resultType == ResultType.SKIPPED },
+            _
+        )
+    }
+
+    @Issue("gradle/gradle#8112")
+    def "does not throw error when a skipped test is failed"() {
+        given:
+        def test = new DefaultTestDescriptor("id", "Foo", "bar");
+        def startEvent = new TestStartEvent(100L)
+        def skippedEvent = new TestCompleteEvent(200L, ResultType.SKIPPED)
+        def failure = new RuntimeException()
+
+        when:
+        adapter.started(test, startEvent)
+        adapter.completed(test.id, skippedEvent)
+        adapter.failure(test.id, failure)
+
+        then:
+        1 * listener.started(_, _)
+        1 * listener.completed(
+            { it.descriptor == test },
+            { it.resultType == ResultType.SKIPPED },
+            _
+        )
+    }
 }
