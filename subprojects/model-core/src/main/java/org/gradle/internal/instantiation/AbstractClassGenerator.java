@@ -39,6 +39,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -154,7 +155,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract Set<Class<? extends Annotation>> getInjectAnnotations();
 
-    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
     private void inspectType(Class<?> type, List<ClassGenerationHandler> propertyHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
@@ -286,7 +287,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceRegistry services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
                 return AbstractClassGenerator.this.newInstance(constructor, services, nested, params);
             }
 

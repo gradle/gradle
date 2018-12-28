@@ -26,10 +26,13 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
+import org.gradle.internal.service.UnknownServiceException;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class DefaultTransformer implements Transformer {
@@ -92,12 +95,33 @@ public class DefaultTransformer implements Transformer {
     }
 
     private ArtifactTransform newTransformer(File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        if (requiresDependencies) {
-            registry.add(ArtifactTransformDependencies.class, artifactTransformDependencies);
-        }
-        registry.add(File.class, outputDir);
-        return instanceFactory.newInstance(registry, parameters.isolate());
+        ServiceLookup services = new ServiceLookup() {
+            @Nullable
+            @Override
+            public Object find(Type serviceType) throws ServiceLookupException {
+                if (!(serviceType instanceof Class)) {
+                    return null;
+                }
+                Class<?> serviceClass = (Class<?>) serviceType;
+                if (serviceClass.isAssignableFrom(File.class)) {
+                    return outputDir;
+                }
+                if (requiresDependencies && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
+                    return artifactTransformDependencies;
+                }
+                return null;
+            }
+
+            @Override
+            public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+                Object result = find(serviceType);
+                if (result == null) {
+                    throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+                }
+                return result;
+            }
+        };
+        return instanceFactory.newInstance(services, parameters.isolate());
     }
 
     @Override

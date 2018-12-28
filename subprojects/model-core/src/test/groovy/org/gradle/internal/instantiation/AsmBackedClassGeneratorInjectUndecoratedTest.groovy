@@ -16,16 +16,17 @@
 
 package org.gradle.internal.instantiation
 
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GeneratedSubclass
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.internal.service.ServiceLookup
 
 import javax.inject.Inject
 
-import static AsmBackedClassGeneratorTest.*
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BeanWithServiceGetters
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.injectOnly()
@@ -59,7 +60,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
     }
 
     def "generates subclass when service getter methods present"() {
-        def services = Stub(ServiceRegistry)
+        def services = Stub(ServiceLookup)
         services.get(Number) >> 12
 
         expect:
@@ -77,7 +78,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
     }
 
     def "can create decorated and undecorated subclasses of same class"() {
-        def services = Stub(ServiceRegistry)
+        def services = Stub(ServiceLookup)
         services.get(Number) >> 12
 
         expect:

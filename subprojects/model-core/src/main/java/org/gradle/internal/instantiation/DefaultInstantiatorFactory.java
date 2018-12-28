@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.lang.annotation.Annotation;
@@ -62,8 +63,8 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator inject(ServiceRegistry registry) {
-        return injectOnlyScheme.withServices(registry);
+    public Instantiator inject(ServiceLookup services) {
+        return injectOnlyScheme.withServices(services);
     }
 
     @Override
@@ -82,7 +83,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator injectLenient(ServiceRegistry services) {
+    public Instantiator injectLenient(ServiceLookup services) {
         return new DependencyInjectingInstantiator(injectOnlyLenientSelector, services);
     }
 
@@ -92,13 +93,13 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator injectAndDecorate(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(decoratedJsr330Selector, registry);
+    public Instantiator injectAndDecorate(ServiceLookup services) {
+        return new DependencyInjectingInstantiator(decoratedJsr330Selector, services);
     }
 
     @Override
-    public Instantiator injectAndDecorateLenient(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(decoratedLenientSelector, registry);
+    public Instantiator injectAndDecorateLenient(ServiceLookup services) {
+        return new DependencyInjectingInstantiator(decoratedLenientSelector, services);
     }
 
 }

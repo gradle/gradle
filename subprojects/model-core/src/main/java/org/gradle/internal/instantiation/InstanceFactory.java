@@ -16,10 +16,10 @@
 
 package org.gradle.internal.instantiation;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 
 /**
- * Creates instances of the given type.
+ * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some additional metadata about the type, such as which services it requires, and can potentially produce instances more quickly due to the extra context it holds.
  */
 public interface InstanceFactory<T> {
     /**
@@ -30,10 +30,10 @@ public interface InstanceFactory<T> {
     /**
      * Creates a new instance from the given services and parameters.
      */
-    T newInstance(ServiceRegistry services, Object... params);
+    T newInstance(ServiceLookup services, Object... params);
 
     /**
-     * Creates a new instance from the given parameters (and no services).
+     * Creates a new instance from the given parameters and the default services.
      */
     T newInstance(Object... params);
 }

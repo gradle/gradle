@@ -21,7 +21,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -31,10 +31,10 @@ import java.lang.reflect.Type;
  */
 class DependencyInjectingInstantiator implements Instantiator {
     private static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
-    private final ServiceRegistry services;
+    private final ServiceLookup services;
     private final ConstructorSelector constructorSelector;
 
-    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ServiceRegistry services) {
+    public DependencyInjectingInstantiator(ConstructorSelector constructorSelector, ServiceLookup services) {
         this.services = services;
         this.constructorSelector = constructorSelector;
     }
@@ -62,7 +62,7 @@ class DependencyInjectingInstantiator implements Instantiator {
             }
 
             @Override
-            public T newInstance(ServiceRegistry services, Object... parameters) {
+            public T newInstance(ServiceLookup services, Object... parameters) {
                 try {
                     Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
                     try {
@@ -82,7 +82,7 @@ class DependencyInjectingInstantiator implements Instantiator {
         };
     }
 
-    private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceRegistry services, Object[] parameters) {
+    private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
         constructorSelector.vetoParameters(constructor, parameters);
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
@@ -133,7 +133,7 @@ class DependencyInjectingInstantiator implements Instantiator {
         throw new IllegalArgumentException(formatter.toString());
     }
 
-    private Object[] addServicesToParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceRegistry services, Object[] parameters) {
+    private Object[] addServicesToParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         Type[] genericTypes = constructor.getGenericParameterTypes();
         Object[] resolvedParameters = new Object[parameterTypes.length];
