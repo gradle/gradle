@@ -33,6 +33,8 @@ import spock.lang.Issue
 import javax.inject.Inject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject()
@@ -363,6 +365,32 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         0 * services._
     }
 
+    def "retains declared type of service getter"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(_) >> { Type type ->
+            assert type instanceof ParameterizedType
+            assert type.rawType == List.class
+            assert type.actualTypeArguments.length == 1
+            assert type.actualTypeArguments[0] == Number
+            return [12]
+        }
+
+        when:
+        def obj = create(BeanWithParameterizedTypeService, services)
+
+        then:
+        obj.things == [12]
+        obj.getThings() == [12]
+        obj.getProperty("things") == [12]
+
+        def returnType = obj.getClass().getDeclaredMethod("getThings").genericReturnType
+        assert returnType instanceof ParameterizedType
+        assert returnType.rawType == List.class
+        assert returnType.actualTypeArguments.length == 1
+        assert returnType.actualTypeArguments[0] == Number
+    }
+
     def "service lookup is lazy and the result is cached"() {
         given:
         def services = Mock(ServiceLookup)
@@ -390,7 +418,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     def "can inject service using a custom annotation on getter method with dummy method body"() {
         given:
         def services = Mock(ServiceLookup)
-        _ * services.get(Number) >> 12
+        _ * services.get(Number, CustomInject) >> 12
 
         when:
         def obj = create(AsmBackedClassGenerator.injectOnly([CustomInject] as Set), BeanWithCustomServices, services)
@@ -404,7 +432,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     def "can inject service using a custom annotation on abstract getter method"() {
         given:
         def services = Mock(ServiceLookup)
-        _ * services.get(Number) >> 12
+        _ * services.get(Number, CustomInject) >> 12
 
         when:
         def obj = create(AsmBackedClassGenerator.injectOnly([CustomInject] as Set), AbstractBeanWithCustomServices, services)
@@ -680,6 +708,11 @@ class BeanWithServicesAndServiceRegistry extends BeanWithServices {
         services.add(Number, 12)
         return services
     }
+}
+
+class BeanWithParameterizedTypeService {
+    @Inject
+    List<Number> getThings() { throw new UnsupportedOperationException() }
 }
 
 interface WithProperties {

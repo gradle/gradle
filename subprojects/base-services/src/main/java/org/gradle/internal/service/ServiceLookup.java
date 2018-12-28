@@ -17,6 +17,7 @@
 package org.gradle.internal.service;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 /**
@@ -27,4 +28,6 @@ public interface ServiceLookup {
     Object find(Type serviceType) throws ServiceLookupException;
 
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
+
+    Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException;
 }

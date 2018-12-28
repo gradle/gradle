@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 
-class ArtifactTransformDependenciesInjectionTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformValuesInjectionTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     def "transform can receive dependencies via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -97,5 +98,73 @@ abstract class MakeGreen extends ArtifactTransform {
         outputContains("processing c.jar")
         outputContains("processing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    def "transform cannot use @Workspace to receive dependencies"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorAttribute()
+        buildFile << """
+
+project(':a') {
+    dependencies {
+        implementation project(':b')
+    }
+}
+
+abstract class MakeGreen extends ArtifactTransform {
+    @Workspace
+    abstract ArtifactTransformDependencies getDependencies()
+    
+    List<File> transform(File input) {
+        dependencies.files
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        // Documents existing behaviour. Should fail eagerly and with a better error message
+        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
+        failure.assertHasCause("No service of type interface ${ArtifactTransformDependencies.name} available.")
+    }
+
+    def "transform cannot use @Inject to receive workspace"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorAttribute()
+        buildFile << """
+
+project(':a') {
+    dependencies {
+        implementation project(':b')
+    }
+}
+
+abstract class MakeGreen extends ArtifactTransform {
+    @Inject
+    abstract File getWorkspace()
+    
+    List<File> transform(File input) {
+        workspace
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        // Documents existing behaviour. Should fail eagerly and with a better error message
+        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
+        failure.assertHasCause("No service of type class ${File.name} available.")
     }
 }

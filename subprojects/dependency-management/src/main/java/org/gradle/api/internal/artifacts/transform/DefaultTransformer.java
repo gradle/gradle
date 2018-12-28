@@ -32,6 +32,7 @@ import org.gradle.internal.service.UnknownServiceException;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -95,32 +96,7 @@ public class DefaultTransformer implements Transformer {
     }
 
     private ArtifactTransform newTransformer(File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new ServiceLookup() {
-            @Nullable
-            @Override
-            public Object find(Type serviceType) throws ServiceLookupException {
-                if (!(serviceType instanceof Class)) {
-                    return null;
-                }
-                Class<?> serviceClass = (Class<?>) serviceType;
-                if (serviceClass.isAssignableFrom(File.class)) {
-                    return outputDir;
-                }
-                if (requiresDependencies && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
-                    return artifactTransformDependencies;
-                }
-                return null;
-            }
-
-            @Override
-            public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-                Object result = find(serviceType);
-                if (result == null) {
-                    throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
-                }
-                return result;
-            }
-        };
+        ServiceLookup services = new TransformServiceLookup(outputDir, requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services, parameters.isolate());
     }
 
@@ -156,5 +132,55 @@ public class DefaultTransformer implements Transformer {
     @Override
     public int hashCode() {
         return inputsHash.hashCode();
+    }
+
+    private static class TransformServiceLookup implements ServiceLookup {
+        private final File outputDir;
+        private final ArtifactTransformDependencies artifactTransformDependencies;
+
+        public TransformServiceLookup(File outputDir, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+            this.outputDir = outputDir;
+            this.artifactTransformDependencies = artifactTransformDependencies;
+        }
+
+        @Nullable
+        private
+        Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
+            if (!(serviceType instanceof Class)) {
+                return null;
+            }
+            Class<?> serviceClass = (Class<?>) serviceType;
+            if (annotatedWith == Workspace.class && serviceClass.isAssignableFrom(File.class)) {
+                return outputDir;
+            }
+            if (annotatedWith == null && artifactTransformDependencies != null && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
+                return artifactTransformDependencies;
+            }
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Object find(Type serviceType) throws ServiceLookupException {
+            return find(serviceType, null);
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType);
+            if (result == null) {
+                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+            }
+            return result;
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType, annotatedWith);
+            if (result == null) {
+                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+            }
+            return result;
+        }
     }
 }
