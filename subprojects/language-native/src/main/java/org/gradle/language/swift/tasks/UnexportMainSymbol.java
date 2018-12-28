@@ -34,6 +34,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Unexports the <code>main</code> entry point symbol in an object file, so the object file can be linked with an executable.
@@ -82,26 +83,36 @@ public class UnexportMainSymbol extends DefaultTask {
     public void unexport() {
         for (final File file: source) {
             final File relocatedObject = outputDirectory.file(file.getName()).get().getAsFile();
-            getProject().exec(new Action<ExecSpec>() {
-                @Override
-                public void execute(ExecSpec execSpec) {
-                    // TODO: should use target platform to make this decision
-                    if (OperatingSystem.current().isMacOsX()) {
-                        execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
-                        execSpec.args(file);
-                        execSpec.args("-o", relocatedObject);
-                        execSpec.args("-r"); // relink, produce another object file
-                        execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
-                    } else if (OperatingSystem.current().isLinux()) {
-                        execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
-                        execSpec.args("-L", "main"); // hide main symbol
-                        execSpec.args(file);
-                        execSpec.args(relocatedObject);
-                    } else {
-                        throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
+            if (OperatingSystem.current().isWindows()) {       
+                try {
+                    final SymbolHider symbolHider = new SymbolHider(file);
+                    symbolHider.hideSymbol("main");
+                    symbolHider.saveTo(relocatedObject);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Failed to unexport a main symbol on " + OperatingSystem.current());
+                }   
+            } else {
+                getProject().exec(new Action<ExecSpec>() {
+                    @Override
+                    public void execute(ExecSpec execSpec) {
+                        // TODO: should use target platform to make this decision
+                        if (OperatingSystem.current().isMacOsX()) {
+                            execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
+                            execSpec.args(file);
+                            execSpec.args("-o", relocatedObject);
+                            execSpec.args("-r"); // relink, produce another object file
+                            execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
+                        } else if (OperatingSystem.current().isLinux()) {
+                            execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
+                            execSpec.args("-L", "main"); // hide main symbol
+                            execSpec.args(file);
+                            execSpec.args(relocatedObject);
+                        } else {
+                            throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 }
