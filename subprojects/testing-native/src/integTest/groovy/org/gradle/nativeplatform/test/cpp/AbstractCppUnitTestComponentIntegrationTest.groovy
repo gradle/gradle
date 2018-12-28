@@ -32,4 +32,9 @@ abstract class AbstractCppUnitTestComponentIntegrationTest extends AbstractCppCo
     protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
         return ":runTest${architecture.capitalize()}"
     }
+
+    @Override
+    protected String getComponentName() {
+        return "test"
+    }
 }

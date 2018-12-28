@@ -184,7 +184,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         and:
-        failure.assertHasDescription("The component 'main' does not target this operating system.")
+        failure.assertHasDescription("The ${componentName} component does not target this operating system.")
     }
 
     def "does not fail when current operating system family is excluded but assemble is not invoked"() {
@@ -231,6 +231,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract String getTaskNameToAssembleDevelopmentBinary()
 
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+
+    abstract String getComponentName()
 
     protected configureTargetMachines(String targetMachines) {
         return """

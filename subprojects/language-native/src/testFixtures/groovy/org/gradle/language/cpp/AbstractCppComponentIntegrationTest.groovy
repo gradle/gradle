@@ -51,7 +51,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         fails taskNameToAssembleDevelopmentBinary
 
         and:
-        failure.assertHasDescription("The component 'main' does not target this operating system.")
+        failure.assertHasDescription("The ${componentName} component does not target this operating system.")
     }
 
     def "does not fail when current operating system family is excluded but assemble is not invoked"() {
@@ -165,6 +165,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
 
     protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
+
+    protected abstract String getComponentName()
 
     protected configureTargetMachines(String targetMachines) {
         return """

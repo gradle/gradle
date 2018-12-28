@@ -166,7 +166,7 @@ public class NativeBasePlugin implements Plugin<Project> {
                 project.getGradle().getTaskGraph().whenReady(taskExecutionGraph -> {
                     TaskIdentity<Task> assembleIdentity = TaskIdentity.create(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, null, (ProjectInternal)project);
                     if (taskExecutionGraph.hasTask(assembleIdentity.identityPath.getPath()) && component.getBinaries().get().isEmpty()) {
-                        throw new IllegalArgumentException("The component '" + component.getName() + "' does not target this operating system.");
+                        throw new IllegalArgumentException("The " + component.getName() + " component does not target this operating system.");
                     }
                 });
             }

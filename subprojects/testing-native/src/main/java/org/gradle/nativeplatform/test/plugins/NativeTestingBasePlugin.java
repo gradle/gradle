@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -45,6 +47,10 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class NativeTestingBasePlugin implements Plugin<Project> {
+
+    private static final String TEST_TASK_NAME = "test";
+    private static final String TEST_COMPONENT_NAME = "test";
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -54,14 +60,24 @@ public class NativeTestingBasePlugin implements Plugin<Project> {
         // Create test lifecycle task
         TaskContainer tasks = project.getTasks();
 
-        final TaskProvider<Task> test = tasks.register("test", task -> task.dependsOn((Callable<Object>) () -> {
-            TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
+        final TaskProvider<Task> test = tasks.register(TEST_TASK_NAME, task -> task.dependsOn((Callable<Object>) () -> {
+            TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName(TEST_COMPONENT_NAME);
             if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
                 return unitTestSuite.getTestBinary().get().getRunTask();
             }
             return null;
         }));
 
+        project.getComponents().withType(TestSuiteComponent.class, testSuiteComponent -> {
+            if (TEST_COMPONENT_NAME.equals(testSuiteComponent.getName())) {
+                project.getGradle().getTaskGraph().whenReady(taskExecutionGraph -> {
+                    TaskIdentity<Task> testTaskIdentity = TaskIdentity.create(TEST_TASK_NAME, null, (ProjectInternal) project);
+                    if (taskExecutionGraph.hasTask(testTaskIdentity.identityPath.getPath()) && !testSuiteComponent.getTestBinary().isPresent()) {
+                        throw new IllegalArgumentException("The " + testSuiteComponent.getName() + " component does not target this operating system.");
+                    }
+                });
+            }
+        });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(test));
     }

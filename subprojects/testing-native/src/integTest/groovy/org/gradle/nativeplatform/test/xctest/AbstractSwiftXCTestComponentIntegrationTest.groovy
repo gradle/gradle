@@ -59,4 +59,9 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
+
+    @Override
+    String getComponentName() {
+        return "test"
+    }
 }
