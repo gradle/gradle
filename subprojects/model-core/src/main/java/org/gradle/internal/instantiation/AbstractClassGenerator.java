@@ -105,12 +105,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
-        ServiceInjectionPropertyHandler injectionHandler = new ServiceInjectionPropertyHandler(getInjectAnnotations());
+        ServiceInjectionPropertyHandler injectionHandler = new ServiceInjectionPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
         // Order is significant. Injection handler should be at the end
-        List<ClassGenerationHandler> handlers = ImmutableList.of(extensibleTypeHandler, dslMixInHandler, propertyTypedHandler, injectionHandler);
+        List<ClassGenerationHandler> handlers = new ArrayList<ClassGenerationHandler>(4 + getInjectAnnotations().size());
+        handlers.add(extensibleTypeHandler);
+        handlers.add(dslMixInHandler);
+        handlers.add(propertyTypedHandler);
+        for (Class<? extends Annotation> annotation : getInjectAnnotations()) {
+            handlers.add(new CustomAnnotationInjectionPropertyHandler(annotation));
+        }
+        handlers.add(injectionHandler);
 
         final Class<?> subclass;
         try {
@@ -178,19 +185,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 propertyHandler.visitProperty(propertyMetaData);
             }
 
-            ClassGenerationHandler ownedBy = null;
+            ClassGenerationHandler claimedBy = null;
             for (ClassGenerationHandler propertyHandler : propertyHandlers) {
                 if (!propertyHandler.claimProperty(propertyMetaData)) {
                     continue;
                 }
-                if (ownedBy == null) {
-                    ownedBy = propertyHandler;
+                if (claimedBy == null) {
+                    claimedBy = propertyHandler;
                 } else {
                     propertyHandler.ambiguous(propertyMetaData);
                     break;
                 }
             }
-            if (ownedBy != null) {
+            if (claimedBy != null) {
                 continue;
             }
 
@@ -726,13 +733,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ServiceInjectionPropertyHandler extends ClassGenerationHandler {
-        private final Set<Class<? extends Annotation>> injectAnnotations;
         private boolean hasServicesProperty;
         private final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
-
-        public ServiceInjectionPropertyHandler(Set<Class<? extends Annotation>> injectAnnotations) {
-            this.injectAnnotations = injectAnnotations;
-        }
 
         @Override
         public void validateMethod(Method method) {
@@ -779,12 +781,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     serviceInjectionProperties.add(property);
                     return true;
                 }
-                for (Class<? extends Annotation> annotation : injectAnnotations) {
-                    if (method.getAnnotation(annotation) != null) {
-                        serviceInjectionProperties.add(property);
-                        return true;
-                    }
-                }
             }
             return false;
         }
@@ -805,7 +801,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
-            if (isShouldImplementWithServicesRegistry()) {
+            if (hasServicesProperty) {
+                visitor.providesOwnServicesImplementation();
+            }
+            if (!serviceInjectionProperties.isEmpty()) {
                 visitor.mixInServiceInjection();
             }
         }
@@ -813,7 +812,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public void applyTo(ClassGenerationVisitor visitor) {
             for (PropertyMetaData property : serviceInjectionProperties) {
-                visitor.addInjectorProperty(property);
+                visitor.applyServiceInjectionToProperty(property);
                 for (Method getter : property.getOverridableGetters()) {
                     visitor.applyServiceInjectionToGetter(property, getter);
                 }
@@ -821,10 +820,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     visitor.applyServiceInjectionToSetter(property, setter);
                 }
             }
-        }
-
-        public boolean isShouldImplementWithServicesRegistry() {
-            return !serviceInjectionProperties.isEmpty() && !hasServicesProperty;
         }
 
         public List<Class<?>> getInjectedServices() {
@@ -836,12 +831,54 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
+    private static class CustomAnnotationInjectionPropertyHandler extends ClassGenerationHandler {
+        private final Class<? extends Annotation> injectAnnotation;
+        private final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
+
+        public CustomAnnotationInjectionPropertyHandler(Class<? extends Annotation> injectAnnotation) {
+            this.injectAnnotation = injectAnnotation;
+        }
+
+        @Override
+        public boolean claimProperty(PropertyMetaData property) {
+            for (Method method : property.getters) {
+                if (method.getAnnotation(injectAnnotation) != null) {
+                    serviceInjectionProperties.add(property);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        void applyTo(ClassInspectionVisitor visitor) {
+            if (!serviceInjectionProperties.isEmpty()) {
+                visitor.mixInServiceInjection();
+            }
+        }
+
+        @Override
+        public void applyTo(ClassGenerationVisitor visitor) {
+            for (PropertyMetaData property : serviceInjectionProperties) {
+                visitor.applyServiceInjectionToProperty(property);
+                for (Method getter : property.getOverridableGetters()) {
+                    visitor.applyServiceInjectionToGetter(property, injectAnnotation, getter);
+                }
+                for (Method setter : property.getOverridableSetters()) {
+                    visitor.applyServiceInjectionToSetter(property, injectAnnotation, setter);
+                }
+            }
+        }
+    }
+
     protected interface ClassInspectionVisitor {
         void mixInExtensible();
 
         void mixInConventionAware();
 
         void providesOwnDynamicObjectImplementation();
+
+        void providesOwnServicesImplementation();
 
         void mixInServiceInjection();
 
@@ -861,11 +898,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addExtensionsProperty();
 
-        void addInjectorProperty(PropertyMetaData property);
+        void applyServiceInjectionToProperty(PropertyMetaData property);
 
         void applyServiceInjectionToGetter(PropertyMetaData property, Method getter);
 
         void applyServiceInjectionToSetter(PropertyMetaData property, Method setter);
+
+        void applyServiceInjectionToGetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method getter);
+
+        void applyServiceInjectionToSetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method setter);
 
         void addConventionProperty(PropertyMetaData property);
 
