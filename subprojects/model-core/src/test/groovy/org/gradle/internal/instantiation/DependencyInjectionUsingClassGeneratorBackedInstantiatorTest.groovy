@@ -17,7 +17,7 @@ package org.gradle.internal.instantiation
 
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceLookup
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -25,7 +25,7 @@ import javax.inject.Inject
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
     final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject()
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
-    final ServiceRegistry services = Mock()
+    final ServiceLookup services = Mock()
     final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
 
     def "injects service using getter injection"() {
@@ -76,7 +76,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "can use factory to create instance with injected service and parameter"() {
         given:
-        def services = Stub(ServiceRegistry)
+        def services = Stub(ServiceLookup)
         _ * services.find(String) >> "string"
 
         when:
@@ -90,7 +90,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "can use factory to create instance with injected service using getter"() {
         given:
-        def services = Stub(ServiceRegistry)
+        def services = Stub(ServiceLookup)
         _ * services.get(String) >> "string"
 
         when:

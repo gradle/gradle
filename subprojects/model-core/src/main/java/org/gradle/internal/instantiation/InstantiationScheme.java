@@ -17,8 +17,13 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 
+/**
+ * A scheme, or strategy, for creating objects.
+ *
+ * <p>Implementations are provided by a {@link InstantiatorFactory}.</p>
+ */
 public interface InstantiationScheme {
     /**
      * Creates a new {@link InstanceFactory} for the given type, which creates instances based on the configuration of this scheme.
@@ -28,7 +33,7 @@ public interface InstantiationScheme {
     /**
      * Creates a new {@link Instantiator} which creates instances using the given services, based on the configuration of this scheme.
      */
-    Instantiator withServices(ServiceRegistry registry);
+    Instantiator withServices(ServiceLookup services);
 
     /**
      * Returns the instantiator which creates instances using a default set of services (usually empty), based on the configuration of this scheme.

@@ -16,16 +16,15 @@
 
 package org.gradle.internal.instantiation
 
-
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceLookup
 import spock.lang.Specification
 
 import javax.inject.Inject
 
 class DependencyInjectingInstantiatorTest extends Specification {
-    def services = Mock(ServiceRegistry)
+    def services = Mock(ServiceLookup)
     def classGenerator = new IdentityClassGenerator()
     def instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache()), services)
 

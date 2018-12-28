@@ -17,6 +17,7 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
 class DefaultInstantiationScheme implements InstantiationScheme {
@@ -34,8 +35,8 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     }
 
     @Override
-    public Instantiator withServices(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(constructorSelector, registry);
+    public Instantiator withServices(ServiceLookup services) {
+        return new DependencyInjectingInstantiator(constructorSelector, services);
     }
 
     @Override

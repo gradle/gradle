@@ -17,25 +17,30 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+/**
+ * Provides various mechanisms for instantiation of objects.
+ *
+ * <p>A service of this type is available in all scopes and is the recommended way to obtain an {@link Instantiator} and other types.</p>
+ */
 public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates, but does not decorate the instances.
      *
      * <p>Use for any non-model types for which services or user provided constructor values need to injected.
      *
-     * @param registry The registry of services to make available to instances.
+     * @param services The services to make available to instances.
      */
-    Instantiator inject(ServiceRegistry registry);
+    Instantiator inject(ServiceLookup services);
 
     /**
      * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
      *
-     * <p>Use for any non-model types for which user provided values, but no services, need to be injected. This is simply a convenience for {@link #inject(ServiceRegistry)}.
+     * <p>Use for any non-model types for which user provided values, but no services, need to be injected. This is simply a convenience for {@link #inject(ServiceLookup)}.
      */
     Instantiator inject();
 
@@ -51,18 +56,27 @@ public interface InstantiatorFactory {
      * The returned {@link Instantiator} is lenient when there is a missing {@link javax.inject.Inject} annotation or null constructor parameters,
      * for backwards compatibility.
      *
-     * <p>Use for any non-model types for which user provided values, but no services, need to be injected. Use this method only for existing types
-     * where backwards compatibility is required and instead prefer {@link #inject(ServiceRegistry)} for any new non DSL-types.
+     * <p>Use for any non-model types for which user provided values and services need to be injected. Use this method only for existing types
+     * where backwards compatibility is required and instead prefer {@link #inject(ServiceLookup)} for any new non DSL-types.
      * This method will be retired in the future.
      */
-    Instantiator injectLenient(ServiceRegistry services);
+    Instantiator injectLenient(ServiceLookup services);
 
+    /**
+     * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
+     * The returned {@link Instantiator} is lenient when there is a missing {@link javax.inject.Inject} annotation or null constructor parameters,
+     * for backwards compatibility.
+     *
+     * <p>Use for any non-model types for which user provided values, but no services, need to be injected. Use this method only for existing types
+     * where backwards compatibility is required and instead prefer {@link #inject()} for any new non DSL-types.
+     * This method will be retired in the future.
+     */
     Instantiator injectLenient();
 
     /**
      * Creates an {@link Instantiator} that decorates the instances created.
      *
-     * <p>Use for any model types for which no user provided constructor values or services need to be injected. This is a convenience for {@link #injectAndDecorateLenient(ServiceRegistry)} and will also be retired.
+     * <p>Use for any model types for which no user provided constructor values or services need to be injected. This is a convenience for {@link #injectAndDecorateLenient(ServiceLookup)} and will also be retired.
      */
     Instantiator decorateLenient();
 
@@ -71,9 +85,9 @@ public interface InstantiatorFactory {
      *
      * <p>Use for any model types for which services or user provided constructor values need to injected.
      *
-     * @param registry The registry of services to make available to instances.
+     * @param services The services to make available to instances.
      */
-    Instantiator injectAndDecorate(ServiceRegistry registry);
+    Instantiator injectAndDecorate(ServiceLookup services);
 
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
@@ -81,10 +95,10 @@ public interface InstantiatorFactory {
      * for backwards compatibility.
      *
      * <p>Use for any model types for which services or user provided constructor values need to injected. Use this method only for existing types
-     * where backwards compatibility is required and instead prefer {@link #injectAndDecorate(ServiceRegistry)} for any new non DSL-types.
+     * where backwards compatibility is required and instead prefer {@link #injectAndDecorate(ServiceLookup)} for any new non DSL-types.
      * This method will be retired in the future.
      *
-     * @param registry The registry of services to make available to instances.
+     * @param services The registry of services to make available to instances.
      */
-    Instantiator injectAndDecorateLenient(ServiceRegistry registry);
+    Instantiator injectAndDecorateLenient(ServiceLookup services);
 }
