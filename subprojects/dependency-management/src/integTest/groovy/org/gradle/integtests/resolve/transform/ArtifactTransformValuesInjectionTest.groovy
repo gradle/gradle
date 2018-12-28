@@ -62,7 +62,7 @@ abstract class MakeGreen extends ArtifactTransform {
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "transform can receive workspace via abstract getter"() {
+    def "transform can receive workspace and primary input via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -80,9 +80,13 @@ abstract class MakeGreen extends ArtifactTransform {
     @Workspace
     abstract File getWorkspace()
     
+    @PrimaryInput
+    abstract File getInputFile()
+    
     List<File> transform(File input) {
         println "processing \${input.name}"
         assert workspace == outputDirectory
+        assert inputFile == input
         def output = new File(outputDirectory, input.name + ".green")
         output.text = "ok"
         return [output]
@@ -114,7 +118,7 @@ project(':a') {
 }
 
 abstract class MakeGreen extends ArtifactTransform {
-    @Workspace
+    ${annotation}
     abstract ArtifactTransformDependencies getDependencies()
     
     List<File> transform(File input) {
@@ -132,9 +136,12 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type interface ${ArtifactTransformDependencies.name} available.")
+
+        where:
+        annotation << ["@Workspace", "@PrimaryInput"]
     }
 
-    def "transform cannot use @Inject to receive workspace"() {
+    def "transform cannot use @Inject to receive workspace or input file"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """

@@ -31,6 +31,8 @@ import java.util.List;
  *
  * <p>A property annotated with {@link javax.inject.Inject} and whose type is {@link ArtifactTransformDependencies} will receive the dependencies of the file to be transformed.
  *
+ * <p>A property annotated with {@link PrimaryInput} will receive the <em>primary input</em> location, which is the file or directory that the transform should be applied to.
+ *
  * <p>A property annotated with {@link Workspace} will receive the <em>workspace</em> location, which is the directory that the transform should write its output files to.
  *
  * @since 3.4
