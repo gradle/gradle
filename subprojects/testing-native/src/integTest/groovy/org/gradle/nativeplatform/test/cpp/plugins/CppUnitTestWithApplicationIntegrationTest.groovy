@@ -16,11 +16,6 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-// cpp-unit-test + cpp-application don't work together on Windows yet
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CppUnitTestWithApplicationIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
