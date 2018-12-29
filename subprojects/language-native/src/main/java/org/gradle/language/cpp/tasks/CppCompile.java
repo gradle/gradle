@@ -34,11 +34,11 @@ import javax.inject.Inject;
 @Incubating
 @CacheableTask
 public class CppCompile extends AbstractNativeSourceCompileTask {
-    private final Property<CppSourceCompatibility> srcCompat;
+    private final Property<CppSourceCompatibility> sourceCompatibility;
 
     @Inject
     public CppCompile(ObjectFactory objectFactory) {
-        srcCompat = objectFactory.property(CppSourceCompatibility.class);
+        sourceCompatibility = objectFactory.property(CppSourceCompatibility.class);
     }
 
     /**
@@ -50,13 +50,13 @@ public class CppCompile extends AbstractNativeSourceCompileTask {
     @Input
     @Optional
     public Property<CppSourceCompatibility> getSourceCompatibility() {
-        return srcCompat;
+        return sourceCompatibility;
     }
 
     @Override
     protected NativeCompileSpec createCompileSpec() {
         DefaultCppCompileSpec defaultCppCompileSpec = new DefaultCppCompileSpec();
-        defaultCppCompileSpec.setSourceCompatibility(srcCompat.getOrNull());
+        defaultCppCompileSpec.setSourceCompatibility(sourceCompatibility.getOrNull());
         return defaultCppCompileSpec;
     }
 }

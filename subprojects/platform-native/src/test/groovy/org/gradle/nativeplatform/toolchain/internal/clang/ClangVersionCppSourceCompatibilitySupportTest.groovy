@@ -28,17 +28,17 @@ class ClangVersionCppSourceCompatibilitySupportTest extends Specification {
     }
 
     @Unroll
-    def "throw IAE when clang #version requests source compatibility #srcCompatibility"() {
+    def "throw IAE when clang #version requests source compatibility #sourceCompatibility"() {
         VersionNumber versionNumber = VersionNumber.parse(version)
 
         when:
-        ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(versionNumber, srcCompatibility)
+        ClangVersionCppSourceCompatibilitySupport.getSourceCompatibilityOption(versionNumber, sourceCompatibility)
 
         then:
         thrown(IllegalArgumentException)
 
         where:
-        version | srcCompatibility
+        version | sourceCompatibility
         '1.0'   | CppSourceCompatibility.Cpp03
         '2.0'   | CppSourceCompatibility.Cpp03
         '2.9'   | CppSourceCompatibility.Cpp03

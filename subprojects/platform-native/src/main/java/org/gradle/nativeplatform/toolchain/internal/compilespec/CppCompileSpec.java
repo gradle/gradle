@@ -22,5 +22,5 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 public interface CppCompileSpec extends NativeCompileSpec {
     CppSourceCompatibility getSourceCompatibility();
 
-    void setSourceCompatibility(CppSourceCompatibility cppSrcCompat);
+    void setSourceCompatibility(CppSourceCompatibility sourceCompatibility);
 }

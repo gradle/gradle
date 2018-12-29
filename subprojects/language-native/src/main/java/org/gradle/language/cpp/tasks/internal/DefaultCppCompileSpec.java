@@ -29,7 +29,7 @@ public class DefaultCppCompileSpec extends AbstractNativeCompileSpec implements 
     }
 
     @Override
-    public void setSourceCompatibility(CppSourceCompatibility cppSrcCompat) {
-        this.sourceCompatibility = cppSrcCompat;
+    public void setSourceCompatibility(CppSourceCompatibility sourceCompatibility) {
+        this.sourceCompatibility = sourceCompatibility;
     }
 }
