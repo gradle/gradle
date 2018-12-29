@@ -86,7 +86,8 @@ public class UnexportMainSymbol extends DefaultTask {
             if (OperatingSystem.current().isWindows()) {       
                 try {
                     final SymbolHider symbolHider = new SymbolHider(file);
-                    symbolHider.hideSymbol("main");
+                    symbolHider.hideSymbol("main");     // 64 bit
+                    symbolHider.hideSymbol("_main");    // 32 bit
                     symbolHider.saveTo(relocatedObject);
                 } catch (IOException e) {
                     throw new IllegalStateException("Failed to unexport a main symbol on " + OperatingSystem.current());
