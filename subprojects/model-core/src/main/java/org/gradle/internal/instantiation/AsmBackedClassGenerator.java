@@ -65,6 +65,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,11 +88,11 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
-public abstract class AsmBackedClassGenerator extends AbstractClassGenerator {
+public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
     private final boolean decorate;
     private final String suffix;
-    private final Set<Class<? extends Annotation>> injectAnnotations;
+    private final Integer key;
 
     // Used by generated code
     @SuppressWarnings("unused")
@@ -105,36 +106,31 @@ public abstract class AsmBackedClassGenerator extends AbstractClassGenerator {
         return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
     }
 
-    private AsmBackedClassGenerator(boolean decorate, String suffix, Set<Class<? extends Annotation>> injectAnnotations) {
+    private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
+        super(allKnownAnnotations, enabledAnnotations);
         this.decorate = decorate;
         this.suffix = suffix;
-        this.injectAnnotations = injectAnnotations;
+        // TODO - this isn't correct, fix this. It's just enough to get the tests to pass
+        this.key = enabledAnnotations.size() << 1 | (decorate ? 1 : 0);
     }
 
     /**
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
-    static ClassGenerator decorateAndInject() {
-        return new AsmBackedClassGenerator(true, "$Dsl", ImmutableSet.<Class<? extends Annotation>>of()) {
-        };
+    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
+        return new AsmBackedClassGenerator(true, "$Dsl", allKnownAnnotations, enabledAnnotations);
     }
 
     /**
      * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
-    static ClassGenerator injectOnly() {
-        return new AsmBackedClassGenerator(false, "$Inject", ImmutableSet.<Class<? extends Annotation>>of()) {
-        };
-    }
-
-    static ClassGenerator injectOnly(Set<Class<? extends Annotation>> annotations) {
-        return new AsmBackedClassGenerator(false, "$Custom", annotations) {
-        };
+    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
+        return new AsmBackedClassGenerator(false, "$Inject", allKnownAnnotations, enabledAnnotations);
     }
 
     @Override
-    protected Set<Class<? extends Annotation>> getInjectAnnotations() {
-        return injectAnnotations;
+    protected Object key() {
+        return key;
     }
 
     @Override

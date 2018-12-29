@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Provides various mechanisms for instantiation of objects.
@@ -47,9 +47,9 @@ public interface InstantiatorFactory {
     /**
      * Create a new {@link InstantiationScheme} that can inject services and user provided values into the instances it creates, but does not decorate the instances. Supports using the {@link javax.inject.Inject} annotation plus additional custom annotations.
      *
-     * @param injectAnnotations Zero or more annotations that mark properties whose value will be injected on creation.
+     * @param injectAnnotations Zero or more annotations that mark properties whose value will be injected on creation. Each annotation must be known to this factory via a {@link InjectAnnotationHandler}.
      */
-    InstantiationScheme injectScheme(Set<Class<? extends Annotation>> injectAnnotations);
+    InstantiationScheme injectScheme(Collection<Class<? extends Annotation>> injectAnnotations);
 
     /**
      * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.

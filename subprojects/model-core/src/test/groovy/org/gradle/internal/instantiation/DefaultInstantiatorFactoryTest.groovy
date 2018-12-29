@@ -19,28 +19,52 @@ package org.gradle.internal.instantiation
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Specification
 
+import java.lang.annotation.Annotation
+
 
 class DefaultInstantiatorFactoryTest extends Specification {
-    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory())
+    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)])
 
     def "caches InstantiationScheme instances"() {
-        def classes = [Annotation1] as Set
+        def classes = [Annotation1]
 
         expect:
         instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme(classes))
-        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([] as Set))
-        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([Annotation1, Annotation2] as Set))
+        instantiatorFactory.injectScheme(classes as Set).is(instantiatorFactory.injectScheme(classes))
+        instantiatorFactory.injectScheme([Annotation1, Annotation1]).is(instantiatorFactory.injectScheme(classes))
+
+        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([]))
+        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([Annotation1, Annotation2]))
+
+        instantiatorFactory.injectScheme([Annotation2, Annotation1]).is(instantiatorFactory.injectScheme([Annotation1, Annotation2]))
     }
 
     def "uses Instantiator from inject scheme"() {
         expect:
-        instantiatorFactory.injectScheme([] as Set).instantiator().is(instantiatorFactory.inject())
+        instantiatorFactory.injectScheme([]).instantiator().is(instantiatorFactory.inject())
     }
 
+    def "fails for unknown annotation"() {
+        when:
+        instantiatorFactory.injectScheme([Annotation3])
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Annotation @Annotation3 is not a registered injection annotation.'
+    }
+
+    def handler(Class<? extends Annotation> annotation) {
+        InjectAnnotationHandler handler = Stub(InjectAnnotationHandler)
+        handler.annotation >> annotation
+        return handler
+    }
 }
 
 @interface Annotation1 {
 }
 
 @interface Annotation2 {
+}
+
+@interface Annotation3 {
 }

@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Unroll
 
 
 class ArtifactTransformValuesInjectionTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -104,7 +105,8 @@ abstract class MakeGreen extends ArtifactTransform {
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "transform cannot use @Workspace to receive dependencies"() {
+    @Unroll
+    def "transform cannot use #annotation to receive dependencies"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -173,5 +175,26 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type class ${File.name} available.")
+    }
+
+    @Unroll
+    def "task implementation cannot use #annotation"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                ${annotation}
+                File getThing() { null }
+            }
+
+            tasks.create('broken', MyTask)
+        """
+
+        expect:
+        fails('broken')
+        failure.assertHasCause("Could not create task of type 'MyTask'.")
+        failure.assertHasCause("Could not generate a decorated class for class MyTask.")
+        failure.assertHasCause("Cannot use ${annotation} annotation on method MyTask.getThing().")
+
+        where:
+        annotation << ["@Workspace", "@PrimaryInput"]
     }
 }

@@ -23,21 +23,12 @@ import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.BiAction
-import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceLookup
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 
-import javax.inject.Inject
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject()
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [])
 
     @Issue("GRADLE-2417")
     def "can use dynamic object as closure delegate"() {
@@ -83,7 +74,6 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then:
         e = thrown(groovy.lang.MissingPropertyException)
         e.property == "baz"
-
     }
 
     def "any method with action as the last param is closurised"() {
@@ -320,142 +310,6 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         i.prop == "prop"
     }
 
-    def "can inject service using @Inject on a getter method with dummy method body"() {
-        given:
-        def services = Mock(ServiceLookup)
-        _ * services.get(Number) >> 12
-
-        when:
-        def obj = create(BeanWithServices, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
-    def "can inject service using @Inject on an abstract service getter method"() {
-        given:
-        def services = Mock(ServiceLookup)
-        _ * services.get(Number) >> 12
-
-        when:
-        def obj = create(AbstractBeanWithServices, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
-    def "can optionally set injected service using a service setter method"() {
-        given:
-        def services = Mock(ServiceLookup)
-
-        when:
-        def obj = create(BeanWithMutableServices, services)
-        obj.thing = 12
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-
-        and:
-        0 * services._
-    }
-
-    def "retains declared type of service getter"() {
-        given:
-        def services = Mock(ServiceLookup)
-        _ * services.get(_) >> { Type type ->
-            assert type instanceof ParameterizedType
-            assert type.rawType == List.class
-            assert type.actualTypeArguments.length == 1
-            assert type.actualTypeArguments[0] == Number
-            return [12]
-        }
-
-        when:
-        def obj = create(BeanWithParameterizedTypeService, services)
-
-        then:
-        obj.things == [12]
-        obj.getThings() == [12]
-        obj.getProperty("things") == [12]
-
-        def returnType = obj.getClass().getDeclaredMethod("getThings").genericReturnType
-        assert returnType instanceof ParameterizedType
-        assert returnType.rawType == List.class
-        assert returnType.actualTypeArguments.length == 1
-        assert returnType.actualTypeArguments[0] == Number
-    }
-
-    def "service lookup is lazy and the result is cached"() {
-        given:
-        def services = Mock(ServiceLookup)
-
-        when:
-        def obj = create(BeanWithServices, services)
-
-        then:
-        0 * services._
-
-        when:
-        obj.thing
-
-        then:
-        1 * services.get(Number) >> 12
-        0 * services._
-
-        when:
-        obj.thing
-
-        then:
-        0 * services._
-    }
-
-    def "can inject service using a custom annotation on getter method with dummy method body"() {
-        given:
-        def services = Mock(ServiceLookup)
-        _ * services.get(Number, CustomInject) >> 12
-
-        when:
-        def obj = create(AsmBackedClassGenerator.injectOnly([CustomInject] as Set), BeanWithCustomServices, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
-    def "can inject service using a custom annotation on abstract getter method"() {
-        given:
-        def services = Mock(ServiceLookup)
-        _ * services.get(Number, CustomInject) >> 12
-
-        when:
-        def obj = create(AsmBackedClassGenerator.injectOnly([CustomInject] as Set), AbstractBeanWithCustomServices, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
-    def "object can provide its own service registry to provide services for injection"() {
-        given:
-        def services = Mock(ServiceLookup)
-
-        when:
-        def obj = create(BeanWithServicesAndServiceRegistry, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
     def "property missing implementation is invoked exactly once, with actual value"() {
         given:
         def thing = create(DynamicThing)
@@ -688,51 +542,10 @@ class CallsPrivateMethods {
     }
 }
 
-abstract class AbstractBeanWithServices {
-    @Inject
-    abstract Number getThing()
-}
-
-class BeanWithServices {
-    @Inject
-    Number getThing() { throw new UnsupportedOperationException() }
-}
-
-class BeanWithMutableServices extends BeanWithServices {
-    void setThing(Number number) { throw new UnsupportedOperationException() }
-}
-
-class BeanWithServicesAndServiceRegistry extends BeanWithServices {
-    ServiceRegistry getServices() {
-        def services = new DefaultServiceRegistry()
-        services.add(Number, 12)
-        return services
-    }
-}
-
-class BeanWithParameterizedTypeService {
-    @Inject
-    List<Number> getThings() { throw new UnsupportedOperationException() }
-}
-
 interface WithProperties {
     String getProp()
 }
 
 class ImplementsInterface implements WithProperties {
     String prop
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@interface CustomInject {
-}
-
-class BeanWithCustomServices {
-    @CustomInject
-    Number getThing() { throw new UnsupportedOperationException() }
-}
-
-abstract class AbstractBeanWithCustomServices {
-    @CustomInject
-    abstract Number getThing()
 }
