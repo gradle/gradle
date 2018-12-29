@@ -31,6 +31,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private boolean changing;
     private boolean force;
     private final DefaultMutableVersionConstraint versionConstraint;
+    private static String linkageDesignation;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, String configuration) {
         super(configuration);
@@ -39,6 +40,14 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
+    }
+
+    public static String getLinkageDesignation() {
+        return linkageDesignation;
+    }
+
+    public void setLinkageDesignation(String linkageDesignation) {
+        AbstractExternalModuleDependency.linkageDesignation = linkageDesignation;
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {

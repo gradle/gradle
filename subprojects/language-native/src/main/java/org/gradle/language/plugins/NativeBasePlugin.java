@@ -35,6 +35,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -410,8 +411,13 @@ public class NativeBasePlugin implements Plugin<Project> {
     static class LinkageSelectionRule implements AttributeDisambiguationRule<Linkage> {
         @Override
         public void execute(MultipleCandidatesDetails<Linkage> details) {
-            if (details.getCandidateValues().contains(Linkage.SHARED)) {
-                details.closestMatch(Linkage.SHARED);
+            if (details.getCandidateValues().contains(Linkage.SHARED) && details.getCandidateValues().contains(Linkage.STATIC)) {
+                String linkage = (AbstractExternalModuleDependency.getLinkageDesignation()!=null)? AbstractExternalModuleDependency.getLinkageDesignation(): "SHARED";
+                if(Linkage.STATIC.getName().equals(linkage)) {
+                    details.closestMatch(Linkage.STATIC);
+                } else {
+                    details.closestMatch(Linkage.SHARED);
+                }
             }
         }
     }
