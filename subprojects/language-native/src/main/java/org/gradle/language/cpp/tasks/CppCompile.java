@@ -16,7 +16,6 @@
 package org.gradle.language.cpp.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
@@ -26,8 +25,6 @@ import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.CppSourceCompatibility;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-import javax.inject.Inject;
-
 /**
  * Compiles C++ source files into object files.
  */
@@ -36,9 +33,8 @@ import javax.inject.Inject;
 public class CppCompile extends AbstractNativeSourceCompileTask {
     private final Property<CppSourceCompatibility> sourceCompatibility;
 
-    @Inject
-    public CppCompile(ObjectFactory objectFactory) {
-        sourceCompatibility = objectFactory.property(CppSourceCompatibility.class);
+    public CppCompile() {
+        sourceCompatibility = getProject().getObjects().property(CppSourceCompatibility.class);
     }
 
     /**
