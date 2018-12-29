@@ -50,6 +50,7 @@ import spock.lang.Issue;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -87,7 +88,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
-    private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject();
+    private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.<InjectAnnotationHandler>emptyList(), Collections.<Class<? extends Annotation>>emptyList());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         ClassGenerator.GeneratedClass<? extends T> type = generator.generate(clazz);
@@ -166,56 +167,6 @@ public class AsmBackedClassGeneratorTest {
 
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
         assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extension);
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToMethodsOfExtensionAware() {
-        try {
-            generator.generate(BadlyFormedExtensibleBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method BadlyFormedExtensibleBean.getExtensions().", e.getCause().getMessage());
-        }
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToFinalMethod() {
-        try {
-            generator.generate(FinalInjectBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method FinalInjectBean.getThing() as it is final.", e.getCause().getMessage());
-        }
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToStaticMethod() {
-        try {
-            generator.generate(StaticInjectBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method StaticInjectBean.getThing() as it is static.", e.getCause().getMessage());
-        }
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToPrivateMethod() {
-        try {
-            generator.generate(PrivateInjectBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method PrivateInjectBean.getThing() as it is not public or protected.", e.getCause().getMessage());
-        }
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToNonGetterMethod() {
-        try {
-            generator.generate(NonGetterInjectBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method NonGetterInjectBean.thing() as it is not a property getter.", e.getCause().getMessage());
-        }
     }
 
     @Test
@@ -1095,16 +1046,6 @@ public class AsmBackedClassGeneratorTest {
         }));
         assertEquals("[1]", bean.getProp2().get());
         assertEquals("[2]", bean.getProp2().get());
-    }
-
-    @Test
-    public void cannotAttachInjectAnnotationToPropertyWhoseTypeIsProperty() {
-        try {
-            generator.generate(InjectPropertyBean.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertEquals("Cannot use @Inject annotation on method InjectPropertyBean.getProp().", e.getCause().getMessage());
-        }
     }
 
     public static class Bean {

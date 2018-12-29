@@ -20,13 +20,17 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
@@ -37,21 +41,26 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final Instantiator decoratingLenientInstantiator;
     private final Instantiator injectOnlyLenientInstantiator;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
+    private final List<InjectAnnotationHandler> annotationHandlers;
     private final DefaultInstantiationScheme injectOnlyScheme;
     // Assume for now that the annotations are all part of Gradle core and are never unloaded, so use strong references to the annotation types
     private final LoadingCache<Set<Class<? extends Annotation>>, InstantiationScheme> schemes = CacheBuilder.newBuilder().build(new CacheLoader<Set<Class<? extends Annotation>>, InstantiationScheme>() {
         @Override
         public InstantiationScheme load(Set<Class<? extends Annotation>> annotations) {
-            ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotations);
+            for (Class<? extends Annotation> annotation : annotations) {
+                assertKnownAnnotation(annotation);
+            }
+            ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, annotations);
             Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
             return new DefaultInstantiationScheme(constructorSelector, noServices);
         }
     });
 
-    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
         this.cacheFactory = cacheFactory;
-        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly();
-        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject();
+        this.annotationHandlers = annotationHandlers;
+        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.<Class<? extends Annotation>>of());
+        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.<Class<? extends Annotation>>of());
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
@@ -73,8 +82,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public InstantiationScheme injectScheme(Set<Class<? extends Annotation>> injectAnnotations) {
-        return schemes.getUnchecked(ImmutableSet.copyOf(injectAnnotations));
+    public InstantiationScheme injectScheme(Collection<Class<? extends Annotation>> injectAnnotations) {
+        try {
+            return schemes.getUnchecked(ImmutableSet.copyOf(injectAnnotations));
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
     }
 
     @Override
@@ -102,4 +115,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         return new DependencyInjectingInstantiator(decoratedLenientSelector, services);
     }
 
+    private void assertKnownAnnotation(Class<? extends Annotation> annotation) {
+        for (InjectAnnotationHandler annotationHandler : annotationHandlers) {
+            if (annotationHandler.getAnnotation().equals(annotation)) {
+                return;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Annotation @%s is not a registered injection annotation.", annotation.getSimpleName()));
+    }
 }

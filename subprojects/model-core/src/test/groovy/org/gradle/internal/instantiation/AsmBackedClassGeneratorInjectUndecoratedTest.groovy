@@ -29,7 +29,7 @@ import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Abst
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BeanWithServiceGetters
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly()
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [])
 
     def "returns original class when class is not abstract and no service getter methods present"() {
         expect:
@@ -82,8 +82,8 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         services.get(Number) >> 12
 
         expect:
-        def decorated = create(AsmBackedClassGenerator.decorateAndInject(), BeanWithServiceGetters)
-        def undecorated = create(AsmBackedClassGenerator.injectOnly(), BeanWithServiceGetters)
+        def decorated = create(AsmBackedClassGenerator.decorateAndInject([], []), BeanWithServiceGetters)
+        def undecorated = create(AsmBackedClassGenerator.injectOnly([], []), BeanWithServiceGetters)
         decorated.class != undecorated.class
         decorated instanceof ExtensionAware
         !(undecorated instanceof ExtensionAware)

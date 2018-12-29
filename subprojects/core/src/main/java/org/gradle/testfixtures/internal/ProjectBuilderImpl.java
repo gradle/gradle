@@ -147,7 +147,7 @@ public class ProjectBuilderImpl {
         return userHomeScopeServiceRegistry.getServicesFor(userHomeDir);
     }
 
-    private static ServiceRegistry getGlobalServices() {
+    public static ServiceRegistry getGlobalServices() {
         if (globalServices == null) {
             globalServices = ServiceRegistryBuilder
                 .builder()

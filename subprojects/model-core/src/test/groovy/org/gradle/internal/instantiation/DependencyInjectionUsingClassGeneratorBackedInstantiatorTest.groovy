@@ -23,7 +23,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
-    final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject()
+    final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject([], [])
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
     final ServiceLookup services = Mock()
     final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
