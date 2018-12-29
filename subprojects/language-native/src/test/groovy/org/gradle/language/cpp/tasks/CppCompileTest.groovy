@@ -19,6 +19,7 @@ package org.gradle.language.cpp.tasks
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.nativeplatform.CppSourceCompatibility
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
@@ -28,8 +29,6 @@ import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-
-import static org.gradle.nativeplatform.CppSourceCompatibility.Cpp11
 
 class CppCompileTest extends AbstractProjectBuilderSpec {
 
@@ -55,7 +54,6 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
         cppCompile.objectFileDir = temporaryFolder.file("outputFile")
         cppCompile.source sourceFile
         cppCompile.setPreCompiledHeader pch
-        cppCompile.sourceCompatibility = Cpp11
         execute(cppCompile)
 
         then:
@@ -78,11 +76,38 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
             assert spec.preCompiledHeader == "header"
             assert spec.prefixHeaderFile.name == "prefixHeader"
             assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
-            assert spec.sourceCompatibility == Cpp11
+            assert spec.sourceCompatibility == null
             true
         }) >> result
         1 * result.didWork >> true
         0 * _._
+
+        and:
+        cppCompile.didWork
+    }
+
+    def "honors source compatibility when set"() {
+        def sourceFile = temporaryFolder.createFile("sourceFile")
+        def result = Mock(WorkResult)
+        when:
+        cppCompile.toolChain = toolChain
+        cppCompile.targetPlatform = platform
+        cppCompile.objectFileDir = temporaryFolder.file("outputFile")
+        cppCompile.source sourceFile
+        cppCompile.sourceCompatibility = CppSourceCompatibility.Cpp11
+        execute(cppCompile)
+
+        then:
+        platform.getName() >> "testPlatform"
+        platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
+        platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
+        _ * toolChain.select(platform) >> platformToolChain
+        _ * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
+        1 * cppCompiler.execute({ CppCompileSpec spec ->
+            assert spec.sourceCompatibility == CppSourceCompatibility.Cpp11
+            true
+        }) >> result
+        1 * result.didWork >> true
 
         and:
         cppCompile.didWork
