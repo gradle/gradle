@@ -16,7 +16,11 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
+
+import static org.gradle.util.Matchers.containsText
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
@@ -42,6 +46,109 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "build succeeds when cpp source uses language features of the requested source compatibility"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp11
+                }
+            }
+         """
+
+        when:
+        file("src/main/cpp/cpp11.cpp") << """
+            #include <iostream>
+            #include <ctime>
+            #include <chrono>
+            int main () {
+              using namespace std::chrono;
+              system_clock::time_point today = system_clock::now();
+              time_t tt;
+              tt = system_clock::to_time_t ( today );
+              std::cout << "today is: " << ctime(&tt);
+              return 0;
+            }
+"""
+
+        then:
+        succeeds "assemble"
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "build fails when cpp source uses language features outside the requested source compatibility"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp98
+                }
+            }
+         """
+
+        when:
+        file("src/main/cpp/cpp11.cpp") << """
+            #include <iostream>
+            #include <ctime>
+            #include <chrono>
+            int main () {
+              using namespace std::chrono;
+              system_clock::time_point today = system_clock::now();
+              time_t tt;
+              tt = system_clock::to_time_t ( today );
+              std::cout << "today is: " << ctime(&tt);
+              return 0;
+            }
+"""
+
+        then:
+        fails "assemble"
+        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsText("C++ compiler failed while compiling cpp11.cpp"))
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "recompile when source compatibility changes"() {
+        when:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp98
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/main.cpp") << """
+            int main () {
+              return 0;
+            }
+"""
+
+        then:
+        succeeds "assemble"
+
+        when:
+        buildFile << """
+            application {
+                binaries.configureEach {
+                    sourceCompatibility = CppSourceCompatibility.Cpp11
+                }
+            }
+         """
+
+        then:
+        executedAndNotSkipped(":assemble")
     }
 
     protected abstract String getDevelopmentBinaryCompileTask()
