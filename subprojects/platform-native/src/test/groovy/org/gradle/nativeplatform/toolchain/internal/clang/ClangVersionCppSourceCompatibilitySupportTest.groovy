@@ -22,9 +22,25 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ClangVersionCppSourceCompatibilitySupportTest extends Specification {
-    def "default source compatibility is C++98"() {
+    @Unroll
+    def "default clang #version source compatibility is #sourceCompatibility"() {
+        VersionNumber versionNumber = VersionNumber.parse(version)
+
         expect:
-        ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility() == CppSourceCompatibility.Cpp98
+        ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(versionNumber) == sourceCompatibility
+
+        where:
+        version || sourceCompatibility
+        '1.0' || CppSourceCompatibility.Cpp98Extended
+        '2.0' || CppSourceCompatibility.Cpp98Extended
+        '3.0' || CppSourceCompatibility.Cpp98Extended
+        '4.0' || CppSourceCompatibility.Cpp98Extended
+        '5.0' || CppSourceCompatibility.Cpp98Extended
+        '6.0' || CppSourceCompatibility.Cpp14Extended // clang's default changes
+        '6.1' || CppSourceCompatibility.Cpp14Extended
+        '6.2' || CppSourceCompatibility.Cpp14Extended
+        '7.0' || CppSourceCompatibility.Cpp14Extended
+        '8.0' || CppSourceCompatibility.Cpp14Extended
     }
 
     @Unroll

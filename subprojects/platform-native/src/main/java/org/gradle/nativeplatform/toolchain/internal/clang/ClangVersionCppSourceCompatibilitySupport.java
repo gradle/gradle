@@ -40,13 +40,14 @@ public class ClangVersionCppSourceCompatibilitySupport {
     /**
      * Returns the default source compatibility for provided Clang version number.
      *
-     * <p>By default, Clang builds C++ code according to the C++98 standard, so
-     * {@link CppSourceCompatibility#Cpp98} is always returned</p>
-     *
      * @return Default Clang source compatibility.
      */
-    public static CppSourceCompatibility getDefaultSourceCompatibility() {
-        return CppSourceCompatibility.Cpp98;
+    public static CppSourceCompatibility getDefaultSourceCompatibility(VersionNumber version) {
+        if (version.getMajor() >= 6) {
+            return CppSourceCompatibility.Cpp14Extended;
+        } else {
+            return CppSourceCompatibility.Cpp98Extended;
+        }
     }
 
     /**
@@ -101,12 +102,12 @@ public class ClangVersionCppSourceCompatibilitySupport {
                 }
                 // toolchain does not support C++03
                 break;
-            case Cpp98Extended:
-                return STD_CPP_GNU_98;
             case Cpp98:
+                return STD_CPP_98;
+            case Cpp98Extended:
                 // Fall through
             default:
-                return STD_CPP_98;
+                return STD_CPP_GNU_98;
         }
         throw new IllegalArgumentException(String.format("clang %s does not support %s", version, compat));
     }

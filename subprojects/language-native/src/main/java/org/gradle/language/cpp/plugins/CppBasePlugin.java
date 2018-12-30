@@ -153,7 +153,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                                         VersionNumber version = compilerMetadata.getVersion();
                                         String vendor = compilerMetadata.getVendor().toLowerCase();
                                         if (vendor.contains("clang")) {
-                                            return ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility();
+                                            return ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(version);
                                         }
                                         return GccVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(version);
                                     }
