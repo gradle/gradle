@@ -31,16 +31,16 @@ class GccVersionCppSourceCompatibilitySupportTest extends Specification {
 
         where:
         version || sourceCompatibility
-        '1.0' || CppSourceCompatibility.Cpp98
-        '2.0' || CppSourceCompatibility.Cpp98
-        '3.0' || CppSourceCompatibility.Cpp98
-        '4.0' || CppSourceCompatibility.Cpp98
-        '5.0' || CppSourceCompatibility.Cpp98
-        '6.0' || CppSourceCompatibility.Cpp98
-        '6.1' || CppSourceCompatibility.Cpp14 // gcc's default changes
-        '6.2' || CppSourceCompatibility.Cpp14
-        '7.0' || CppSourceCompatibility.Cpp14
-        '8.0' || CppSourceCompatibility.Cpp14
+        '1.0' || CppSourceCompatibility.Cpp98Extended
+        '2.0' || CppSourceCompatibility.Cpp98Extended
+        '3.0' || CppSourceCompatibility.Cpp98Extended
+        '4.0' || CppSourceCompatibility.Cpp98Extended
+        '5.0' || CppSourceCompatibility.Cpp98Extended
+        '6.0' || CppSourceCompatibility.Cpp98Extended
+        '6.1' || CppSourceCompatibility.Cpp14Extended // gcc's default changes
+        '6.2' || CppSourceCompatibility.Cpp14Extended
+        '7.0' || CppSourceCompatibility.Cpp14Extended
+        '8.0' || CppSourceCompatibility.Cpp14Extended
     }
 
     @Unroll

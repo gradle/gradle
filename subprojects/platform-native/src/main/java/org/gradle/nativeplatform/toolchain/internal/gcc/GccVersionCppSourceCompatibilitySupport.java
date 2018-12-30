@@ -42,17 +42,14 @@ public class GccVersionCppSourceCompatibilitySupport {
     /**
      * Returns the default source compatibility for provided GCC version number.
      *
-     * <p>GCC versions 6.1 and above use {@link CppSourceCompatibility#Cpp14}. Prior versions use
-     * {@link CppSourceCompatibility#Cpp98}.</p>
-     *
      * @param version GCC version.
      * @return Default GCC source compatibility.
      */
     public static CppSourceCompatibility getDefaultSourceCompatibility(VersionNumber version) {
         if (version.getMajor() > 6 || (version.getMajor() == 6 && version.getMinor() >= 1)) {
-            return CppSourceCompatibility.Cpp14;
+            return CppSourceCompatibility.Cpp14Extended;
         }
-        return CppSourceCompatibility.Cpp98;
+        return CppSourceCompatibility.Cpp98Extended;
     }
 
     /**
@@ -106,12 +103,12 @@ public class GccVersionCppSourceCompatibilitySupport {
                 } else {
                     return compat == CppSourceCompatibility.Cpp03 ? STD_CPP_98 : STD_CPP_GNU_98;
                 }
-            case Cpp98Extended:
-                return STD_CPP_GNU_98;
             case Cpp98:
+                return STD_CPP_98;
+            case Cpp98Extended:
                 // Fall through
             default:
-                return STD_CPP_98;
+                return STD_CPP_GNU_98;
         }
         throw new IllegalArgumentException(String.format("gcc %s does not support %s", version, compat));
     }
