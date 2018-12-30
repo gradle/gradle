@@ -27,86 +27,62 @@ import org.gradle.api.Incubating;
 public enum CppSourceCompatibility {
     /**
      * Configures the source to be compatible with the 1998 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++98} command-line flag for GCC.</p>
      */
     Cpp98,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the 1998 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++98} command-line flag for GCC.</p>
      */
     Cpp98Extended,
 
     /**
      * Configures the source to be compatible with the 1998 ISO C++ standard plus the 2003 technical corrigendum.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++03} command-line flag for GCC.</p>
      */
     Cpp03,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the 1998 ISO C++
      * standard plus the 2003 technical corrigendum.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++03} command-line flag for GCC.</p>
      */
     Cpp03Extended,
 
     /**
      * Configures the source to be compatible with the 2011 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++11} command-line flag for GCC.</p>
      */
     Cpp11,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the 2011 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++11} command-line flag for GCC.</p>
      */
     Cpp11Extended,
 
     /**
      * Configures the source to be compatible with the 2014 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++14} command-line flag for GCC.</p>
      */
     Cpp14,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the 2014 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++14} command-line flag for GCC.</p>
      */
     Cpp14Extended,
 
     /**
      * Configures the source to be compatible with the 2017 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++17} command-line flag for GCC.</p>
      */
     Cpp17,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the 2017 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++17} command-line flag for GCC.</p>
      */
     Cpp17Extended,
 
     /**
      * Configures the source to be compatible with the expected 2020 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=c++2a} command-line flag for GCC.</p>
      */
     Cpp2a,
 
     /**
      * Configures the source to be compatible with the compiler-specific extensions of the expected 2020 C++ standard.
-     *
-     * <p>For example, this is equivalent to specifying the {@code -std=gnu++2a} command-line flag for GCC.</p>
      */
     Cpp2aExtended,
 }
