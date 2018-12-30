@@ -44,7 +44,7 @@ class ClangVersionCppSourceCompatibilitySupportTest extends Specification {
     }
 
     @Unroll
-    def "throw IAE when clang #version requests source compatibility #sourceCompatibility"() {
+    def "throw IllegalArgumentException when clang #version requests source compatibility #sourceCompatibility"() {
         VersionNumber versionNumber = VersionNumber.parse(version)
 
         when:

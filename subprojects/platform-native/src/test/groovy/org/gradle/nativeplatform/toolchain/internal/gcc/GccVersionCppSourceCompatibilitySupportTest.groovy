@@ -44,7 +44,7 @@ class GccVersionCppSourceCompatibilitySupportTest extends Specification {
     }
 
     @Unroll
-    def "throw IAE when gcc #version requests source compatibility #sourceCompatibility"() {
+    def "throw IllegalArgumentException when gcc #version requests source compatibility #sourceCompatibility"() {
         VersionNumber versionNumber = VersionNumber.parse(version)
 
         when:
