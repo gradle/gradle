@@ -55,9 +55,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
             apply plugin: 'cpp-application'
             
             application {
-                binaries.configureEach {
-                    sourceCompatibility = CppSourceCompatibility.Cpp11
-                }
+                sourceCompatibility = CppSourceCompatibility.Cpp11
             }
          """
 
@@ -87,9 +85,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
             apply plugin: 'cpp-application'
             
             application {
-                binaries.configureEach {
-                    sourceCompatibility = CppSourceCompatibility.Cpp98
-                }
+                sourceCompatibility = CppSourceCompatibility.Cpp98
             }
          """
 
@@ -122,9 +118,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
             apply plugin: 'cpp-application'
             
             application {
-                binaries.configureEach {
-                    sourceCompatibility = CppSourceCompatibility.Cpp98
-                }
+                sourceCompatibility = CppSourceCompatibility.Cpp98
             }
          """
 
@@ -141,9 +135,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         when:
         buildFile << """
             application {
-                binaries.configureEach {
-                    sourceCompatibility = CppSourceCompatibility.Cpp11
-                }
+                sourceCompatibility = CppSourceCompatibility.Cpp11
             }
          """
 
