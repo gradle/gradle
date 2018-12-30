@@ -149,15 +149,26 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                                 CppSourceCompatibility cppSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (cppSourceCompatibility == null) {
                                     CompilerMetadata compilerMetadata = binary.getPlatformToolProvider().getCompilerMetadata(ToolType.CPP_COMPILER);
+                                    VersionNumber version = compilerMetadata.getVersion();
                                     if (compilerMetadata instanceof GccMetadata) {
-                                        VersionNumber version = compilerMetadata.getVersion();
                                         String vendor = compilerMetadata.getVendor().toLowerCase();
                                         if (vendor.contains("clang")) {
                                             return ClangVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(version);
                                         }
                                         return GccVersionCppSourceCompatibilitySupport.getDefaultSourceCompatibility(version);
+                                    } else {
+                                        // Handle MSVC
+                                        if (version.getMajor() > 14 || (version.getMajor() == 14 && version.getMinor() >= 1)) {
+                                            return CppSourceCompatibility.Cpp17;
+                                        } else if (version.getMajor() == 14) {
+                                            return CppSourceCompatibility.Cpp14;
+                                        } else if (version.getMajor() == 12) {
+                                            return CppSourceCompatibility.Cpp11;
+                                        } else if (version.getMajor() == 10 || version.getMajor() == 11) {
+                                            return CppSourceCompatibility.Cpp03;
+                                        }
+                                        return CppSourceCompatibility.Cpp98;
                                     }
-                                    // TODO: VisualStudio support for CppSourceCompatibility
                                 }
                                 return cppSourceCompatibility;
                             }
