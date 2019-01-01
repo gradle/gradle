@@ -32,7 +32,7 @@ class ToolSearchBuildAbilityTest extends Specification {
         ability.isBuildable()
     }
 
-    def "is not builadble when tool search is not successful" () {
+    def "is not buildable when tool search is not successful" () {
         when:
         result.isAvailable() >> false
 
