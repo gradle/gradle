@@ -30,14 +30,14 @@ import java.util.Arrays;
  */
 public class SymbolHider {
     DataReader data;
-    private byte[] bytes;
+    private byte[] objectBytes;
 
-    class DataReader {
-        private byte[] data;
+    private static class DataReader {
+        private byte[] dataBytes;
         private int position = 0;
 
-        public DataReader(byte[] data) {
-            this.data = data;
+        public DataReader(byte[] dataBytes) {
+            this.dataBytes = dataBytes;
         }
 
         public int getPosition() {
@@ -49,7 +49,7 @@ public class SymbolHider {
         }
 
         public int readByte() {
-            return Byte.toUnsignedInt(data[position++]);
+            return Byte.toUnsignedInt(dataBytes[position++]);
         }
 
         public int readWord() {
@@ -61,13 +61,13 @@ public class SymbolHider {
         }
 
         public byte[] readBytes(int count) {
-            byte[] sub = Arrays.copyOfRange(data, position, position + count);
+            byte[] sub = Arrays.copyOfRange(dataBytes, position, position + count);
             position += count;
             return sub;
         }
     }
 
-    class COFFHeader {
+    private static class COFFHeader {
         public int machine;
         public int numberOfSections;
         public int timeDateStamp;
@@ -76,7 +76,7 @@ public class SymbolHider {
         public int sizeOfOptionalHeader;
         public int characteristics;
 
-        public COFFHeader() {
+        public COFFHeader(DataReader data) {
             machine = data.readWord();
             numberOfSections = data.readWord();
             timeDateStamp = data.readDoubleWord();
@@ -87,7 +87,7 @@ public class SymbolHider {
         }
     }
 
-    class SymbolRecord {
+    private static class SymbolRecord {
         private int storageClass;
         private byte[] name;
         private int value;
@@ -95,7 +95,7 @@ public class SymbolHider {
         private int type;
         private int numberOfAuxSymbols;
 
-        public SymbolRecord() {
+        public SymbolRecord(DataReader data) {
             name = data.readBytes(8);
             value = data.readDoubleWord();
             sectionNumber = data.readWord();
@@ -106,7 +106,6 @@ public class SymbolHider {
 
         public String getName() {
             // We only need to hide "main", so only support short named symbols here.
-
             int nullCharIndex = 0;
             for (nullCharIndex = 0; nullCharIndex < name.length; ++nullCharIndex) {
                 if (name[nullCharIndex] == 0) {
@@ -117,21 +116,25 @@ public class SymbolHider {
         }
     }
 
-    class SymbolTable {
+    private static class SymbolTable {
         private int numberOfSymbols;
+        private DataReader data;
+        private byte[] objectBytes;
         private static final int IMAGE_SYM_CLASS_STATIC = 0x3;
 
-        public SymbolTable(int numberOfSymbols) {
+        public SymbolTable(int numberOfSymbols, DataReader data, byte[] objectBytes) {
             this.numberOfSymbols = numberOfSymbols;
+            this.data = data;
+            this.objectBytes = objectBytes;
         }
 
         public void hideSymbol(String symbolToHide) {
             for (int i = 0; i < numberOfSymbols; ++i) {
-                SymbolRecord symbol = new SymbolRecord();
+                SymbolRecord symbol = new SymbolRecord(data);
                 String name = symbol.getName();
 
                 if (name.equals(symbolToHide)) {
-                    bytes[data.getPosition() - 2] = IMAGE_SYM_CLASS_STATIC;
+                    objectBytes[data.getPosition() - 2] = IMAGE_SYM_CLASS_STATIC;
                     break;
                 }
             }
@@ -139,20 +142,19 @@ public class SymbolHider {
     }
 
     public SymbolHider(File inputFile) throws IOException {
-        bytes = Files.readAllBytes(Paths.get(inputFile.getAbsolutePath()));
+        objectBytes = Files.readAllBytes(Paths.get(inputFile.getAbsolutePath()));
     }
 
     public void hideSymbol(String symbolToHide) {
-
-        data = new DataReader(bytes);
-        COFFHeader coffHeader = new COFFHeader();
+        data = new DataReader(objectBytes);
+        COFFHeader coffHeader = new COFFHeader(data);
 
         data.moveTo(coffHeader.pointerToSymbolTable);
-        SymbolTable symbolTable = new SymbolTable(coffHeader.numberOfSymbols);
+        SymbolTable symbolTable = new SymbolTable(coffHeader.numberOfSymbols, data, objectBytes);
         symbolTable.hideSymbol(symbolToHide);
     }
 
     public void saveTo(File outputFile) throws IOException {
-        Files.write(Paths.get(outputFile.getAbsolutePath()), bytes);
+        Files.write(Paths.get(outputFile.getAbsolutePath()), objectBytes);
     }
 }

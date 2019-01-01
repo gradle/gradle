@@ -31,6 +31,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -90,7 +91,7 @@ public class UnexportMainSymbol extends DefaultTask {
                     symbolHider.hideSymbol("_main");    // 32 bit
                     symbolHider.saveTo(relocatedObject);
                 } catch (IOException e) {
-                    throw new IllegalStateException("Failed to unexport a main symbol on " + OperatingSystem.current());
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }   
             } else {
                 getProject().exec(new Action<ExecSpec>() {
