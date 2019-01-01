@@ -158,7 +158,7 @@ However, there are cases where a provider may not have _exactly_ what the consum
 For example, if the consumer is asking for the API of a library, there's a possibility that the producer doesn't have such a variant, but only a _runtime_ variant.
 This is typical of libraries published on external repositories.
 In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
-To deal with this, Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibilty rules].
+To deal with this, Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules].
 The role of a compatibility rule is to explain what variants are _compatible_ with what the consumer asked for.
 
 Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].

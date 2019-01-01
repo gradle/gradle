@@ -156,7 +156,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=2.11")
-    def "explicit idea project language level overrules sourceCompatiblity settings"() {
+    def "explicit idea project language level overrules sourceCompatibility settings"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
