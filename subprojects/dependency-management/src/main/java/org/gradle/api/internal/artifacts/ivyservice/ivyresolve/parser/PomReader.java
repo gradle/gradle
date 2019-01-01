@@ -505,7 +505,7 @@ public class PomReader implements PomParent {
         }
 
         /* (non-Javadoc)
-         * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getArtifaceId()
+         * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getArtifactId()
          */
         public String getArtifactId() {
             String val = getFirstChildText(depElement, ARTIFACT_ID);

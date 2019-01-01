@@ -83,7 +83,7 @@ public class Signature extends AbstractPublishArtifact {
     private String classifier;
 
     /**
-     * The date of the signature arifact.
+     * The date of the signature artifact.
      *
      * @see #getDate()
      */
