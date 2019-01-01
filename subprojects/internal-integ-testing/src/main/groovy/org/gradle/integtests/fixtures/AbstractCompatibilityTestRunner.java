@@ -102,7 +102,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     protected abstract Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool);
 
     /**
-     * Makes sure the test adhers to the naming convention.
+     * Makes sure the test adheres to the naming convention.
      *
      * @param target test class
      */
