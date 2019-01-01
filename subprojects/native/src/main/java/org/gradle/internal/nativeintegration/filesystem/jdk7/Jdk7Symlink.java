@@ -51,10 +51,7 @@ public class Jdk7Symlink implements Symlink {
 
     @Override
     public boolean isSymlink(File suspect) {
-        if (isSymlinkSupported()) {
-            return Files.isSymbolicLink(suspect.toPath());
-        }
-        return false;
+        return Files.isSymbolicLink(suspect.toPath());
     }
 
     private static boolean doesSystemSupportSymlinks() {
