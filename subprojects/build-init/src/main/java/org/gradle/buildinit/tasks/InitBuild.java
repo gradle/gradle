@@ -272,7 +272,7 @@ public class InitBuild extends DefaultTask {
      * @since 5.0
      */
     @Incubating
-    @Option(option = "package", description = "Set the package for source files.")
+    @Option(option = "package", description = "Set the package for source files when generating JVM projects or the namespace for source files when generating C++ projects.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
     }

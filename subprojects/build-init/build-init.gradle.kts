@@ -45,6 +45,7 @@ gradlebuildJava {
 
 testFixtures {
     from(":core")
+    from(":platformNative")
 }
 
 tasks {

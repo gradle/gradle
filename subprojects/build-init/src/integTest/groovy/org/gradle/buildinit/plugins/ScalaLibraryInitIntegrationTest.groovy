@@ -34,7 +34,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/scala").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -56,7 +56,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/scala").assertHasDescendants("my/lib/LibrarySuite.scala")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")

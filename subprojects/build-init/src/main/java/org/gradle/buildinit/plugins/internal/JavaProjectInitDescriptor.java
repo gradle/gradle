@@ -30,7 +30,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFrame
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
-public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
         "Java",
         "Java Quickstart",
@@ -50,6 +50,8 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generate(settings, buildScriptBuilder);
+
         Description desc = getDescription();
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
