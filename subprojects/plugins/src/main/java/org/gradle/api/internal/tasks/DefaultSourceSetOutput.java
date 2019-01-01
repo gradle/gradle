@@ -37,6 +37,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     private final DefaultConfigurableFileCollection classesDirs;
     private final DefaultConfigurableFileCollection dirs;
+    private final DefaultConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, final FileResolver fileResolver, TaskResolver taskResolver) {
@@ -59,6 +60,8 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         });
 
         this.dirs = new DefaultConfigurableFileCollection("dirs", fileResolver, taskResolver);
+
+        this.generatedSourcesDirs = new DefaultConfigurableFileCollection("generatedSourcesDirs", fileResolver, taskResolver);
     }
 
     @Override
@@ -134,5 +137,10 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     @Override
     public FileCollection getDirs() {
         return dirs;
+    }
+
+    @Override
+    public ConfigurableFileCollection getGeneratedSourcesDirs() {
+        return generatedSourcesDirs;
     }
 }

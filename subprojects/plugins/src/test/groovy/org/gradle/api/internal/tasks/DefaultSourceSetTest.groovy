@@ -63,6 +63,8 @@ class DefaultSourceSetTest extends Specification {
 
         assertThat(sourceSet.output.resourcesDir, nullValue())
 
+        assertThat(sourceSet.output.generatedSourcesDirs, isEmpty())
+
         assertThat(sourceSet.compileClasspath, nullValue())
 
         assertThat(sourceSet.annotationProcessorPath, nullValue())

@@ -17,10 +17,12 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -70,7 +72,8 @@ public class SourceSetUtil {
         });
     }
 
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target,
+            Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
             @Override
@@ -86,5 +89,11 @@ public class SourceSetUtil {
                 return sourceDirectorySet.getOutputDir();
             }
         });
+        sourceSetOutput.getGeneratedSourcesDirs().from(options.map(new Transformer<Object, CompileOptions>() {
+            @Override
+            public Object transform(CompileOptions compileOptions) {
+                return compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
+            }
+        })).builtBy(compileTask);
     }
 }
