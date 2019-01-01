@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.tasks;
+package org.gradle.language.swift.tasks.internal;
 
 import java.io.File;
 import java.io.IOException;

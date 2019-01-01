@@ -32,6 +32,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.UncheckedException;
+import org.gradle.language.swift.tasks.internal.SymbolHider;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
