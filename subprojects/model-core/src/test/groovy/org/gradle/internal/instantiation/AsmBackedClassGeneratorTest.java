@@ -1497,13 +1497,6 @@ public class AsmBackedClassGeneratorTest {
     public static abstract class AbstractExtensibleBean implements ExtensionAware {
     }
 
-    public static class BadlyFormedExtensibleBean implements ExtensionAware {
-        @Override @Inject
-        public ExtensionContainer getExtensions() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     public static final class FinalBean {
     }
 
@@ -1527,13 +1520,6 @@ public class AsmBackedClassGeneratorTest {
     public static class NonGetterInjectBean {
         @Inject
         Number thing() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    public static class StaticInjectBean {
-        @Inject
-        static Number getThing() {
             throw new UnsupportedOperationException();
         }
     }

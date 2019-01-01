@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -97,6 +98,13 @@ public class TreeFormatter implements DiagnosticsVisitor {
     public void appendType(Class<?> type) {
         // Implementation is currently dumb, can be made smarter
         append(type.toString());
+    }
+
+    /**
+     * Appends an annotation name to the current node.
+     */
+    public void appendAnnotation(Class<? extends Annotation> type) {
+        append("@" + type.getSimpleName());
     }
 
     /**

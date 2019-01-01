@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
 
-class ArtifactTransformValuesInjectionTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     def "transform can receive dependencies via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'

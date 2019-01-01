@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -118,28 +119,35 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
-        ServiceInjectionPropertyHandler injectionHandler = new ServiceInjectionPropertyHandler();
+        ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
+        InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
+
         // Order is significant. Injection handler should be at the end
-        List<ClassGenerationHandler> handlers = new ArrayList<ClassGenerationHandler>(4 + enabledAnnotations.size() + disabledAnnotations.size());
+        List<ClassGenerationHandler> handlers = new ArrayList<ClassGenerationHandler>(5 + enabledAnnotations.size() + disabledAnnotations.size());
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
+        handlers.add(servicesHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
-            handlers.add(new EnabledAnnotationInjectionPropertyHandler(annotation));
-        }
-        for (Class<? extends Annotation> annotation : disabledAnnotations) {
-            handlers.add(new DisabledAnnotationHandler(annotation));
+            handlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
         handlers.add(injectionHandler);
+
+        // Order is significant
+        List<ClassValidator> validators = new ArrayList<ClassValidator>(1 + disabledAnnotations.size());
+        for (Class<? extends Annotation> annotation : disabledAnnotations) {
+            validators.add(new DisabledAnnotationValidator(annotation));
+        }
+        validators.add(new InjectionAnnotationValidator(enabledAnnotations));
 
         final Class<?> subclass;
         try {
             ClassInspectionVisitor inspectionVisitor = start(type);
 
-            inspectType(type, handlers, extensibleTypeHandler);
+            inspectType(type, validators, handlers, extensibleTypeHandler);
             for (ClassGenerationHandler handler : handlers) {
                 handler.applyTo(inspectionVisitor);
             }
@@ -183,7 +191,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
-    private void inspectType(Class<?> type, List<ClassGenerationHandler> propertyHandlers, UnclaimedPropertyHandler unclaimedHandler) {
+    private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> propertyHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
         ClassMetaData classMetaData = new ClassMetaData();
         assembleProperties(classDetails, classMetaData);
@@ -193,8 +201,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         for (Method method : classDetails.getAllMethods()) {
-            for (ClassGenerationHandler propertyHandler : propertyHandlers) {
-                propertyHandler.validateMethod(method);
+            for (ClassValidator validator : validators) {
+                validator.validateMethod(method, PropertyAccessorType.of(method));
             }
         }
 
@@ -481,11 +489,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
+    private interface ClassValidator {
+        void validateMethod(Method method, PropertyAccessorType accessorType);
+    }
+
     private static class ClassGenerationHandler {
         void startType(Class<?> type) {
-        }
-
-        void validateMethod(Method method) {
         }
 
         /**
@@ -512,6 +521,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Called when another a handler with higher precedence has also claimed the given property.
          */
         void ambiguous(PropertyMetaData property) {
+            // No supposed to happen
             throw new UnsupportedOperationException("Multiple matches for " + property.getName());
         }
 
@@ -751,43 +761,79 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ServiceInjectionPropertyHandler extends ClassGenerationHandler {
-        private boolean hasServicesProperty;
-        private final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
+    private static class InjectionAnnotationValidator implements ClassValidator {
+        private final Set<Class<? extends Annotation>> annotationTypes;
+
+        InjectionAnnotationValidator(Set<Class<? extends Annotation>> annotationTypes) {
+            this.annotationTypes = annotationTypes;
+        }
 
         @Override
-        public void validateMethod(Method method) {
-            if (method.getAnnotation(Inject.class) != null) {
-                if (Modifier.isStatic(method.getModifiers())) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @Inject annotation on method ");
-                    formatter.appendMethod(method);
-                    formatter.append(" as it is static.");
-                    throw new IllegalArgumentException(formatter.toString());
-                }
-                if (PropertyAccessorType.of(method) != PropertyAccessorType.GET_GETTER) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @Inject annotation on method ");
-                    formatter.appendMethod(method);
-                    formatter.append(" as it is not a property getter.");
-                    throw new IllegalArgumentException(formatter.toString());
-                }
-                if (Modifier.isFinal(method.getModifiers())) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @Inject annotation on method ");
-                    formatter.appendMethod(method);
-                    formatter.append(" as it is final.");
-                    throw new IllegalArgumentException(formatter.toString());
-                }
-                if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @Inject annotation on method ");
-                    formatter.appendMethod(method);
-                    formatter.append(" as it is not public or protected.");
-                    throw new IllegalArgumentException(formatter.toString());
-                }
+        public void validateMethod(Method method, PropertyAccessorType accessorType) {
+            List<Class<? extends Annotation>> matches = new ArrayList<Class<? extends Annotation>>();
+            validateMethod(method, accessorType, Inject.class, matches);
+            for (Class<? extends Annotation> annotationType : annotationTypes) {
+                validateMethod(method, accessorType, annotationType, matches);
+            }
+            if (matches.size() > 1) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(matches.get(0));
+                formatter.append(" and ");
+                formatter.appendAnnotation(matches.get(1));
+                formatter.append(" annotations together on method ");
+                formatter.appendMethod(method);
+                formatter.append(".");
+                throw new IllegalArgumentException(formatter.toString());
             }
         }
+
+        private void validateMethod(Method method, PropertyAccessorType accessorType, Class<? extends Annotation> annotationType, List<Class<? extends Annotation>> matches) {
+            if (method.getAnnotation(annotationType) == null) {
+                return;
+            }
+            matches.add(annotationType);
+            if (Modifier.isStatic(method.getModifiers())) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotationType);
+                formatter.append(" annotation on method ");
+                formatter.appendMethod(method);
+                formatter.append(" as it is static.");
+                throw new IllegalArgumentException(formatter.toString());
+            }
+            if (accessorType != PropertyAccessorType.GET_GETTER) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotationType);
+                formatter.append(" annotation on method ");
+                formatter.appendMethod(method);
+                formatter.append(" as it is not a property getter.");
+                throw new IllegalArgumentException(formatter.toString());
+            }
+            if (Modifier.isFinal(method.getModifiers())) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotationType);
+                formatter.append(" annotation on method ");
+                formatter.appendMethod(method);
+                formatter.append(" as it is final.");
+                throw new IllegalArgumentException(formatter.toString());
+            }
+            if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotationType);
+                formatter.append(" annotation on method ");
+                formatter.appendMethod(method);
+                formatter.append(" as it is not public or protected.");
+                throw new IllegalArgumentException(formatter.toString());
+            }
+        }
+    }
+
+    private static class ServicesPropertyHandler extends ClassGenerationHandler {
+        private boolean hasServicesProperty;
 
         @Override
         public boolean claimProperty(PropertyMetaData property) {
@@ -795,8 +841,29 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 hasServicesProperty = true;
                 return true;
             }
+            return false;
+        }
+
+        @Override
+        void applyTo(ClassInspectionVisitor visitor) {
+            if (hasServicesProperty) {
+                visitor.providesOwnServicesImplementation();
+            }
+        }
+    }
+
+    private static abstract class AbstractInjectedPropertyHandler extends ClassGenerationHandler {
+        final Class<? extends Annotation> annotation;
+        final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
+
+        public AbstractInjectedPropertyHandler(Class<? extends Annotation> annotation) {
+            this.annotation = annotation;
+        }
+
+        @Override
+        public boolean claimProperty(PropertyMetaData property) {
             for (Method method : property.getters) {
-                if (method.getAnnotation(Inject.class) != null) {
+                if (method.getAnnotation(annotation) != null) {
                     serviceInjectionProperties.add(property);
                     return true;
                 }
@@ -807,9 +874,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void ambiguous(PropertyMetaData property) {
             for (Method method : property.getters) {
-                if (method.getAnnotation(Inject.class) != null) {
+                if (method.getAnnotation(annotation) != null) {
                     TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @Inject annotation on method ");
+                    formatter.node("Cannot use ");
+                    formatter.appendAnnotation(annotation);
+                    formatter.append(" annotation on method ");
                     formatter.appendMethod(method);
                     formatter.append(".");
                     throw new IllegalArgumentException(formatter.toString());
@@ -820,12 +889,23 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
-            if (hasServicesProperty) {
-                visitor.providesOwnServicesImplementation();
-            }
             if (!serviceInjectionProperties.isEmpty()) {
                 visitor.mixInServiceInjection();
             }
+        }
+
+        public List<Class<?>> getInjectedServices() {
+            ImmutableList.Builder<Class<?>> services = ImmutableList.builderWithExpectedSize(serviceInjectionProperties.size());
+            for (PropertyMetaData property : serviceInjectionProperties) {
+                services.add(property.getType());
+            }
+            return services.build();
+        }
+    }
+
+    private static class InjectAnnotationPropertyHandler extends AbstractInjectedPropertyHandler {
+        public InjectAnnotationPropertyHandler() {
+            super(Inject.class);
         }
 
         @Override
@@ -840,64 +920,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
         }
-
-        public List<Class<?>> getInjectedServices() {
-            ImmutableList.Builder<Class<?>> services = ImmutableList.builderWithExpectedSize(serviceInjectionProperties.size());
-            for (PropertyMetaData property : serviceInjectionProperties) {
-                services.add(property.getType());
-            }
-            return services.build();
-        }
     }
 
-    private static class DisabledAnnotationHandler extends ClassGenerationHandler {
-        private final Class<? extends Annotation> annotation;
-
-        public DisabledAnnotationHandler(Class<? extends Annotation> annotation) {
-            this.annotation = annotation;
-        }
-
-        @Override
-        void visitProperty(PropertyMetaData property) {
-            for (Method method : property.getters) {
-                if (method.getAnnotation(annotation) != null) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot use @");
-                    formatter.append(annotation.getSimpleName());
-                    formatter.append(" annotation on method ");
-                    formatter.appendMethod(method);
-                    formatter.append(".");
-
-                    throw new IllegalArgumentException(formatter.toString());
-                }
-            }
-        }
-    }
-
-    private static class EnabledAnnotationInjectionPropertyHandler extends ClassGenerationHandler {
-        private final Class<? extends Annotation> injectAnnotation;
-        private final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
-
-        public EnabledAnnotationInjectionPropertyHandler(Class<? extends Annotation> injectAnnotation) {
-            this.injectAnnotation = injectAnnotation;
-        }
-
-        @Override
-        public boolean claimProperty(PropertyMetaData property) {
-            for (Method method : property.getters) {
-                if (method.getAnnotation(injectAnnotation) != null) {
-                    serviceInjectionProperties.add(property);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        void applyTo(ClassInspectionVisitor visitor) {
-            if (!serviceInjectionProperties.isEmpty()) {
-                visitor.mixInServiceInjection();
-            }
+    private static class CustomInjectAnnotationPropertyHandler extends AbstractInjectedPropertyHandler {
+        public CustomInjectAnnotationPropertyHandler(Class<? extends Annotation> injectAnnotation) {
+            super(injectAnnotation);
         }
 
         @Override
@@ -905,11 +932,33 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetaData property : serviceInjectionProperties) {
                 visitor.applyServiceInjectionToProperty(property);
                 for (Method getter : property.getOverridableGetters()) {
-                    visitor.applyServiceInjectionToGetter(property, injectAnnotation, getter);
+                    visitor.applyServiceInjectionToGetter(property, annotation, getter);
                 }
                 for (Method setter : property.getOverridableSetters()) {
-                    visitor.applyServiceInjectionToSetter(property, injectAnnotation, setter);
+                    visitor.applyServiceInjectionToSetter(property, annotation, setter);
                 }
+            }
+        }
+    }
+
+    private static class DisabledAnnotationValidator implements ClassValidator {
+        private final Class<? extends Annotation> annotation;
+
+        public DisabledAnnotationValidator(Class<? extends Annotation> annotation) {
+            this.annotation = annotation;
+        }
+
+        @Override
+        public void validateMethod(Method method, PropertyAccessorType accessorType) {
+            if (method.getAnnotation(annotation) != null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot use ");
+                formatter.appendAnnotation(annotation);
+                formatter.append(" annotation on method ");
+                formatter.appendMethod(method);
+                formatter.append(".");
+
+                throw new IllegalArgumentException(formatter.toString());
             }
         }
     }
