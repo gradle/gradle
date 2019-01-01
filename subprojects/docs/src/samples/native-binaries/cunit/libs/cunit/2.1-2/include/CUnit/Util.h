@@ -125,7 +125,7 @@ CU_EXPORT void CU_trim(char *szString);
 
 CU_EXPORT size_t CU_number_width(int number);
 /**< 
- *  Calulates the number of places required to display 
+ *  Calculates the number of places required to display 
  *  number in decimal.
  */
 
