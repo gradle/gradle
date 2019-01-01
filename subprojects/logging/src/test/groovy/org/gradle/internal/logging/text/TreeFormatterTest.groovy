@@ -18,6 +18,8 @@ package org.gradle.internal.logging.text
 
 import spock.lang.Specification
 
+import javax.inject.Inject
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class TreeFormatterTest extends Specification {
@@ -309,6 +311,15 @@ Some thing.''')
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing String.length()")
+    }
+
+    def "can append annoation name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendAnnotation(Inject.class)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing @Inject")
     }
 
     def "can append value"() {

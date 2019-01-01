@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect;
 
+import javax.annotation.Nullable;
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -72,6 +73,7 @@ public enum PropertyAccessorType {
 
     public abstract Type propertyTypeFor(Method method);
 
+    @Nullable
     public static PropertyAccessorType of(Method method) {
         if (isStatic(method)) {
             return null;

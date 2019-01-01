@@ -16,6 +16,8 @@
 
 package org.gradle.internal.instantiation
 
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
@@ -27,12 +29,10 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BadlyFormedExtensibleBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InjectPropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.StaticInjectBean
 
 class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [])
@@ -164,15 +164,15 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
     }
 
-    def "cannot use custom annotation that is known but not enabled"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [])
+    def "cannot use multiple inject annotations on getter"() {
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject])
 
         when:
-        create(generator, BeanWithCustomServices)
+        create(generator, MultipleInjectAnnotations)
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @CustomInject annotation on method BeanWithCustomServices.getThing()."
+        e.cause.message == "Cannot use @Inject and @CustomInject annotations together on method MultipleInjectAnnotations.getBoth()."
     }
 
     def "object can provide its own service registry to provide services for injection"() {
@@ -188,16 +188,16 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
     }
 
-    def cannotAttachInjectAnnotationToMethodsOfExtensionAware() {
+    def "cannot attach @Inject annotation to methods of ExtensionAware"() {
         when:
-        generator.generate(BadlyFormedExtensibleBean)
+        generator.generate(ExtensibleBeanWithInject)
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method BadlyFormedExtensibleBean.getExtensions()."
+        e.cause.message == "Cannot use @Inject annotation on method ExtensibleBeanWithInject.getExtensions()."
     }
 
-    def cannotAttachInjectAnnotationToPropertyWhoseTypeIsProperty() {
+    def "cannot attach @Inject annotation to property whose type is Property"() {
         when:
         generator.generate(InjectPropertyBean)
 
@@ -206,7 +206,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         e.cause.message == "Cannot use @Inject annotation on method InjectPropertyBean.getProp()."
     }
 
-    def cannotAttachInjectAnnotationToFinalMethod() {
+    def "cannot attach @Inject annotation to final method"() {
         when:
         generator.generate(FinalInjectBean)
 
@@ -215,7 +215,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         e.cause.message == "Cannot use @Inject annotation on method FinalInjectBean.getThing() as it is final."
     }
 
-    def cannotAttachInjectAnnotationToStaticMethod() {
+    def "cannot attach @Inject annotation to static method"() {
         when:
         generator.generate(StaticInjectBean)
 
@@ -224,7 +224,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         e.cause.message == "Cannot use @Inject annotation on method StaticInjectBean.getThing() as it is static."
     }
 
-    def cannotAttachInjectAnnotationToPrivateMethod() {
+    def "cannot attach @Inject annotation to private method"() {
         when:
         generator.generate(PrivateInjectBean)
 
@@ -233,13 +233,58 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         e.cause.message == "Cannot use @Inject annotation on method PrivateInjectBean.getThing() as it is not public or protected."
     }
 
-    def cannotAttachInjectAnnotationToNonGetterMethod() {
+    def "cannot attach @Inject annotation to non getter method"() {
         when:
         generator.generate(NonGetterInjectBean)
 
         then:
         def e = thrown(ClassGenerationException)
         e.cause.message == "Cannot use @Inject annotation on method NonGetterInjectBean.thing() as it is not a property getter."
+    }
+
+    def "cannot attach custom annotation that is known but not enabled to getter method"() {
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [])
+
+        when:
+        create(generator, BeanWithCustomServices)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot use @CustomInject annotation on method BeanWithCustomServices.getThing()."
+    }
+
+    def "cannot attach custom annotation that is known but not enabled to static method"() {
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [])
+
+        when:
+        create(generator, StaticCustomInjectBean)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing()."
+    }
+
+    def "cannot attach custom inject annotation to methods of ExtensionAware"() {
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject])
+
+        when:
+        generator.generate(ExtensibleBeanWithCustomInject)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot use @CustomInject annotation on method ExtensibleBeanWithCustomInject.getExtensions()."
+    }
+
+    def "cannot attach custom inject annotation to static method"() {
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject])
+
+        when:
+        generator.generate(StaticCustomInjectBean)
+        fail()
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing() as it is static."
     }
 }
 
@@ -257,11 +302,15 @@ abstract class AbstractBeanWithServices {
 
 class BeanWithServices {
     @Inject
-    Number getThing() { throw new UnsupportedOperationException() }
+    Number getThing() {
+        throw new UnsupportedOperationException()
+    }
 }
 
 class BeanWithMutableServices extends BeanWithServices {
-    void setThing(Number number) { throw new UnsupportedOperationException() }
+    void setThing(Number number) {
+        throw new UnsupportedOperationException()
+    }
 }
 
 class BeanWithServicesAndServiceRegistry extends BeanWithServices {
@@ -274,7 +323,9 @@ class BeanWithServicesAndServiceRegistry extends BeanWithServices {
 
 class BeanWithParameterizedTypeService {
     @Inject
-    List<Number> getThings() { throw new UnsupportedOperationException() }
+    List<Number> getThings() {
+        throw new UnsupportedOperationException()
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -291,3 +342,40 @@ abstract class AbstractBeanWithCustomServices {
     abstract Number getThing()
 }
 
+class MultipleInjectAnnotations {
+    @Inject
+    @CustomInject
+    Number getBoth() {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class ExtensibleBeanWithInject implements ExtensionAware {
+    @Override
+    @Inject
+    ExtensionContainer getExtensions() {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class ExtensibleBeanWithCustomInject implements ExtensionAware {
+    @Override
+    @CustomInject
+    ExtensionContainer getExtensions() {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class StaticInjectBean {
+    @Inject
+    static Number getThing() {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class StaticCustomInjectBean {
+    @CustomInject
+    static Number getThing() {
+        throw new UnsupportedOperationException()
+    }
+}
