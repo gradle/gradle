@@ -15,7 +15,6 @@
  */
 package org.gradle.build.docs
 
-import org.asciidoctor.gradle.AsciidoctorProxy
 import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec

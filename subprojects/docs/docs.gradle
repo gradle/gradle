@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
@@ -87,8 +87,34 @@ configurations {
     }
 }
 
+//class AsciidoctorJSelectRule implements ComponentMetadataRule {
+//    @Override
+//    void execute(ComponentMetadataContext context) {
+//        context.details.allVariants {
+//            withDependencies {
+//                it.each { metadata ->
+//                    if (metadata.name == 'asciidoctorj') {
+//                        metadata.version { require('v1.6.0-RC.2') }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
 dependencies {
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
+    asciidoctor("org.gradle:docs-asciidoctor-extensions:0.4.0")
+    asciidoctor("org.asciidoctor:asciidoctorj-groovy-dsl:1.0.0.Alpha3")
+    asciidoctor("org.jruby:jruby-complete:9.2.5.0")
+
+//    withLibraryDependencies("org.gradle:sample-discovery", DependencyRemovalByNameRule::class, setOf("asciidoctorj", "asciidoctorj-api"))
+//    components {
+//        withModule("org.asciidoctor:asciidoctorj", DependencyRemovalByNameRule, {
+//            params(["jruby-complete"] as Set)
+//        })
+//        withModule("org.gradle:docs-asciidoctor-extensions", AsciidoctorJSelectRule)
+//        withModule("org.asciidoctor:asciidoctorj-groovy-dsl", AsciidoctorJSelectRule)
+//    }
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -279,7 +305,7 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
+def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
@@ -331,7 +357,7 @@ tasks.register("checkstyleApi", Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-def distDocs = tasks.register("distDocs", AsciidoctorTask) {
+def distDocs = tasks.register("distDocs", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     outputDir = distDocsDir
     sources { include 'getting-started.adoc' }
@@ -340,10 +366,9 @@ def distDocs = tasks.register("distDocs", AsciidoctorTask) {
 
 asciidoctorj {
     noDefaultRepositories = true
-    version = '1.5.7'
 }
 
-tasks.withType(AsciidoctorTask).configureEach {
+tasks.withType(CacheableAsciidoctorTask).configureEach {
     dependsOn css, samples, defaultImports
 
     separateOutputDirs = false
@@ -377,7 +402,7 @@ tasks.withType(AsciidoctorTask).configureEach {
         'samples-dir'       : "$projectDir/src/samples"
 }
 
-def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
 
     sources {
