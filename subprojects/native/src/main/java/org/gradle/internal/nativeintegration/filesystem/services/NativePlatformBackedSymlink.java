@@ -16,12 +16,11 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.FileInfo;
-import net.rubygrapefruit.platform.PosixFiles;
+import net.rubygrapefruit.platform.file.FileInfo;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
 import java.io.File;
-import java.io.IOException;
 
 class NativePlatformBackedSymlink implements Symlink {
     private final PosixFiles posixFiles;
@@ -36,7 +35,7 @@ class NativePlatformBackedSymlink implements Symlink {
     }
 
     @Override
-    public void symlink(File link, File target) throws IOException {
+    public void symlink(File link, File target) {
         link.getParentFile().mkdirs();
         posixFiles.symlink(link, target.getPath());
     }
