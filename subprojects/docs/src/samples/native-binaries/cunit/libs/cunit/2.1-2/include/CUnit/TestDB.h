@@ -494,7 +494,7 @@ CU_ErrorCode CU_set_test_active(CU_pTest pTest, CU_BOOL fNewActive);
 /**<
  *  Activates or deactivates a specific test.
  *  Only activated tests can be executed during a test run.  
- *  By default a test is active upon creation, but can be deactvated
+ *  By default a test is active upon creation, but can be deactivated
  *  by passing it along with CU_FALSE to this function.  The test
  *  can be reactivated by passing it along with CU_TRUE.  
  *  The current value of the active flag is available as pTest->fActive.
