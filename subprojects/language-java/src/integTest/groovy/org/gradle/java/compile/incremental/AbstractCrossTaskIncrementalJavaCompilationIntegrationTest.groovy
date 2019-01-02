@@ -599,7 +599,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @Unroll
-    def "recompiles outermost class when #visibility inner class constains constant reference"() {
+    def "recompiles outermost class when #visibility inner class contains constant reference"() {
         java api: [
             "class A { public static final int EVIL = 666; }",
         ], impl: [
