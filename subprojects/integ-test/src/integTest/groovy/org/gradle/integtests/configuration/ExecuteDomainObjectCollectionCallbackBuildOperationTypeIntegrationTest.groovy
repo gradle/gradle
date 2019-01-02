@@ -154,7 +154,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         "matching{true}.all" | 'pmd reports'             | ['java-library', 'pmd']        | 'pmdMain.reports'                        | ''
         "matching{true}.all" | 'codenarc reports'        | ['groovy', 'codenarc']         | 'codenarcMain.reports'                   | ''
         "matching{true}.all" | 'html dependency reports' | ['project-report']             | 'htmlDependencyReport.reports'           | ''
-        "matching{true}.all" | 'build dasboard reports'  | ['build-dashboard']            | 'buildDashboard.reports'                 | ''
+        "matching{true}.all" | 'build dashboard reports' | ['build-dashboard']            | 'buildDashboard.reports'                 | ''
         "matching{true}.all" | 'jacoco reports'          | ['java-library', 'jacoco']     | 'jacocoTestReport.reports'               | ''
     }
 
