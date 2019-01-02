@@ -16,27 +16,25 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 
 /**
- * Defines an artifact transformation.
+ * Base class for registration of an artifact transform.
  *
- * @param <T> The transform specific configuration type.
  * @since 5.2
  */
-@Incubating
-public interface ArtifactTransformSpec<T> extends ActionConfiguration, ArtifactTransformRegistration {
-
-    T getConfiguration();
-
-    void configuration(Action<? super T> action);
+public interface ArtifactTransformRegistration {
+    /**
+     * Attributes that match the variant that is consumed.
+     *
+     * @since 3.5
+     */
+    AttributeContainer getFrom();
 
     /**
-     * Returns the {@link ArtifactTransform} implementation to use for this transform. Defaults to the value specified by the {@link TransformAction} annotation attached to the configuration object.
+     * Attributes that match the variant that is produced.
+     *
+     * @since 3.5
      */
-    Class<?> getActionClass();
-
-    void setActionClass(Class<?> implementationClass);
+    AttributeContainer getTo();
 }

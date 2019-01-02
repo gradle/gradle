@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformatio
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
+import org.gradle.util.ToBeImplemented
 import org.junit.runner.RunWith
 import spock.lang.Issue
 
@@ -63,13 +64,20 @@ $fileSizer
         """
             import org.gradle.api.artifacts.transform.PrimaryInput
             import org.gradle.api.artifacts.transform.Workspace
+            import org.gradle.api.artifacts.transform.TransformAction
+            import org.gradle.api.tasks.InputFile
             import java.util.concurrent.Callable
             
-            abstract class FileSizer implements Callable<List<File>> {
-                FileSizer() {
+            @TransformAction(FileSizerAction)
+            class FileSizer {
+            }
+            
+            abstract class FileSizerAction implements Callable<List<File>> {
+                FileSizerAction() {
                     println "Creating FileSizer"
                 }
                 
+                @InputFile
                 @PrimaryInput
                 abstract File getPrimaryInput()
                 @Workspace
@@ -86,25 +94,27 @@ $fileSizer
         """
     }
 
-    private static String getFileSizerWithConfiguration() {
+    private static String getFileSizerWithParameterObject() {
         """                          
             import org.gradle.api.artifacts.transform.PrimaryInput
             import org.gradle.api.artifacts.transform.Workspace
+            import org.gradle.api.artifacts.transform.TransformAction
             import java.util.concurrent.Callable
             import javax.inject.Inject
             
-            class FileSizerConfiguration {
+            @TransformAction(FileSizerAction)
+            class FileSizer {
                 FileCollection additionalInputs
             }
             
-            abstract class FileSizer implements Callable<List<File>> {
+            abstract class FileSizerAction implements Callable<List<File>> {
                 
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputFiles
                 final Iterable<File> additionalInputs
             
                 @Inject
-                FileSizer(FileSizerConfiguration configuration) {
+                FileSizerAction(FileSizer configuration) {
                     println "Creating FileSizer"
                     this.additionalInputs = configuration.additionalInputs.files
                 }
@@ -200,7 +210,7 @@ $fileSizer
                 }
             }
         """
-        buildFile << fileSizerWithConfiguration << """
+        buildFile << fileSizerWithParameterObject << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -210,11 +220,10 @@ $fileSizer
             }
 
             dependencies {
-                registerTransform {
+                registerTransform(FileSizer) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
-                    artifactTransform(FileSizer)
-                    configuration(FileSizerConfiguration) {
+                    parameters {
                         additionalInputs = files("my-input.txt")
                     }
                 }
@@ -267,8 +276,23 @@ $fileSizer
         output.count("Transforming") == 2
     }
 
+    @ToBeImplemented("Requires fingerprinters in the Gradle user home scope")
     def "can use transformations in build script dependencies"() {
-        file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
+        file("buildSrc/src/main/groovy/FileSizer.groovy") << """
+            class FileSizer extends org.gradle.api.artifacts.transform.ArtifactTransform {
+                FileSizer() {
+                    println "Creating FileSizer"
+                }
+                
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+        """
 
         file("script-with-buildscript-block.gradle") << """   
             buildscript {
@@ -303,9 +327,11 @@ $fileSizer
         """
 
         expect:
-        succeeds("help", "--info")
-        output.count("Creating FileSizer") == 1
-        output.count("Transforming commons-math3") == 1
+        fails("help", "--info")
+        failure.assertHasCause("Cannot be used")
+//        succeeds("help", "--info")
+//        output.count("Creating FileSizer") == 1
+//        output.count("Transforming commons-math3") == 1
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
@@ -892,10 +918,9 @@ $fileSizer
             }
 
             dependencies {
-                registerTransform {
+                registerTransform(FileSizer) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
-                    artifactTransform(FileSizer)
                 }
             }
 
@@ -954,7 +979,7 @@ $fileSizer
             }
 
             ${configurationAndTransform('LineSplitter')}
-
+                                 
             class LineSplitter extends ArtifactTransform {
                 List<File> transform(File input) {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
@@ -1213,10 +1238,9 @@ Found the following transforms:
                     }
                 }
                 dependencies {
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
                     }
                 }
                 ext.checkArtifacts = { artifacts ->
@@ -1313,7 +1337,7 @@ Found the following transforms:
         succeeds "queryFiles"
 
         then:
-        output.count("Creating FileSizer") == 1
+        output.count("Creating FileSizer") == 2 // Once for input detection and once for the actual execution
         output.count("Transforming") == 1
         output.count("Transforming test1-1.0.jar to test1-1.0.jar.txt") == 1
 
@@ -1325,7 +1349,7 @@ Found the following transforms:
         succeeds "queryView"
 
         then:
-        output.count("Creating FileSizer") == 1
+        output.count("Creating FileSizer") == 2
         output.count("Transforming") == 1
         output.count("Transforming test2-2.0.jar to test2-2.0.jar.txt") == 1
 
@@ -1335,7 +1359,7 @@ Found the following transforms:
         succeeds "queryView"
 
         then:
-        output.count("Creating FileSizer") == 0
+        output.count("Creating FileSizer") == 1
         output.count("Transforming") == 0
     }
 
@@ -1979,14 +2003,14 @@ Found the following transforms:
         run "app:resolve"
 
         then:
-        outputContains("Before transformer FileSizer on artifact lib.jar (project :lib)")
-        outputContains("After transformer FileSizer on artifact lib.jar (project :lib)")
+        outputContains("Before transformer FileSizerAction on artifact lib.jar (project :lib)")
+        outputContains("After transformer FileSizerAction on artifact lib.jar (project :lib)")
 
         and:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
             it.failure == null
-            displayName == "Transform artifact lib.jar (project :lib) with FileSizer"
-            details.transformerName == "FileSizer"
+            displayName == "Transform artifact lib.jar (project :lib) with FileSizerAction"
+            details.transformerName == "FileSizerAction"
             details.subjectName == "artifact lib.jar (project :lib)"
         }
     }
@@ -2098,7 +2122,15 @@ Found the following transforms:
     }
 
     def declareTransform(String transformImplementation) {
+        transformImplementation == 'FileSizer' ?
         """
+            dependencies {
+                registerTransform(${transformImplementation}) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                }
+            }
+        """ : """
             dependencies {
                 registerTransform {
                     from.attribute(artifactType, 'jar')
