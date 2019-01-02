@@ -45,7 +45,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private ImmutableAttributes computedAttributes;
     private CapabilitiesMetadata computedCapabilities;
 
-    // Fields used for performance optimizations: we avoid computing the derived dependencies (withConstraints, withoutContrainsts, ...)
+    // Fields used for performance optimizations: we avoid computing the derived dependencies (withConstraints, withoutConstraints, ...)
     // eagerly because it's very likely that those methods would only be called on the selected variant. Therefore it's a waste of time
     // to compute them eagerly when those filtering methods are called. We cannot use a dedicated, lazy wrapper over configuration metadata
     // because we need the attributes to be computes lazily too, because of component metadata rules.
