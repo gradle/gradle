@@ -78,11 +78,11 @@ public class Jdk7Symlink implements Symlink {
             return false;
         } finally {
             try {
-                if (sourceFile != null && sourceFile.toFile().exists()) {
-                    Files.delete(sourceFile);
+                if (sourceFile != null) {
+                    Files.deleteIfExists(sourceFile);
                 }
-                if (linkFile != null && linkFile.toFile().exists()) {
-                    Files.delete(linkFile);
+                if (linkFile != null) {
+                    Files.deleteIfExists(linkFile);
                 }
             } catch (IOException e) {
                 // We don't really need to handle this.
