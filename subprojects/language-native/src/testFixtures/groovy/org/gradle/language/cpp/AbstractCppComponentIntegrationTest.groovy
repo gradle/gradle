@@ -51,7 +51,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         fails taskNameToAssembleDevelopmentBinary
 
         and:
-        failure.assertHasDescription("The ${componentName} component does not target this operating system.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':${taskNameToAssembleDevelopmentBinary}'")
+        failure.assertHasCause("The ${componentName} component does not target this operating system.")
     }
 
     def "does not fail when current operating system family is excluded but assemble is not invoked"() {

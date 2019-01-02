@@ -20,8 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -70,12 +68,12 @@ public class NativeTestingBasePlugin implements Plugin<Project> {
 
         project.getComponents().withType(TestSuiteComponent.class, testSuiteComponent -> {
             if (TEST_COMPONENT_NAME.equals(testSuiteComponent.getName())) {
-                project.getGradle().getTaskGraph().whenReady(taskExecutionGraph -> {
-                    TaskIdentity<Task> testTaskIdentity = TaskIdentity.create(TEST_TASK_NAME, null, (ProjectInternal) project);
-                    if (taskExecutionGraph.hasTask(testTaskIdentity.identityPath.getPath()) && !testSuiteComponent.getTestBinary().isPresent()) {
+                test.configure(task -> task.dependsOn((Callable) () -> {
+                    if (!testSuiteComponent.getTestBinary().isPresent()) {
                         throw new IllegalArgumentException("The " + testSuiteComponent.getName() + " component does not target this operating system.");
                     }
-                });
+                    return null;
+                }));
             }
         });
 

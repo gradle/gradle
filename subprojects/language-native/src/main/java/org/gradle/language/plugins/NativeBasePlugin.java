@@ -31,8 +31,6 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -70,6 +68,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
@@ -122,7 +121,7 @@ public class NativeBasePlugin implements Plugin<Project> {
 
         final SoftwareComponentContainer components = project.getComponents();
 
-        addLifecycleTasks(tasks, components, project);
+        addLifecycleTasks(tasks, components);
 
         // Add tasks to build various kinds of components
 
@@ -145,7 +144,7 @@ public class NativeBasePlugin implements Plugin<Project> {
         extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
     }
 
-    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components, final Project project) {
+    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, component -> {
             // Register each child of each component
             component.getBinaries().whenElementKnown(binary -> components.add(binary));
@@ -163,11 +162,13 @@ public class NativeBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                project.getGradle().getTaskGraph().whenReady(taskExecutionGraph -> {
-                    TaskIdentity<Task> assembleIdentity = TaskIdentity.create(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, null, (ProjectInternal)project);
-                    if (taskExecutionGraph.hasTask(assembleIdentity.identityPath.getPath()) && component.getBinaries().get().isEmpty()) {
-                        throw new IllegalArgumentException("The " + component.getName() + " component does not target this operating system.");
-                    }
+                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> {
+                    task.dependsOn((Callable) () -> {
+                        if (component.getBinaries().get().isEmpty()) {
+                            throw new IllegalArgumentException("The " + component.getName() + " component does not target this operating system.");
+                        }
+                        return null;
+                    });
                 });
             }
         });
