@@ -15,17 +15,17 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
-import net.rubygrapefruit.platform.Files;
-import net.rubygrapefruit.platform.Memory;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import net.rubygrapefruit.platform.PosixFiles;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.Terminals;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import net.rubygrapefruit.platform.file.Files;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import net.rubygrapefruit.platform.memory.Memory;
+import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
@@ -37,7 +37,7 @@ public class FileSystemServices {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor) throws Exception {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor) {
 
         if (operatingSystem.isWindows()) {
             Symlink symlink = JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", FileSystemServices.class.getClassLoader(), WindowsSymlink.class);
