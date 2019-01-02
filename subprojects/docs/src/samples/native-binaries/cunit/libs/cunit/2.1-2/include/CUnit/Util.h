@@ -24,7 +24,7 @@
  *
  *  13/Oct/2001   Moved some of the generic functions declarations from
  *                other files to this one so as to use the functions 
- *                consitently. This file is not included in the distribution 
+ *                consistently. This file is not included in the distribution 
  *                headers because it is used internally by CUnit. (AK)
  *
  *  20-Jul-2004   New interface, support for deprecated version 1 names. (JDS)
