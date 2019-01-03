@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ArchiversTest extends Specification {
 
-    def "archivers have unqique URIs"() {
+    def "archivers have unique URIs"() {
         when:
         def file = new File("/some/file")
 
