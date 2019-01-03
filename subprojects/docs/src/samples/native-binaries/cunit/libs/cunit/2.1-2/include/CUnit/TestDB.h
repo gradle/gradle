@@ -166,7 +166,7 @@ typedef CU_Suite* CU_pSuite;          /**< Pointer to a CUnit suite. */
  *  holds a pointer to the head of the linked list of CU_Suite objects.
  *  <br /><br />
  *
- *  With this structure, the user will normally add suites implictly to 
+ *  With this structure, the user will normally add suites implicitly to 
  *  the internal test registry using CU_add_suite(), and then add tests 
  *  to each suite using CU_add_test().  Test runs are then initiated 
  *  using one of the appropriate functions in TestRun.c via one of the 
