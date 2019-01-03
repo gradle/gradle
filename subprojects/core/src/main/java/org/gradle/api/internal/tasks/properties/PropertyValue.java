@@ -23,8 +23,6 @@ import java.lang.annotation.Annotation;
 
 public interface PropertyValue extends ValidatingValue {
 
-    String getPropertyName();
-
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     @Nullable
@@ -32,6 +30,4 @@ public interface PropertyValue extends ValidatingValue {
 
     boolean isOptional();
 
-    @Nullable
-    Object getValue();
 }

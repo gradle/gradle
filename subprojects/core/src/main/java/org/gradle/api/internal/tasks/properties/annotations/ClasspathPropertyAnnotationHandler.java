@@ -51,10 +51,10 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(propertyValue);
         fileSpec
-            .withPropertyName(propertyValue.getPropertyName())
+            .withPropertyName(propertyName)
             .withNormalizer(ClasspathNormalizer.class)
             .optional(propertyValue.isOptional());
         visitor.visitInputFileProperty(fileSpec);

@@ -44,18 +44,18 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         Object nested;
         try {
-            nested = unpackProvider(propertyValue.getValue());
+            nested = unpackProvider(propertyValue.call());
         } catch (Exception e) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyValue.getPropertyName(), new InvalidPropertyValue(e)));
+            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
             return;
         }
         if (nested != null) {
-            context.addNested(propertyValue.getPropertyName(), nested);
+            context.addNested(propertyName, nested);
         } else if (!propertyValue.isOptional()) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyValue.getPropertyName(), new AbsentPropertyValue()));
+            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentPropertyValue()));
         }
     }
 

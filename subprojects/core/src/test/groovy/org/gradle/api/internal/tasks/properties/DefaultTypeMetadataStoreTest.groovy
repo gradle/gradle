@@ -83,7 +83,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         }
 
         @Override
-        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        void visitPropertyValue(String propertyName, PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         }
     }
 

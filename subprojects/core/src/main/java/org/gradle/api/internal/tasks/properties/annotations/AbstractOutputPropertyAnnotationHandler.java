@@ -32,10 +32,10 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec
-            .withPropertyName(propertyValue.getPropertyName())
+            .withPropertyName(propertyName)
             .optional(propertyValue.isOptional());
         visitor.visitOutputFileProperty(fileSpec);
     }

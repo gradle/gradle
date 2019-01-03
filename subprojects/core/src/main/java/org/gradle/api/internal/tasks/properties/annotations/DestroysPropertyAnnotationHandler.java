@@ -37,7 +37,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec(propertyValue.getPropertyName(), propertyValue));
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec(propertyName, propertyValue));
     }
 }

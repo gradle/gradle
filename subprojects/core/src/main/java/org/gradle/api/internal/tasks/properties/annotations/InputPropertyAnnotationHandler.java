@@ -35,8 +35,8 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskInputProperty declaration = specFactory.createInputPropertySpec(propertyValue.getPropertyName(), propertyValue);
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        DeclaredTaskInputProperty declaration = specFactory.createInputPropertySpec(propertyName, propertyValue);
         declaration.optional(propertyValue.isOptional());
         visitor.visitInputProperty(declaration);
     }

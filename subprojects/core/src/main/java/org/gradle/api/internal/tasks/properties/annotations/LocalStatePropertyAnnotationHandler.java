@@ -35,7 +35,7 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec(propertyValue.getPropertyName(), propertyValue));
+    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec(propertyName, propertyValue));
     }
 }

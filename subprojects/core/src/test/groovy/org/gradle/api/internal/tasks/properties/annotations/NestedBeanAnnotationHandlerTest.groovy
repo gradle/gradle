@@ -40,11 +40,10 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def validationContext = Mock(TaskValidationContext)
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", propertyValue, propertyVisitor, specFactory, context)
 
         then:
-        1 * propertyValue.value >> null
-        1 * propertyValue.propertyName >> "name"
+        1 * propertyValue.call() >> null
         1 * propertyValue.optional >> false
         1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
             taskInputPropertySpec = arguments[0]
@@ -62,10 +61,10 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def "absent optional nested property is ignored"() {
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", propertyValue, propertyVisitor, specFactory, context)
 
         then:
-        1 * propertyValue.value >> null
+        1 * propertyValue.call() >> null
         1 * propertyValue.optional >> true
         0 * _
     }
@@ -76,13 +75,12 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def exception = new RuntimeException("BOOM!")
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", propertyValue, propertyVisitor, specFactory, context)
 
         then:
-        1 * propertyValue.value >> {
+        1 * propertyValue.call() >> {
             throw exception
         }
-        1 * propertyValue.getPropertyName() >> "name"
         1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
             taskInputPropertySpec = arguments[0]
         }
@@ -102,11 +100,10 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def nestedPropertyName = "someProperty"
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue(nestedPropertyName, propertyValue, propertyVisitor, specFactory, context)
 
         then:
-        1 * propertyValue.value >> nestedBean
-        1 * propertyValue.getPropertyName() >> nestedPropertyName
+        1 * propertyValue.call() >> nestedBean
         1 * context.addNested(nestedPropertyName, nestedBean)
         0 * _
     }
