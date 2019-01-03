@@ -31,7 +31,7 @@ dependencies {
     implementation("com.google.code.gson:gson")
     implementation("dom4j:dom4j")
 
-    // this version will be overriden by the one found in the BOM
+    // this version will be overridden by the one found in the BOM
     implementation("org.codehaus.groovy:groovy:1.8.6")
 }
 // end::dependency-on-bom[]
