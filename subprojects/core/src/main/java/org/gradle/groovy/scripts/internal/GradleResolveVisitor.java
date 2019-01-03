@@ -74,7 +74,7 @@ import java.util.Set;
 
 /**
  * A Gradle version of the Groovy {@link ResolveVisitor} that takes some shortcuts to make resolving faster. It tries to be as close as the original implementation, while having a significant impact
- * on performance, by taking advantage of knowlegdge of Gradle default imports, including a mapping from simple name to fully qualified class name. It also avoids unnecessary lookups of classnodes.
+ * on performance, by taking advantage of knowledge of Gradle default imports, including a mapping from simple name to fully qualified class name. It also avoids unnecessary lookups of classnodes.
  *
  * @since 2.12
  */
