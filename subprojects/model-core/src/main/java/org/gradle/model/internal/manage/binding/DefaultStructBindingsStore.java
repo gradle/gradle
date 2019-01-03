@@ -263,7 +263,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Set<WeaklyTypeReferencingMethod<?, ?>> implMethods = Sets.newLinkedHashSet();
         for (StructMethodBinding binding : bindings) {
             if (binding instanceof StructMethodImplementationBinding) {
-                implMethods.add(((StructMethodImplementationBinding) binding).getImplementorMethod());
+                implMethods.add(((StructMethodImplementationBinding) binding).getImplementerMethod());
             }
         }
         switch (implMethods.size()) {

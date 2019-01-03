@@ -40,7 +40,7 @@ public interface BuildOutcomeAssociation<T extends BuildOutcome> {
     /**
      * The common type of the from and to outcomes.
      *
-     * The from and to outcomes may be subtypes or implementors of this type. This type
+     * The from and to outcomes may be subtypes or implementers of this type. This type
      * will be used to determine how they should be compared.
      *
      * @return The common type of the from and to outcomes. Never null.
