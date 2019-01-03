@@ -611,7 +611,7 @@ val myNullableProperty: String? by project // <2>
 <1> Makes the `myProperty` project property available via a `myProperty` delegated property — the project property must exist in this case, otherwise the build will fail when the build script attempts to use the `myProperty` value
 <2> Does the same for the `myNullableProperty` project property, but the build won't fail on using the `myNullableProperty` value as long as you check for null (standard https://kotlinlang.org/docs/reference/null-safety.html[Kotlin rules for null safety] apply)
 
-The same approach works in both settings and initialization scripts, except you use `by settings` and `by gradle` repsectively in place of `by project`.
+The same approach works in both settings and initialization scripts, except you use `by settings` and `by gradle` respectively in place of `by project`.
 
 === Extra properties
 
