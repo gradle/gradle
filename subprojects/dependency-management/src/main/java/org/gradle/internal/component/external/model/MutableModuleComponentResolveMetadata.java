@@ -100,7 +100,7 @@ public interface MutableModuleComponentResolveMetadata {
 
     /**
      * Declares that this component belongs to a platform.
-     * @param platform the identifer of the platform
+     * @param platform the identifier of the platform
      */
     void belongsTo(ComponentIdentifier platform);
 
