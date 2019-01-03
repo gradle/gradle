@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 
-public interface IncementalCompileSourceProcessor {
+public interface IncrementalCompileSourceProcessor {
     void processSource(File sourceFile);
 
     IncrementalCompilation getResult();
