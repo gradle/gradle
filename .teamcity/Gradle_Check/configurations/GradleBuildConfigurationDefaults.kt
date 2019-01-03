@@ -41,7 +41,7 @@ val m2CleanScriptUnixLike = """
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        return 1
+        exit 1
     else
         echo "${'$'}REPO does not exist"
     fi
