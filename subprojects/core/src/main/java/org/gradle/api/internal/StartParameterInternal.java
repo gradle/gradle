@@ -17,14 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.deprecation.Deprecatable;
-import org.gradle.internal.deprecation.LoggingDeprecatable;
+import org.gradle.internal.deprecation.Deprecable;
+import org.gradle.internal.deprecation.LoggingDeprecable;
 
 import java.io.File;
 import java.util.Set;
 
-public class StartParameterInternal extends StartParameter implements Deprecatable {
-    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
+public class StartParameterInternal extends StartParameter implements Deprecable {
+    private final Deprecable deprecationHandler = new LoggingDeprecable();
 
     @Override
     public StartParameter newInstance() {
