@@ -828,7 +828,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             version = '1.0'
             configurations {
                 one {
-                    attributes.attribute(attr1, 'magnificient')
+                    attributes.attribute(attr1, 'magnificent')
                 }
                 two {
                     attributes.attribute(attr1, 'bazinga')
