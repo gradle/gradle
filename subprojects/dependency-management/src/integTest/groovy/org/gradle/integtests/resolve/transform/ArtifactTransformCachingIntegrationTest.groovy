@@ -1041,7 +1041,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 outputDir2.file("some-unrelated-file.txt") << "added"
                 break
             default:
-                throw new IllegalStateException("Unkown action: ${action}")
+                throw new IllegalStateException("Unknown action: ${action}")
         }
 
         succeeds ":util:resolve", ":app:resolve"
