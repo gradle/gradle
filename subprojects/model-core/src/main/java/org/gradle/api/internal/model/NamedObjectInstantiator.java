@@ -71,7 +71,6 @@ public class NamedObjectInstantiator {
 
     private LoadingCache<Class<?>, LoadingCache<String, Object>> newValuesCache() {
         return CacheBuilder.newBuilder()
-                .weakKeys()
                 .build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
                     @Override
                     public LoadingCache<String, Object> load(Class<?> type) {
