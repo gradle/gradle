@@ -37,7 +37,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
             }
             test {
                 reports.junitXml.outputPerTestCase = true
-                // JUnit 5's test name contains paretheses
+                // JUnit 5's test name contains parentheses
                 onOutput { test, event -> print "\${test.toString().replace('()(', '(')} -> \$event.message" }
             }
         """
