@@ -26,7 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeatur
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
@@ -1037,7 +1036,6 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle-native/issues/950")
     def "can handle candidate header directory which happens to match an existing file"() {
         def app = new CppApp()
