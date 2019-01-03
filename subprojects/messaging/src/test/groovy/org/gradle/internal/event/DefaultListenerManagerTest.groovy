@@ -760,7 +760,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
-    @Ignore("This test highlights a very pelicular use case which is not supported yet")
+    @Ignore("This test highlights a very peculiar use case which is not supported yet")
     def "can remove a listener which tries to notify a broadcaster itself trying to notify the same listener"() {
         given:
         def listener1 = {
