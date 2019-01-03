@@ -404,7 +404,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // to access that class directly, so A becomes a valid
         // name in X.
         // GROOVY-4043: Do this check up the hierarchy, if needed
-        Map<String, ClassNode> hierClasses = new LinkedHashMap<String, ClassNode>();
+        Map<String, ClassNode> classHierarchy = new LinkedHashMap<String, ClassNode>();
         ClassNode val;
         for (ClassNode classToCheck = currentClass;
             /*
@@ -413,13 +413,13 @@ public class GradleResolveVisitor extends ResolveVisitor {
              */
              classToCheck != null && classToCheck != ClassHelper.OBJECT_TYPE && !SCRIPTS_PACKAGE.equals(classToCheck.getPackageName());
              classToCheck = classToCheck.getSuperClass()) {
-            if (hierClasses.containsKey(classToCheck.getName())) {
+            if (classHierarchy.containsKey(classToCheck.getName())) {
                 break;
             }
-            hierClasses.put(classToCheck.getName(), classToCheck);
+            classHierarchy.put(classToCheck.getName(), classToCheck);
         }
 
-        for (ClassNode classToCheck : hierClasses.values()) {
+        for (ClassNode classToCheck : classHierarchy.values()) {
             val = new ConstructedNestedClass(classToCheck, type.getName());
             if (resolveFromCompileUnit(val)) {
                 type.setRedirect(val);
