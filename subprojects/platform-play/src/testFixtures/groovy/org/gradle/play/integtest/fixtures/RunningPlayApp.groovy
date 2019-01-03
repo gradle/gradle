@@ -83,9 +83,9 @@ class RunningPlayApp {
         return UNASSIGNED
     }
 
-    void requireHttpPort(int occurence) {
+    void requireHttpPort(int occurrence) {
         if (httpPort == UNASSIGNED) {
-            if (parseHttpPort(occurence) == UNASSIGNED) {
+            if (parseHttpPort(occurrence) == UNASSIGNED) {
                 throw new IllegalStateException("Could not parse Play http port from gradle output!")
             }
         }
