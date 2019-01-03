@@ -120,7 +120,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
                 .assertHasLineNumber(4)
     }
 
-    def "produces reasonable error message when ProjectEvaluationListener.afterEvalutate fails"() {
+    def "produces reasonable error message when ProjectEvaluationListener.afterEvaluate fails"() {
         when:
         settingsFile << """
     class ListenerImpl implements ProjectEvaluationListener {
