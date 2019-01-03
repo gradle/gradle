@@ -54,7 +54,7 @@ class TimeFormattingTest extends Specification {
     }
 
     @Unroll
-    def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExlusive"() {
+    def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExclusive"() {
         when:
         def result = TimeFormatting.formatDurationTerse(input)
 
