@@ -245,7 +245,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 artifactTypes {
                     jar {
                         // declares that the 'jar' artifact type wants a 'format' attribute with value 'custom'
-                        // and this is missing from component and variant metatada
+                        // and this is missing from component and variant metadata
                         attributes.attribute(formatAttribute, 'custom')
                     }
                 }
