@@ -50,7 +50,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
             task purgeRepo(type: Delete, dependsOn: resolveOne) {
                 delete "${mavenRepo.uri}"
             }
-            //runs last, still works even thoug local repo is empty
+            //runs last, still works even though local repo is empty
             task resolveTwo(dependsOn: purgeRepo) {
                 doLast {
                     println "Resolved " + configurations.two.files*.name
