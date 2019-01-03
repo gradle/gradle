@@ -262,17 +262,17 @@ test {
     def 'can handle test engine failure'() {
         given:
         createSimpleJupiterTest()
-        file('src/test/java/UninstantiatableExtension.java') << '''
+        file('src/test/java/UninstantiableExtension.java') << '''
 import org.junit.jupiter.api.extension.*;
-public class UninstantiatableExtension implements BeforeEachCallback {
-  private UninstantiatableExtension(){}
+public class UninstantiableExtension implements BeforeEachCallback {
+  private UninstantiableExtension(){}
 
   @Override
   public void beforeEach(final ExtensionContext context) throws Exception {
   }
 }
 '''
-        file('src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension') << 'UninstantiatableExtension'
+        file('src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension') << 'UninstantiableExtension'
         buildFile << '''
             test {
                 systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
@@ -285,7 +285,7 @@ public class UninstantiatableExtension implements BeforeEachCallback {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('UnknownClass')
-            .assertTestFailed('initializationError', containsString('UninstantiatableExtension'))
+            .assertTestFailed('initializationError', containsString('UninstantiableExtension'))
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4427')
