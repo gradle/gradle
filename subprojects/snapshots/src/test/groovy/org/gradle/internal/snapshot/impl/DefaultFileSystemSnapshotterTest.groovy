@@ -366,8 +366,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
                 return tgz.getName()
             }
         }
-        def recourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
-        snapshots = snapshotter.snapshot(recourceTarTree)
+        def resourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
+        snapshots = snapshotter.snapshot(resourceTarTree)
 
         then:
         assert snapshots.size() == 1
