@@ -54,7 +54,7 @@ class DefaultConventionTest {
         assertEquals(convention1.b, convention.extensionsAsDynamicObject.b)
     }
 
-    @Test void conventionObjectsPropertiesHavePrecendenceAccordingToOrderAdded() {
+    @Test void conventionObjectsPropertiesHavePrecedenceAccordingToOrderAdded() {
         assertEquals(convention1.a, convention.extensionsAsDynamicObject.a)
     }
 
@@ -76,7 +76,7 @@ class DefaultConventionTest {
         assertEquals(convention1.meth('somearg'), convention.extensionsAsDynamicObject.meth('somearg'))
     }
 
-    @Test void conventionObjectsMethodsHavePrecendenceAccordingToOrderAdded() {
+    @Test void conventionObjectsMethodsHavePrecedenceAccordingToOrderAdded() {
         assertEquals(convention1.meth(), convention.extensionsAsDynamicObject.meth())
     }
 
@@ -134,7 +134,7 @@ class DefaultConventionTest {
         assertEquals(convention.extensionsAsDynamicObject.properties.get("foo"), ext);
     }
 
-    @Test void extensionsTakePrecendenceOverPluginConventions() {
+    @Test void extensionsTakePrecedenceOverPluginConventions() {
         convention = new DefaultConvention(instantiator)
         convention.plugins.foo = new FooPluginExtension()
         convention.add("foo", new FooExtension())
