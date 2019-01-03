@@ -20,7 +20,7 @@ import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 
-class VisualStudioCppApplicationProjectIntegationTest extends AbstractVisualStudioProjectIntegrationTest {
+class VisualStudioCppApplicationProjectIntegrationTest extends AbstractVisualStudioProjectIntegrationTest {
     @Override
     void makeSingleProject() {
         buildFile << """
