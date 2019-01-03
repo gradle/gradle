@@ -16,23 +16,23 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
+
+import java.util.List;
 
 /**
  * A macro function whose body cannot be resolved.
  */
-public class UnresolveableMacro extends AbstractMacro {
-    public UnresolveableMacro(String name) {
-        super(name);
+public class UnresolvableMacroFunction extends AbstractMacroFunction {
+    private static final SimpleExpression UNRESOLVED_EXPRESSION = new SimpleExpression(null, IncludeType.OTHER);
+
+    public UnresolvableMacroFunction(String name, int parameters) {
+        super(name, parameters);
     }
 
     @Override
-    public IncludeType getType() {
-        return IncludeType.OTHER;
-    }
-
-    @Override
-    public String getValue() {
-        return null;
+    public Expression evaluate(List<Expression> arguments) {
+        return UNRESOLVED_EXPRESSION;
     }
 }

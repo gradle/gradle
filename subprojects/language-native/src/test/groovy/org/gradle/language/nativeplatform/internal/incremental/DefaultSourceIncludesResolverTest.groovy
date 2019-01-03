@@ -19,7 +19,7 @@ import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolvableMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -142,7 +142,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
         macros << macro("TEST", '"test.h"')
         macros << macro("IGNORE", "'broken'")
-        macros << unresolveableMacro("IGNORE")
+        macros << unresolvableMacro("IGNORE")
 
         expect:
         def result = resolve(include('TEST'))
@@ -175,7 +175,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         macroFunctions << macroFunction("TEST1", "TEST")
         macros << macro("TEST2", "TEST1()")
         macros << macro("TEST3", "TEST2")
-        macros << unresolveableMacro("IGNORE")
+        macros << unresolvableMacro("IGNORE")
 
         expect:
         def result = resolve(include('TEST3'))
@@ -221,8 +221,8 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def "marks macro include as unresolved when target macro value cannot be resolved"() {
         given:
-        macros << unresolveableMacro("TEST")
-        macros << unresolveableMacro("NESTED")
+        macros << unresolvableMacro("TEST")
+        macros << unresolvableMacro("NESTED")
         macros << macro("TEST", "NESTED")
 
         expect:
@@ -237,7 +237,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
         macros << macro("TEST", '"test.h"')
         macros << macro("IGNORE", '"broken"')
-        macros << unresolveableMacro("TEST")
+        macros << unresolvableMacro("TEST")
 
         expect:
         def result = resolve(include('TEST'))
@@ -328,8 +328,8 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def header = systemIncludeDir.createFile("test.h")
 
         macros << macro("TEST", 'FILE##NAME')
-        macros << unresolveableMacro("FILE")
-        macros << unresolveableMacro("NAME")
+        macros << unresolvableMacro("FILE")
+        macros << unresolvableMacro("NAME")
         macros << macro("FILENAME", '"test.h"')
 
         expect:
@@ -368,8 +368,8 @@ class DefaultSourceIncludesResolverTest extends Specification {
         given:
         def header = systemIncludeDir.createFile("test.h")
 
-        macros << unresolveableMacro("FILE")
-        macros << unresolveableMacro("NAME")
+        macros << unresolvableMacro("FILE")
+        macros << unresolvableMacro("NAME")
         macros << macro("FILENAME", '"test.h"')
         macroFunctions << macroFunction("TEST(X, Y)", "X##Y")
 
@@ -487,7 +487,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         return directives.allMacroFunctions.first()
     }
 
-    def unresolveableMacro(String name) {
-        new UnresolveableMacro(name)
+    def unresolvableMacro(String name) {
+        new UnresolvableMacro(name)
     }
 }

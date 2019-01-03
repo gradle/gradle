@@ -455,7 +455,7 @@ class DefaultProjectLayoutTest extends Specification {
         !var.present
     }
 
-    def "can query and mutate the build directory using resolveable type"() {
+    def "can query and mutate the build directory using resolvable type"() {
         expect:
         def buildDirectory = layout.buildDirectory
         def fileProvider = buildDirectory.asFile
