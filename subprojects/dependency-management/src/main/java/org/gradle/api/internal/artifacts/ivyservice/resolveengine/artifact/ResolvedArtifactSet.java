@@ -80,7 +80,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         /**
          * Should the file for each artifacts be made available when visiting the result?
          *
-         * Returns true here allows the collection to pre-emptively resolve the files in parallel.
+         * Returns true here allows the collection to preemptively resolve the files in parallel.
          */
         boolean requireArtifactFiles();
 
