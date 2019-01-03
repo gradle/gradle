@@ -82,7 +82,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         publishPlugin """
-                // can load plugin dependended on
+                // can load plugin dependent on
                 project.apply plugin: 'test-plugin-2'
     
                 // Can see dependency classes
