@@ -66,7 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataStore {
+public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
         new InputFilePropertyAnnotationHandler(),
@@ -94,16 +94,16 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
     private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
 
     private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
-    private final CrossBuildInMemoryCache<Class<?>, TypePropertyMetadata> cache;
+    private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final PropertyExtractor propertyExtractor;
-    private Transformer<TypePropertyMetadata, Class<?>> typeMetadataFactory = new Transformer<TypePropertyMetadata, Class<?>>() {
+    private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
         @Override
-        public TypePropertyMetadata transform(Class<?> type) {
-            return createTypePropertyMetadata(type);
+        public TypeMetadata transform(Class<?> type) {
+            return createTypeMetadata(type);
         }
     };
 
-    public DefaultTypePropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
         this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -142,19 +142,19 @@ public class DefaultTypePropertyMetadataStore implements TypePropertyMetadataSto
     }
 
     @Override
-    public <T> TypePropertyMetadata getTypePropertyMetadata(final Class<T> type) {
+    public <T> TypeMetadata getTypeMetadata(final Class<T> type) {
         return cache.get(type, typeMetadataFactory);
     }
 
-    private <T> TypePropertyMetadata createTypePropertyMetadata(Class<T> type) {
-        return new DefaultTypePropertyMetadata(propertyExtractor.extractPropertyMetadata(type), annotationHandlers);
+    private <T> TypeMetadata createTypeMetadata(Class<T> type) {
+        return new DefaultTypeMetadata(propertyExtractor.extractPropertyMetadata(type), annotationHandlers);
     }
 
-    private static class DefaultTypePropertyMetadata implements TypePropertyMetadata {
+    private static class DefaultTypeMetadata implements TypeMetadata {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
 
-        DefaultTypePropertyMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
+        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
             this.propertiesMetadata = propertiesMetadata;
             this.annotationHandlers = annotationHandlers;
         }

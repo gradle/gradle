@@ -50,7 +50,7 @@ import spock.lang.Unroll
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-class DefaultTypePropertyMetadataStoreTest extends Specification {
+class DefaultTypeMetadataStoreTest extends Specification {
 
     private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
         InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories
@@ -89,11 +89,11 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
 
     def "can use custom annotation processor"() {
         def annotationHandler = new SearchPathAnnotationHandler()
-        def metadataStore = new DefaultTypePropertyMetadataStore([annotationHandler], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def typePropertyMetadata = metadataStore.getTypePropertyMetadata(TaskWithCustomAnnotation)
-        def propertiesMetadata = typePropertyMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
+        def propertiesMetadata = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
         propertiesMetadata.size() == 1
@@ -101,7 +101,7 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
         propertyMetadata.fieldName == 'searchPath'
         propertyMetadata.propertyType == SearchPath
         propertyMetadata.validationMessages.empty
-        typePropertyMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
+        typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
     }
 
     @Unroll
@@ -118,10 +118,10 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
-        def parentMetadata = metadataStore.getTypePropertyMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypePropertyMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isOfType(parentMetadata, parentAnnotation)
@@ -147,10 +147,10 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
-        def parentMetadata = metadataStore.getTypePropertyMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypePropertyMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isOfType(parentMetadata, processedAnnotation)
@@ -176,10 +176,10 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
-        def parentMetadata = metadataStore.getTypePropertyMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypePropertyMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isIgnored(parentMetadata)
@@ -200,25 +200,25 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultTypePropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def propertiesMetadata = metadataStore.getTypePropertyMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
+        def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
-        propertiesMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
-        propertiesMetadata*.propertyType as List == [Classpath, Classpath]
-        propertiesMetadata*.validationMessages.flatten().empty
+        typeMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
+        typeMetadata*.propertyType as List == [Classpath, Classpath]
+        typeMetadata*.validationMessages.flatten().empty
     }
 
     @Unroll
     def "all properties on #workClass are ignored"() {
-        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def propertiesMetadata = metadataStore.getTypePropertyMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
+        def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
         then:
-        propertiesMetadata*.fieldName.empty
+        typeMetadata*.fieldName.empty
 
         where:
         workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
@@ -240,13 +240,13 @@ class DefaultTypePropertyMetadataStoreTest extends Specification {
     }
 
     def "can get annotated properties of simple task"() {
-        def metadataStore = new DefaultTypePropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def propertiesMetadata = metadataStore.getTypePropertyMetadata(SimpleTask).propertiesMetadata
+        def typeMetadata = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
 
         then:
-        nonIgnoredProperties(propertiesMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+        nonIgnoredProperties(typeMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")

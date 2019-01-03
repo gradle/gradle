@@ -22,10 +22,7 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -45,8 +42,8 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.tasks.properties.DefaultTypePropertyMetadataStore;
-import org.gradle.api.internal.tasks.properties.TypePropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -85,6 +82,9 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
@@ -358,8 +358,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
-    TypePropertyMetadataStore createTypePropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultTypePropertyMetadataStore(annotationHandlers, cacheFactory);
+    TypeMetadataStore createTypeMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTypeMetadataStore(annotationHandlers, cacheFactory);
     }
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {

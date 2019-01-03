@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Optional;
@@ -45,12 +45,12 @@ import java.lang.reflect.Method;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypePropertyMetadata typeMetadata) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
     public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
-        TypePropertyMetadata typeMetadata = getTypePropertyMetadata();
+        TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {

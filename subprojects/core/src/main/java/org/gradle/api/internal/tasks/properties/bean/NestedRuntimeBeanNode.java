@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
@@ -34,8 +34,8 @@ import java.lang.reflect.Proxy;
 import java.util.Queue;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
-    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypePropertyMetadata typePropertyMetadata) {
-        super(parentNode, propertyName, bean, typePropertyMetadata);
+    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypeMetadata typeMetadata) {
+        super(parentNode, propertyName, bean, typeMetadata);
     }
 
     @Override
