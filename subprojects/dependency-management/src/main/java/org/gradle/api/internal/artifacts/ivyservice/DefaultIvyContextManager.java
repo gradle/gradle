@@ -89,7 +89,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
     }
 
     /*
-     * Syncronizes on the system properties, because IvySettings iterates
+     * Synchronizes on the system properties, because IvySettings iterates
      * over them without taking a defensive copy. This can fail if another
      * process sets a system property at that moment.
      */
