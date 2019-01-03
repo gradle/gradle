@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class ModelNodeRendererTest extends Specification {
 
-    def "should filter rules removeing duplicates and excluding creators"() {
+    def "should filter rules removing duplicates and excluding creators"() {
         ModelRuleDescriptor creator = Mock()
         creator.describeTo(_) >> { Appendable a ->
             a.append("creator")
