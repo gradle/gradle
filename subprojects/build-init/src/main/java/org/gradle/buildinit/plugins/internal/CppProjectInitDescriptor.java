@@ -82,7 +82,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         final String closing;
         final String indent;
 
-        public NamespaceDeclaration(String opening, String closing, String indent) {
+        private NamespaceDeclaration(String opening, String closing, String indent) {
             this.opening = opening;
             this.closing = closing;
             this.indent = indent;

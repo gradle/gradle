@@ -6,6 +6,7 @@
 #include <cassert>
 
 int main() {
-    assert(${namespacePrefix.groovyString}greeting().compare("Hello, World!") == 0);
+    ${namespacePrefix.groovyString}Greeter greeter;
+    assert(greeter.greeting().compare("Hello, World!") == 0);
     return 0;
 }

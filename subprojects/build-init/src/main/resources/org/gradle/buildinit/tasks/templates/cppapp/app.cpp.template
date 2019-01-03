@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #include "app.h"
 
-std::string ${namespacePrefix.groovyString}greeting() {
+std::string ${namespacePrefix.groovyString}Greeter::greeting() {
     return std::string("Hello, World!");
 }
 
 int main () {
-    std::cout << ${namespacePrefix.groovyString}greeting() << std::endl;
+    ${namespacePrefix.groovyString}Greeter greeter;
+    std::cout << greeter.greeting() << std::endl;
     return 0;
 }

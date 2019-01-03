@@ -6,6 +6,6 @@
 #include <stdlib.h>
 #include "hello.h"
 
-std::string ${namespacePrefix.groovyString}greeting() {
+std::string ${namespacePrefix.groovyString}Greeter::greeting() {
     return std::string("Hello, World!");
 }

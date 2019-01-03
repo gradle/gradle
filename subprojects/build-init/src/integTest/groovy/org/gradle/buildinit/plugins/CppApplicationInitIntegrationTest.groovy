@@ -45,7 +45,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -74,7 +74,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -132,7 +132,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":test")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hola, Mundo!\n")
+        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hola, Mundo!\n")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
