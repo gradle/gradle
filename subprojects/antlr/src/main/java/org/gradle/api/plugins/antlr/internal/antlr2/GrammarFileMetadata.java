@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Models information about an Antlr grammar file, including the inidividual {@link #getGrammars grammars} (lexers,
+ * Models information about an Antlr grammar file, including the individual {@link #getGrammars grammars} (lexers,
  * parsers, etc) contained within it.
  */
 public class GrammarFileMetadata {
