@@ -34,7 +34,7 @@ public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerC
         super(delegate, modelMapping, adapter);
         InternalParameterAcceptingConnection connection = (InternalParameterAcceptingConnection) delegate;
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
-        actionRunner = new ParametrizedActionRunner(connection, exceptionTransformer, getVersionDetails());
+        actionRunner = new ParameterizedActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
     @Override

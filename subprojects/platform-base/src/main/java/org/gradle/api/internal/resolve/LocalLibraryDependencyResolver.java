@@ -145,7 +145,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         } else {
             Binary selectedBinary = matchingVariants.iterator().next();
             // TODO:Cedric This is not quite right. We assume that if we are asking for a specific binary, then we resolve to the assembly instead
-            // of the jar, but it should be somehow parametrized
+            // of the jar, but it should be somehow parameterized
             LocalComponentMetadata metaData;
             if (variant == null) {
                 metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath, false);

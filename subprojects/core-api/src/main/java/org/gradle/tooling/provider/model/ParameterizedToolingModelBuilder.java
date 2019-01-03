@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
 /**
- * A {@link ToolingModelBuilder} which can be parametrized by the client.
+ * A {@link ToolingModelBuilder} which can be parameterized by the client.
  *
  * <p>The parameter type {@code T} does not need to implement the interface defined in the client side, but it does need to have the same structure.
  * The Tooling API will create a view from the client side parameter type to the one defined in this model builder, and deal automatically with
