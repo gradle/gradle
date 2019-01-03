@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.text
 
-class TestLineChoppingStyledTextOuput extends AbstractLineChoppingStyledTextOutput {
+class TestLineChoppingStyledTextOutput extends AbstractLineChoppingStyledTextOutput {
     TestStyledTextOutput delegate = new TestStyledTextOutput()
 
     @Override

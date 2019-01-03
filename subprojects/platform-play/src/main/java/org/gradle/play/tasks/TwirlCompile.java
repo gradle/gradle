@@ -262,8 +262,8 @@ public class TwirlCompile extends SourceTask {
 
         public void execute(Set<File> staleSources) {
             for (File removedInputFile : staleSources) {
-                File staleOuputFile = calculateOutputFile(removedInputFile);
-                staleOuputFile.delete();
+                File staleOutputFile = calculateOutputFile(removedInputFile);
+                staleOutputFile.delete();
             }
         }
 
