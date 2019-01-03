@@ -19,24 +19,27 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.io.File;
 
-public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
+
+public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return !visitor.visitOutputFilePropertiesOnly();
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        PathSensitive pathSensitive = propertyMetadata.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
             // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
@@ -45,16 +48,16 @@ public abstract class AbstractInputPropertyAnnotationHandler implements Property
         } else {
             pathSensitivity = pathSensitive.value();
         }
-        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
+        DeclaredTaskInputFileProperty fileSpec = createFileSpec(value, specFactory);
         fileSpec
             .withPropertyName(propertyName)
             .withPathSensitivity(pathSensitivity)
-            .skipWhenEmpty(propertyValue.isAnnotationPresent(SkipWhenEmpty.class))
-            .optional(propertyValue.isOptional());
+            .skipWhenEmpty(propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class))
+            .optional(isOptional(propertyMetadata));
         visitor.visitInputFileProperty(fileSpec);
     }
 
-    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
+    protected abstract DeclaredTaskInputFileProperty createFileSpec(ValidatingValue propertyValue, PropertySpecFactory specFactory);
 
     protected static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);

@@ -22,14 +22,16 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -44,18 +46,18 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         Object nested;
         try {
-            nested = unpackProvider(propertyValue.call());
+            nested = unpackProvider(value.call());
         } catch (Exception e) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
+            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidValue(e)));
             return;
         }
         if (nested != null) {
             context.addNested(propertyName, nested);
-        } else if (!propertyValue.isOptional()) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentPropertyValue()));
+        } else if (!isOptional(propertyMetadata)) {
+            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentValue()));
         }
     }
 
@@ -68,10 +70,10 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         return value;
     }
 
-    private static class InvalidPropertyValue implements ValidatingValue {
+    private static class InvalidValue implements ValidatingValue {
         private final Exception exception;
 
-        public InvalidPropertyValue(Exception exception) {
+        public InvalidValue(Exception exception) {
             this.exception = exception;
         }
 
@@ -97,7 +99,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
     }
 
-    private static class AbsentPropertyValue implements ValidatingValue {
+    private static class AbsentValue implements ValidatingValue {
         @Nullable
         @Override
         public Object call() {

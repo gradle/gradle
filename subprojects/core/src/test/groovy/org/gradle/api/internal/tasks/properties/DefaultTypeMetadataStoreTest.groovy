@@ -25,6 +25,7 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.PropertySpecFactory
+import org.gradle.api.internal.tasks.ValidatingValue
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.plugins.ExtensionAware
@@ -83,7 +84,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         }
 
         @Override
-        void visitPropertyValue(String propertyName, PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         }
     }
 

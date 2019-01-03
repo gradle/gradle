@@ -18,13 +18,16 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.internal.reflect.PropertyMetadata;
+
+import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
+    protected abstract DeclaredTaskOutputFileProperty createFileSpec(ValidatingValue value, PropertySpecFactory specFactory);
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
@@ -32,11 +35,11 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(value, specFactory);
         fileSpec
             .withPropertyName(propertyName)
-            .optional(propertyValue.isOptional());
+            .optional(isOptional(propertyMetadata));
         visitor.visitOutputFileProperty(fileSpec);
     }
 }

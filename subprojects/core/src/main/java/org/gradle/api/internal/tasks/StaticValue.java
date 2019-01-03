@@ -50,7 +50,7 @@ public class StaticValue implements ValidatingValue {
     public Object call() {
         // Replace absent Provider with null.
         // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
-        // Returning null from a Callable is ignored, and PropertyValue is a callable.
+        // Returning null from a Callable is ignored, and ValidatingValue is a callable.
         if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
             return null;
         }

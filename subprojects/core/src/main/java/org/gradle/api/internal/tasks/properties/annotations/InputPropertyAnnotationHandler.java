@@ -17,12 +17,15 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -35,9 +38,9 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskInputProperty declaration = specFactory.createInputPropertySpec(propertyName, propertyValue);
-        declaration.optional(propertyValue.isOptional());
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        DeclaredTaskInputProperty declaration = specFactory.createInputPropertySpec(propertyName, value);
+        declaration.optional(isOptional(propertyMetadata));
         visitor.visitInputProperty(declaration);
     }
 }

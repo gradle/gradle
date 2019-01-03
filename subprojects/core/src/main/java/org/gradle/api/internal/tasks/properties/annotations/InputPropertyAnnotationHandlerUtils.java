@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.reflect.PropertyMetadata;
 
-import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
+public class InputPropertyAnnotationHandlerUtils {
 
-public interface PropertyValue extends ValidatingValue {
+    private InputPropertyAnnotationHandlerUtils() {
+    }
 
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
-
-    @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
-
-    boolean isOptional();
+    public static boolean isOptional(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(Optional.class);
+    }
 
 }
