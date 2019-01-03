@@ -155,7 +155,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                         artifact 'variant1'
                     }
-                    attribute 'format', 'will be overriden'
+                    attribute 'format', 'will be overridden'
                 }
             }
         }
