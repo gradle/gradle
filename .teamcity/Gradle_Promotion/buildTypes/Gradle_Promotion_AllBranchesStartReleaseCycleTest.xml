@@ -27,6 +27,28 @@
           <param name="quietPeriodMode" value="DO_NOT_USE" />
         </parameters>
       </build-trigger>
+      <build-trigger id="TRIGGER_7" type="schedulingTrigger">
+        <parameters>
+          <param name="branchFilter" value="+:*" />
+          <param name="cronExpression_dm" value="*" />
+          <param name="cronExpression_dw" value="?" />
+          <param name="cronExpression_hour" value="*" />
+          <param name="cronExpression_min" value="0" />
+          <param name="cronExpression_month" value="*" />
+          <param name="cronExpression_sec" value="0" />
+          <param name="cronExpression_year" value="*" />
+          <param name="dayOfWeek" value="Sunday" />
+          <param name="enableQueueOptimization" value="true" />
+          <param name="hour" value="3" />
+          <param name="minute" value="0" />
+          <param name="promoteWatchedBuild" value="true" />
+          <param name="revisionRule" value="lastFinished" />
+          <param name="revisionRuleBuildBranch" value="&lt;default&gt;" />
+          <param name="schedulingPolicy" value="daily" />
+          <param name="timezone" value="SERVER" />
+          <param name="triggerBuildWithPendingChangesOnly" value="true" />
+        </parameters>
+      </build-trigger>
     </build-triggers>
     <cleanup />
   </settings>
