@@ -305,8 +305,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 FileUtils.forceMkdir(file);
                 chmodUnpackedFile(entry, file);
                 String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-                String indernedDirName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(internedAbsolutePath, indernedDirName);
+                String internedDirName = stringInterner.intern(parser.getName());
+                builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
                 builder.visit(fileSnapshot);
