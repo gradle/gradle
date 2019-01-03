@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
 
-class JavascriptPluginsSmokeTest extends AbstractSmokeTest {
+class JavaScriptPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'js plugin'() {
         given:
@@ -60,7 +60,7 @@ class JavascriptPluginsSmokeTest extends AbstractSmokeTest {
             """.stripIndent()
 
         file("jsSrcDir/app.js") << """
-            console.log("Hello from Javascript");
+            console.log("Hello from JavaScript");
         """
 
         when:
