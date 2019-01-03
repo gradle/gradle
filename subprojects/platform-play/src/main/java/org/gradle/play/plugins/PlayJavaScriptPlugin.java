@@ -54,12 +54,12 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void registerJavascript(TypeBuilder<JavaScriptSourceSet> builder) {
+        void registerJavaScript(TypeBuilder<JavaScriptSourceSet> builder) {
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }
 
         @Finalize
-        void createJavascriptSourceSets(@Each PlayApplicationSpec playComponent) {
+        void createJavaScriptSourceSets(@Each PlayApplicationSpec playComponent) {
             playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
                 @Override
                 public void execute(JavaScriptSourceSet javaScriptSourceSet) {

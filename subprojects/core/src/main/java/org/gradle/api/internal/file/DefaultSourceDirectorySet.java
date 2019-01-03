@@ -73,7 +73,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.outputDir = objectFactory.property(File.class);
     }
 
-    // Used by the Javascript plugins
+    // Used by the JavaScript plugins
     @Deprecated
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this(name, displayName, fileResolver, directoryFileTreeFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
