@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Returns template info for a specifc Play version.
+ * Returns template info for a specific Play version.
  */
 public interface VersionedPlayTwirlAdapter extends Serializable {
 
