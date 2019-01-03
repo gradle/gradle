@@ -14,7 +14,7 @@ Activate this feature in Gradle 4.6+ by adding `enableFeaturePreview("GRADLE_MET
 
 ### Publishing `.module` metadata files
 
-If this feature preview is activated, the _maven-publish_ and _ivy-publlish_ plugins automatically publish a `.module` file in addition to the `pom`/`ivy.xml` metadata file. If these modules are consumed by Gradle, _dependency constraints_ and _version constraints_, for examples strict versions, are preserved. By still publishing the traditional metadata formats, compatibility with Maven and Ivy is still ensured as much as possible.
+If this feature preview is activated, the _maven-publish_ and _ivy-publish_ plugins automatically publish a `.module` file in addition to the `pom`/`ivy.xml` metadata file. If these modules are consumed by Gradle, _dependency constraints_ and _version constraints_, for examples strict versions, are preserved. By still publishing the traditional metadata formats, compatibility with Maven and Ivy is still ensured as much as possible.
 
 The `.module` files are used to automatically publish the `api` and `runtime` variants of  Java libraries. These variants are honoured during dependency resolution. Additional publishing features will be added in the future which will allow for the publication of additional variants.
 
