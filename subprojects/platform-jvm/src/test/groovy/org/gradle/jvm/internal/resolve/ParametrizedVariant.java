@@ -19,6 +19,6 @@ package org.gradle.jvm.internal.resolve;
 import org.gradle.api.Named;
 
 // Separate Java class because IBM JDK 6 -- See https://issues.apache.org/jira/browse/GROOVY-7010
-public interface ParametrizedVariant<T> extends Named {
+public interface ParameterizedVariant<T> extends Named {
     T blah();
 }

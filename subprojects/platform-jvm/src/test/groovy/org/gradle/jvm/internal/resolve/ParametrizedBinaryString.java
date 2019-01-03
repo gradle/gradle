@@ -20,7 +20,7 @@ import org.gradle.platform.base.Variant;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 // Separate Java class because IBM JDK 6 -- See https://issues.apache.org/jira/browse/GROOVY-7010
-public interface ParametrizedBinaryString extends BinarySpecInternal {
+public interface ParameterizedBinaryString extends BinarySpecInternal {
     @Variant
-    ParametrizedVariant<String> getVariant();
+    ParameterizedVariant<String> getVariant();
 }
