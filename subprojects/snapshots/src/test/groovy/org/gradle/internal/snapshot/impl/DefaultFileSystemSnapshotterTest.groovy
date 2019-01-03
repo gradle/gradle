@@ -327,8 +327,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def tarDir = tmpDir.createDir('tarDir')
         TestFile emptyTar = tempDir.file('emptyArchive.tar')
         tarDir.tarTo(emptyTar)
-        def emtpyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
-        snapshots = snapshotter.snapshot(emtpyTarTree)
+        def emptyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
+        snapshots = snapshotter.snapshot(emptyTarTree)
 
         then:
         assertSingleFileSnapshot(snapshots)
@@ -338,8 +338,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         TestFile tgz = tempDir.file('emptyArchive.tgz')
         tgzDir.tgzTo(tgz)
         def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz))
-        def emtpyTgzTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
-        snapshots = snapshotter.snapshot(emtpyTgzTree)
+        def emptyTgzTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
+        snapshots = snapshotter.snapshot(emptyTgzTree)
 
         then:
         assertSingleFileSnapshot(snapshots)
