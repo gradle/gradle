@@ -292,7 +292,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     /**
      * This test is a variant of the previous one where there's an additional catch: one
-     * of the modules (annotations) is supposely nonexistent in 2.7.9 (say, it appeared in 2.9.x)
+     * of the modules (annotations) is supposedly nonexistent in 2.7.9 (say, it appeared in 2.9.x)
      */
     def "can align heterogeneous versions with new modules appearing in later releases"() {
         repository {
