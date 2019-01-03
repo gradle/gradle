@@ -40,7 +40,7 @@ public class IncrementalCompilerDecorator {
     private final ClasspathSnapshotMaker classpathSnapshotMaker;
     private final TaskScopedCompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
-    private final RecompilationSpecProvider staleClassDetecter;
+    private final RecompilationSpecProvider staleClassDetector;
     private final CompilationSourceDirs sourceDirs;
     private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final IncrementalCompilationInitializer compilationInitializer;
@@ -49,13 +49,13 @@ public class IncrementalCompilerDecorator {
 
     public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker, TaskScopedCompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler,
-                                        RecompilationSpecProvider staleClassDetecter,
+                                        RecompilationSpecProvider staleClassDetector,
                                         CompilationSourceDirs sourceDirs, Compiler<JavaCompileSpec> rebuildAllCompiler, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer, StringInterner interner) {
         this.classpathSnapshotMaker = classpathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
-        this.staleClassDetecter = staleClassDetecter;
+        this.staleClassDetector = staleClassDetector;
         this.sourceDirs = sourceDirs;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
@@ -83,6 +83,6 @@ public class IncrementalCompilerDecorator {
         }
 
         PreviousCompilation previousCompilation = new PreviousCompilation(data, compileCaches.getClasspathEntrySnapshotCache(), previousCompilationOutputAnalyzer);
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetecter, compilationInitializer, classpathSnapshotMaker);
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetector, compilationInitializer, classpathSnapshotMaker);
     }
 }
