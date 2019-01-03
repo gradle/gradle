@@ -370,17 +370,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator);
         }
 
-        DependencyHandler createDependencyHandler(Instantiator instantiator,
-                                                  ConfigurationContainerInternal configurationContainer,
-                                                  DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder,
-                                                  DependencyConstraintHandler dependencyConstraintHandler,
-                                                  ComponentMetadataHandler componentMetadataHandler,
-                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                                  ArtifactResolutionQueryFactory resolutionQueryFactory,
-                                                  AttributesSchema attributesSchema,
-                                                  VariantTransformRegistry artifactTransformRegistrations,
-                                                  ArtifactTypeRegistry artifactTypeRegistry) {
+        DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
+                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -391,8 +382,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolutionQueryFactory,
                 attributesSchema,
                 artifactTransformRegistrations,
-                artifactTypeRegistry,
-                instantiator);
+                artifactTypeRegistry);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer) {
