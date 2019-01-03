@@ -29,7 +29,7 @@
       </build-trigger>
       <build-trigger id="TRIGGER_7" type="schedulingTrigger">
         <parameters>
-          <param name="branchFilter" value="+:*" />
+          <param name="branchFilter" value="+:master" />
           <param name="cronExpression_dm" value="*" />
           <param name="cronExpression_dw" value="?" />
           <param name="cronExpression_hour" value="*" />
