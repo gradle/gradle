@@ -93,8 +93,14 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         """
         targetDir.file("src/main/public/hola.h") << """
             #include <string>
-
-            extern std::string hola();
+            
+            #ifdef _WIN32
+            #define EXPORT_FUNC __declspec(dllexport)
+            #else
+            #define EXPORT_FUNC
+            #endif
+            
+            extern std::string EXPORT_FUNC hola();
         """
         targetDir.file("src/test/cpp/hola_test.cpp") << """
             #include "hola.h"

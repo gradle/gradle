@@ -19,7 +19,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -45,7 +44,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        executable("build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -74,7 +73,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        executable("build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -132,7 +131,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":test")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hola, Mundo!\n")
+        executable("build/exe/main/debug/app").exec().out ==  "Hola, Mundo!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
