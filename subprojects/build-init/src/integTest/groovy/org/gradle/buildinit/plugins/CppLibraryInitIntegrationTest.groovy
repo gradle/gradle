@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,23 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import org.gradle.util.TextUtil
+import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import spock.lang.Unroll
 
-class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "app.cpp"
-    public static final String SAMPLE_APP_HEADER = "app.h"
-    public static final String SAMPLE_APP_TEST_CLASS = "app_test.cpp"
+    public static final String SAMPLE_APP_CLASS = "hello.cpp"
+    public static final String SAMPLE_APP_HEADER = "hello.h"
+    public static final String SAMPLE_APP_TEST_CLASS = "hello_test.cpp"
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
+        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_APP_HEADER)
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
@@ -45,7 +44,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        library("build/lib/main/debug/hello").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -54,24 +53,24 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source with namespace and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--package', 'my::app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--package', 'my::lib', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
+        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_APP_HEADER)
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
 
         and:
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace my::app")
+        targetDir.file("src/main/public/${SAMPLE_APP_HEADER}").text.contains("namespace my::lib")
 
         and:
         succeeds("build")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hello, World!\n")
+        library("build/lib/main/debug/hello").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -88,13 +87,8 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             std::string hola() {
                 return std::string("Hola, Mundo!");
             }
-            
-            int main () {
-                std::cout << hola() << std::endl;
-                return 0;
-            }
         """
-        targetDir.file("src/main/headers/hola.h") << """
+        targetDir.file("src/main/public/hola.h") << """
             #include <string>
 
             extern std::string hola();
@@ -109,17 +103,17 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             }
         """
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'hola', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants("hola.cpp")
-        targetDir.file("src/main/headers").assertHasDescendants("hola.h")
+        targetDir.file("src/main/public").assertHasDescendants("hola.h")
         targetDir.file("src/test/cpp").assertHasDescendants("hola_test.cpp")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
         targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").assertDoesNotExist()
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").assertDoesNotExist()
+        targetDir.file("src/main/public/${SAMPLE_APP_HEADER}").assertDoesNotExist()
         targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").assertDoesNotExist()
 
         when:
@@ -129,13 +123,13 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":test")
 
         and:
-        executable("build/install/main/debug/app").exec().out ==  TextUtil.toPlatformLineSeparators("Hola, Mundo!\n")
+        library("build/lib/main/debug/hola").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    ExecutableFixture executable(String path) {
-        AvailableToolChains.defaultToolChain.executable(targetDir.file(path))
+    SharedLibraryFixture library(String path) {
+        AvailableToolChains.defaultToolChain.sharedLibrary(targetDir.file(path))
     }
 }

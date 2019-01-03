@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,38 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 
-public class CppApplicationProjectInitDescriptor extends CppProjectInitDescriptor {
-    public CppApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
+public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
+    public CppLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
         super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
     }
 
     @Override
     public String getId() {
-        return "cpp-application";
+        return "cpp-library";
     }
 
     @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromCppTemplate("cppapp/app.cpp.template", settings, "main", "cpp");
+        return fromCppTemplate("cpplibrary/hello.cpp.template", settings, "main", "cpp");
     }
 
     @Override
     protected TemplateOperation headerTemplateOperation(InitSettings settings) {
-        return fromCppTemplate("cppapp/app.h.template", settings, "main", "headers");
+        return fromCppTemplate("cpplibrary/hello.h.template", settings, "main", "public");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
-        return fromCppTemplate("cppapp/app_test.cpp.template", settings, "test", "cpp");
+        return fromCppTemplate("cpplibrary/hello_test.cpp.template", settings, "test", "cpp");
     }
 
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(
-                "Apply the cpp-application plugin to add support for building CPP executables",
-                "cpp-application")
+                "Apply the cpp-library plugin to add support for building CPP libraries",
+                "cpp-library")
             .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
                 "cpp-unit-test");
-
     }
 }

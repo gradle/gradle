@@ -200,6 +200,8 @@ include("child")
         then:
         failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
   - 'basic'
+  - 'cpp-application'
+  - 'cpp-library'
   - 'groovy-application'
   - 'groovy-library'
   - 'java-application'
@@ -265,7 +267,7 @@ include("child")
                     groovy
                     kotlin
 
-     --package     Set the package for source files.
+     --package     Set the package for source files when generating JVM projects or the namespace for source files when generating C++ projects.
 
      --project-name     Set the project name.
 
@@ -280,6 +282,8 @@ include("child")
      --type     Set the type of project to generate.
                 Available values are:
                      basic
+                     cpp-application
+                     cpp-library
                      groovy-application
                      groovy-library
                      java-application
