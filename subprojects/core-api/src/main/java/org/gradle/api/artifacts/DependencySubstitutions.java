@@ -94,7 +94,7 @@ public interface DependencySubstitutions {
      */
     interface Substitution {
         /**
-         * Specify a reason for the substition. This is optional
+         * Specify a reason for the substitution. This is optional
          * @param reason the reason for the selection
          *
          * @since 4.5
