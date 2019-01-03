@@ -279,7 +279,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 
 As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
 In fact, `zookeeper` will bring in `log4j`, where what we want to use is `log4j-over-slf4j`.
-We can pre-emptively detect the conflict by adding a rule which will declare that both logging frameworks provide the same capability:
+We can preemptively detect the conflict by adding a rule which will declare that both logging frameworks provide the same capability:
 
 .A build file with an implicit conflict of logging frameworks
 ====
