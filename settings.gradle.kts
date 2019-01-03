@@ -122,9 +122,9 @@ fun String.toKebabCase() =
 
 rootProject.name = "gradle"
 
-// List of subprojects that have a Groovy DSL build script.
+// List of sub-projects that have a Groovy DSL build script.
 // The intent is for this list to diminish until it disappears.
-val groovyBuildScriptProjects = listOf(
+val groovyBuildScriptProjects = hashSetOf(
     "distributions",
     "wrapper",
     "docs",
@@ -134,7 +134,8 @@ val groovyBuildScriptProjects = listOf(
     "testing-junit-platform",
     "test-kit",
     "smoke-test",
-    "version-control")
+    "version-control"
+)
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName${buildFileExtensionFor(projectDirName)}"
@@ -146,11 +147,11 @@ for (project in rootProject.children) {
     val projectDirName = project.name.toKebabCase()
     project.projectDir = file("subprojects/$projectDirName")
     project.buildFileName = buildFileNameFor(projectDirName)
-    if (!project.projectDir.isDirectory) {
-        throw IllegalArgumentException("Project directory ${project.projectDir} for project ${project.name} does not exist.")
+    require(project.projectDir.isDirectory) {
+        "Project directory ${project.projectDir} for project ${project.name} does not exist."
     }
-    if (!project.buildFile.isFile) {
-        throw IllegalArgumentException("Build file ${project.buildFile} for project ${project.name} does not exist.")
+    require(project.buildFile.isFile) {
+        "Build file ${project.buildFile} for project ${project.name} does not exist."
     }
 }
 
@@ -167,7 +168,7 @@ val ignoredFeatures = setOf(
 )
 
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive && !ignoredFeatures.contains(feature)) {
+    if (feature.isActive && feature !in ignoredFeatures) {
         enableFeaturePreview(feature.name)
     }
 }
