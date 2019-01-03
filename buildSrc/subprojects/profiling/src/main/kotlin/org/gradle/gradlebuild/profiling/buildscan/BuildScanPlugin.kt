@@ -24,6 +24,7 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.build.ClasspathManifest
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -80,7 +81,7 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.monitorUnexpectedCacheMisses() {
         gradle.taskGraph.afterTask {
-            if (isCacheMiss() && !isExpectedCacheMiss() && isNotTaggedYet()) {
+            if (isCacheMiss() && isNotTaggedYet()) {
                 buildScan.tag("CACHE_MISS")
             }
         }
@@ -90,18 +91,33 @@ open class BuildScanPlugin : Plugin<Project> {
     fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
 
     private
-    fun Task.isCacheMiss() = !state.skipped && isMonitoredForCacheMiss()
+    fun Task.isCacheMiss() = !state.skipped && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
 
     private
-    fun Task.isMonitoredForCacheMiss() = this is AbstractCompile || this is ClasspathManifest
+    fun Task.isCompileCacheMiss() = isTaskType(AbstractCompile::class.java, ClasspathManifest::class.java) && !isExpectedCompileCacheMiss()
 
     private
-    fun Project.isExpectedCacheMiss() =
+    fun Task.isAsciidoctorCacheMiss() = isTaskType(CacheableAsciidoctorTask::class.java) && !isExpectedAsciidoctorCacheMiss()
+
+    private
+    fun Task.isExpectedAsciidoctorCacheMiss() =
+    // Expected cache-miss for asciidoctor task:
+    // Gradle_Check_BuildDistributions is the seed build
+        isInBuild("Gradle_Check_BuildDistributions")
+
+    private
+    fun Task.isExpectedCompileCacheMiss() =
     // Expected cache-miss:
-    // 1. compileAll is seed build
+    // 1. CompileAll is the seed build
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-        System.getenv("BUILD_TYPE_ID") in listOf("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+        isInBuild("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+
+    private
+    fun Task.isTaskType(vararg classes: Class<*>) = this.javaClass in classes
+
+    private
+    fun Task.isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {

@@ -87,34 +87,9 @@ configurations {
     }
 }
 
-//class AsciidoctorJSelectRule implements ComponentMetadataRule {
-//    @Override
-//    void execute(ComponentMetadataContext context) {
-//        context.details.allVariants {
-//            withDependencies {
-//                it.each { metadata ->
-//                    if (metadata.name == 'asciidoctorj') {
-//                        metadata.version { require('v1.6.0-RC.2') }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
 dependencies {
     asciidoctor("org.gradle:docs-asciidoctor-extensions:0.4.0")
-    asciidoctor("org.asciidoctor:asciidoctorj-groovy-dsl:1.0.0.Alpha3")
     asciidoctor("org.jruby:jruby-complete:9.2.5.0")
-
-//    withLibraryDependencies("org.gradle:sample-discovery", DependencyRemovalByNameRule::class, setOf("asciidoctorj", "asciidoctorj-api"))
-//    components {
-//        withModule("org.asciidoctor:asciidoctorj", DependencyRemovalByNameRule, {
-//            params(["jruby-complete"] as Set)
-//        })
-//        withModule("org.gradle:docs-asciidoctor-extensions", AsciidoctorJSelectRule)
-//        withModule("org.asciidoctor:asciidoctorj-groovy-dsl", AsciidoctorJSelectRule)
-//    }
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -374,9 +349,9 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
     separateOutputDirs = false
     options doctype: 'book'
 
-    inputs.file "$srcDocsDir/css/manual.css"
-    inputs.dir file("src/main/resources")
-    inputs.dir samplesSrcDir
+    inputs.file("$srcDocsDir/css/manual.css").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources")).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(samplesSrcDir).withPathSensitivity(PathSensitivity.RELATIVE)
 
     attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
