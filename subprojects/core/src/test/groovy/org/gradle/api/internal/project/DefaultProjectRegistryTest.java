@@ -91,7 +91,7 @@ public class DefaultProjectRegistryTest {
     }
 
     @Test
-    public void accessMethodsForNonExistingsPaths() {
+    public void accessMethodsForNonexistentsPaths() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         Project otherRoot = TestUtil.create(temporaryFolder.getTestDirectory()).rootProject();
         assertNull(projectRegistry.getProject(otherRoot.getPath()));

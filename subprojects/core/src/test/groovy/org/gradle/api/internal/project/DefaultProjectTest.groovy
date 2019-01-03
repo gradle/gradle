@@ -535,14 +535,14 @@ class DefaultProjectTest extends Specification {
         project.someTask.is(testTask)
     }
 
-    def propertyShortCutForTaskCallWithNonExistingTask() {
+    def propertyShortCutForTaskCallWithNonexistentTask() {
         when:
         project.unknownTask
         then:
         thrown(MissingPropertyException)
     }
 
-    def methodShortCutForTaskCallWithNonExistingTask() {
+    def methodShortCutForTaskCallWithNonexistentTask() {
         when:
         project.unknownTask([dependsOn: '/task2'])
         then:
@@ -748,7 +748,7 @@ def scriptMethod(Closure closure) {
         project.ext.someProp = "somePropValue"
         then:
         project.findProperty('someProp') == "somePropValue"
-        project.findProperty("someNonExistingProp") == null
+        project.findProperty("someNonexistentProp") == null
     }
 
     def setPropertyNullValue() {

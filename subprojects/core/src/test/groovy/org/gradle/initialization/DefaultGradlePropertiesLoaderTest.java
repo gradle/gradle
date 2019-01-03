@@ -205,7 +205,7 @@ public class DefaultGradlePropertiesLoaderTest {
     }
 
     @Test
-    public void loadPropertiesWithNoExceptionForNonExistingUserHomeAndSettingsDir() {
+    public void loadPropertiesWithNoExceptionForNonexistentUserHomeAndSettingsDir() {
         tmpDir.getTestDirectory().deleteDir();
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
     }
