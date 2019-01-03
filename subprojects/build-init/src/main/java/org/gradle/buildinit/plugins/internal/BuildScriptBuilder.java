@@ -1246,7 +1246,7 @@ public class BuildScriptBuilder {
         //
         // > Boolean accessor methods (where the name of the getter starts with is and the name of
         // > the setter starts with set) are represented as properties which have the same name as
-        // > the getter method. Boolean properties are visibile with a `is` prefix in Kotlin
+        // > the getter method. Boolean properties are visible with a `is` prefix in Kotlin
         //
         // https://kotlinlang.org/docs/reference/java-interop.html#getters-and-setters
         //
