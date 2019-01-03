@@ -287,7 +287,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         /**
          * Evaluate the optional condition in the given configuration, like "[org=MYORG]confX". If
          * the condition evaluates to true, the configuration is returned, if the condition
-         * evaluatate to false, null is returned. If there are no conditions, the configuration
+         * evaluate to false, null is returned. If there are no conditions, the configuration
          * itself is returned.
          *
          * @param conf
