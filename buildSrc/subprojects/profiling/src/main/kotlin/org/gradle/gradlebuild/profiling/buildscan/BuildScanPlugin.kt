@@ -94,10 +94,16 @@ open class BuildScanPlugin : Plugin<Project> {
     fun Task.isCacheMiss() = !state.skipped && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
 
     private
-    fun Task.isCompileCacheMiss() = isTaskType(AbstractCompile::class.java, ClasspathManifest::class.java) && !isExpectedCompileCacheMiss()
+    fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
     private
-    fun Task.isAsciidoctorCacheMiss() = isTaskType(CacheableAsciidoctorTask::class.java) && !isExpectedAsciidoctorCacheMiss()
+    fun Task.isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+
+    private
+    fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
+
+    private
+    fun Task.isMonitoredAsciidoctorTask() = this is CacheableAsciidoctorTask
 
     private
     fun Task.isExpectedAsciidoctorCacheMiss() =
@@ -112,9 +118,6 @@ open class BuildScanPlugin : Plugin<Project> {
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
         isInBuild("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
-
-    private
-    fun Task.isTaskType(vararg classes: Class<*>) = this.javaClass in classes
 
     private
     fun Task.isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds

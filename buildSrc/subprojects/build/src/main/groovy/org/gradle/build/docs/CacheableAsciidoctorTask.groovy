@@ -35,11 +35,6 @@ import java.nio.file.Paths
 
 @CacheableTask
 class CacheableAsciidoctorTask extends AsciidoctorTask {
-    /** Returns the current set of Asciidoctor attributes
-     *
-     * @since 1.5.1
-     */
-    @Optional
     @Input
     @Override
     Map getAttributes() {
@@ -52,7 +47,7 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
         }
 
         Map copy = new HashMap(attributes)
-        copy.put('sample-dir', relativize(sampleDir))
+        copy.put('samples-dir', relativize(sampleDir))
         return Collections.unmodifiableMap(copy)
     }
 
