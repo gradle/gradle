@@ -3452,7 +3452,7 @@
 				this.data.search.str = str;
 
 				if(!skip_async && s.ajax !== false && this.get_container_ul().find("li.jstree-closed:not(:has(ul)):eq(0)").length > 0) {
-					this.search.supress_callback = true;
+					this.search.suppress_callback = true;
 					error_func = function () { };
 					success_func = function (d, t, x) {
 						var sf = this.get_settings().search.ajax.success; 
