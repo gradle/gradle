@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.TestUtil

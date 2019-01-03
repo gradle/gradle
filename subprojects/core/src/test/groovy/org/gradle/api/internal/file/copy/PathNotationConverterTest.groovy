@@ -86,6 +86,16 @@ class PathNotationConverterTest extends Specification {
         null == pathNotationParser.parseNotation({ null });
     }
 
+    def "with Callable of unsupported return value"() {
+        def customObj = new DefaultExcludeRule()
+
+        when:
+        pathNotationParser.parseNotation({ customObj } as Callable);
+
+        then:
+        thrown(UnsupportedNotationException)
+    }
+
     def "with closure of unsupported return value"() {
         def customObj = new DefaultExcludeRule()
 

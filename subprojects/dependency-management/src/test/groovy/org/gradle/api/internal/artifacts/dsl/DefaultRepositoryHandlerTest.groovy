@@ -19,10 +19,11 @@ package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
 import org.junit.Test
 
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
@@ -33,11 +34,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler = createRepositoryHandler()
     }
 
-    public ArtifactRepositoryContainer createRepositoryHandler(
+    ArtifactRepositoryContainer createRepositoryHandler(
             BaseRepositoryFactory repositoryFactory = repositoryFactory,
-            Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+            Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     ) {
-        new DefaultRepositoryHandler(repositoryFactory, instantiator)
+        new DefaultRepositoryHandler(repositoryFactory, instantiator, CollectionCallbackActionDecorator.NOOP)
     }
 
     def testFlatDirWithClosure() {

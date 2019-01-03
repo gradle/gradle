@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
@@ -51,6 +52,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -60,6 +62,12 @@ import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISU
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
 
 public class AvailableToolChains {
+    private static final Comparator<ToolChainCandidate> LATEST_FIRST = Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
+        @Override
+        public int compare(ToolChainCandidate toolchain1, ToolChainCandidate toolchain2) {
+            return toolchain1.getVersion().compareTo(toolchain2.getVersion());
+        }
+    });
     private static List<ToolChainCandidate> toolChains;
 
     /**
@@ -104,12 +112,12 @@ public class AvailableToolChains {
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
             } else if (OperatingSystem.current().isMacOsX()) {
-                compilers.add(findClang());
+                compilers.addAll(findClangs(true));
                 compilers.addAll(findGccs(false));
                 compilers.addAll(findSwiftcs());
             } else {
                 compilers.addAll(findGccs(true));
-                compilers.add(findClang());
+                compilers.addAll(findClangs(false));
                 compilers.addAll(findSwiftcs());
             }
             toolChains = compilers;
@@ -117,12 +125,33 @@ public class AvailableToolChains {
         return toolChains;
     }
 
-    static private ToolChainCandidate findClang() {
-        File compilerExe = OperatingSystem.current().findInPath("clang");
-        if (compilerExe != null) {
-            return new InstalledClang();
+    static private List<ToolChainCandidate> findClangs(boolean mustFind) {
+        GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
+
+        Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
+        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        if (!clangCandidates.isEmpty()) {
+            File firstInPath = clangCandidates.iterator().next();
+            for (File candidate : clangCandidates) {
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList(), Collections.<File>emptyList());
+                if (version.isAvailable()) {
+                    InstalledClang clang = new InstalledClang(version.getComponent().getVersion());
+                    if (!candidate.equals(firstInPath)) {
+                        // Not the first g++ in the path, needs the path variable updated
+                        clang.inPath(candidate.getParentFile());
+                    }
+                    toolChains.add(clang);
+                }
+            }
         }
-        return new UnavailableToolChain("clang");
+
+        if (mustFind && toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain(ToolFamily.CLANG));
+        }
+
+        toolChains.sort(LATEST_FIRST);
+
+        return toolChains;
     }
 
     static private boolean isTestableVisualStudioVersion(final VersionNumber version) {
@@ -151,30 +180,41 @@ public class AvailableToolChains {
         }
 
         if (toolChains.isEmpty()) {
-            toolChains.add(new UnavailableToolChain("visual c++"));
+            toolChains.add(new UnavailableToolChain(ToolFamily.VISUAL_CPP));
         }
+
+        toolChains.sort(LATEST_FIRST);
 
         return toolChains;
     }
 
     static private ToolChainCandidate findMinGW() {
         // Search in the standard installation locations
-        File compilerExe = new File("C:/MinGW/bin/g++.exe");
-        if (compilerExe.isFile()) {
-            return new InstalledWindowsGcc("mingw").inPath(compilerExe.getParentFile());
+        File compiler64Exe = new File("C:/mingw64/bin/g++.exe");
+        if (compiler64Exe.isFile()) {
+            File compiler32Exe = new File("C:/mingw32/bin/g++.exe");
+            if (compiler32Exe.isFile()) {
+                return new InstalledMingwGcc(VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), compiler32Exe.getParentFile());
+            }
         }
 
-        return new UnavailableToolChain("mingw");
+        return new UnavailableToolChain(ToolFamily.MINGW_GCC);
     }
 
     static private ToolChainCandidate findCygwin() {
-        // Search in the standard installation locations
-        File compilerExe = new File("C:/cygwin/bin/g++.exe");
-        if (compilerExe.isFile()) {
-            return new InstalledWindowsGcc("gcc cygwin").inPath(compilerExe.getParentFile());
+        // Search in the standard installation locations and construct
+        File compiler64Exe = new File("C:/cygwin64/bin/g++.exe");
+        if (compiler64Exe.isFile()) {
+            File compiler32Exe = new File("C:/cygwin64/bin/i686-pc-cygwin-gcc.exe");
+            if (compiler32Exe.isFile()) {
+                File cygwin32RuntimePath = new File(compiler32Exe.getParentFile().getParentFile(), "usr/i686-pc-cygwin/sys-root/usr/bin");
+                return new InstalledCygwinGcc(VersionNumber.UNKNOWN).inPath(compiler64Exe.getParentFile(), cygwin32RuntimePath);
+            } else {
+                return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
+            }
         }
 
-        return new UnavailableToolChain("gcc cygwin");
+        return new UnavailableToolChain(ToolFamily.CYGWIN_GCC);
     }
 
     static private List<ToolChainCandidate> findGccs(boolean mustFind) {
@@ -187,7 +227,7 @@ public class AvailableToolChains {
             for (File candidate : gppCandidates) {
                 SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList(), Collections.<File>emptyList());
                 if (version.isAvailable()) {
-                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getComponent().getVersion());
+                    InstalledGcc gcc = new InstalledGcc(ToolFamily.GCC, version.getComponent().getVersion());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first g++ in the path, needs the path variable updated
                         gcc.inPath(candidate.getParentFile());
@@ -196,9 +236,12 @@ public class AvailableToolChains {
                 }
             }
         }
+
         if (mustFind && toolChains.isEmpty()) {
-            toolChains.add(new UnavailableToolChain("gcc"));
+            toolChains.add(new UnavailableToolChain(ToolFamily.GCC));
         }
+
+        toolChains.sort(LATEST_FIRST);
 
         return toolChains;
     }
@@ -238,19 +281,40 @@ public class AvailableToolChains {
         }
 
         if (toolChains.isEmpty()) {
-            toolChains.add(new UnavailableToolChain("swiftc"));
+            toolChains.add(new UnavailableToolChain(ToolFamily.SWIFTC));
+        } else {
+            toolChains.sort(LATEST_FIRST);
         }
 
         return toolChains;
     }
 
-    public static abstract class ToolChainCandidate {
+    public enum ToolFamily {
+        GCC("gcc"),
+        CLANG("clang"),
+        VISUAL_CPP("visual c++"),
+        MINGW_GCC("mingw"),
+        CYGWIN_GCC("gcc cygwin"),
+        SWIFTC("swiftc");
+
+        private final String displayName;
+
+        ToolFamily(String displayName) {
+            this.displayName = displayName;
+        }
+    }
+
+    public static abstract class ToolChainCandidate implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
         @Override
         public String toString() {
             return getDisplayName();
         }
 
         public abstract String getDisplayName();
+
+        public abstract ToolFamily getFamily();
+
+        public abstract VersionNumber getVersion();
 
         public abstract boolean isAvailable();
 
@@ -259,20 +323,21 @@ public class AvailableToolChains {
         public abstract void initialiseEnvironment();
 
         public abstract void resetEnvironment();
-
     }
 
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
-        private final String displayName;
+        private final ToolFamily family;
+        private final VersionNumber version;
         protected final String pathVarName;
         private final String objectFileNameSuffix;
 
         private String originalPath;
 
-        public InstalledToolChain(String displayName) {
-            this.displayName = displayName;
+        public InstalledToolChain(ToolFamily family, VersionNumber version) {
+            this.family = family;
+            this.version = version;
             this.pathVarName = OperatingSystem.current().getPathVar();
             this.objectFileNameSuffix = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         }
@@ -284,7 +349,17 @@ public class AvailableToolChains {
 
         @Override
         public String getDisplayName() {
-            return displayName;
+            return family.displayName + (version == VersionNumber.UNKNOWN ? "" : " " + version.toString());
+        }
+
+        @Override
+        public ToolFamily getFamily() {
+            return family;
+        }
+
+        @Override
+        public VersionNumber getVersion() {
+            return version;
         }
 
         @Override
@@ -375,15 +450,25 @@ public class AvailableToolChains {
         }
 
         public String getId() {
-            return displayName.replaceAll("\\W", "");
+            return getDisplayName().replaceAll("\\W", "");
         }
 
         public abstract String getUnitTestPlatform();
+
+        @Override
+        public boolean matches(String criteria) {
+            // Implement this if you need to specify individual toolchains via "org.gradle.integtest.versions"
+            throw new UnsupportedOperationException();
+        }
+
+        public String platformSpecificToolChainConfiguration() {
+            return "";
+        }
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
-        protected GccCompatibleToolChain(String displayName) {
-            super(displayName);
+        protected GccCompatibleToolChain(ToolFamily family, VersionNumber version) {
+            super(family, version);
         }
 
         protected File find(String tool) {
@@ -418,13 +503,13 @@ public class AvailableToolChains {
     }
 
     public static class InstalledGcc extends GccCompatibleToolChain {
-        public InstalledGcc(String name) {
-            super(name);
+        public InstalledGcc(ToolFamily family, VersionNumber version) {
+            super(family, version);
         }
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.SUPPORTS_32 || requirement == ToolChainRequirement.SUPPORTS_32_AND_64;
         }
 
         @Override
@@ -468,8 +553,8 @@ public class AvailableToolChains {
     }
 
     public static class InstalledWindowsGcc extends InstalledGcc {
-        public InstalledWindowsGcc(String name) {
-            super(name);
+        public InstalledWindowsGcc(ToolFamily family, VersionNumber version) {
+            super(family, version);
         }
 
         /**
@@ -481,19 +566,26 @@ public class AvailableToolChains {
         }
 
         @Override
-        public String getUnitTestPlatform() {
-            if ("mingw".equals(getDisplayName())) {
-                return "mingw";
+        public String getBuildScriptConfig() {
+            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("     path file('%s')\n", pathEntry.toURI());
             }
-            if ("gcc cygwin".equals(getDisplayName())) {
-                return "cygwin";
-            }
-            return "UNKNOWN";
+            config += platformSpecificToolChainConfiguration();
+            config += "}\n";
+            return config;
         }
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return super.meets(requirement) || requirement == ToolChainRequirement.WINDOWS_GCC;
+            switch (requirement) {
+                case SUPPORTS_32:
+                case WINDOWS_GCC:
+                case SUPPORTS_32_AND_64:
+                    return true;
+                default:
+                    return super.meets(requirement);
+            }
         }
 
         @Override
@@ -502,12 +594,62 @@ public class AvailableToolChains {
         }
     }
 
+    public static class InstalledCygwinGcc extends InstalledWindowsGcc {
+        public InstalledCygwinGcc(VersionNumber version) {
+            super(ToolFamily.CYGWIN_GCC, version);
+        }
+
+        @Override
+        public String platformSpecificToolChainConfiguration() {
+            String config = "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386() || platformToolChain.platform.architecture.isArm()) {\n";
+            config += "             platformToolChain.cCompiler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.cppCompiler.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.linker.executable='i686-pc-cygwin-g++.exe'\n";
+            config += "             platformToolChain.assembler.executable='i686-pc-cygwin-gcc.exe'\n";
+            config += "             platformToolChain.staticLibArchiver.executable='i686-pc-cygwin-ar.exe'\n";
+            config += "         }\n";
+            config += "     }\n";
+            return config;
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            return "cygwin";
+        }
+    }
+
+    public static class InstalledMingwGcc extends InstalledWindowsGcc {
+        public InstalledMingwGcc(VersionNumber version) {
+            super(ToolFamily.MINGW_GCC, version);
+        }
+
+        @Override
+        public String platformSpecificToolChainConfiguration() {
+            String config = "     eachPlatform { platformToolChain ->\n";
+            config += "         if (platformToolChain.platform.architecture.isI386() || platformToolChain.platform.architecture.isArm()) {\n";
+            config += "             platformToolChain.cCompiler.executable='i686-w64-mingw32-gcc.exe'\n";
+            config += "             platformToolChain.cppCompiler.executable='i686-w64-mingw32-g++.exe'\n";
+            config += "             platformToolChain.linker.executable='i686-w64-mingw32-g++.exe'\n";
+            config += "             platformToolChain.assembler.executable='i686-w64-mingw32-gcc.exe'\n";
+            config += "             platformToolChain.staticLibArchiver.executable='i686-w64-mingw32-gcc-ar.exe'\n";
+            config += "         }\n";
+            config += "     }\n";
+            return config;
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            return "mingw";
+        }
+    }
+
     public static class InstalledSwiftc extends InstalledToolChain {
         private final File binDir;
         private final VersionNumber compilerVersion;
 
         public InstalledSwiftc(File binDir, VersionNumber compilerVersion) {
-            super("swiftc " + compilerVersion);
+            super(ToolFamily.SWIFTC, compilerVersion);
             this.binDir = binDir;
             this.compilerVersion = compilerVersion;
         }
@@ -557,19 +699,22 @@ public class AvailableToolChains {
         public boolean meets(ToolChainRequirement requirement) {
             return requirement == ToolChainRequirement.SWIFTC || (requirement == ToolChainRequirement.SWIFTC_3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFTC_4 && getVersion().getMajor() == 4);
         }
-
-        public VersionNumber getVersion() {
-            return compilerVersion;
-        }
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
+        private final String displayVersion;
         private VersionNumber version;
         private File installDir;
         private File cppCompiler;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
-            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
+            super(ToolFamily.VISUAL_CPP, version.getVersion());
+            this.displayVersion = version.getYear() + " (" + version.getVersion().toString() + ")";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return getFamily().displayName + " " + displayVersion;
         }
 
         @Override
@@ -592,6 +737,8 @@ public class AvailableToolChains {
             switch (requirement) {
                 case AVAILABLE:
                 case VISUALCPP:
+                case SUPPORTS_32:
+                case SUPPORTS_32_AND_64:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2012.getVersion()) >= 0;
@@ -668,18 +815,32 @@ public class AvailableToolChains {
     }
 
     public static class InstalledClang extends GccCompatibleToolChain {
-        public InstalledClang() {
-            super("clang");
+        public InstalledClang(VersionNumber versionNumber) {
+            super(ToolFamily.CLANG, versionNumber);
         }
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            switch(requirement) {
+                case AVAILABLE:
+                case CLANG:
+                case GCC_COMPATIBLE:
+                    return true;
+                case SUPPORTS_32:
+                case SUPPORTS_32_AND_64:
+                    return (!OperatingSystem.current().isMacOsX()) || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
+                default:
+                    return false;
+            }
         }
 
         @Override
         public String getBuildScriptConfig() {
-            return "clang(Clang)";
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
+            }
+            return config;
         }
 
         @Override
@@ -709,10 +870,10 @@ public class AvailableToolChains {
     }
 
     public static class UnavailableToolChain extends ToolChainCandidate {
-        private final String name;
+        private final ToolFamily family;
 
-        public UnavailableToolChain(String name) {
-            this.name = name;
+        public UnavailableToolChain(ToolFamily family) {
+            this.family = family;
         }
 
         @Override
@@ -722,7 +883,17 @@ public class AvailableToolChains {
 
         @Override
         public String getDisplayName() {
-            return name;
+            return family.displayName;
+        }
+
+        @Override
+        public ToolFamily getFamily() {
+            return family;
+        }
+
+        @Override
+        public VersionNumber getVersion() {
+            return VersionNumber.UNKNOWN;
         }
 
         @Override
@@ -738,6 +909,11 @@ public class AvailableToolChains {
         @Override
         public void resetEnvironment() {
             throw new UnsupportedOperationException("Toolchain is not available");
+        }
+
+        @Override
+        public boolean matches(String criteria) {
+            return false;
         }
     }
 }

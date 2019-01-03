@@ -1275,4 +1275,41 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         method << ["from", "into"]
     }
 
+
+    @Unroll
+    def "task output caching is disabled when #description is used"() {
+        file("src.txt").createNewFile()
+        buildFile << """
+            task copy(type: Copy) {
+                ${mutation}
+                from "src.txt"
+                into "destination"
+            }
+
+            task check {
+                dependsOn copy
+                doLast {
+                    assert !copy.state.taskOutputCaching.enabled
+                }
+            }
+        """
+
+        expect:
+        succeeds "check"
+
+        where:
+        description                 | mutation
+        "outputs.cacheIf { false }" | "outputs.cacheIf { false }"
+        "eachFile(Closure)"         | "eachFile {}"
+        "eachFile(Action)"          | "eachFile(org.gradle.internal.Actions.doNothing())"
+        "expand(Map)"               | "expand([:])"
+        "filter(Closure)"           | "filter {}"
+        "filter(Class)"             | "filter(PushbackReader)"
+        "filter(Map, Class)"        | "filter([:], PushbackReader)"
+        "filter(Transformer)"       | "filter(org.gradle.internal.Transformers.noOpTransformer())"
+        "rename(Closure)"           | "rename {}"
+        "rename(Pattern, String)"   | "rename(/(.*)/, '\$1')"
+        "rename(Transformer)"       | "rename(org.gradle.internal.Transformers.noOpTransformer())"
+    }
+
 }

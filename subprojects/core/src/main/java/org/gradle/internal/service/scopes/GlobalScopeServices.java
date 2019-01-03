@@ -19,17 +19,15 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.api.execution.internal.DefaultTaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -47,8 +45,8 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.DefaultTypePropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -60,6 +58,7 @@ import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
@@ -97,6 +96,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
@@ -213,7 +213,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
 
-        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport);
+        // Use DirectInstantiator here to avoid setting up the instantiation infrastructure early
+        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, DirectInstantiator.INSTANCE);
     }
 
     LegacyTypesSupport createLegacyTypesSupport() {
@@ -234,12 +235,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return messagingServices.get(MessagingServer.class);
     }
 
-    ClassGenerator createClassGenerator() {
-        return new AsmBackedClassGenerator();
-    }
-
     Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
-        return instantiatorFactory.decorate();
+        return instantiatorFactory.decorateLenient();
     }
 
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
@@ -300,8 +297,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new StringInterner();
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultInstantiatorFactory(classGenerator, cacheFactory);
+    InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
+        return new DefaultInstantiatorFactory(cacheFactory, annotationHandlers);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
@@ -361,8 +358,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
-    PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultPropertyMetadataStore(annotationHandlers, cacheFactory);
+    TypePropertyMetadataStore createTypePropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTypePropertyMetadataStore(annotationHandlers, cacheFactory);
     }
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {

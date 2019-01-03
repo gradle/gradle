@@ -17,12 +17,13 @@
 package org.gradle.play.internal.distribution;
 
 import org.gradle.api.distribution.Distribution;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
 public class DefaultPlayDistributionContainer extends DefaultPolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {
-    public DefaultPlayDistributionContainer(Instantiator instantiator) {
-        super(Distribution.class, instantiator);
+    public DefaultPlayDistributionContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(Distribution.class, instantiator, collectionCallbackActionDecorator);
     }
 }

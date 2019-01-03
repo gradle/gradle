@@ -225,7 +225,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when test framework is not supported by specific type"() {
@@ -233,7 +234,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when project name option is not supported by specific type"() {

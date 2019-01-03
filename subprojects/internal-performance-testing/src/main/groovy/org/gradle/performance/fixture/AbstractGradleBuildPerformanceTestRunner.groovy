@@ -103,7 +103,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
         results.endTime = clock.getCurrentTime()
 
-        results.assertEveryBuildSucceeds()
         reporter.report(results)
 
         return results
@@ -118,5 +117,9 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     protected static String determineChannel() {
         ResultsStoreHelper.determineChannel()
+    }
+
+    protected static String determineTeamCityBuildId() {
+        ResultsStoreHelper.determineTeamCityBuildId()
     }
 }

@@ -298,8 +298,12 @@ What happens when we declare that `google-collections` is replaced by `guava`? G
 
 Currently it is not possible to declare that a given module is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
 
+== Modifying dependencies for a configuration
+
+At times, a plugin needs to modify or enhance the dependencies declared by a user. The following methods on `Configuration` provide a mechanism to achieve this.
+
 [[sec:configuration_defaults]]
-== Specifying default dependencies for a configuration
+=== Specifying default dependencies for a configuration
 
 A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
 
@@ -307,6 +311,16 @@ A configuration can be configured with default dependencies to be used if no dep
 ====
 include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
 include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+====
+
+=== Changing configuration dependencies prior to resolution
+
+At times, a plugin may want to modify the dependencies of a configuration before it is resolved. The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
+
+.Modifying dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
 ====
 
 [[sec:ivy_dynamic_resolve_mode]]

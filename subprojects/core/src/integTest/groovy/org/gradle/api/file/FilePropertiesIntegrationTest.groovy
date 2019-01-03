@@ -87,7 +87,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = layout.projectDir.dir("dir1")
 assert custom.prop.get().asFile == file("dir1")
 
@@ -118,7 +118,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = layout.projectDir.file("file1")
 assert custom.prop.get().asFile == file("file1")
 
@@ -149,7 +149,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
     doLast {
@@ -230,7 +230,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task useIntTypeDsl {
     doLast {

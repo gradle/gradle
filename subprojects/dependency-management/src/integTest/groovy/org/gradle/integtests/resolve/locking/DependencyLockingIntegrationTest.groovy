@@ -66,9 +66,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0") {
-                    byConstraint("rejected version 1.1 because dependency was locked to version '1.0'")
+                    byReason("rejected version 1.1")
                 }
-                edge("org:foo:1.0", "org:foo:1.0")
+                constraint("org:foo:{strictly 1.0}", "org:foo:1.0") {
+                    byConstraint("dependency was locked to version '1.0'")
+                }
             }
         }
     }
@@ -109,8 +111,8 @@ dependencies {
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
-   Dependency path ':depLock:unspecified' --> 'org:foo' strictly '1.1'
-   Constraint path ':depLock:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'"""
+   Dependency path ':depLock:unspecified' --> 'org:foo:{strictly 1.1}'
+   Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
     }
 
     def 'fails when lock file conflicts with declared version constraint'() {
@@ -147,7 +149,7 @@ dependencies {
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo:1.1'
-   Constraint path ':depLock:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'"""
+   Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
     }
 
     def 'fails when lock file contains entry that is not in resolution result'() {
@@ -339,7 +341,7 @@ dependencies {
         outputContains """lockedConf
 +--- org:foo:1.+ FAILED
 +--- org:foo:1.1 FAILED
-\\--- org:foo:1.0 FAILED"""
+\\--- org:foo:{strictly 1.0} FAILED"""
     }
 
     def 'dependency report passes with FAILED dependencies for all out lock issues'() {
@@ -379,7 +381,7 @@ dependencies {
         outputContains """lockedConf
 +--- org:foo:[1.0, 1.1] FAILED
 +--- org:foo:1.1 FAILED
-+--- org:foo:1.0 FAILED
++--- org:foo:{strictly 1.0} FAILED
 \\--- org:bar:1.0 FAILED
 """
     }

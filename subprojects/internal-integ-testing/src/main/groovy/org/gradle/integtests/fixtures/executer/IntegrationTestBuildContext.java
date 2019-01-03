@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.CaseFormat;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -35,7 +36,8 @@ public class IntegrationTestBuildContext {
     }
 
     public TestFile getSamplesDir() {
-        return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir()));
+        String hintForMissingSamples = String.format("Run 'gradle %s:copySamples'.", getCurrentSubprojectName());
+        return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir())).assertIsDir(hintForMissingSamples);
     }
 
     public TestFile getDistributionsDir() {
@@ -71,9 +73,13 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
+    public String getCurrentSubprojectName() {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, getGradleHomeDir().getParentFile().getParentFile().getName());
+    }
+
     /**
      * The timestamped version used in the docs and the bin and all zips. This should be different to {@link GradleVersion#getVersion()}.
-     * Note that the binary distribution used for testing (testBinZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
+     * Note that the binary distribution used for testing (binZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
      *
      * @return timestamped version
      */
@@ -99,6 +105,10 @@ public class IntegrationTestBuildContext {
         TestFile previousVersionDir = getGradleUserHomeDir().getParentFile().file("previousVersion");
         if (version.startsWith("#")) {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
+        }
+
+        if (LocallyBuiltGradleDistribution.isLocallyBuiltVersion(version)) {
+            return new LocallyBuiltGradleDistribution(version);
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }

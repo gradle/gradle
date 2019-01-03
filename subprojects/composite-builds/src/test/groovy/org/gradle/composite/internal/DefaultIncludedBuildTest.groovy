@@ -16,18 +16,38 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
+import org.gradle.initialization.GradleLauncher
+import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
+    def owningBuild = Mock(BuildState)
+    def buildFactory = Mock(NestedBuildFactory)
+    def buildDefinition = Stub(BuildDefinition)
+    def gradleLauncher = Mock(GradleLauncher)
+    def gradle = Mock(GradleInternal)
+    DefaultIncludedBuild build
+
+    def setup() {
+        _ * owningBuild.nestedBuildFactory >> buildFactory
+        _ * buildFactory.nestedInstance(buildDefinition, _) >> gradleLauncher
+        _ * gradleLauncher.gradle >> gradle
+        _ * gradle.settings >> Stub(SettingsInternal)
+
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
+    }
+
     def "creates a foreign id for projects"() {
-        def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), Stub(BuildDefinition), false, Stub(BuildState), Stub(WorkerLeaseRegistry.WorkerLease))
         def projectId = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path("id"), Path.path("project"), "name")
 
         expect:
@@ -36,5 +56,18 @@ class DefaultIncludedBuildTest extends Specification {
         id.identityPath == projectId.identityPath
         id.projectPath == projectId.projectPath
         id.projectName == projectId.projectName
+    }
+
+    def "can run action against build state"() {
+        def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
+        def action = Mock(Transformer)
+
+        when:
+        def result = build.withState(action)
+
+        then:
+        result == "result"
+        1 * action.transform(gradle) >> "result"
+        0 * action._
     }
 }

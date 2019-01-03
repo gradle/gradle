@@ -15,16 +15,16 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 
 public interface BuildActionExecuter<P> {
     /**
-     * Executes the given action, and returns the result.
+     * Executes the given action, and returns the result. Build failures should be packaged in the result, rather than thrown. A failure packaged in this way will have already been reported as a build failure and should not be reported again.
      *
      * @param action The action
      * @return The result.
      */
-    Object execute(BuildAction action, BuildRequestContext requestContext, P actionParameters, ServiceRegistry contextServices);
+    BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, P actionParameters, ServiceRegistry contextServices);
 }

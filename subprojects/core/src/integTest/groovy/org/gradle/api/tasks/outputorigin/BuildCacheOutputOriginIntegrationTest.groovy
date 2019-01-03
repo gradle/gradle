@@ -18,8 +18,8 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginFixture
 import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
@@ -29,7 +29,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     @Rule
-    public final TaskOutputOriginFixture outputOrigin = new TaskOutputOriginFixture(executer, temporaryFolder)
+    public final OriginFixture outputOrigin = new OriginFixture(executer, temporaryFolder)
 
     UniqueId getBuildInvocationId() {
         scopeIds.buildInvocationId

@@ -17,8 +17,8 @@
 package org.gradle.execution.plan;
 
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -26,8 +26,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -81,9 +83,16 @@ public class TaskNodeFactory {
         }
 
         @Override
-        public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
+        public TaskInternal getTask() {
             // Expose the task to build logic (for now)
-            builder.add(task);
+            return task;
+        }
+
+        @Nullable
+        @Override
+        public Project getProject() {
+            // Ignore, as the node in the other build's execution graph takes care of this
+            return null;
         }
 
         @Override
@@ -94,6 +103,18 @@ public class TaskNodeFactory {
         @Override
         public void rethrowNodeFailure() {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void appendPostAction(Action<? super Task> action) {
+            // Ignore. Currently the actions don't need to run, it's just better if they do
+            // By the time this node is notified that the task in the other build has completed, it's too late to run the action
+            // Instead, the action should be attached to the task in the other build rather than here
+        }
+
+        @Override
+        public Action<? super Task> getPostAction() {
+            return Actions.doNothing();
         }
 
         @Override

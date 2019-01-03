@@ -15,62 +15,43 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.math.BigInteger;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
-public class InMemoryModuleArtifactsCache implements ModuleArtifactsCache {
-    protected final BuildCommencedTimeProvider timeProvider;
+public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
     private final Map<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
+    private final AbstractArtifactsCache delegate;
 
     public InMemoryModuleArtifactsCache(BuildCommencedTimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+        super(timeProvider);
+        this.delegate = null;
     }
 
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
-        ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
-        store(key, entry);
-        return createCacheArtifacts(entry);
+    public InMemoryModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, AbstractArtifactsCache delegate) {
+        super(timeProvider);
+        this.delegate = delegate;
     }
 
+    @Override
     protected void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry) {
         inMemoryCache.put(key, entry);
-    }
-
-    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
-        ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = get(key);
-        return entry == null ? null : createCacheArtifacts(entry);
-    }
-
-    protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
-        return inMemoryCache.get(key);
-    }
-
-    private CachedArtifacts createCacheArtifacts(ModuleArtifactsCacheEntry entry) {
-        long entryAge = timeProvider.getCurrentTime() - entry.createTimestamp;
-        return new DefaultCachedArtifacts(entry.artifacts, entry.moduleDescriptorHash, entryAge);
-    }
-
-    protected static class ModuleArtifactsCacheEntry {
-        protected final Set<ComponentArtifactMetadata> artifacts;
-        protected final BigInteger moduleDescriptorHash;
-        protected final long createTimestamp;
-
-        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, BigInteger moduleDescriptorHash) {
-            this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
-            this.createTimestamp = createTimestamp;
-            this.moduleDescriptorHash = moduleDescriptorHash;
+        if (delegate != null) {
+            delegate.store(key, entry);
         }
     }
+
+    @Override
+    protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
+        ModuleArtifactsCacheEntry entry = inMemoryCache.get(key);
+        if (entry == null && delegate!=null) {
+            entry = delegate.get(key);
+            if (entry != null) {
+                inMemoryCache.put(key, entry);
+            }
+        }
+        return entry;
+    }
+
 }

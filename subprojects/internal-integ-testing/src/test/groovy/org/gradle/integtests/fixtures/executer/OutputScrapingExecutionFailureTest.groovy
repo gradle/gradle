@@ -47,14 +47,14 @@ FAILURE: broken
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "none"')
+        e.message.trim().startsWith('Expected: a collection containing "none"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: "23"')
+        e2.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "cannot assert that failure location is present when missing"() {
@@ -71,14 +71,14 @@ FAILURE: broken
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "build.gradle"')
+        e.message.trim().startsWith('Expected: a collection containing "build.gradle"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: "23"')
+        e2.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "cannot make assertions about failures when failure section is missing"() {
@@ -102,7 +102,7 @@ broken!
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: a collection containing a string starting with "broken!"')
+        e2.message.trim().startsWith('No matching failure description found in []')
 
         when:
         failure.assertHasCause("broken!")
@@ -116,14 +116,14 @@ broken!
 
         then:
         def e4 = thrown(AssertionError)
-        e4.message.trim().startsWith('Expected: "build.gradle"')
+        e4.message.trim().startsWith('Expected: a collection containing "build.gradle"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
         def e5 = thrown(AssertionError)
-        e5.message.trim().startsWith('Expected: "23"')
+        e5.message.trim().startsWith('Expected: a collection containing "23"')
     }
 
     def "can assert that given number of failures are present"() {
@@ -196,14 +196,14 @@ Reinstalling your operating system
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: a collection containing a string starting with "other"')
+        e.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
 
         when:
         failure.assertHasDescription("cause")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: a collection containing a string starting with "cause"')
+        e2.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
     }
 
     def "can assert that failure with cause is present"() {
@@ -244,14 +244,14 @@ something
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
+        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
 
         when:
         failure.assertHasCause("something")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
+        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
     }
 
     def "log output present assertions ignore content after failure section"() {
@@ -338,33 +338,6 @@ Some.Failure
              
             Output:
         '''))
-    }
-
-    def "recreates exception stack trace"() {
-        given:
-        def output = """
-Some text before
-
-FAILURE: broken
-
-* Exception is:
-org.gradle.internal.service.ServiceCreationException: Could not create service of type ArtifactCacheLockingManager
-    at org.gradle.internal.service.DefaultServiceRegistry.some(DefaultServiceRegistry.java:604)
-Caused by: java.io.IOException: Something in the middle
-    at org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager.initMetaDataStoreDir(DefaultArtifactCacheLockingManager.java:59)
-Caused by: org.gradle.api.UncheckedIOException: Unable to create directory 'metadata-2.1'
-    at org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager.initMetaDataStoreDir(DefaultArtifactCacheLockingManager.java:59)
-"""
-        when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
-
-        then:
-        failure.exception.class.simpleName == 'ServiceCreationException'
-        failure.exception.message == 'Could not create service of type ArtifactCacheLockingManager'
-        failure.exception.cause.class.simpleName == 'IOException'
-        failure.exception.cause.message == 'Something in the middle'
-        failure.exception.cause.cause.class.simpleName == 'UncheckedIOException'
-        failure.exception.cause.cause.message == "Unable to create directory 'metadata-2.1'"
     }
 
     def "ignores ansi chars, debug prefix, build status bar and work in progress"() {

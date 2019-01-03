@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
+import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
@@ -42,15 +43,26 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
-    protected void createExecutions() {
-        if (implicitVersion) {
-            add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
+    protected void createExecutionsForContext(CoverageContext coverageContext) {
+        add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
+        super.createExecutionsForContext(coverageContext)
+    }
+
+    @Override
+    protected Collection<ToolingApiExecution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
+        def executions = []
+
+        def distribution = versionedTool.distribution
+        if (distribution.toolingApiSupported) {
+            executions.add(new ToolingApiExecution(getResolver().resolve(current.version.version), distribution))
+            executions.add(new ToolingApiExecution(getResolver().resolve(distribution.version.version), current))
         }
-        previous.each {
-            if (it.toolingApiSupported) {
-                add(new ToolingApiExecution(getResolver().resolve(current.version.version), it))
-                add(new ToolingApiExecution(getResolver().resolve(it.version.version), current))
-            }
-        }
+
+        return executions
+    }
+
+    @Override
+    protected boolean isAvailable(GradleDistributionTool version) {
+        return version.distribution.toolingApiSupported
     }
 }

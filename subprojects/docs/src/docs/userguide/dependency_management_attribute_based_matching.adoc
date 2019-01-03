@@ -61,7 +61,7 @@ A configuration which has `canBeResolved` set to `false` is not meant to be reso
 Such a configuration is there _only to declare dependencies_.
 The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
 It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
-To some extend, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
+To some extent, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
 A resolvable configuration will extend at least one non resolvable configuration (and may extend more than one).
 
 On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
@@ -158,15 +158,15 @@ However, there are cases where a provider may not have _exactly_ what the consum
 For example, if the consumer is asking for the API of a library, there's a possibility that the producer doesn't have such a variant, but only a _runtime_ variant.
 This is typical of libraries published on external repositories.
 In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
-To deal with this, Gradle provides link:{javadocPath}/org.gradle.api.attributes.AttributeCompatibilityRule.html[attribute compatibilty rules].
+To deal with this, Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibilty rules].
 The role of a compatibility rule is to explain what variants are _compatible_ with what the consumer asked for.
 
-Attribute compatibility rules have to be registered via the link:{javadocPath}/org.gradle.api.attributes.AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org.gradle.api.attributes.AttributesSchema.html[attributes schema].
+Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
 [[sec:abm_disambiguation_rules]]
 == Attribute disambiguation rules
 
 Because multiple values for an attribute can be _compatible_ with the requested attribute, Gradle needs to choose between the candidates.
-This is done by implementing an link:{javadocPath}/org.gradle.api.attributes.AttributeDisambiguationRule.html[attribute disambiguation rule].
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
 
-Attribute disambiguation rules have to be registered via the link:{javadocPath}/org.gradle.api.attributes.AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org.gradle.api.attributes.AttributesSchema.html[attributes schema].
+Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].

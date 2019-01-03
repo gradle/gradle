@@ -22,13 +22,13 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
@@ -45,15 +45,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
+ * Test listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  */
 class ClientForwardingTestOperationListener implements BuildOperationListener {
 
-    private final BuildEventConsumer eventConsumer;
+    private final ProgressEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
-    ClientForwardingTestOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
+    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
     }
@@ -70,7 +70,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         } else if (details instanceof ExecuteTestBuildOperationType.Details) {
             ExecuteTestBuildOperationType.Details testOperationDetails = (ExecuteTestBuildOperationType.Details) details;
             TestDescriptorInternal testDescriptor = (TestDescriptorInternal) testOperationDetails.getTestDescriptor();
-            eventConsumer.dispatch(new DefaultTestStartedProgressEvent(testOperationDetails.getStartTime(), adapt(testDescriptor)));
+            eventConsumer.started(new DefaultTestStartedProgressEvent(testOperationDetails.getStartTime(), adapt(testDescriptor)));
         }
     }
 
@@ -85,7 +85,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         } else if (finishEvent.getResult() instanceof ExecuteTestBuildOperationType.Result) {
             TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
             TestDescriptorInternal testDescriptor = (TestDescriptorInternal) ((ExecuteTestBuildOperationType.Details) buildOperation.getDetails()).getTestDescriptor();
-            eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(testResult.getEndTime(), adapt(testDescriptor), adapt(testResult)));
+            eventConsumer.finished(new DefaultTestFinishedProgressEvent(testResult.getEndTime(), adapt(testDescriptor), adapt(testResult)));
         }
     }
 
@@ -133,7 +133,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
             return parent.getId();
         }
         // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
-        if (clientSubscriptions.isSendTaskProgressEvents()) {
+        if (clientSubscriptions.isRequested(OperationType.TASK)) {
             return descriptor.getOwnerBuildOperationId();
         }
         return null;

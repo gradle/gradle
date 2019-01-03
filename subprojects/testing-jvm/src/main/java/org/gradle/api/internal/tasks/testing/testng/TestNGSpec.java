@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
-
 import java.io.Serializable;
 import java.util.Set;
+
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
@@ -34,6 +34,7 @@ public class TestNGSpec implements Serializable {
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
     private final Set<String> includedTests;
+    private final Set<String> excludedTests;
     private final Set<String> includedTestsCommandLine;
     private final String configFailurePolicy;
     private final boolean preserveOrder;
@@ -49,6 +50,7 @@ public class TestNGSpec implements Serializable {
         this.excludeGroups = options.getExcludeGroups();
         this.listeners = options.getListeners();
         this.includedTests = filter.getIncludePatterns();
+        this.excludedTests = filter.getExcludePatterns();
         this.includedTestsCommandLine = filter.getCommandLineIncludePatterns();
         this.configFailurePolicy = options.getConfigFailurePolicy();
         this.preserveOrder = options.getPreserveOrder();
@@ -89,6 +91,10 @@ public class TestNGSpec implements Serializable {
 
     public Set<String> getIncludedTests() {
         return includedTests;
+    }
+
+    public Set<String> getExcludedTests() {
+        return excludedTests;
     }
 
     public Set<String> getIncludedTestsCommandLine() {

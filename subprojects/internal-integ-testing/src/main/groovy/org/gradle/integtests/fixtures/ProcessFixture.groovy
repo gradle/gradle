@@ -39,17 +39,49 @@ class ProcessFixture {
         if (!(OperatingSystem.current().unix || OperatingSystem.current().windows)) {
             throw new RuntimeException("This implementation does not know how to forcefully kill a process on os: " + OperatingSystem.current())
         }
+        execute(killArgs(pid, killTree), killScript(pid, killTree))
+    }
+
+    // Only supported on *nix platforms
+    String[] getChildProcesses() {
+        if (pid == null) {
+            throw new RuntimeException("Unable to get child processes because provided pid is null!")
+        }
+        if (!(OperatingSystem.current().unix)) {
+            throw new RuntimeException("This implementation does not know how to get child processes on os: " + OperatingSystem.current())
+        }
+        return bash("ps -o pid,ppid -ax | awk '{ if ( \$2 == ${pid} ) { print \$1 }}'").split("\\n")
+    }
+
+    // Only supported on *nix platforms
+    String[] getProcessInfo(String[] pids) {
+        if (pids == null || pids.size() == 0) {
+            throw new RuntimeException("Unable to get process info because provided pids are null or empty!")
+        }
+        if (!(OperatingSystem.current().unix)) {
+            throw new RuntimeException("This implementation does not know how to get process info on os: " + OperatingSystem.current())
+        }
+        return bash("ps -o pid,ppid,args -p ${pids.join(' -p ')}").split("\\n")
+    }
+
+    private String bash(String commands) {
+        return execute(["bash"] as Object[], new ByteArrayInputStream(commands.getBytes()))
+    }
+
+    private String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
         def e = TestFiles.execHandleFactory().newExec()
-            .commandLine(killArgs(pid, killTree))
-            .redirectErrorStream()
-            .setStandardInput(killScript(pid, killTree))
-            .setStandardOutput(output)
-            .workingDir(new File(".").absoluteFile) //does not matter
-            .build()
+                .commandLine(commandLine)
+                .redirectErrorStream()
+                .setStandardInput(input)
+                .setStandardOutput(output)
+                .workingDir(new File(".").absoluteFile) //does not matter
+                .build()
         e.start()
         def result = e.waitForFinish()
         result.rethrowFailure()
+
+        return output.toString()
     }
 
     private static Object[] killArgs(Long pid, boolean killTree) {

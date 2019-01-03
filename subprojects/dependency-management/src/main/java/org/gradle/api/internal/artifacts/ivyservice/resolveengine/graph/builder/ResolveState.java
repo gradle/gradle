@@ -75,6 +75,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     private final SelectorStateResolver<ComponentState> selectorStateResolver;
+    private final ResolveOptimizations resolveOptimizations;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -100,6 +101,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3*graphSize/2);
         this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5*graphSize/2);
         this.queue = new ArrayDeque<NodeState>(graphSize);
+        this.resolveOptimizations = new ResolveOptimizations();
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
@@ -107,7 +109,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion);
+        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion, resolveOptimizations);
         getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 
@@ -126,7 +128,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public ModuleResolveState getModule(ModuleIdentifier id) {
         ModuleResolveState module = modules.get(id);
         if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser, selectorStateResolver);
+            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations);
             modules.put(id, module);
         }
         return module;
@@ -163,10 +165,11 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectors.values();
     }
 
-    public SelectorState getSelector(DependencyState dependencyState, ModuleIdentifier moduleIdentifier) {
+    public SelectorState getSelector(DependencyState dependencyState) {
         ComponentSelector requested = dependencyState.getRequested();
         SelectorState selectorState = selectors.get(requested);
         if (selectorState == null) {
+            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
             selectorState = new SelectorState(idGenerator.generateId(), dependencyState, idResolver, versionSelectorScheme, this, moduleIdentifier);
             selectors.put(requested, selectorState);
         } else {

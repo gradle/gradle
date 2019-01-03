@@ -52,6 +52,11 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     }
 
     @Override
+    public CurrentFileCollectionFingerprint empty() {
+        return fingerprintingStrategy.getEmptyFingerprint();
+    }
+
+    @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         return super.fingerprint(files, fingerprintingStrategy);
     }

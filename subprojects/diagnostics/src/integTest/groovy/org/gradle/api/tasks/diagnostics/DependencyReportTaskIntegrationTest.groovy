@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -61,6 +61,37 @@ compile
      \\--- project :c (*)
 """
         output.contains '(*) - dependencies omitted (listed previously)'
+    }
+
+    def "marks project dependency that can't be resolved as 'FAILED'"() {
+        given:
+        settingsFile << "include 'A', 'B', 'C'"
+
+        // Fail due to missing target configurations
+        file("build.gradle") << """
+            configurations.create('conf')
+            dependencies {
+              conf project(':A')
+              conf project(':B')
+            }
+            
+            project(':B') {
+                configurations.create('default')
+                dependencies.add("default", project(':C'))
+            }
+        """
+
+        when:
+        executer.noExtraLogging()
+        run "dependencies"
+
+        then:
+        output.contains """
+conf
++--- project :A FAILED
+\\--- project :B
+     \\--- project :C FAILED
+"""
     }
 
     def "marks modules that can't be resolved as 'FAILED'"() {
@@ -338,7 +369,7 @@ conf
 """
     }
 
-    def "mentions web-bsed dependency report after legend"() {
+    def "mentions web-based dependency report after legend"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
@@ -881,52 +912,120 @@ api (n)
 """
     }
 
-    @NotYetImplemented
-    void "reports custom selection reasons"() {
-        given:
-        mavenRepo.module("org", "foo", "1.0").publish()
-        mavenRepo.module("org", "foo", "2.0").publish()
-        mavenRepo.module("org", "bar", "1.0").publish()
-        mavenRepo.module("org.test", "bar", "2.0").publish()
-        mavenRepo.module("org", "baz", "1.0").publish()
+    def "renders dependency constraints non-transitively"() {
+        def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
+        def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
+        def moduleA = mavenRepo.module('group', 'moduleA', '2.0').dependsOn(moduleB).publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
-            configurations {
-                conf {
-                    resolutionStrategy.eachDependency {
-                        switch (it.requested.name) {
-                           case 'foo':
-                              it.because('because I am in control').useVersion('2.0')
-                              break
-                           case 'bar':
-                              it.because('why not?').useTarget('org.test:bar:2.0')
-                              break
-                           default:
-                              useVersion(it.requested.version)
-                        }
-                    }
+            configurations { conf }
+            dependencies {
+                constraints {
+                    conf 'group:moduleA:2.0'
+                    conf 'group:moduleC:1.0'
                 }
             }
             dependencies {
-                conf 'org:foo:1.0'
-                conf 'org:bar:1.0'
-                conf 'org:baz:1.0'
+                conf 'group:moduleA'
             }
-        """
-
+"""
         when:
         run ":dependencies", "--configuration", "conf"
 
         then:
         output.contains """
 conf
-+--- org:foo:1.0 -> 2.0 (because I am in control)
-+--- org:bar:1.0 -> org.test:bar:2.0 (why not?)
-\\--- org:baz:1.0 (selected by rule)
++--- group:moduleA -> 2.0
+|    \\--- group:moduleB:1.0
+|         \\--- group:moduleC:1.0
++--- group:moduleA:2.0 (c)
+\\--- group:moduleC:1.0 (c)
+"""
+    }
 
+    def "renders version constraints"() {
+        mavenRepo.module('group', 'moduleA', '1.0').publish()
+        mavenRepo.module('group', 'moduleB', '1.0').publish()
+        mavenRepo.module('group', 'moduleC', '1.0').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations { conf }
+            dependencies {
+                constraints {
+                }
+            }
+            dependencies {
+                conf('group:moduleA') {
+                    version {
+                        require '1.+'
+                        prefer '1.0'
+                    }
+                }
+                conf('group:moduleB') {
+                    version {
+                        strictly '1.0'
+                    }
+                }
+                conf('group:moduleC') {
+                    version {
+                        require '1.0'
+                        reject '1.1', '1.2'
+                    }
+                }
+            }
+"""
+        when:
+        run ":dependencies", "--configuration", "conf"
+
+        then:
+        output.contains """
+conf
++--- group:moduleA:{require 1.+; prefer 1.0} -> 1.0
++--- group:moduleB:{strictly 1.0} -> 1.0
+\\--- group:moduleC:{require 1.0; reject 1.1 & 1.2} -> 1.0
+"""
+    }
+
+    def "reports imported BOM as a set of dependency constraints"() {
+        def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
+        def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
+        def moduleA = mavenRepo.module('group', 'moduleA', '2.0').dependsOn(moduleB).publish()
+        mavenRepo.module('group', 'bom', '1.0')
+                .hasType("pom")
+                .dependencyConstraint(moduleA)
+                .dependencyConstraint(moduleC)
+                .publish()
+
+        buildFile << """
+            apply plugin: 'java' // Java plugin required for BOM import
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                implementation platform('group:bom:1.0')
+                implementation 'group:moduleA'
+            }
+"""
+        when:
+        run ":dependencies", "--configuration", "compileClasspath"
+
+        then:
+        output.contains """
+compileClasspath - Compile classpath for source set 'main'.
++--- group:bom:1.0
+|    +--- group:moduleA:2.0 (c)
+|    \\--- group:moduleC:1.0 (c)
+\\--- group:moduleA -> 2.0
+     \\--- group:moduleB:1.0
+          \\--- group:moduleC:1.0
+
+(c) - dependency constraint
 """
     }
 }

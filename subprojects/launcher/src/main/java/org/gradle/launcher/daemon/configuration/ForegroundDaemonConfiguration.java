@@ -23,6 +23,6 @@ import java.io.File;
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
     public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, new CurrentProcess().getJvmOptions().getAllImmutableJvmArgs());
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess().getJvmOptions().getAllImmutableJvmArgs());
     }
 }

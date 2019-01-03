@@ -23,12 +23,13 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -49,7 +50,7 @@ public class DefaultResolutionResultBuilder {
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DetachedComponentResult(0L, id, VersionSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
+        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
         return builder.complete(0L);
     }
 
@@ -57,26 +58,26 @@ public class DefaultResolutionResultBuilder {
         return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
     }
 
-    public void visitComponent(ComponentResult component) {
+    public void visitComponent(ResolvedGraphComponent component) {
         create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component), component.getRepositoryName());
     }
 
-    private static ResolvedVariantResult variantDetails(ComponentResult component) {
+    private static ResolvedVariantResult variantDetails(ResolvedGraphComponent component) {
         return new DefaultResolvedVariantResult(component.getVariantName(), component.getVariantAttributes());
     }
 
-    public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
+    public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult from = modules.get(fromComponent);
-        for (DependencyResult d : dependencies) {
-            org.gradle.api.artifacts.result.DependencyResult dependency;
+        for (ResolvedGraphDependency d : dependencies) {
+            DependencyResult dependencyResult;
             if (d.getFailure() != null) {
-                dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
                 DefaultResolvedComponentResult selected = modules.get(d.getSelected());
-                dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
-                selected.addDependent((ResolvedDependencyResult) dependency);
+                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.isConstraint());
+                selected.addDependent((ResolvedDependencyResult) dependencyResult);
             }
-            from.addDependency(dependency);
+            from.addDependency(dependencyResult);
         }
     }
 
@@ -91,9 +92,8 @@ public class DefaultResolutionResultBuilder {
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
-            root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector,
-                root,
-                VersionSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
+            root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
+                    ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
                 new ModuleVersionResolveException(failureComponentSelector, "Dependency lock state out of date", failure.getProblem())));
         }
     }

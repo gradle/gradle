@@ -138,8 +138,10 @@ abstract class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.6.1</version>
+                        <version>3.8.0</version>
                         <configuration>
+                            <source>1.8</source>
+                            <target>1.8</target>
                             <fork>true</fork>
                             <meminitial>${config.compilerMemory}</meminitial>
                             <maxmem>${config.compilerMemory}</maxmem>

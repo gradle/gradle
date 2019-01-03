@@ -51,10 +51,12 @@ import java.util.Set;
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
+    private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
+        this.workResolvers = workResolvers;
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
@@ -81,6 +83,13 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         queue.add(dependency);
     }
 
+    private void attachFinalizerTo(T value, Action<? super Task> action) {
+        for (WorkDependencyResolver<T> resolver : workResolvers) {
+            if (resolver.attachActionTo(value, action)) {
+                break;
+            }
+        }
+    }
 
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
         private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
@@ -99,6 +108,14 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             } else if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
+            } else if (node instanceof FinalizeAction) {
+                FinalizeAction finalizeAction = (FinalizeAction) node;
+                TaskDependencyContainer dependencies = finalizeAction.getDependencies();
+                Set<T> deps = new CachingTaskDependencyResolveContext<T>(workResolvers).getDependencies(task, dependencies);
+                for (T dep : deps) {
+                    attachFinalizerTo(dep, finalizeAction);
+                    values.add(dep);
+                }
             } else {
                 boolean handled = false;
                 for (WorkDependencyResolver<T> workResolver : workResolvers) {

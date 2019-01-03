@@ -45,7 +45,6 @@ public class ClasspathVersionSource implements Factory<Properties> {
                     "Unable to find the released versions information.\n"
                             + "The resource '" + resourceName + "' was not found.\n"
                             + "Most likely, you haven't run the 'prepareVersionsInfo' task.\n"
-                            + "If you have trouble running tests from your IDE, please run gradlew idea|eclipse first."
             );
         }
 

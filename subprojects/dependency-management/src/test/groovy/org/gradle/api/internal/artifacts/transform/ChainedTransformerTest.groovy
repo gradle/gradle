@@ -18,54 +18,30 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
+import org.gradle.internal.Try
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
     private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
-
-    def "is cached if all parts are cached"() {
-        given:
-        def chain = new TransformationChain(new CachingTransformation(), new CachingTransformation())
-
-        expect:
-        chain.hasCachedResult(initialSubject)
-    }
-
-    def "is not cached if first part is not cached"() {
-        given:
-        def chain = new TransformationChain(new NonCachingTransformation(), new CachingTransformation())
-
-        expect:
-        !chain.hasCachedResult(initialSubject)
-    }
-
-    def "is not cached if second part is not cached"() {
-        given:
-        def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
-
-        expect:
-        !chain.hasCachedResult(initialSubject)
-    }
 
     def "applies second transform on the result of the first"() {
         given:
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        chain.transform(initialSubject).files == [new File("foo/cached/non-cached")]
+        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver)).get().files == [new File("foo/cached/non-cached")]
     }
 
     class CachingTransformation implements Transformation {
 
-
         @Override
-        TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "cached")))
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "cached"))))
         }
 
         @Override
-        boolean hasCachedResult(TransformationSubject subject) {
-            return true
+        boolean requiresDependencies() {
+            return false
         }
 
         @Override
@@ -76,17 +52,28 @@ class ChainedTransformerTest extends Specification {
         @Override
         void visitTransformationSteps(Action<? super TransformationStep> action) {
         }
+
+
+        @Override
+        boolean endsWith(Transformation otherTransform) {
+            return false
+        }
+
+        @Override
+        int stepsCount() {
+            return 1
+        }
     }
 
     class NonCachingTransformation implements Transformation {
 
         @Override
-        TransformationSubject transform(TransformationSubject subject) {
-            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")))
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached"))))
         }
 
         @Override
-        boolean hasCachedResult(TransformationSubject subject) {
+        boolean requiresDependencies() {
             return false
         }
 
@@ -97,6 +84,17 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         void visitTransformationSteps(Action<? super TransformationStep> action) {
+        }
+
+
+        @Override
+        boolean endsWith(Transformation otherTransform) {
+            return false
+        }
+
+        @Override
+        int stepsCount() {
+            return 1
         }
     }
 }

@@ -20,7 +20,9 @@ Gradle can be integrated with many different third-party tools such as IDEs and 
 == IDEs
 
 Android Studio::
-This is a variant of IntelliJ IDEA, so the same integration features apply. It has built-in support for importing and building Gradle projects. You can also use the <<idea_plugin.adoc#,IDEA Plugin for Gradle>> to fine-tune the import process if that's necessary.
+As a variant of IntelliJ IDEA, https://developer.android.com/studio/[Android Studio] has built-in support for importing and building Gradle projects. You can also use the <<idea_plugin.adoc#,IDEA Plugin for Gradle>> to fine-tune the import process if that's necessary.
++
+This IDE also has an https://developer.android.com/studio/intro/[extensive user guide] to help you get the most out of the IDE and Gradle.
 
 Eclipse::
 If you want to work on a project within Eclipse that has a Gradle build, you should use the https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship plugin]. This will allow you to import and run Gradle builds. If you need to fine tune the import process so that the project loads correctly, you can use the <<eclipse_plugin.adoc#,Eclipse Plugins for Gradle>>. See https://discuss.gradle.org/t/buildship-1-0-18-is-now-available/19012[the associated release announcement] for details on what fine tuning you can do.

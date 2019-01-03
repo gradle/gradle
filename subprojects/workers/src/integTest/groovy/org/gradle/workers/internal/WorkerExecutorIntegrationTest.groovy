@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+
 @IntegrationTestTimeout(120)
 @Unroll
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
@@ -32,7 +34,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can create and use a worker runnable defined in buildSrc in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -51,7 +53,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can create and use a worker runnable defined in build script in #isolationMode"() {
-        withRunnableClassInBuildScript()
+        fixture.withRunnableClassInBuildScript()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -97,7 +99,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def "re-uses an existing idle worker daemon"() {
         executer.withWorkerDaemonsExpirationDisabled()
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
@@ -118,7 +120,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "starts a new worker daemon when existing worker daemons are incompatible"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInDaemon(type: WorkerTask)
@@ -145,7 +147,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         blockingServer.start()
         blockingServer.expectConcurrent("runInDaemon", "startNewDaemon")
 
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         withBlockingRunnableClassInBuildSrc("http://localhost:${blockingServer.port}")
 
         buildFile << """
@@ -174,7 +176,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def "re-uses an existing compatible worker daemon when a different runnable is executed"() {
         executer.withWorkerDaemonsExpirationDisabled()
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         withAlternateRunnableClassInBuildSrc()
 
         buildFile << """
@@ -198,7 +200,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def "throws if worker used from a thread with no current build operation in #isolationMode"() {
         given:
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
 
         and:
         buildFile << """
@@ -246,27 +248,56 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can set a custom display name for work items in #isolationMode"() {
-        withRunnableClassInBuildSrc()
-
+        given:
+        fixture.withRunnableClassInBuildSrc()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
                 displayName = "Test Work"
             }
-        """.stripIndent()
+        """
 
         when:
         succeeds("runInWorker")
 
         then:
-        buildOperations.hasOperation("Test Work")
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "Test Work"
+        with (operation.details) {
+            className == "org.gradle.test.TestRunnable"
+            displayName == "Test Work"
+        }
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    def "includes failures in build operation in #isolationMode"() {
+        given:
+        fixture.withRunnableClassInBuildSrc()
+        buildFile << """
+            ${fixture.runnableThatFails}
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                runnableClass = RunnableThatFails.class
+            }
+        """
+
+        when:
+        fails("runInWorker")
+
+        then:
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "RunnableThatFails"
+        operation.failure == "java.lang.RuntimeException: Failure from runnable"
 
         where:
         isolationMode << ISOLATION_MODES
     }
 
     def "can use a parameter that references classes in other packages in #isolationMode"() {
-        withRunnableClassInBuildSrc()
+        fixture.withRunnableClassInBuildSrc()
         withParameterClassReferencingClassInAnotherPackage()
 
         buildFile << """
@@ -284,7 +315,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def "can set isolation mode using fork mode"() {
         executer.withWorkerDaemonsExpirationDisabled()
-        withRunnableClassInBuildScript()
+        fixture.withRunnableClassInBuildScript()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -306,7 +337,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "classloader is not isolated when using IsolationMode.NONE"() {
-        withRunnableClassInBuildScript()
+        fixture.withRunnableClassInBuildScript()
 
         buildFile << """
             class MutableItem {
@@ -416,16 +447,36 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             ${getBlockingRunnableThatCreatesFiles(url)}
         """
 
-        addImportToBuildScript("org.gradle.test.BlockingRunnable")
+        fixture.addImportToBuildScript("org.gradle.test.BlockingRunnable")
     }
 
     void withAlternateRunnableClassInBuildSrc() {
         file("buildSrc/src/main/java/org/gradle/test/AlternateRunnable.java") << """
             package org.gradle.test;
 
-            $alternateRunnable
+            ${fixture.alternateRunnable}
         """
 
-        addImportToBuildScript("org.gradle.test.AlternateRunnable")
+        fixture.addImportToBuildScript("org.gradle.test.AlternateRunnable")
+    }
+
+    void withRunnableClassInExternalJar(File runnableJar) {
+        file("buildSrc").deleteDir()
+
+        def builder = artifactBuilder()
+        builder.sourceFile("org/gradle/test/TestRunnable.java") << """
+            package org.gradle.test;
+
+            $fixture.runnableThatCreatesFiles
+        """
+        builder.sourceFile("org/gradle/other/Foo.java") << """
+            $fixture.parameterClass
+        """
+        builder.sourceFile("org/gradle/test/FileHelper.java") << """
+            $fixture.fileHelperClass
+        """
+        builder.buildJar(runnableJar)
+
+        fixture.addImportToBuildScript("org.gradle.test.TestRunnable")
     }
 }

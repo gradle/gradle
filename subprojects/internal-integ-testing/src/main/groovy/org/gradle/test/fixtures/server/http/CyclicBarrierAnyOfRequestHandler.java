@@ -20,6 +20,7 @@ import com.sun.net.httpserver.HttpExchange;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +44,8 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;
-    protected AssertionError failure;
+    private boolean cancelled;
+    private AssertionError failure;
 
     CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         if (expectedRequests.size() < maxConcurrent) {
@@ -82,7 +84,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     }
 
     @Override
-    public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
+    public ResponseProducer selectResponseProducer(int id, HttpExchange exchange) throws Exception {
         ResourceHandlerWrapper handler;
         lock.lock();
         try {
@@ -90,34 +92,30 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 // barrier open, let it travel on
                 return null;
             }
-            if (failure != null) {
-                // Busted
-                throw failure;
-            }
 
             long now = clock.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
 
-            String path = httpExchange.getRequestURI().getPath().substring(1);
+            String path = exchange.getRequestURI().getPath().substring(1);
             handler = selectPending(notReceived, path);
-            if (handler == null || !handler.getMethod().equals(httpExchange.getRequestMethod()) || waitingFor == 0) {
-                failure = new AssertionError(String.format("Unexpected request %s %s received. Waiting for %s further requests, already received %s, released %s, still expecting %s.", httpExchange.getRequestMethod(), path, waitingFor, received, released, format(notReceived)));
+            if (handler == null || !handler.getMethod().equals(exchange.getRequestMethod()) || waitingFor == 0) {
+                failure = new UnexpectedRequestException(String.format("Unexpected request %s /%s received. Waiting for %s further requests, already received %s, released %s, still expecting %s.", exchange.getRequestMethod(), path, waitingFor, received, released, format(notReceived)));
                 condition.signalAll();
                 throw failure;
             }
 
             notReceived.remove(handler);
             notReleased.add(handler);
-            received.add(httpExchange.getRequestMethod() + " " + path);
+            received.add(exchange.getRequestMethod() + " /" + path);
             handler.received();
             waitingFor--;
             if (waitingFor == 0) {
                 condition.signalAll();
             }
 
-            while (!handler.isReleased() && failure == null) {
+            while (!handler.isReleased() && failure == null && !cancelled) {
                 long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
                 if (waitMs < 0) {
                     if (waitingFor > 0) {
@@ -137,6 +135,18 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 System.out.println(String.format("[%d] failure in another thread", id));
                 throw failure;
             }
+            if (cancelled) {
+                return new ResponseProducer() {
+                    @Override
+                    public void writeTo(int requestId, HttpExchange exchange) {
+                        try {
+                            exchange.sendResponseHeaders(200, -1);
+                        } catch (IOException e) {
+                            // Ignore
+                        }
+                    }
+                };
+            }
         } finally {
             lock.unlock();
         }
@@ -144,14 +154,27 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
         return handler;
     }
 
-    public void assertComplete() {
+    @Override
+    public void cancelBlockedRequests() {
+        lock.lock();
+        try {
+            cancelled = true;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void assertComplete(Collection<Throwable> failures) throws AssertionError {
         lock.lock();
         try {
             if (failure != null) {
-                throw failure;
+                // Already reported
+                return;
             }
             if (!notReceived.isEmpty()) {
-                throw new AssertionError(String.format("Did not handle all expected requests. Waiting for %d further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, format(notReceived)));
+                failures.add(new AssertionError(String.format("Did not handle all expected requests. Waiting for %d further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, format(notReceived))));
             }
         } finally {
             lock.unlock();
@@ -160,7 +183,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
 
     @Override
     public void release(String path) {
-        path = new ExpectGetAndSendFixedContent(path).getPath();
+        path = BlockingHttpServer.normalizePath(path);
         lock.lock();
         try {
             ResourceHandlerWrapper handler = selectPending(notReleased, path);

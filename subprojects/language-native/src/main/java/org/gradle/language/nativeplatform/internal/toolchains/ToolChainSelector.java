@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -24,7 +25,7 @@ public interface ToolChainSelector {
     /**
      * Selects a platform of the given type that can run on the host machine, and a toolchain to build for this platform.
      */
-    <T extends NativePlatform> Result<T> select(Class<T> platformType);
+    <T extends NativePlatform> Result<T> select(Class<T> platformType, TargetMachine targetMachine);
 
     interface Result<T extends NativePlatform> {
         NativeToolChainInternal getToolChain();

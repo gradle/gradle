@@ -210,7 +210,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
                 prefers(null)
                 strictly('3.2.2')
@@ -297,7 +297,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:') {
+            constraint('org.tukaani:xz:1.6') {
                 prefers(null)
                 strictly('1.6')
                 rejects()
@@ -665,12 +665,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
-            configurations.apiElements {
-                exclude group: "foo", module: "bar"
-            }
-
-            configurations.runtimeElements {
-                exclude group: "baz", module: "qux"
+            configurations {
+                api.exclude(group: "api-group", module: "api-module")
+                apiElements.exclude(group: "apiElements-group", module: "apiElements-module")
+                runtime.exclude(group: "runtime-group", module: "runtime-module")
+                runtimeElements.exclude(group: "runtimeElements-group", module: "runtimeElements-module")
+                implementation.exclude(group: "implementation-group", module: "implementation-module")
+                runtimeOnly.exclude(group: "runtimeOnly-group", module: "runtimeOnly-module")
             }
 
             dependencies {
@@ -702,26 +703,50 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
         javaLibrary.assertApiDependencies("org.test:a:1.0", "org.gradle.test:subproject:1.2")
-        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("foo", "bar"))
-        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("foo", "bar"))
         javaLibrary.assertRuntimeDependencies("org.test:b:2.0")
-        javaLibrary.parsedPom.scopes.runtime.hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("baz", "qux"))
-
-        and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.test:a:1.0') {
-                hasExclude('foo', 'bar')
-                noMoreExcludes()
+        with(javaLibrary.parsedPom) {
+            with (scopes.compile) {
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("api-group", "api-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("runtime-group", "runtime-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("api-group", "api-module"))
             }
-            dependency('org.gradle.test:subproject:1.2') {
-                hasExclude('foo', 'bar')
-                noMoreExcludes()
+            with (scopes.runtime) {
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeElements-group", "runtimeElements-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("implementation-group", "implementation-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("api-group", "api-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeOnly-group", "runtimeOnly-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
             }
         }
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('org.test:a:1.0') {
-                hasExclude('baz', 'qux')
-                noMoreExcludes()
+
+        and:
+        with(javaLibrary.parsedModuleMetadata) {
+            variant('api') {
+                dependency('org.test:a:1.0') {
+                    hasExclude('apiElements-group', 'apiElements-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    hasExclude('api-group', 'api-module')
+                    noMoreExcludes()
+                }
+                dependency('org.gradle.test:subproject:1.2') {
+                    hasExclude('apiElements-group', 'apiElements-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    hasExclude('api-group', 'api-module')
+                    noMoreExcludes()
+                }
+            }
+            variant('runtime') {
+                dependency('org.test:a:1.0') {
+                    hasExclude('runtimeElements-group', 'runtimeElements-module')
+                    hasExclude('implementation-group', 'implementation-module')
+                    hasExclude('api-group', 'api-module')
+                    hasExclude('runtimeOnly-group', 'runtimeOnly-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    noMoreExcludes()
+                }
             }
         }
     }
@@ -841,7 +866,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                     maven { url "${mavenRepo.uri}" }
                 }
             }
-
             group = 'org.gradle.test'
             version = '1.9'
 
@@ -961,4 +985,81 @@ $append
 
     }
 
+    @Unroll
+    def 'can publish java library with a #config dependency on a java-platform subproject"'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        settingsFile << """
+include(':platform')
+"""
+        createBuildScripts("""
+            dependencies {
+                ${config} "org.test:bar"
+                ${config} platform(project(':platform'))
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            project(':platform') {
+                apply plugin: 'java-platform'
+                apply plugin: 'maven-publish'
+
+                group = 'org.gradle.test'
+                version = '1.9'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+                
+                dependencies {
+                    constraints {
+                        api 'org.test:bar:1.0'
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        def mavenModule = javaLibrary.mavenModule
+        mavenModule.parsedPom.scopes['import'].expectDependencyManagement('org.gradle.test:platform:1.9').hasType('pom')
+        mavenModule.parsedPom.scopes[scope].assertDependsOn('org.test:bar:')
+
+        and:
+        if (config == "api") {
+            javaLibrary.parsedModuleMetadata.variant('api') {
+                dependency('org.test:bar:').exists()
+                dependency('org.gradle.test:platform:1.9') {
+                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                }
+                noMoreDependencies()
+            }
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:').exists()
+            dependency('org.gradle.test:platform:1.9') {
+                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+            }
+            noMoreDependencies()
+        }
+
+        where:
+        config           | scope
+        "api"            | "compile"
+        "implementation" | "runtime"
+
+    }
 }

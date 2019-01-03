@@ -208,7 +208,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             }
         """
 
-        def handle = server.expectAndBlock(server.resource('running'))
+        def handle = server.expectAndBlock(server.get('running'))
         def gradle = executer.withTasks('log').start()
 
         when:

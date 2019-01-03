@@ -20,7 +20,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -29,15 +28,14 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
-    @Rule public final Sample cppLib = sample(testDirProvider, 'cpp-lib')
-    @Rule public final Sample cppExe = sample(testDirProvider, 'cpp-exe')
-    @Rule public final Sample multiProject = sample(testDirProvider, 'multi-project')
-    @Rule public final Sample flavors = sample(testDirProvider, 'flavors')
-    @Rule public final Sample variants = sample(testDirProvider, 'variants')
-    @Rule public final Sample toolChains = sample(testDirProvider, 'tool-chains')
-    @Rule public final Sample prebuilt = sample(testDirProvider, 'prebuilt')
-    @Rule public final Sample targetPlatforms = sample(testDirProvider, 'target-platforms')
+    @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
+    @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
+    @Rule public final Sample multiProject = sample(testDirectoryProvider, 'multi-project')
+    @Rule public final Sample flavors = sample(testDirectoryProvider, 'flavors')
+    @Rule public final Sample variants = sample(testDirectoryProvider, 'variants')
+    @Rule public final Sample toolChains = sample(testDirectoryProvider, 'tool-chains')
+    @Rule public final Sample prebuilt = sample(testDirectoryProvider, 'prebuilt')
+    @Rule public final Sample targetPlatforms = sample(testDirectoryProvider, 'target-platforms')
     @Rule public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
     @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
@@ -148,14 +146,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         releaseX86.assertDebugFileDoesNotExist()
         releaseX86.exec().out == "Hello world!\n"
 
-        // x86_64 binaries not supported on MinGW or cygwin
-        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
-            debugX64.assertDoesNotExist()
-            releaseX64.assertDoesNotExist()
-        } else {
-            debugX64.arch.name == "x86_64"
-            releaseX64.arch.name == "x86_64"
-        }
+        debugX64.arch.name == "x86-64"
+        releaseX64.arch.name == "x86-64"
 
         // Itanium not built
         debugIA64.assertDoesNotExist()

@@ -26,9 +26,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * An edge in the dependency graph, between 2 nodes.
+ * A {@link ResolvedGraphDependency} that is used during the resolution of the dependency graph.
+ * Additional fields in this interface are not required to reconstitute the serialized graph, but are using during construction of the graph.
  */
-public interface DependencyGraphEdge extends DependencyResult {
+public interface DependencyGraphEdge extends ResolvedGraphDependency {
     DependencyGraphNode getFrom();
 
     DependencyGraphSelector getSelector();
@@ -46,5 +47,7 @@ public interface DependencyGraphEdge extends DependencyResult {
      */
     @Nullable
     Dependency getOriginalDependency();
+
+    boolean isTargetVirtualPlatform();
 
 }

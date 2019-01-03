@@ -29,10 +29,12 @@ import java.io.File;
 public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentIdentifier;
     private final PublishArtifact publishArtifact;
+    private final DefaultIvyArtifactName ivyArtifactName;
 
     public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
         this.publishArtifact = publishArtifact;
+        ivyArtifactName = DefaultIvyArtifactName.forPublishArtifact(publishArtifact);
     }
 
     public String getDisplayName() {
@@ -75,7 +77,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
 
     @Override
     public IvyArtifactName getName() {
-        return DefaultIvyArtifactName.forPublishArtifact(publishArtifact);
+        return ivyArtifactName;
     }
 
     @Override

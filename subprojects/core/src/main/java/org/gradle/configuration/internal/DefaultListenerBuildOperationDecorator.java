@@ -16,7 +16,6 @@
 
 package org.gradle.configuration.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.apache.commons.lang.ClassUtils;
@@ -26,12 +25,14 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.configuration.internal.ExecuteListenerBuildOperationType.DetailsImpl;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -54,18 +55,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         "buildFinished"
     );
 
-
     private final BuildOperationExecutor buildOperationExecutor;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
-    @VisibleForTesting
-    final DefaultUserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext();
-
-    public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
+    public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationExecutor = buildOperationExecutor;
-    }
-
-    public UserCodeApplicationContext getUserCodeApplicationContext() {
-        return userCodeApplicationContext;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
@@ -119,7 +114,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         private final UserCodeApplicationId applicationId;
         private final String registrationPoint;
 
-        protected Operation(UserCodeApplicationId applicationId, String registrationPoint) {
+        Operation(UserCodeApplicationId applicationId, String registrationPoint) {
             this.applicationId = applicationId;
             this.registrationPoint = registrationPoint;
         }
@@ -229,7 +224,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             } else if (methodName.equals("equals") && args.length == 1) {
                 return proxy == args[0] || isSame(args[0]);
             } else if (!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)) {
-                return method.invoke(delegate, args);
+                try {
+                    return method.invoke(delegate, args);
+                } catch (InvocationTargetException e) {
+                    throw UncheckedException.unwrapAndRethrow(e);
+                }
             } else {
                 buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                     @Override
@@ -240,8 +239,10 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                                 try {
                                     method.invoke(delegate, args);
                                     context.setResult(RESULT);
+                                } catch (InvocationTargetException e) {
+                                    throw UncheckedException.unwrapAndRethrow(e);
                                 } catch (Exception e) {
-                                    context.failed(e);
+                                    throw UncheckedException.throwAsUncheckedException(e);
                                 }
                             }
                         });

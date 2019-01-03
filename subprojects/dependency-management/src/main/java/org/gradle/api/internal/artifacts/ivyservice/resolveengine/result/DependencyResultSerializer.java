@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -32,18 +32,19 @@ public class DependencyResultSerializer {
     private final static byte FAILED = 1;
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
 
-    public DependencyResult read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
+    public ResolvedGraphDependency read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         Long selectorId = decoder.readSmallLong();
         ComponentSelector requested = selectors.get(selectorId);
+        boolean constraint = decoder.readBoolean();
 
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             Long selectedId = decoder.readSmallLong();
-            return new DefaultDependencyResult(requested, selectedId, null, null);
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DefaultDependencyResult(requested, null, reason, failure);
+            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -51,6 +52,7 @@ public class DependencyResultSerializer {
 
     public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
         encoder.writeSmallLong(value.getSelector().getResultId());
+        encoder.writeBoolean(value.isConstraint());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             encoder.writeSmallLong(value.getSelected());
@@ -58,9 +60,5 @@ public class DependencyResultSerializer {
             encoder.writeByte(FAILED);
             componentSelectionReasonSerializer.write(encoder, value.getReason());
         }
-    }
-
-    public void reset() {
-        componentSelectionReasonSerializer.reset();
     }
 }

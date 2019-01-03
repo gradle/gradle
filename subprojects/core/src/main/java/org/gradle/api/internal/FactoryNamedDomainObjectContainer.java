@@ -29,26 +29,15 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     private final MutationGuard crossProjectConfiguratorMutationGuard;
 
     /**
-     * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
-     *
-     * <p>The type must implement the {@link Named} interface as a {@link Namer} will be created based on this type.</p>
+     * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
+     * @param factory The factory responsible for creating new instances on demand
+     * @param collectionCallbackActionDecorator the decorator for collection callback action execution
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type), MutationGuards.identity());
-    }
-
-    /**
-     * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
-     *
-     * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param instantiator The instantiator to use to create any other collections based on this one
-     * @param namer The naming strategy to use
-     */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, MutationGuard crossProjectConfiguratorMutationGuard) {
-        this(type, instantiator, namer, new ReflectiveNamedDomainObjectFactory<T>(type), crossProjectConfiguratorMutationGuard);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), collectionCallbackActionDecorator);
     }
 
     /**
@@ -57,9 +46,12 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
      * @param factory The factory responsible for creating new instances on demand
+     *
+     * This internal constructor is used by 'nebula.plugin-plugin' plugin which we test as part of our ci pipeline.
      */
+    @Deprecated
     public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory) {
-        this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity());
+        this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP);
     }
 
     /**
@@ -70,8 +62,8 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param namer The naming strategy to use
      * @param factory The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory, MutationGuard crossProjectConfiguratorMutationGuard) {
-        super(type, instantiator, namer);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory, MutationGuard crossProjectConfiguratorMutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(type, instantiator, namer, collectionCallbackActionDecorator);
         this.factory = factory;
         this.crossProjectConfiguratorMutationGuard = crossProjectConfiguratorMutationGuard;
     }
@@ -83,8 +75,8 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param instantiator The instantiator to use to create any other collections based on this one
      * @param factoryClosure The closure responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, final Closure factoryClosure) {
-        this(type, instantiator, Named.Namer.forType(type), factoryClosure, MutationGuards.identity());
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, final Closure factoryClosure, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        this(type, instantiator, Named.Namer.forType(type), factoryClosure, MutationGuards.identity(), collectionCallbackActionDecorator);
     }
 
     /**
@@ -95,8 +87,8 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param namer The naming strategy to use
      * @param factoryClosure The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure factoryClosure, MutationGuard mutationGuard) {
-        this(type, instantiator, namer, new ClosureObjectFactory<T>(type, factoryClosure), mutationGuard);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure factoryClosure, MutationGuard mutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        this(type, instantiator, namer, new ClosureObjectFactory<T>(type, factoryClosure), mutationGuard, collectionCallbackActionDecorator);
     }
 
     @Override

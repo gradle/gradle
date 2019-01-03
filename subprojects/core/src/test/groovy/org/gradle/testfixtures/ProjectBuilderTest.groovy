@@ -19,8 +19,13 @@ package org.gradle.testfixtures
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
+import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
+import org.gradle.util.SingleMessageLogger
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -162,6 +167,39 @@ class ProjectBuilderTest extends Specification {
         then:
         noExceptionThrown()
         latch.get()
+    }
+
+    def "emits deprecation warning when using constructor directly"() {
+        given:
+        def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadaster)
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.None, broadcaster)
+
+        when:
+        new ProjectBuilder()
+
+        then:
+        1 * broadcaster.progress(_) >> { DeprecatedFeatureUsage usage ->
+            assert usage.summary == "The ProjectBuilder() constructor has been deprecated."
+            assert usage.advice == "Please use ProjectBuilder.builder() instead."
+        }
+
+        cleanup:
+        SingleMessageLogger.reset()
+    }
+
+    def "does not emit deprecation warning when using the builder() method"() {
+        given:
+        def broadcaster = Mock(DeprecatedUsageBuildOperationProgressBroadaster)
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.None, broadcaster)
+
+        when:
+        ProjectBuilder.builder()
+
+        then:
+        0 * broadcaster.progress(_)
+
+        cleanup:
+        SingleMessageLogger.reset()
     }
 }
 

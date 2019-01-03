@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskOutputCachingState;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
@@ -30,10 +30,12 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
 
     private final TaskStateInternal taskState;
     private final TaskExecutionContext ctx;
+    private final OriginMetadata originMetadata;
 
-    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, TaskExecutionContext ctx) {
+    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, TaskExecutionContext ctx, @Nullable OriginMetadata originMetadata) {
         this.taskState = taskState;
         this.ctx = ctx;
+        this.originMetadata = originMetadata;
     }
 
     @Nullable
@@ -50,16 +52,14 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
-        UniqueId originBuildInvocationId = originExecutionMetadata == null ? null : originExecutionMetadata.getBuildInvocationId();
+        UniqueId originBuildInvocationId = originMetadata == null ? null : originMetadata.getBuildInvocationId();
         return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
     }
 
     @Nullable
     @Override
     public Long getOriginExecutionTime() {
-        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
-        return originExecutionMetadata == null ? null : originExecutionMetadata.getExecutionTime();
+        return originMetadata == null ? null : originMetadata.getExecutionTime();
     }
 
     @Nullable
@@ -82,6 +82,11 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Override
     public List<String> getUpToDateMessages() {
         return ctx.getUpToDateMessages();
+    }
+
+    @Override
+    public boolean isIncremental() {
+        return ctx.isTaskExecutedIncrementally();
     }
 
 }

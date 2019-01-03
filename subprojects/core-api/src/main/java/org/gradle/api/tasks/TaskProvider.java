@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.Task;
  * @param <T> Task type
  * @since 4.8
  */
-@Incubating
 public interface TaskProvider<T extends Task> extends NamedDomainObjectProvider<T> {
     /**
      * Configures the task with the given action. Actions are run in the order added.

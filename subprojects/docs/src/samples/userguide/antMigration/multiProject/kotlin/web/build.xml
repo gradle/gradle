@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="web" default="build" basedir=".">
+    <property name="root.dir" value="${basedir}/.."/>
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="target"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+
+    <!-- tag::build-required[] -->
+    <target name="buildRequiredProjects">
+        <ant dir="${root.dir}/util" target="build"/>
+    </target>
+    <!-- end::build-required[] -->
+
+    <target name="compile" depends="buildRequiredProjects">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpath="${root.dir}/util/${classes.dir}" debug="true"/>
+    </target>
+
+    <target name="package" depends="build">
+        <jar destfile="${build.dir}/lib/hello-app.jar" basedir="${classes.dir}"/>
+    </target>
+
+    <target name="build" depends="compile"/>
+</project>

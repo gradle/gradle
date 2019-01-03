@@ -49,7 +49,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
     private final Map<XmlTest, Object> xmlTestIds = new HashMap<XmlTest, Object>();
-    private final Map<ITestClass, Object> testClassId = new HashMap<ITestClass, Object>();
+    private final Map<ITestClass, TestClassInfo> testClassInfo = new HashMap<ITestClass, TestClassInfo>();
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
@@ -91,17 +91,24 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void onBeforeClass(ITestClass testClass) {
-        TestDescriptorInternal testInternal;
-        Object parentId;
+        TestDescriptorInternal testInternal = null;
+        Object parentId = null;
         synchronized (lock) {
-            testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
-            testClassId.put(testClass, testInternal.getId());
-            parentId = xmlTestIds.get(testClass.getXmlTest());
-            for (ITestNGMethod method : testClass.getTestMethods()) {
-                testMethodParentId.put(method, testInternal.getId());
+            TestClassInfo info = testClassInfo.get(testClass);
+            if (info != null) {
+                info.incrementStartedCount();
+            } else {
+                testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
+                testClassInfo.put(testClass, new TestClassInfo(testInternal.getId()));
+                parentId = xmlTestIds.get(testClass.getXmlTest());
+                for (ITestNGMethod method : testClass.getTestMethods()) {
+                    testMethodParentId.put(method, testInternal.getId());
+                }
             }
         }
-        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime(), parentId));
+        if (testInternal != null) {
+            resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime(), parentId));
+        }
     }
 
     @Override
@@ -110,9 +117,16 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void onAfterClass(ITestClass testClass) {
-        Object id;
+        Object id = null;
         synchronized (lock) {
-            id = testClassId.remove(testClass);
+            TestClassInfo info = testClassInfo.get(testClass);
+            if (info != null) {
+                if (info.startedCount == 1) {
+                    id = testClassInfo.remove(testClass).id;
+                } else {
+                    info.decrementStartedCount();
+                }
+            }
         }
         // Guard against TestNG calling this hook more than once with the same testClass.
         // See https://github.com/cbeust/testng/issues/1618 for details.
@@ -263,22 +277,43 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void onConfigurationFailure(ITestResult testResult) {
+        ITestNGMethod testMethod = testResult.getMethod();
+        ITestClass testClass = testMethod.getTestClass();
+        TestClassInfo classInfo;
         synchronized (lock) {
             if (!failedConfigurations.add(testResult)) {
                 // workaround for bug in TestNG 6.2 (apparently fixed in some 6.3.x): listener is notified twice per event
                 return;
             }
+            classInfo = this.testClassInfo.get(testClass);
         }
         // Synthesise a test for the broken configuration method
-        ITestNGMethod testMethod = testResult.getMethod();
-        ITestClass testClass = testMethod.getTestClass();
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(), testClass.getName(), testMethod.getMethodName());
-        resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis(), testClassId.get(testClass)));
+        Object parentId = classInfo == null ? null : classInfo.id;
+        resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis(), parentId));
         resultProcessor.failure(test.getId(), testResult.getThrowable());
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void beforeConfiguration(ITestResult tr) {
+    }
+
+    static class TestClassInfo {
+
+        private final Object id;
+        private int startedCount = 1;
+
+        TestClassInfo(Object id) {
+            this.id = id;
+        }
+
+        public void incrementStartedCount() {
+            startedCount++;
+        }
+
+        public void decrementStartedCount() {
+            startedCount--;
+        }
     }
 }

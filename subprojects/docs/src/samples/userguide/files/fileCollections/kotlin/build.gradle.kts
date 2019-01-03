@@ -17,11 +17,11 @@ file("src2/dir1").mkdirs()
 file("src2/dir2").mkdirs()
 
 // tag::closure[]
-task("list") {
+tasks.register("list") {
     doLast {
         var srcDir: File? = null
 
-        val collection = layout.files(provider {
+        val collection = layout.files({
             srcDir?.listFiles()
         })
 
@@ -36,7 +36,7 @@ task("list") {
 }
 // end::closure[]
 
-task("usage") {
+tasks.register("usage") {
     doLast {
         val collection = layout.files("src/file1.txt")
 
@@ -60,7 +60,7 @@ task("usage") {
     }
 }
 
-task("filterTextFiles") {
+tasks.register("filterTextFiles") {
     doLast {
         // tag::filtering-file-collections[]
         val textFiles: FileCollection = collection.filter { f: File ->

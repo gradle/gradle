@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.changes.FileChange;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
@@ -30,7 +30,7 @@ import java.util.Map;
 public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {
@@ -39,18 +39,18 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
         return doVisitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
     }
 
-    protected abstract boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
+    protected abstract boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
 
     /**
      * Compares collection fingerprints if one of current or previous are empty or both have at most one element.
      *
      * @return {@code null} if the comparison is not trivial.
-     * For a trivial comparision returns whether the {@link TaskStateChangeVisitor} is looking for further changes.
-     * See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
+     * For a trivial comparision returns whether the {@link ChangeVisitor} is looking for further changes.
+     * See {@link ChangeVisitor#visitChange(Change)}.
      */
     @VisibleForTesting
     @Nullable
-    static Boolean compareTrivialFingerprints(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    static Boolean compareTrivialFingerprints(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         switch (current.size()) {
             case 0:
                 switch (previous.size()) {
@@ -58,7 +58,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
                         return true;
                     default:
                         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
-                            TaskStateChange change = FileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType());
+                            Change change = FileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType());
                             if (!visitor.visitChange(change)) {
                                 return false;
                             }
@@ -86,10 +86,10 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
         }
     }
 
-    private static boolean reportAllAdded(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle, boolean includeAdded) {
+    private static boolean reportAllAdded(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle, boolean includeAdded) {
         if (includeAdded) {
             for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
-                TaskStateChange change = FileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType());
+                Change change = FileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType());
                 if (!visitor.visitChange(change)) {
                     return false;
                 }
@@ -98,7 +98,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
         return true;
     }
 
-    private static boolean compareTrivialFingerprintEntries(TaskStateChangeVisitor visitor, Map.Entry<String, FileSystemLocationFingerprint> currentEntry, Map.Entry<String, FileSystemLocationFingerprint> previousEntry, String propertyTitle, boolean includeAdded) {
+    private static boolean compareTrivialFingerprintEntries(ChangeVisitor visitor, Map.Entry<String, FileSystemLocationFingerprint> currentEntry, Map.Entry<String, FileSystemLocationFingerprint> previousEntry, String propertyTitle, boolean includeAdded) {
         FileSystemLocationFingerprint previousFingerprint = previousEntry.getValue();
         FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
         if (currentFingerprint.getNormalizedPath().equals(previousFingerprint.getNormalizedPath())) {
@@ -106,16 +106,16 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
             HashCode currentContent = currentFingerprint.getNormalizedContentHash();
             if (!currentContent.equals(previousContent)) {
                 String path = currentEntry.getKey();
-                TaskStateChange change = FileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType());
+                Change change = FileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType());
                 return visitor.visitChange(change);
             }
             return true;
         } else {
             String previousPath = previousEntry.getKey();
-            TaskStateChange remove = FileChange.removed(previousPath, propertyTitle, previousFingerprint.getType());
+            Change remove = FileChange.removed(previousPath, propertyTitle, previousFingerprint.getType());
             if (includeAdded) {
                 String currentPath = currentEntry.getKey();
-                TaskStateChange add = FileChange.added(currentPath, propertyTitle, currentFingerprint.getType());
+                Change add = FileChange.added(currentPath, propertyTitle, currentFingerprint.getType());
                 return visitor.visitChange(remove) && visitor.visitChange(add);
             } else {
                 return visitor.visitChange(remove);

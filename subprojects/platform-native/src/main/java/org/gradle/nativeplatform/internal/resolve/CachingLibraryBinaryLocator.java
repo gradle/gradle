@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 
@@ -25,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
-    private static final DomainObjectSet<NativeLibraryBinary> NULL_RESULT = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
+    private static final DomainObjectSet<NativeLibraryBinary> NULL_RESULT = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class, CollectionCallbackActionDecorator.NOOP);
     private final LibraryBinaryLocator delegate;
     private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
 

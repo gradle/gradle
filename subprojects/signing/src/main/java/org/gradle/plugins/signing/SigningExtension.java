@@ -42,6 +42,7 @@ import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
+import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ import java.util.concurrent.Callable;
 
 import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
 import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.castToBoolean;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 /**
  * The global signing configuration for a project.
@@ -589,8 +589,6 @@ public class SigningExtension {
     }
 
     private Object force(Object maybeCallable) {
-        return maybeCallable instanceof Callable
-            ? uncheckedCall((Callable) maybeCallable)
-            : maybeCallable;
+        return DeferredUtil.unpack(maybeCallable);
     }
 }

@@ -36,9 +36,14 @@ Let's take a look at those steps in more detail:
 
 [[publishing_overview:what]]
 What to publish::
-Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>. Exactly what a publication contains depends on the type of repository it's being published to.
+Gradle needs to know what files and information to publish so that consumers can use your project.
+This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>.
+Exactly what a publication contains depends on the type of repository it's being published to.
 +
-For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies. The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
+For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies.
+The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
++
+In addition, Maven publication supports <<publishing_maven.adoc#publishing_maven,publishing _resolved_ versions>> of dependencies instead of _declared_ ones.
 
 [[publishing_overview:where]]
 Where to publish::

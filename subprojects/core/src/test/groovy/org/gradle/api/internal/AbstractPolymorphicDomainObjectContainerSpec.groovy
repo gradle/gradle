@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.NamedDomainObjectCollection
+
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.internal.Actions
 import spock.lang.Unroll
 
 abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectContainerSpec<T> {
-    abstract NamedDomainObjectCollection<T> getContainer()
+    abstract PolymorphicDomainObjectContainer<T> getContainer()
 
     @Override
     protected Map<String, Closure> getMutatingMethods() {

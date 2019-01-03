@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.CapabilityInternal;
 
@@ -106,7 +106,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             if (details.hasResult()) {
                 resolutionAction.execute(details);
                 CapabilityInternal capability = (CapabilityInternal) conflict.descriptors.iterator().next();
-                details.getSelected().addCause(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("latest version of capability", capability.getCapabilityId())));
+                details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(Describables.of("latest version of capability", capability.getCapabilityId())));
                 return;
             }
         }

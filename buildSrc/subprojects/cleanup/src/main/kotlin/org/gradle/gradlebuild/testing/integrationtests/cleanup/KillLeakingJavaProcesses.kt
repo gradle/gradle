@@ -36,7 +36,7 @@ open class KillLeakingJavaProcesses : DefaultTask() {
         }
 
         if (didKill) {
-            //it might take a moment until file handles are released
+            // it might take a moment until file handles are released
             Thread.sleep(5000)
         }
     }

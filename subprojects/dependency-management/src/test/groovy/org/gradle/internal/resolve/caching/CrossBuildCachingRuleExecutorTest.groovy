@@ -21,12 +21,12 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -284,13 +284,13 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     void withToUpperCaseRule() {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCase
-        )), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail())
     }
 
     void withNonCacheableToUpperCaseRule() {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCaseNotCached
-        )), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail())
     }
 
     void withServiceInjectedRule() {

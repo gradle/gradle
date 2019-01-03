@@ -138,7 +138,7 @@ class LinkRendererTest extends XmlSpecification {
     def type(String name, boolean isArray = false) {
         TypeMetaData type = new TypeMetaData(name)
         if (isArray) {
-            type.addArrayDimension()
+            type.arrayDimensions = 1
         }
         return type
     }

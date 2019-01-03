@@ -21,6 +21,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
@@ -81,6 +82,11 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
 
     public Action<XmlProvider> getXmlAction() {
         return xmlAction;
+    }
+
+    @Override
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return mavenPublication.getVersionMappingStrategy();
     }
 
     public String getPackaging() {

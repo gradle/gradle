@@ -60,7 +60,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             apply plugin: 'cpp-application'
             
             application {
-                operatingSystems = [objects.named(OperatingSystemFamily, 'foo')]
+                targetMachines = [machines.os('os-family')]
             }
         """
 
@@ -380,7 +380,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         if (toolChain.visualCpp) {
             return ""
         } else {
-            return configurationName == "release" ? "stripped/" : ""
+            return configurationName.startsWith("release") ? "stripped/" : ""
         }
     }
 }

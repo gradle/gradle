@@ -40,7 +40,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         this.projectCacheDir = projectCacheDir;
     }
 
-    public File getBaseDirectory(Object scope, String key, VersionStrategy versionStrategy) {
+    public File getBaseDirectory(@Nullable Object scope, String key, VersionStrategy versionStrategy) {
         if (key.equalsIgnoreCase("projects") || key.equalsIgnoreCase("tasks") || !key.matches("\\p{Alpha}+[-//.\\w]*")) {
             throw new IllegalArgumentException(String.format("Unsupported cache key '%s'.", key));
         }

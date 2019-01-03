@@ -38,7 +38,7 @@ public interface IncludedBuildControllers {
         }
 
         @Override
-        public void finishBuild() {
+        public void finishBuild(Collection<? super Throwable> failures) {
         }
 
         @Override
@@ -68,7 +68,7 @@ public interface IncludedBuildControllers {
     /**
      * Completes the build, blocking until complete.
      */
-    void finishBuild();
+    void finishBuild(Collection<? super Throwable> failures);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 }

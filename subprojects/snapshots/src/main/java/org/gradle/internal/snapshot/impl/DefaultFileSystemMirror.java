@@ -80,8 +80,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
         }
     }
 
-    public void beforeTaskOutputChanged() {
-        // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
+    public void beforeOutputChange() {
+        // When the outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
         metadata.clear();
         files.clear();
@@ -93,5 +93,14 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
         cacheMetadata.clear();
         files.clear();
         cacheFiles.clear();
+    }
+
+    public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+        for (String affectedOutputPath : affectedOutputPaths) {
+            metadata.remove(affectedOutputPath);
+            files.remove(affectedOutputPath);
+            cacheMetadata.remove(affectedOutputPath);
+            cacheFiles.remove(affectedOutputPath);
+        }
     }
 }

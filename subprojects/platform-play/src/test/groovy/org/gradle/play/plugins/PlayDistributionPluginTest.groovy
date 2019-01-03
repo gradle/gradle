@@ -15,20 +15,25 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.DefaultNamedDomainObjectSet
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.java.archives.Manifest
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Tar
@@ -45,7 +50,8 @@ import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.distribution.DefaultPlayDistribution
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.util.WrapUtil
+import org.gradle.util.CollectionUtils
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class PlayDistributionPluginTest extends Specification {
@@ -133,7 +139,7 @@ class PlayDistributionPluginTest extends Specification {
         plugin.createDistributionContentTasks(tasks, buildDir, distributions, configurations)
 
         then:
-        1 * distributions.withType(PlayDistribution) >> WrapUtil.toNamedDomainObjectSet(PlayDistribution, distribution)
+        1 * distributions.withType(PlayDistribution) >> toNamedDomainObjectSet(PlayDistribution, distribution)
         1 * tasks.create("createPlayBinaryStartScripts", CreateStartScripts, _) >> { String name, Class type, Action action ->
             action.execute(Mock(CreateStartScripts) {
                 1 * setDescription(_)
@@ -145,9 +151,9 @@ class PlayDistributionPluginTest extends Specification {
         }
         1 * tasks.create("createPlayBinaryDistributionJar", Jar, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Jar) {
-                1 * setArchiveName("playBinary.zip")
+                1 * getArchiveFileName() >> Mock(Property)
                 1 * dependsOn(jarTasks)
-                1 * setDestinationDir(_)
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
                 1 * from(_ as FileTree)
                 1 * getProject() >> Stub(Project) {
                     fileTree(_) >> Stub(FileTree)
@@ -184,20 +190,20 @@ class PlayDistributionPluginTest extends Specification {
         plugin.createDistributionZipTasks(tasks, buildDir, distributions)
 
         then:
-        1 * distributions.withType(PlayDistribution) >> WrapUtil.toNamedDomainObjectSet(PlayDistribution, distribution)
+        1 * distributions.withType(PlayDistribution) >> toNamedDomainObjectSet(PlayDistribution, distribution)
         1 * tasks.create("createPlayBinaryZipDist", Zip, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Zip) {
                 1 * setDescription(_)
-                1 * setDestinationDir(_)
-                1 * setBaseName("playBinary")
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
+                1 * getArchiveBaseName() >> Mock(Property)
                 1 * from(_ as Sync)
             })
         }
         1 * tasks.create("createPlayBinaryTarDist", Tar, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Tar) {
                 1 * setDescription(_)
-                1 * setDestinationDir(_)
-                1 * setBaseName("playBinary")
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
+                1 * getArchiveBaseName() >> Mock(Property)
                 1 * from(_ as Sync)
             })
         }
@@ -213,6 +219,15 @@ class PlayDistributionPluginTest extends Specification {
                 }
             })
         }
+    }
+
+    /**
+     * Wraps the given items in a named domain object set.
+     */
+    static <T extends Named> NamedDomainObjectSet<T> toNamedDomainObjectSet(Class<T> type, T... items) {
+        DefaultNamedDomainObjectSet<T> domainObjectSet = new DefaultNamedDomainObjectSet<T>(type, TestUtil.instantiatorFactory().decorateLenient())
+        CollectionUtils.addAll(domainObjectSet, items)
+        return domainObjectSet
     }
 
     def binaryContainer(List binaries) {

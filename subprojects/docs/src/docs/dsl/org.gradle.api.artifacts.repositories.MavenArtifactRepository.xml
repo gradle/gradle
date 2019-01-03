@@ -42,6 +42,9 @@
             <tr>
                 <td>artifactUrls</td>
             </tr>
+            <tr>
+                <td>metadataSources</td>
+            </tr>
         </table>
     </section>
 </section>

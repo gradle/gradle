@@ -27,6 +27,8 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestExecuter;
@@ -66,6 +68,7 @@ public class XCTest extends AbstractTestTask {
     /**
      * Sets the test suite bundle or executable location
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     public DirectoryProperty getTestInstallDirectory() {
         return testInstallDirectory;
@@ -98,6 +101,7 @@ public class XCTest extends AbstractTestTask {
     @SkipWhenEmpty
     @Nullable
     @Optional
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFile
     protected File getRunScript() {
         RegularFile runScript = getRunScriptFile().get();

@@ -63,7 +63,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def repo = new CachingModuleComponentRepository(realRepo, caches,
-        cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleIdentifierFactory)
+        cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
 
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
@@ -212,7 +212,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshChangingModule(_, _, _) >> mustRefreshChangingModule
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata) {
+            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata) {
                 isChanging() >> true
             }
         }
@@ -240,7 +240,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshModule(_, _, _) >> mustRefreshModule
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata)
+            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata)
         }
 
         when:

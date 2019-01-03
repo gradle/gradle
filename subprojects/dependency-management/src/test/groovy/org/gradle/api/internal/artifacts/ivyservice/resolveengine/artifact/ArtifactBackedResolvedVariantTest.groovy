@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
@@ -38,6 +38,17 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         when:
         set1.artifacts.startVisit(queue, listener).visit(visitor)
+
+        then:
+        0 * _
+    }
+
+    def "visits local artifacts of empty variant"() {
+        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
+        def set1 = of([])
+
+        when:
+        set1.artifacts.visitLocalArtifacts(visitor)
 
         then:
         0 * _
@@ -121,30 +132,45 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         0 * _
     }
 
-    def "collects build dependencies"() {
-        def visitor = Mock(BuildDependenciesVisitor)
-        def deps1 = Stub(TaskDependency)
-        def deps2 = Stub(TaskDependency)
+    def "visits local artifacts"() {
+        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
         def set1 = of([artifact1, artifact2])
         def set2 = of([artifact1])
 
-        given:
-        artifact1.buildDependencies >> deps1
-        artifact2.buildDependencies >> deps2
-
         when:
-        set1.artifacts.collectBuildDependencies(visitor)
+        set1.artifacts.visitLocalArtifacts(visitor)
 
         then:
-        1 * visitor.visitDependency(deps1)
-        1 * visitor.visitDependency(deps2)
+        1 * visitor.visitArtifact(artifact1)
+        1 * visitor.visitArtifact(artifact2)
+        0 * _
+
+        when:
+        set2.artifacts.visitLocalArtifacts(visitor)
+
+        then:
+        1 * visitor.visitArtifact(artifact1)
+        0 * _
+    }
+
+    def "collects build dependencies"() {
+        def visitor = Mock(TaskDependencyResolveContext)
+        def set1 = of([artifact1, artifact2])
+        def set2 = of([artifact1])
+
+        when:
+        set1.artifacts.visitDependencies(visitor)
+
+        then:
+        1 * visitor.add(artifact1)
+        1 * visitor.add(artifact2)
         0 * visitor._
 
         when:
-        set2.artifacts.collectBuildDependencies(visitor)
+        set2.artifacts.visitDependencies(visitor)
 
         then:
-        1 * visitor.visitDependency(deps1)
+        1 * visitor.add(artifact1)
         0 * visitor._
     }
 

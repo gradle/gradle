@@ -26,6 +26,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionRunner buildActionRunner;
@@ -34,18 +35,25 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(final BuildAction action, final BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
+        final PayloadSerializer payloadSerializer = contextServices.get(PayloadSerializer.class);
         BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
 
         buildOperationNotificationValve.start();
         try {
-            RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null), buildRequestContext);
-            return rootBuild.run(new Transformer<Object, BuildController>() {
+            RootBuildState rootBuild = buildRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+            return rootBuild.run(new Transformer<BuildActionResult, BuildController>() {
                 @Override
-                public Object transform(BuildController buildController) {
-                    buildActionRunner.run(action, buildController);
-                    return buildController.getResult();
+                public BuildActionResult transform(BuildController buildController) {
+                    BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
+                    if (result.getBuildFailure() == null) {
+                        return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
+                    }
+                    if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
+                        return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
+                    }
+                    return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
                 }
             });
         } finally {

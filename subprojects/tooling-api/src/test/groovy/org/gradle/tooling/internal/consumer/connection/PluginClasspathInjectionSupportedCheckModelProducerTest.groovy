@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -67,6 +68,6 @@ class PluginClasspathInjectionSupportedCheckModelProducerTest extends Specificat
     }
 
     ModelProducer producer(String providerVersion) {
-        new PluginClasspathInjectionSupportedCheckModelProducer(providerVersion, delegate)
+        new PluginClasspathInjectionSupportedCheckModelProducer(delegate, VersionDetails.from(providerVersion))
     }
 }

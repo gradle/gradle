@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -66,7 +67,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     private boolean resolvedDependencySubstitutions;
 
-    private GradleLauncher gradleLauncher;
+    private final GradleLauncher gradleLauncher;
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
@@ -77,6 +78,8 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
+        // Use a defensive copy of the build definition, as it may be mutated during build execution
+        gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
     }
 
     @Override
@@ -125,7 +128,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public NestedBuildFactory getNestedBuildFactory() {
-        return getGradleLauncher().getGradle().getServices().get(NestedBuildFactory.class);
+        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override
@@ -200,57 +203,50 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
+    public void loadSettings() {
+        gradleLauncher.getLoadedSettings();
+    }
+
+    @Override
     public SettingsInternal getLoadedSettings() {
-        return getGradleLauncher().getLoadedSettings();
+        return gradleLauncher.getGradle().getSettings();
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return getGradleLauncher().getConfiguredBuild();
+        return gradleLauncher.getConfiguredBuild();
+    }
+
+    @Override
+    public <T> T withState(Transformer<T, ? super GradleInternal> action) {
+        // This should apply some locking, but most access to the build state does not happen via this method yet
+        return action.transform(gradleLauncher.getGradle());
     }
 
     @Override
     public void finishBuild() {
-        if (gradleLauncher == null) {
-            return;
-        }
         gradleLauncher.finishBuild();
     }
 
     public synchronized void addTasks(Iterable<String> taskPaths) {
-        getGradleLauncher().scheduleTasks(taskPaths);
-    }
-
-    private GradleLauncher getGradleLauncher() {
-        if (gradleLauncher == null) {
-            // Use a defensive copy of the build definition, as it may be mutated during build execution
-            gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
-        }
-        return gradleLauncher;
+        gradleLauncher.scheduleTasks(taskPaths);
     }
 
     @Override
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
-        final GradleLauncher launcher = getGradleLauncher();
-        launcher.addListener(listener);
-        launcher.scheduleTasks(tasks);
-        WorkerLeaseService workerLeaseService = launcher.getGradle().getServices().get(WorkerLeaseService.class);
+        gradleLauncher.addListener(listener);
+        gradleLauncher.scheduleTasks(tasks);
+        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
         workerLeaseService.withSharedLease(parentLease, new Runnable() {
             @Override
             public void run() {
-                launcher.executeTasks();
+                gradleLauncher.executeTasks();
             }
         });
     }
 
     @Override
     public void stop() {
-        try {
-            if (gradleLauncher != null) {
-                gradleLauncher.stop();
-            }
-        } finally {
-            gradleLauncher = null;
-        }
+        gradleLauncher.stop();
     }
 }

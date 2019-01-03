@@ -521,13 +521,13 @@ org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
    Failures:
-      - Could not resolve org:foo:1.0.:
+      - Could not resolve org:foo:{strictly 1.0}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
 
-org:foo:1.0 FAILED
+org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf
 
 org:foo:1.1 (by constraint) FAILED
@@ -546,7 +546,7 @@ org:foo:1.+ FAILED
 """
     }
 
-    def "shows forced version"() {
+    def "shows forced version and substitution equivalent to force"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "leaf", "2.0").publish()
@@ -560,19 +560,24 @@ org:foo:1.+ FAILED
             }
             configurations {
                 conf
+                forced {
+                    extendsFrom conf
+                }
+                substituted {
+                    extendsFrom conf
+                }
             }
-            configurations.conf.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.forced.resolutionStrategy.force 'org:leaf:1.0'
+            configurations.substituted.resolutionStrategy.dependencySubstitution {
+                substitute module('org:leaf') with module('org:leaf:1.0')
+            }
             dependencies {
                 conf 'org:foo:1.0', 'org:bar:1.0'
-            }
-            task insight(type: DependencyInsightReportTask) {
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
             }
         """
 
         when:
-        run "insight"
+        run "dependencyInsight", "--configuration", "forced", "--dependency", "leaf"
 
         then:
         outputContains """
@@ -585,11 +590,73 @@ org:leaf:1.0 (forced)
 
 org:leaf:1.0
 \\--- org:foo:1.0
-     \\--- conf
+     \\--- forced
 
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
-     \\--- conf
+     \\--- forced
+"""
+
+        when:
+        run "dependencyInsight", "--configuration", "substituted", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:1.0 (selected by rule)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+
+org:leaf:1.0
+\\--- org:foo:1.0
+     \\--- substituted
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- substituted
+"""
+    }
+
+    def "shows forced dynamic version"() {
+        given:
+        mavenRepo.module("org", "leaf", "1").publish()
+        mavenRepo.module("org", "leaf", "2").publish()
+        mavenRepo.module("org", "leaf", "3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf('org:leaf:[1,2]') {
+                    because 'testing stuff'
+                    force true
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
+
+        then:
+        outputContains """
+org:leaf:2
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Was requested : didn't match version 3 because testing stuff
+      - Forced
+
+org:leaf:[1,2] -> 2
+\\--- conf
 """
     }
 
@@ -652,13 +719,9 @@ org:leaf:latest.integration -> 1.0
 """
     }
 
-    def "shows versions substitute by resolve rule"() {
+    def "shows version selected by multiple rules"() {
         given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "leaf", "2.0").publish()
-
-        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "bar", "2.0").publish()
 
         file("build.gradle") << """
             repositories {
@@ -666,15 +729,26 @@ org:leaf:latest.integration -> 1.0
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useVersion('1.0') } }
+                    resolutionStrategy {
+                        eachDependency { it.useVersion('1.0') }
+                        eachDependency { it.useVersion('2.0'); it.because("RULE 2") }
+                        dependencySubstitution {
+                            substitute module('org:foo') because "SUBSTITUTION 1" with module('org:foo:3.0')
+                            substitute module('org:foo') because "SUBSTITUTION 2" with module('org:bar:2.0')
+                            all {
+                                it.useTarget('org:bar:2.0', "SUBSTITUTION 3")
+                            }
+                        }
+                        force('org:foo:1.1')
+                    }
                 }
             }
             dependencies {
-                conf 'org:foo:1.0', 'org:bar:1.0'
+                conf 'org:foo:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                setDependencySpec { true }
             }
         """
 
@@ -683,24 +757,26 @@ org:leaf:latest.integration -> 1.0
 
         then:
         outputContains """
-org:leaf:1.0 (selected by rule)
+org:bar:2.0
    variant "runtime" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-runtime (not requested)
       org.gradle.component.category = library (not requested)
    ]
+   Selection reasons:
+      - Forced
+      - Selected by rule
+      - Selected by rule : RULE 2
+      - Selected by rule : SUBSTITUTION 1
+      - Selected by rule : SUBSTITUTION 2
+      - Selected by rule : SUBSTITUTION 3
 
-org:leaf:1.0
-\\--- org:foo:1.0
-     \\--- conf
-
-org:leaf:2.0 -> 1.0
-\\--- org:bar:1.0
-     \\--- conf
+org:foo:1.0 -> org:bar:2.0
+\\--- conf
 """
     }
 
-    def "shows custom selection reason using eachDependency"() {
+    def "shows version and reason when chosen by dependency resolve rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
@@ -781,10 +857,11 @@ org:foo:1.0 -> 2.0
     }
 
 
-    def "shows custom selection reason with dependency substitution"() {
+    def "shows version and reason with dependency substitution"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "baz", "2.0").publish()
 
         file("build.gradle") << """
             repositories {
@@ -793,14 +870,14 @@ org:foo:1.0 -> 2.0
             configurations {
                conf {
                   resolutionStrategy.dependencySubstitution {
-                     all {
-                        it.useTarget('org:bar:1.0', 'foo superceded by bar')
-                     }
+                     substitute module('org:foo') because 'foo superceded by bar' with module('org:bar:1.0')
+                     substitute module('org:baz') with module('org:baz:2.0')
                   }
                }
             }
             dependencies {
                 conf 'org:foo:1.0'
+                conf 'org:baz:1.1'
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
@@ -812,7 +889,18 @@ org:foo:1.0 -> 2.0
         run "insight"
 
         then:
-        outputContains """org:bar:1.0
+        outputContains """
+org:baz:2.0 (selected by rule)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+
+org:baz:1.1 -> 2.0
+\\--- conf
+
+org:bar:1.0
    variant "runtime" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-runtime (not requested)
@@ -868,7 +956,7 @@ org:new-leaf:77 (selected by rule)
 
 org:leaf:1.0 -> org:new-leaf:77
 \\--- org:foo:2.0
-     \\--- conf
+     \\--- conf (requested org:foo:1.0)
 
 org:leaf:2.0 -> org:new-leaf:77
 \\--- org:bar:1.0
@@ -1381,7 +1469,8 @@ org:middle:2.0+ (selected by rule) FAILED
    Failures:
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
-        Searched in the following locations: ${mavenRepoURL}/org/middle/maven-metadata.xml
+        Searched in the following locations:
+          - ${mavenRepoURL}/org/middle/maven-metadata.xml
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1487,12 +1576,61 @@ org:leaf:1.6+ FAILED
 org:leaf:[1.5,2.0] FAILED
    Failures:
       - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
-        Searched in the following locations: ${ivyRepoURL}/org/leaf/
+        Searched in the following locations:
+          - ${ivyRepoURL}/org/leaf/
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
      \\--- conf
 """
+    }
+
+    void "marks project dependencies that cannot be resolved as 'FAILED'"() {
+        given:
+        file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            configurations.create('conf')
+            dependencies {
+              conf project(':A')
+              conf project(':B')
+            }
+            
+            project(':B') {
+                configurations.create('default')
+                dependencies.add("default", project(':C'))
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", ":A"
+
+        then:
+        outputContains """
+project :A FAILED
+   Failures:
+      - Could not resolve project :A.
+          - Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
+
+project :A FAILED
+\\--- conf
+"""
+
+        when:
+        run "dependencyInsight", "--configuration", "conf", "--dependency", ":C"
+
+        then:
+        outputContains """
+project :C FAILED
+   Failures:
+      - Could not resolve project :C.
+          - Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
+
+project :C FAILED
+\\--- project :B
+     \\--- conf
+"""
+
     }
 
     def "deals with dependency cycles"() {
@@ -1778,7 +1916,7 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        file("settings.gradle") << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
 
         file("build.gradle") << """
             allprojects {
@@ -1791,6 +1929,7 @@ org:leaf2:1.0
             }
             dependencies {
                 compile project(':impl')
+                compile project(':some:deeply:nested')
             }
             project(':api') {
                 dependencies {
@@ -1801,6 +1940,11 @@ org:leaf2:1.0
                 dependencies {
                     compile project(':api')
                     compile 'org:leaf4:1.0'
+                }
+            }
+            project(':some:deeply:nested') {
+                dependencies {
+                    compile 'org:leaf3:1.0'
                 }
             }
         """
@@ -1818,6 +1962,34 @@ project :api
 project :api
 \\--- project :impl
      \\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", ":nested"
+
+        then:
+        outputContains """
+project :some:deeply:nested
+   variant "apiElements" [
+      org.gradle.usage = java-api
+   ]
+
+project :some:deeply:nested
+\\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", ":some:deeply:nested"
+
+        then:
+        outputContains """
+project :some:deeply:nested
+   variant "apiElements" [
+      org.gradle.usage = java-api
+   ]
+
+project :some:deeply:nested
+\\--- compileClasspath
 """
     }
 
@@ -1959,19 +2131,7 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        if (!rejected) {
-            outputContains """org:foo:$selected (by constraint)
-   variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
-   ]
-
-org:foo -> $selected
-\\--- compileClasspath
-"""
-        } else {
-            outputContains """org:foo:$selected
+        outputContains """org:foo:$selected
    variant "compile" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-api
@@ -1982,7 +2142,6 @@ org:foo -> $selected
 
 org:foo -> $selected
 \\--- compileClasspath"""
-        }
 
         where:
         version                             | selected | rejected
@@ -2086,13 +2245,13 @@ org:foo:${displayVersion} -> $selected
 \\--- compileClasspath
 """
         where:
-        version                             | displayVersion | reason                                          | selected | rejected
-        "require '[1.0, 2.0)'"              | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
-        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
-        "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
+        version                             | displayVersion                    | reason                                          | selected | rejected
+        "require '[1.0, 2.0)'"              | '[1.0, 2.0)'                      | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "strictly '[1.1, 1.4]'"             | '{strictly [1.1, 1.4]}'           | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '{prefer [1.0, 1.4]; reject 1.4}' | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
-    def "doesn't report duplicate reasins"() {
+    def "doesn't report duplicate reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()
@@ -2180,7 +2339,7 @@ org:foo:[1.1,1.3] -> 1.3
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
 
-org:bar:[1.0,) -> 1.0
+org:bar:{require [1.0,); reject [1.1, 1.2]} -> 1.0
 \\--- compileClasspath
 
 org:foo:1.1
@@ -2192,7 +2351,7 @@ org:foo:1.1
    Selection reasons:
       - Was requested : rejected version 1.2
 
-org:foo:[1.0,) -> 1.1
+org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
 """
     }
@@ -2261,7 +2420,7 @@ org:foo:1.1
    Selection reasons:
       - Was requested : rejected version 1.2
 
-org:foo:[1.0,) -> 1.1
+org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
 """
     }
@@ -2447,12 +2606,12 @@ org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
    Failures:
-      - Could not resolve org:bar.:
+      - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
                Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar' rejects all versions because of the following reason: Nope, you won't use this
+               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
-org:bar FAILED
+org:bar:{reject all versions} FAILED
 \\--- compileClasspath
 
 org:bar:[1.0,) FAILED
@@ -2464,12 +2623,12 @@ org:bar:[1.0,) FAILED
 
 org:foo: (by constraint) FAILED
    Failures:
-      - Could not resolve org:foo.:
+      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:' rejects any of "'1.0', '1.1', '1.2'"
+               Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
-org:foo FAILED
+org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath
 
 org:foo:[1.0,) FAILED
@@ -2477,6 +2636,59 @@ org:foo:[1.0,) FAILED
       - Could not resolve org:foo:[1.0,). (already reported)
 
 org:foo:[1.0,) FAILED
+\\--- compileClasspath
+"""
+    }
+
+    def "renders multiple rejection reasons for module"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                constraints {
+                    implementation('org:foo') {
+                       version {
+                          reject '1.2'
+                       }
+                    }
+                }
+                implementation('org:foo:[1.0,)') {
+                    version {
+                        reject '1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """
+org:foo:1.0
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Was requested : rejected versions 1.2, 1.1
+      - By constraint
+
+org:foo:{reject 1.2} -> 1.0
+\\--- compileClasspath
+
+org:foo:{require [1.0,); reject 1.1} -> 1.0
 \\--- compileClasspath
 """
     }
@@ -2614,13 +2826,16 @@ org:foo:[1.0,) -> 1.0
                 .publish()
             module('planet', 'mercury', '1.0.0').publish()
             module('planet', 'mercury', '1.0.1').publish()
-            module('planet', 'mercury', '1.0.2').publish()
+            module('planet', 'mercury', '1.0.2')
+                .dependsOn('planet', 'pluto', '1.0.0')
+                .publish()
             module('planet', 'venus', '2.0.0')
                 .dependsOn('planet', 'mercury', '1.0.0')
                 .publish()
             module('planet', 'venus', '2.0.1')
                 .dependsOn('planet', 'mercury', '1.0.1')
                 .publish()
+            module('planet', 'pluto', '1.0.0').publish()
         }
 
         file("build.gradle") << """
@@ -2656,12 +2871,12 @@ planet:mercury:1.0.2
      \\--- compileClasspath
 
 planet:mercury:1.0.1 -> 1.0.2
-\\--- planet:venus:2.0.1 (conflict resolution between versions 2.0.0, 2.0.1 and 1.0)
-     +--- planet:earth:3.0.0
+\\--- planet:venus:2.0.1
+     +--- planet:earth:3.0.0 (requested planet:venus:2.0.0)
      |    \\--- compileClasspath
      +--- planet:mars:4.0.0
      |    \\--- compileClasspath
-     \\--- planet:jupiter:5.0.0
+     \\--- planet:jupiter:5.0.0 (requested planet:venus:1.0)
           \\--- compileClasspath
 """
         when:
@@ -2689,6 +2904,30 @@ planet:venus:1.0 -> 2.0.1
 planet:venus:2.0.0 -> 2.0.1
 \\--- planet:earth:3.0.0
      \\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", "pluto"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:pluto:1.0.0
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
+
+planet:pluto:1.0.0
+\\--- planet:mercury:1.0.2
+     +--- planet:jupiter:5.0.0
+     |    \\--- compileClasspath
+     \\--- planet:venus:2.0.1 (requested planet:mercury:1.0.1)
+          +--- planet:earth:3.0.0 (requested planet:venus:2.0.0)
+          |    \\--- compileClasspath
+          +--- planet:mars:4.0.0
+          |    \\--- compileClasspath
+          \\--- planet:jupiter:5.0.0 (requested planet:venus:1.0) (*)
 """
     }
 

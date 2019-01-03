@@ -26,7 +26,7 @@ import org.gradle.build.docs.releasenotes.checks.*
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -55,6 +55,36 @@ configurations {
         canBeResolved = false
         canBeConsumed = true
     }
+
+    gradleSamplesElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "samples")
+    }
+    gradleFullDocsElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "full-docs")
+    }
+    gradleGettingStartedElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "getting-started")
+    }
+
+    gradleApiRuntime {
+        visible = false
+        canBeResolved = true
+        canBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
+    }
 }
 
 dependencies {
@@ -70,13 +100,14 @@ dependencies {
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testCompile "org.pegdown:pegdown:1.1.0"
     testCompile testLibraries.jsoup
     testCompile("org.gebish:geb-spock:2.2")
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
+
+    gradleApiRuntime project(":")
 }
 
 gradlebuildJava {
@@ -98,15 +129,22 @@ ext {
     samplesSrcDir = file('src/samples')
 }
 
-ext.outputs = [:]
-outputs.samples = files(samplesDir) {
-    builtBy 'samples'
-}
-outputs.distDocs = files(distDocsDir) {
-    builtBy 'distDocs'
-}
-outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+configurations {
+    gradleSamplesElements {
+        outgoing.artifact(samplesDir) {
+            builtBy 'samples'
+        }
+    }
+    gradleFullDocsElements {
+        outgoing.artifact(docsDir) {
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+        }
+    }
+    gradleGettingStartedElements {
+        outgoing.artifact(distDocsDir) {
+            builtBy 'distDocs'
+        }
+    }
 }
 
 def configureCss = tasks.register("configureCss") {
@@ -247,9 +285,11 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
     outputDir = userguideSinglePageOutputDir
     backends = ['pdf', 'html5']
 
-    attributes \
-        toc                 : 'macro',
+    attributes toc          : 'macro',
         toclevels           : 2,
+        groovyDslPath       : "https://docs.gradle.org/${version}/dsl",
+        javadocPath         : "https://docs.gradle.org/${version}/javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api",
         'source-highlighter': 'coderay'
 }
 
@@ -271,7 +311,8 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = configurations.gradleApiRuntime
+
     PublicApi.includes.each {
         include it
     }
@@ -332,8 +373,6 @@ tasks.withType(AsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        groovyDslPath       : "../dsl",
-        javadocPath         : "../javadoc",
         samplesPath         : "../../samples",
         'samples-dir'       : "$projectDir/src/samples"
 }
@@ -350,8 +389,7 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
 
     backends = ['html5']
 
-    attributes \
-        icons               : null,
+    attributes icons        : null,
         'note-caption'      : '&#10024;',
         'tip-caption'       : '&#128161;',
         'important-caption' : '&#10071;️',
@@ -360,7 +398,10 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
         'source-highlighter': 'prettify',
         toc                 : 'auto',
         toclevels           : 1,
-        'toc-title'         : 'Contents'
+        'toc-title'         : 'Contents',
+        groovyDslPath       : "../dsl",
+        javadocPath         : "../javadoc",
+        kotlinDslPath       : "https://gradle.github.io/kotlin-dsl-docs/api"
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
@@ -400,7 +441,7 @@ tasks.register("editReleaseNotes") {
     }
 }
 
-def releaseNotesMarkdown = tasks.register("releaseNotesMarkdown", PegDown, file("src/docs/release/notes.md"), new File(buildDir, "release-notes-raw/release-notes.html"))
+def releaseNotesMarkdown = tasks.register("releaseNotesMarkdown", RenderMarkdownTask, file("src/docs/release/notes.md"), new File(buildDir, "release-notes-raw/release-notes.html"))
 releaseNotesMarkdown.configure {
     group = "release notes"
 }
@@ -455,5 +496,7 @@ tasks.register("docs") {
 }
 
 tasks.register("docsZip", Zip) {
-    from project.outputs.docs
+    // TODO: Reduce duplication
+    from(docsDir)
+    dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }

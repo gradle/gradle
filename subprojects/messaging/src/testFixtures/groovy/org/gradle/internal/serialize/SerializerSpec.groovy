@@ -21,6 +21,15 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 abstract class SerializerSpec extends Specification {
+
+    Class<? extends AbstractEncoder> getEncoder() {
+        KryoBackedEncoder
+    }
+
+    Class<? extends AbstractDecoder> getDecoder() {
+        KryoBackedDecoder
+    }
+
     public <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
         return fromBytes(bytes, serializer)
@@ -45,12 +54,12 @@ abstract class SerializerSpec extends Specification {
     }
 
     public <T> T fromBytes(byte[] bytes, Serializer<T> serializer) {
-        return serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(bytes)))
+        return serializer.read(getDecoder().newInstance(new ByteArrayInputStream(bytes)))
     }
 
     public <T> byte[] toBytes(T value, Serializer<T> serializer) {
         def bytes = new ByteArrayOutputStream()
-        def encoder = new KryoBackedEncoder(bytes)
+        def encoder = getEncoder().newInstance(bytes)
         serializer.write(encoder, value)
         encoder.flush()
 

@@ -16,12 +16,9 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -36,18 +33,15 @@ import org.gradle.util.Path;
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
     private final BuildState owner;
-    private final BuildStateListener buildStateListener;
     private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
     private final GradleLauncher gradleLauncher;
-    private SettingsInternal settings;
 
-    DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner, BuildStateListener buildStateListener) {
+    DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
-        this.buildStateListener = buildStateListener;
         gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
     }
 
@@ -76,14 +70,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             gradleLauncher.getGradle().setIdentityPath(getCurrentPrefixForProjectsInChildBuilds());
-            final GradleInternal gradle = buildController.getGradle();
-            gradle.rootProject(new InternalAction<Project>() {
-                @Override
-                public void execute(Project rootProject) {
-                    settings = gradle.getSettings();
-                    buildStateListener.projectsKnown(DefaultNestedBuild.this);
-                }
-            });
             return buildAction.transform(buildController);
         } finally {
             buildController.stop();
@@ -92,10 +78,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        if (settings == null) {
-            throw new IllegalStateException("Settings not loaded yet.");
-        }
-        return settings;
+        return gradleLauncher.getGradle().getSettings();
     }
 
     @Override
@@ -110,6 +93,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        return getLoadedSettings().getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
+        return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
     }
 }

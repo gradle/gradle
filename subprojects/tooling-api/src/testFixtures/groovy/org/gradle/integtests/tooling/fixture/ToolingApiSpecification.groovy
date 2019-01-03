@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -31,6 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -64,6 +66,8 @@ abstract class ToolingApiSpecification extends Specification {
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
     GradleConnectionException caughtGradleConnectionException
+    TestOutputStream stderr = new TestOutputStream()
+    TestOutputStream stdout = new TestOutputStream()
 
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version
@@ -166,6 +170,11 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
+    void collectOutputs(LongRunningOperation op) {
+        op.setStandardOutput(new TeeOutputStream(stdout, System.out))
+        op.setStandardError(new TeeOutputStream(stderr, System.err))
+    }
+
     /**
      * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
      */
@@ -208,6 +217,32 @@ abstract class ToolingApiSpecification extends Specification {
      */
     Set<String> getRootProjectImplicitTasksForGradleProjectModel() {
         rootProjectImplicitTasks
+    }
+
+    void assertHasBuildSuccessfulLogging() {
+        assert stdout.toString().contains("BUILD SUCCESSFUL")
+    }
+
+    void assertHasBuildFailedLogging() {
+        def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
+        assert failureOutput.contains("BUILD FAILED")
+    }
+
+    void assertHasConfigureSuccessfulLogging() {
+        if (targetDist.isToolingApiLogsConfigureSummary()) {
+            assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
+        } else {
+            assert stdout.toString().contains("BUILD SUCCESSFUL")
+        }
+    }
+
+    void assertHasConfigureFailedLogging() {
+        def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
+        if (targetDist.isToolingApiLogsConfigureSummary()) {
+            assert failureOutput.contains("CONFIGURE FAILED")
+        } else {
+            assert failureOutput.contains("BUILD FAILED")
+        }
     }
 
     public <T> T loadToolingModel(Class<T> modelClass) {

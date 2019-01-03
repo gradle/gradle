@@ -109,7 +109,7 @@ allprojects {
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
-        def expectedFirstLevel = graph.root.deps.findAll { !graph.constraints.contains(it.selected) }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+        def expectedFirstLevel = graph.root.deps.findAll { !it.constraint }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
         def actualFirstLevel = findLines(configDetails, 'first-level')
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
@@ -135,7 +135,7 @@ allprojects {
         compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
         def actualEdges = findLines(configDetails, 'dependency')
-        def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
+        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
@@ -206,12 +206,21 @@ allprojects {
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
         int idx = line.indexOf('][')
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing id in '$line'")
+        }
         String id = line.substring(start, idx) // [id:
         start = idx + 5
         idx = line.indexOf('][', start)
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing module in '$line'")
+        }
         String module = line.substring(start, idx) // [mv:
         start = idx + 9
         idx = line.indexOf(']', start) // [reason:
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing reasons in '$line'")
+        }
         List<String> reasons = line.substring(start, idx).split('!!') as List<String>
         start = idx + 15
         String variant = null
@@ -321,7 +330,6 @@ allprojects {
         private NodeBuilder root
         private String defaultConfig
 
-        final Set<NodeBuilder> constraints = new LinkedHashSet<>()
         final Set<String> virtualConfigurations = []
 
         GraphBuilder(String defaultConfig) {
@@ -464,6 +472,7 @@ allprojects {
         final String requested
         final NodeBuilder from
         NodeBuilder selected
+        boolean constraint
 
         EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected) {
             this.from = from
@@ -571,13 +580,14 @@ allprojects {
         /**
          * Defines a dependency on a unique snapshot module.
          */
-        NodeBuilder snapshot(String moduleVersionId, String timestamp) {
+        NodeBuilder snapshot(String moduleVersionId, String timestamp, String requestedVersion = null) {
             def id = moduleVersionId + ":" + timestamp
             def parts = moduleVersionId.split(':')
             assert parts.length == 3
-            def attrs = [group: parts[0], module: parts[1], version: parts[2]]
+            def (group, name, version) = parts
+            def attrs = [group: group, module: name, version: version]
             def node = graph.node(id, moduleVersionId, attrs)
-            deps << new EdgeBuilder(this, moduleVersionId, node)
+            deps << new EdgeBuilder(this, requestedVersion?"${group}:${name}:${requestedVersion}":moduleVersionId, node)
             return node
         }
 
@@ -595,12 +605,11 @@ allprojects {
         /**
          * Defines a link between nodes created through a dependency constraint.
          */
-        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+        NodeBuilder constraint(String requested, String selectedModuleVersionId = requested, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
-            deps << new EdgeBuilder(this, requested, node)
-            if (this == graph.root) {
-                graph.constraints.add(node)
-            }
+            def edge = new EdgeBuilder(this, requested, node)
+            edge.constraint = true
+            deps << edge
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
@@ -722,8 +731,12 @@ allprojects {
             this
         }
 
-        NodeBuilder byConstraint(String reason) {
-            reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+        NodeBuilder byConstraint(String reason = null) {
+            if (reason == null) {
+                reasons << ComponentSelectionCause.CONSTRAINT.defaultReason
+            } else {
+                reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+            }
             this
         }
 
@@ -789,7 +802,7 @@ class GenerateGraphTask extends DefaultTask {
                 writer.println("component:${formatComponent(it)}")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+                writer.println("dependency:${it.constraint ? '[constraint]' : '' }[from:${it.from.id}][${it.requested}->${it.selected.id}]")
             }
             if (buildArtifacts) {
                 configuration.files.each {
@@ -868,11 +881,13 @@ class GenerateGraphTask extends DefaultTask {
 
     def formatReason(ComponentSelectionReasonInternal reason) {
         def reasons = reason.descriptions.collect {
+            def message
             if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
-                "${it.cause.defaultReason}: ${it.description}".replaceAll('\n', ' ')
+                message = "${it.cause.defaultReason}: ${it.description}"
             } else {
-                it.description
+                message = it.description
             }
+            message.readLines().join(" ")
         }.join('!!')
         return reasons
     }

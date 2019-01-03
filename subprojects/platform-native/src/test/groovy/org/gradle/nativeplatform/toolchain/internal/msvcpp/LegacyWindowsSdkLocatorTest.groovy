@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
@@ -118,7 +118,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
     }
 
     def "SDK not available when not found in registry or system path"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         operatingSystem.findInPath(_) >> null
@@ -172,7 +172,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
     def "SDK not available when specified install dir does not look like an SDK"() {
         def sdkDir1 = tmpDir.createDir("dir")
         def ignoredDir = sdkDir("ignored")
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         operatingSystem.findInPath(_) >> null

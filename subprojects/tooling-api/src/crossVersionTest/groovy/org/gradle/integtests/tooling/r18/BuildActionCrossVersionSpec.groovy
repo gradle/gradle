@@ -17,9 +17,12 @@
 package org.gradle.integtests.tooling.r18
 
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.idea.IdeaProject
 
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
@@ -60,9 +63,33 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         result3 == 3
     }
 
+    @TargetGradleVersion(">=5.1")
     def "client receives the exception thrown by the build action"() {
         when:
-        withConnection { it.action(new BrokenAction()).run() }
+        withConnection {
+            def action = it.action(new BrokenAction())
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof BrokenAction.CustomException
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('this is a custom exception')
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=2.6 <5.1")
+    def "client receives the exception thrown by the build action for version that does not log failure"() {
+        when:
+        withConnection {
+            def action = it.action(new BrokenAction())
+            action.run()
+        }
 
         then:
         BuildActionFailureException e = thrown()
@@ -70,13 +97,38 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof BrokenAction.CustomException
     }
 
+    @TargetGradleVersion(">=5.1")
     def "client receives the exception thrown when action requests unknown model"() {
         when:
-        withConnection { it.action(new FetchUnknownModel()).run() }
+        withConnection {
+            def action = it.action(new FetchUnknownModel())
+            collectOutputs(action)
+            action.run()
+        }
 
         then:
-        // Verification is in the action
-        noExceptionThrown()
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof UnknownModelException
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("No model of type 'CustomModel' is available in this build.")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=2.6 <5.1")
+    def "client receives the exception thrown when action requests unknown model for version that does not log failure"() {
+        when:
+        withConnection {
+            def action = it.action(new FetchUnknownModel())
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause instanceof UnknownModelException
     }
 
     def "client receives the exception thrown when build fails"() {
@@ -84,11 +136,20 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFile << 'throw new RuntimeException("broken")'
 
         when:
-        withConnection { it.action(new FetchCustomModel()).run() }
+        withConnection {
+            def action = it.action(new FetchCustomModel())
+            collectOutputs(action)
+            action.run()
+        }
 
         then:
-        // TODO:ADAM - clean this up
         BuildException e = thrown()
         e.message.startsWith('Could not run build action using')
+        e.cause.message.contains('A problem occurred evaluating root project')
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        assertHasConfigureFailedLogging()
     }
 }

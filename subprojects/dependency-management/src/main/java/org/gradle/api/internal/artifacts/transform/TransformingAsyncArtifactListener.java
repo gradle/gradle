@@ -28,16 +28,25 @@ import java.util.Map;
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
     private final Map<File, TransformationOperation> fileResults;
+    private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
 
-    TransformingAsyncArtifactListener(Transformation transformation, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
+    TransformingAsyncArtifactListener(
+        Transformation transformation,
+        ResolvedArtifactSet.AsyncArtifactListener delegate,
+        BuildOperationQueue<RunnableBuildOperation> actions,
+        Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults,
+        Map<File, TransformationOperation> fileResults,
+        ExecutionGraphDependenciesResolver dependenciesResolver
+    ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     @Override
@@ -45,7 +54,14 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
         TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-        initialSubjectAvailable(artifactId, initialSubject, artifactResults);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesResolver);
+        artifactResults.put(artifactId, operation);
+        // We expect artifact transformations to be executed in a scheduled way,
+        // so at this point we take the result from the in-memory cache.
+        // Artifact transformations are always executed scheduled via the execution graph when the transformed component is declared as an input.
+        // Using the BuildOperationQueue here to only realize that the result of the transformation is from the in-memory has a performance impact,
+        // so we executing the (no-op) operation in place.
+        operation.run(null);
     }
 
     @Override
@@ -62,16 +78,11 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void fileAvailable(File file) {
         TransformationSubject initialSubject = TransformationSubject.initial(file);
-        initialSubjectAvailable(file, initialSubject, fileResults);
-    }
-
-    private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results) {
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject);
-        results.put(key, operation);
-        if (transformation.hasCachedResult(initialSubject)) {
-            operation.run(null);
-        } else {
-            actions.add(operation);
-        }
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesResolver);
+        fileResults.put(file, operation);
+        // We expect file transformations to be executed in an immediate way,
+        // since they cannot be scheduled early.
+        // To allow file transformations to run in parallel, we use the BuildOperationQueue.
+        actions.add(operation);
     }
 }

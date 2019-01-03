@@ -36,6 +36,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -50,9 +51,11 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -121,6 +124,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
     private MavenArtifact pomArtifact;
     private MavenArtifact moduleMetadataArtifact;
     private Task moduleDescriptorGenerator;
@@ -133,14 +137,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public DefaultMavenPublication(
         String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
+        FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
-        metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory);
-        derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory);
+        this.versionMappingStrategy = versionMappingStrategy;
+        this.mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         publishableArtifacts = new CompositePublicationArtifactSet<MavenArtifact>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
         this.featurePreviews = featurePreviews;
@@ -250,14 +256,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency)) {
-                    if (dependency instanceof ProjectDependency) {
+                    if (PlatformSupport.isTargettingPlatform(dependency)) {
+                        if (dependency instanceof ProjectDependency) {
+                            addImportDependencyConstraint((ProjectDependency) dependency);
+                        } else {
+                            addImportDependencyConstraint(dependency);
+                        }
+                    } else if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            addImportDependencyConstraint(dependency);
-                        } else {
-                            addModuleDependency(dependency, globalExcludes, dependencies);
-                        }
+                        addModuleDependency(dependency, globalExcludes, dependencies);
                     }
                 }
             }
@@ -268,6 +276,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
         }
+    }
+
+    private void addImportDependencyConstraint(ProjectDependency dependency) {
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
+        importDependencyConstraints.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), "pom"));
     }
 
     private void addImportDependencyConstraint(ModuleDependency dependency) {
@@ -354,6 +367,17 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void setVersion(String version) {
         projectIdentity.getVersion().set(version);
+    }
+
+    @Override
+    public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
+        configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
+    @Nullable
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return versionMappingStrategy;
     }
 
     @Override

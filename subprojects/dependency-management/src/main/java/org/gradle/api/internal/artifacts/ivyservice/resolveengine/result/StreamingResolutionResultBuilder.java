@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.logging.Logger;
@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -81,8 +82,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     @Override
     public void start(final RootGraphNode root) {
-        componentResultSerializer.reset();
-        dependencyResultSerializer.reset();
     }
 
     @Override
@@ -123,7 +122,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Long fromComponent = node.getOwner().getResultId();
-        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
+        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges().stream()
+            .filter(dep -> !dep.isTargetVirtualPlatform())
+            .collect(Collectors.toList());
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
@@ -195,8 +196,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
-                componentResultSerializer.reset();
-                dependencyResultSerializer.reset();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
@@ -209,7 +208,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
                         case COMPONENT:
-                            ComponentResult component = componentResultSerializer.read(decoder);
+                            ResolvedGraphComponent component = componentResultSerializer.read(decoder);
                             builder.visitComponent(component);
                             break;
                         case SELECTOR:
@@ -221,7 +220,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             if (size > 0) {
-                                List<DependencyResult> deps = Lists.newArrayListWithExpectedSize(size);
+                                List<ResolvedGraphDependency> deps = Lists.newArrayListWithExpectedSize(size);
                                 for (int i = 0; i < size; i++) {
                                     deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
                                 }

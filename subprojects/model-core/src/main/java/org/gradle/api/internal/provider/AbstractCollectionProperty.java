@@ -40,10 +40,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
+    private Collector<T> value;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
+        applyDefaultValue();
         this.collectionType = collectionType;
         this.elementType = elementType;
         valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
@@ -57,42 +58,47 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new SingleElement<T>(element));
+        addCollector(new SingleElement<T>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
+        addCollector(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
     public void addAll(T... elements) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new ElementsFromArray<T>(elements));
+        addCollector(new ElementsFromArray<T>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new ElementsFromCollection<T>(elements));
+        addCollector(new ElementsFromCollection<T>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+        addCollector(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+    }
+
+    private void addCollector(Collector<T> collector) {
+        collectors.add(collector);
+        afterMutate();
     }
 
     @Nullable
@@ -126,7 +132,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public boolean isPresent() {
-        assertReadable();
+        beforeRead();
         if (!value.present()) {
             return false;
         }
@@ -140,7 +146,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public C get() {
-        assertReadable();
+        beforeRead();
         List<T> values = new ArrayList<T>(1 + collectors.size());
         value.collectInto(valueCollector, values);
         for (Collector<T> collector : collectors) {
@@ -152,10 +158,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public C getOrNull() {
-        assertReadable();
+        beforeRead();
         return doGetOrNull();
     }
 
+    @Nullable
     private C doGetOrNull() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
         if (!value.maybeCollectInto(valueCollector, values)) {
@@ -183,20 +190,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
-        collectors.clear();
         if (elements == null) {
-            this.value = (Collector<T>) NO_VALUE_COLLECTOR;
+            set((Collector<T>) NO_VALUE_COLLECTOR);
         } else {
-            this.value = new ElementsFromCollection<T>(elements);
+            set(new ElementsFromCollection<T>(elements));
         }
     }
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         if (provider == null) {
@@ -212,29 +218,56 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
-        collectors.clear();
-        value = new ElementsFromCollectionProvider<T>(p);
+        set(new ElementsFromCollectionProvider<T>(p));
     }
 
     @Override
     public HasMultipleValues<T> empty() {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return this;
         }
+        set((Collector<T>) EMPTY_COLLECTION);
+        return this;
+    }
+
+    @Override
+    protected void applyDefaultValue() {
         value = (Collector<T>) EMPTY_COLLECTION;
         collectors.clear();
-        return this;
     }
 
     @Override
     protected void makeFinal() {
         C collection = doGetOrNull();
         if (collection != null) {
-            value = new ElementsFromCollection<T>(collection);
+            set(new ElementsFromCollection<T>(collection));
         } else {
-            value = (Collector<T>) NO_VALUE_COLLECTOR;
+            set((Collector<T>) NO_VALUE_COLLECTOR);
         }
+    }
+
+    private void set(Collector<T> collector) {
         collectors.clear();
+        value = collector;
+        afterMutate();
+    }
+
+    @Override
+    public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
+        if (shouldApplyConvention()) {
+            value = new ElementsFromCollection<T>(elements);
+            collectors.clear();
+        }
+        return this;
+    }
+
+    @Override
+    public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
+        if (shouldApplyConvention()) {
+            value = new ElementsFromCollectionProvider<T>(Providers.internal(provider));
+            collectors.clear();
+        }
+        return this;
     }
 
     @Override
@@ -245,33 +278,5 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             values.add(collector.toString());
         }
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, values);
-    }
-
-    private static class ValidatingValueCollector<T> implements ValueCollector<T> {
-        private final Class<?> collectionType;
-        private final Class<T> elementType;
-        private final ValueSanitizer<T> sanitizer;
-
-        ValidatingValueCollector(Class<?> collectionType, Class<T> elementType, ValueSanitizer<T> sanitizer) {
-            this.collectionType = collectionType;
-            this.elementType = elementType;
-            this.sanitizer = sanitizer;
-        }
-
-        @Override
-        public void add(T value, Collection<T> dest) {
-            T sanitized = sanitizer.sanitize(value);
-            if (!elementType.isInstance(sanitized)) {
-                throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.", collectionType.getName(), elementType.getName(), value.getClass().getName()));
-            }
-            dest.add(sanitized);
-        }
-
-        @Override
-        public void addAll(Iterable<? extends T> values, Collection<T> dest) {
-            for (T value : values) {
-                add(value, dest);
-            }
-        }
     }
 }

@@ -30,7 +30,10 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.transform.PrimaryInputAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.WorkspaceAnnotationHandler;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
@@ -85,4 +88,13 @@ class DependencyManagementGlobalScopeServices {
     ProducerGuard<ExternalResourceName> createProducerAccess() {
         return ProducerGuard.adaptive();
     }
+
+    InjectAnnotationHandler createWorkspaceAnnotationHandler() {
+        return new WorkspaceAnnotationHandler();
+    }
+
+    InjectAnnotationHandler createPrimaryInputAnnotationHandler() {
+        return new PrimaryInputAnnotationHandler();
+    }
+
 }

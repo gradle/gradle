@@ -22,47 +22,65 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final ModuleSource moduleSource;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
-    private ModuleComponentResolveMetadata processedMetadata;
 
-    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
+    private volatile Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
+
+    DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metadata = metadata;
     }
 
+    @Override
     public boolean isMissing() {
         return metadata == null;
     }
 
+    @Override
     public ModuleSource getModuleSource() {
         return moduleSource;
     }
 
+    @Override
     public ResolvedModuleVersion getModuleVersion() {
         return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
     }
 
+    @Override
     public ModuleComponentResolveMetadata getMetadata() {
         return metadata;
     }
 
+    @Override
     public long getAgeMillis() {
         return ageMillis;
     }
 
     @Nullable
     @Override
-    public ModuleComponentResolveMetadata getProcessedMetadata() {
-        return processedMetadata;
+    public ModuleComponentResolveMetadata getProcessedMetadata(int key) {
+        if (processedMetadataByRules != null) {
+            return processedMetadataByRules.get(key);
+        }
+        return null;
     }
 
     @Override
-    public void setProcessedMetadata(ModuleComponentResolveMetadata processedMetadata) {
-        this.processedMetadata = processedMetadata;
+    public synchronized void putProcessedMetadata(int hash, ModuleComponentResolveMetadata processed) {
+        if (processedMetadataByRules == null) {
+            processedMetadataByRules = Collections.singletonMap(hash, processed);
+            return;
+        } else if (processedMetadataByRules.size() == 1) {
+            processedMetadataByRules = new ConcurrentHashMap<>(processedMetadataByRules);
+        }
+        processedMetadataByRules.put(hash, processed);
     }
 }

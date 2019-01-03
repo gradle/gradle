@@ -1,6 +1,6 @@
 val dest = "dest"
 
-task<Copy>("copy") {
+tasks.register<Copy>("copy") {
     from("source")
     into(dest)
 }

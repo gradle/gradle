@@ -72,7 +72,6 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  * </pre>
  */
-
 public class EclipseWtpFacet {
 
     private final XmlFileContentMerger file;

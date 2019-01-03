@@ -174,6 +174,33 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
+    def "renders only tasks in help group running [tasks, --group=build setup"() {
+        buildFile << """
+            task mytask {
+                group = "custom"
+            }
+        """
+        when:
+        succeeds "tasks", "--group=build setup"
+
+        then:
+        output.contains("""
+------------------------------------------------------------
+Tasks runnable from root project
+------------------------------------------------------------
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+To see all tasks and more detail, run gradle tasks --all
+
+To see more detail about a task, run gradle help --task <task>
+""")
+        !output.contains("custom")
+    }
+
     def "renders tasks in a multi-project build running [tasks]"() {
         given:
         buildFile << multiProjectBuild()

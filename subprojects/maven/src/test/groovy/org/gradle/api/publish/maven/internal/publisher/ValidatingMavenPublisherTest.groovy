@@ -20,8 +20,10 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
@@ -229,7 +231,7 @@ class ValidatingMavenPublisherTest extends Specification {
     private def createPomFile(MavenProjectIdentity projectIdentity, Action<XmlProvider> withXmlAction = null) {
         def pomFile = testDir.file("pom")
         def mapper = Stub(VersionRangeMapper)
-        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity, mapper)
+        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity, mapper, Stub(VersionMappingStrategyInternal), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
         if (withXmlAction != null) {
             pomFileGenerator.withXml(withXmlAction)
         }

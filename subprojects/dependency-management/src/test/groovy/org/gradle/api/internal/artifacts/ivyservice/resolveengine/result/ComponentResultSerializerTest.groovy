@@ -37,7 +37,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         attributes.attribute(Attribute.of('format', String), 'jar')
         def selection = new DetachedComponentResult(12L,
             newId('org', 'foo', '2.0'),
-            VersionSelectionReasons.requested(),
+            ComponentSelectionReasons.requested(),
             componentIdentifier, 'default',
             attributes,
             'repoName')
@@ -47,7 +47,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
 
         then:
         result.resultId == 12L
-        result.selectionReason == VersionSelectionReasons.requested()
+        result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
         result.variantName.displayName == 'default'

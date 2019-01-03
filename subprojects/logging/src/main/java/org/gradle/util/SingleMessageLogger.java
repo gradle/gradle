@@ -130,13 +130,17 @@ public class SingleMessageLogger {
      * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
      */
     public static void nagUserOfDiscontinuedMethodInvocation(String invocation) {
+        nagUserOfDiscontinuedMethodInvocation(invocation, null);
+    }
+
+    public static void nagUserOfDiscontinuedMethodInvocation(String invocation, String advice) {
         if (isEnabled()) {
             nagUserWith(
-                String.format("Using method %s has been deprecated.", invocation),
-                thisWillBecomeAnError(),
-                null,
-                null,
-                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+                    String.format("Using method %s has been deprecated.", invocation),
+                    thisWillBecomeAnError(),
+                    advice,
+                    null,
+                    DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 

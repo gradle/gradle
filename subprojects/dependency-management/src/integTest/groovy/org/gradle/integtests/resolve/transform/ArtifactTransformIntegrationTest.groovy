@@ -16,9 +16,16 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
+import org.junit.runner.RunWith
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+
+@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -26,10 +33,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             include 'lib'
             include 'app'
         """
+        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
 def usage = Attribute.of('usage', String)
 def artifactType = Attribute.of('artifactType', String)
+def extraAttribute = Attribute.of('extra', String)
     
 allprojects {
 
@@ -45,21 +54,26 @@ allprojects {
     }
 }
 
-class FileSizer extends ArtifactTransform {
-    FileSizer() {
-        println "Creating FileSizer"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
+$fileSizer
 """
+    }
+
+    private static String getFileSizer() {
+        """
+            class FileSizer extends org.gradle.api.artifacts.transform.ArtifactTransform {
+                FileSizer() {
+                    println "Creating FileSizer"
+                }
+                
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+        """
     }
 
     def "applies transforms to artifacts for external dependencies matching on implicit format attribute"() {
@@ -103,6 +117,47 @@ class FileSizer extends ArtifactTransform {
 
         then:
         output.count("Transforming") == 0
+    }
+
+    def "can use transformations in build script dependencies"() {
+        file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
+
+        file("script-with-buildscript-block.gradle") << """   
+            buildscript {
+
+                def artifactType = Attribute.of('artifactType', String)
+                dependencies {
+
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                        artifactTransform(FileSizer)
+                    }
+
+                    classpath 'org.apache.commons:commons-math3:3.6.1'
+                }
+                repositories { jcenter() }
+                println(
+                    configurations.classpath.incoming.artifactView {
+                            attributes.attribute(artifactType, "size")
+                        }.artifacts.artifactFiles.files
+                )                                   
+                println(
+                    configurations.classpath.incoming.artifactView {
+                            attributes.attribute(artifactType, "size")
+                        }.artifacts.artifactFiles.files
+                )                                   
+            }
+        """
+
+        buildFile << """
+            apply from: 'script-with-buildscript-block.gradle'
+        """
+
+        expect:
+        succeeds("help", "--info")
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming commons-math3") == 1
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
@@ -846,11 +901,15 @@ class FileSizer extends ArtifactTransform {
                     registerTransform {
                         from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
+                        from.attribute(extraAttribute, 'foo')
+                        to.attribute(extraAttribute, 'bar')
                         artifactTransform(BrokenTransform)
                     }
                     registerTransform {
                         from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
+                        from.attribute(extraAttribute, 'foo')
+                        to.attribute(extraAttribute, 'baz')
                         artifactTransform(BrokenTransform)
                     }
                 }
@@ -1246,7 +1305,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("broken")
 
         and:
@@ -1372,7 +1431,8 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform ToNullTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
         failure.assertHasCause("Transform returned null result.")
     }
 
@@ -1400,7 +1460,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
 
         when:
@@ -1439,7 +1499,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform SomewhereElseTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
     }
 
@@ -1470,7 +1530,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
@@ -1526,10 +1586,10 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Failed to transform file 'broken-2.0.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
+        failure.assertHasCause("Failed to transform artifact 'broken.jar (test:broken:2.0)' to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:
@@ -1727,6 +1787,119 @@ Found the following transforms:
 
         then:
         output.count("Transforming") == 1
+    }
+
+    def "notifies transform listeners and build operation listeners on successful execution"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """                                                                   
+            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.internal.event.ListenerManager
+
+            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+                @Override
+                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                    println "Before transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+                
+                @Override
+                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                    println "After transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+            })
+
+            project(":lib") {
+                task jar(type: Jar) {
+                    archiveName = 'lib.jar'
+                    destinationDir = buildDir                    
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+            
+            project(":app") {
+                dependencies {
+                    compile project(":lib")
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        outputContains("Before transformer FileSizer on artifact lib.jar (project :lib)")
+        outputContains("After transformer FileSizer on artifact lib.jar (project :lib)")
+
+        and:
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
+            it.failure == null
+            displayName == "Transform artifact lib.jar (project :lib) with FileSizer"
+            details.transformerName == "FileSizer"
+            details.subjectName == "artifact lib.jar (project :lib)"
+        }
+    }
+
+    def "notifies transform listeners and build operation listeners on failed execution"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """                                                                   
+            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.internal.event.ListenerManager
+
+            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+                @Override
+                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                    println "Before transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+                
+                @Override
+                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                    println "After transformer \${transformer.displayName} on \${subject.displayName}"
+                }
+            })
+
+            project(":lib") {
+                task jar(type: Jar) {
+                    archiveName = 'lib.jar'
+                    destinationDir = buildDir                    
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+            
+            project(":app") {
+                dependencies {
+                    compile project(":lib")
+                }
+                ${configurationAndTransform('BrokenTransform')}
+            }
+
+            class BrokenTransform extends ArtifactTransform {
+                List<File> transform(File input) {
+                    throw new GradleException('broken')
+                }
+            }
+        """
+
+        when:
+        fails "app:resolve"
+
+        then:
+        outputContains("Before transformer BrokenTransform on artifact lib.jar (project :lib)")
+        outputContains("After transformer BrokenTransform on artifact lib.jar (project :lib)")
+
+        and:
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
+            displayName == "Transform artifact lib.jar (project :lib) with BrokenTransform"
+            details.transformerName == "BrokenTransform"
+            details.subjectName == "artifact lib.jar (project :lib)"
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6156")

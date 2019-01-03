@@ -204,7 +204,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
-    @Incubating
     TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -220,7 +219,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
-    @Incubating
     <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -235,7 +233,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
-    @Incubating
     <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
@@ -251,7 +248,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @since 4.9
      */
-    @Incubating
     <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
@@ -264,7 +260,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
-    @Incubating
     TaskProvider<Task> register(String name) throws InvalidUserDataException;
 
     /**

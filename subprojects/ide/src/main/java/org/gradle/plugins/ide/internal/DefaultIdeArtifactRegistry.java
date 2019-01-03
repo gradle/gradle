@@ -26,9 +26,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.CollectionUtils;
 
@@ -99,7 +97,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                         @Override
                         public FileCollection transform(Reference<?> result) {
                             ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
-                            singleton.builtBy(result.getBuildDependencies());
+                            singleton.builtBy(result.get().getGeneratorTasks());
                             return singleton;
                         }
                     });
@@ -127,15 +125,10 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return new AbstractTaskDependency() {
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    for (Task task : get().getGeneratorTasks()) {
-                        context.add(task);
-                    }
-                }
-            };
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            for (Task task : get().getGeneratorTasks()) {
+                context.add(task);
+            }
         }
     }
 }

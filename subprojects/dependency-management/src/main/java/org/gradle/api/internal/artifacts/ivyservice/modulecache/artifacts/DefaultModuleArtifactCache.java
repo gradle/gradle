@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -35,13 +34,11 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements ModuleArtifactCache {
     private static final ArtifactAtRepositoryKeySerializer KEY_SERIALIZER = keySerializer();
     private static final CachedArtifactSerializer VALUE_SERIALIZER = new CachedArtifactSerializer();
     private final BuildCommencedTimeProvider timeProvider;
-    private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = Maps.newConcurrentMap();
 
     public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
         super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, artifactCacheLockingManager, fileAccessTracker);
@@ -74,33 +71,10 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     @Override
-    protected void storeInternal(ArtifactAtRepositoryKey key, CachedArtifact entry) {
-        inMemoryCache.put(key, entry);
-        super.storeInternal(key, entry);
-    }
-
-    @Override
     public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
         assertKeyNotNull(key);
 
-        CachedArtifact inMemoryCachedArtifact = inMemoryCache.get(key);
-        if (inMemoryCachedArtifact != null) {
-            return inMemoryCachedArtifact;
-        }
-
-        CachedArtifact cachedArtifact = super.lookup(key);
-        if (cachedArtifact != null) {
-            inMemoryCache.put(key, cachedArtifact);
-            return cachedArtifact;
-        }
-
-        return null;
-    }
-
-    @Override
-    public void clear(ArtifactAtRepositoryKey key) {
-        super.clear(key);
-        inMemoryCache.remove(key);
+        return super.lookup(key);
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {

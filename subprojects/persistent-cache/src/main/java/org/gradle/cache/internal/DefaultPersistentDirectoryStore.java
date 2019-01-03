@@ -162,7 +162,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
+        return cacheAccess.newCache(PersistentIndexedCacheParameters.of(name, keyType, valueSerializer));
     }
 
     @Override

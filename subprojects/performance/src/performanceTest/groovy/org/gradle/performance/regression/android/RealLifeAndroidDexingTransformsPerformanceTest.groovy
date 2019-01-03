@@ -73,8 +73,6 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         def results = runner.run()
 
         then:
-        results.assertEveryBuildSucceeds()
-        and:
         assertDexingTransformIsFaster(results)
 
         where:

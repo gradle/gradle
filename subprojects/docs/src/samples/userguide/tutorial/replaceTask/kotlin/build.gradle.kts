@@ -1,4 +1,4 @@
-task("copy")
+tasks.register<Copy>("copy")
 
 task("copy", "overwrite" to true).apply {
     doLast {

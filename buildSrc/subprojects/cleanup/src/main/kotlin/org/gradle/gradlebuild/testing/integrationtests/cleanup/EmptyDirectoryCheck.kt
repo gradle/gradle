@@ -24,6 +24,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.*
@@ -37,6 +39,7 @@ import javax.inject.Inject
  */
 open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFiles
     val targetDirectory: DirectoryProperty = objects.directoryProperty()
 

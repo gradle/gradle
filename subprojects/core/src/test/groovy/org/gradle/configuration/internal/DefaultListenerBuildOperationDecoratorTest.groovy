@@ -46,8 +46,8 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    DefaultListenerBuildOperationDecorator decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor)
-    def context = decorator.@userCodeApplicationContext
+    def context = new TestUserCodeApplicationContext()
+    def decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor, context)
 
     def 'ignores implementors of InternalListener'() {
         given:
@@ -102,6 +102,29 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
         and:
         verifyExpectedOp('foo', id)
+    }
+
+    def 'decorated action propagates exception'() {
+        given:
+        def action = Mock(Action)
+        def failure = new RuntimeException()
+        def arg = new Object()
+        def id = context.push()
+
+        def decoratedAction = decorator.decorate('foo', action)
+
+        when:
+        decoratedAction.execute(arg)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.is(failure)
+
+        and:
+        1 * action.execute(arg) >> { throw failure }
+
+        and:
+        verifyExpectedOp('foo', id, failure)
     }
 
     def 'decorates closures of same single arity'() {
@@ -210,6 +233,28 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
+    def 'decorated closure propagates exception'() {
+        given:
+        def failure = new RuntimeException()
+        def arg = new Object()
+        def closure = { passedArg ->
+            throw failure
+        }
+        def id = context.push()
+
+        def decoratedClosure = decorator.decorate('foo', closure)
+
+        when:
+        decoratedClosure.call(arg)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.is(failure)
+
+        and:
+        verifyExpectedOp('foo', id, failure)
+    }
+
     @Unroll
     def 'decorates BuildListener listeners'() {
         given:
@@ -276,6 +321,87 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
         where:
         decorateAsObject << [true, false]
+    }
+
+    def 'decorated BuildListener rethrows failures'() {
+        given:
+        def buildStartedArg = Mock(Gradle)
+        def settingsEvaluatedArg = Mock(Settings)
+        def projectsLoadedArg = Mock(Gradle)
+        def projectsEvaluatedArg = Mock(Gradle)
+        def buildFinishedArg = new BuildResult(null, null)
+        def listener = Mock(BuildListener)
+        def failure = new RuntimeException()
+        def id = context.push()
+
+        def decoratedListener = decorator.decorate('foo', BuildListener, listener)
+
+        when:
+        decoratedListener.buildStarted(buildStartedArg)
+
+        then:
+        def e1 = thrown(RuntimeException)
+        e1.is(failure)
+
+        and:
+        1 * listener.buildStarted(buildStartedArg) >> { throw failure }
+
+        and:
+        verifyNoOp()
+
+        when:
+        decoratedListener.settingsEvaluated(settingsEvaluatedArg)
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2.is(failure)
+
+        and:
+        1 * listener.settingsEvaluated(settingsEvaluatedArg) >> { throw failure }
+
+        and:
+        verifyNoOp()
+
+        when:
+        decoratedListener.projectsLoaded(projectsLoadedArg)
+
+        then:
+        def e3 = thrown(RuntimeException)
+        e3.is(failure)
+
+        and:
+        1 * listener.projectsLoaded(projectsLoadedArg) >> { throw failure }
+
+        and:
+        verifyExpectedOp('foo', id, failure)
+
+        when:
+        resetOps()
+        decoratedListener.projectsEvaluated(projectsEvaluatedArg)
+
+        then:
+        def e4 = thrown(RuntimeException)
+        e4.is(failure)
+
+        and:
+        1 * listener.projectsEvaluated(projectsEvaluatedArg) >> { throw failure }
+
+        and:
+        verifyExpectedOp('foo', id, failure)
+
+        when:
+        resetOps()
+        decoratedListener.buildFinished(buildFinishedArg)
+
+        then:
+        def e5 = thrown(RuntimeException)
+        e5.is(failure)
+
+        and:
+        1 * listener.buildFinished(buildFinishedArg) >> { throw failure }
+
+        and:
+        verifyNoOp()
     }
 
     @Unroll
@@ -446,10 +572,12 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         assert buildOperationExecutor.operations.empty
     }
 
-    private void verifyExpectedOp(String expectedRegistrationPoint, UserCodeApplicationId id) {
-        assert buildOperationExecutor.operations.size() == 1
-        def op = buildOperationExecutor.operations.first()
+    private void verifyExpectedOp(String expectedRegistrationPoint, UserCodeApplicationId id, Throwable failure = null) {
+        assert buildOperationExecutor.log.records.size() == 1
+        def record = buildOperationExecutor.log.records.first()
+        def op = record.descriptor
         assert op.displayName == "Execute $expectedRegistrationPoint listener"
         assert (op.details as ExecuteListenerBuildOperationType.Details).applicationId == id.longValue()
+        assert record.failure == failure
     }
 }

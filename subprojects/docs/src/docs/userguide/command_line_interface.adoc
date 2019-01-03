@@ -215,6 +215,12 @@ By default, this report shows only those tasks which have been assigned to a tas
 $ gradle tasks --all
 ----
 
+If you need to be more precise, you can display only the tasks from a specific group using the `--group` option.
+
+----
+$ gradle tasks --group="build setup"
+----
+
 [[sec:show_task_details]]
 === Show task usage details
 
@@ -339,6 +345,9 @@ Sets maximum number of workers that Gradle may use. _Default is number of proces
 
 `--parallel`, `--no-parallel`::
 Build projects in parallel. For limitations of this option, see <<multi_project_builds.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+
+`--priority`::
+Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.
 
 `--profile`::
 Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.

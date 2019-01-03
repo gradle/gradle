@@ -302,8 +302,7 @@ uploadArchives {
             snapshotBuildNumber == '1'
             lastUpdated == snapshotTimestamp.replace('.', '')
 
-            // Snapshot versions are not published, due to Maven legacy support
-            snapshotVersions == []
+            snapshotVersions == [module.publishArtifactVersion]
         }
     }
 

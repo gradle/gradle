@@ -19,37 +19,53 @@ package org.gradle.api.internal.classloading;
 import org.gradle.api.GradleException;
 import org.gradle.util.VersionNumber;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class GroovySystemLoaderFactory {
-    public static final NoOpGroovySystemLoader NOT_BROKEN = new NoOpGroovySystemLoader();
+    private static final NoOpGroovySystemLoader NO_OP = new NoOpGroovySystemLoader();
 
     public GroovySystemLoader forClassLoader(ClassLoader classLoader) {
         try {
-            Class<?> groovySystem;
-            try {
-                groovySystem = classLoader.loadClass("groovy.lang.GroovySystem");
-            } catch (ClassNotFoundException e) {
-                // Not a Groovy implementation, or not an implementation that we need to deal with
-                return NOT_BROKEN;
+            Class<?> groovySystem = getGroovySystem(classLoader);
+            if (groovySystem == null || groovySystem.getClassLoader() != classLoader) {
+                return NO_OP;
             }
-            if (groovySystem.getClassLoader() != classLoader) {
-                // Groovy implementation visible from somewhere else
-                return NOT_BROKEN;
-            }
-
-            String versionString;
-            try {
-                Method getVersion = groovySystem.getDeclaredMethod("getVersion");
-                versionString = (String) getVersion.invoke(null);
-            } catch (NoSuchMethodException ex) {
-                return NOT_BROKEN;
-            }
-            VersionNumber groovyVersion = VersionNumber.parse(versionString);
-            boolean isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4;
-            return isFaultyGroovy ? new LeakyOnJava7GroovySystemLoader(classLoader) : NOT_BROKEN;
+            GroovySystemLoader classInfoCleaningLoader = createClassInfoCleaningLoader(groovySystem, classLoader);
+            GroovySystemLoader preferenceCleaningLoader = new PreferenceCleaningGroovySystemLoader(classLoader);
+            return new CompositeGroovySystemLoader(classInfoCleaningLoader, preferenceCleaningLoader);
         } catch (Exception e) {
             throw new GradleException("Could not inspect the Groovy system for ClassLoader " + classLoader, e);
         }
+    }
+
+    private Class<?> getGroovySystem(ClassLoader classLoader) {
+        try {
+            return classLoader.loadClass("groovy.lang.GroovySystem");
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private GroovySystemLoader createClassInfoCleaningLoader(Class<?> groovySystem, ClassLoader classLoader) throws Exception {
+        VersionNumber groovyVersion = getGroovyVersion(groovySystem);
+        return isGroovy24OrLater(groovyVersion) ? new ClassInfoCleaningGroovySystemLoader(classLoader) : NO_OP;
+    }
+
+    private VersionNumber getGroovyVersion(Class<?> groovySystem) throws IllegalAccessException, InvocationTargetException {
+        try {
+            Method getVersion = groovySystem.getDeclaredMethod("getVersion");
+            String versionString = (String) getVersion.invoke(null);
+            return VersionNumber.parse(versionString);
+        } catch (NoSuchMethodException ex) {
+            return null;
+        }
+    }
+
+    private boolean isGroovy24OrLater(VersionNumber groovyVersion) {
+        if (groovyVersion == null) {
+            return false;
+        }
+        return groovyVersion.getMajor() == 2 && groovyVersion.getMinor() >= 4 || groovyVersion.getMajor() > 2;
     }
 }

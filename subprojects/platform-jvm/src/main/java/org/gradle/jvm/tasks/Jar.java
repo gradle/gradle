@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.MapFileTree;
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -49,7 +49,7 @@ public class Jar extends Zip {
     private final CopySpecInternal metaInf;
 
     public Jar() {
-        setExtension(DEFAULT_EXTENSION);
+        getArchiveExtension().set(DEFAULT_EXTENSION);
         setMetadataCharset("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());
@@ -57,8 +57,7 @@ public class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() throws Exception {
-                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
-                manifestSource.add("MANIFEST.MF", new Action<OutputStream>() {
+                GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), "MANIFEST.MF", new Action<OutputStream>() {
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();
                         if (manifest == null) {

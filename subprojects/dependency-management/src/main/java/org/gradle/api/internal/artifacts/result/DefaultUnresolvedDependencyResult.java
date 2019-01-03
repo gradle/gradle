@@ -26,9 +26,9 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    public DefaultUnresolvedDependencyResult(ComponentSelector requested, ComponentSelectionReason reason,
+    public DefaultUnresolvedDependencyResult(ComponentSelector requested, boolean constraint, ComponentSelectionReason reason,
                                              ResolvedComponentResult from, ModuleVersionResolveException failure) {
-        super(requested, from);
+        super(requested, from, constraint);
         this.reason = reason;
         this.failure = failure;
     }

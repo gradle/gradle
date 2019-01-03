@@ -29,17 +29,18 @@ public class ReportGenerator {
         File outputDirectory = new File(args[1]);
         ResultsStore resultStore = (ResultsStore) resultStoreClass.getConstructor().newInstance();
         File resultJson = new File(args[2]);
+        String projectName = args[3];
         try {
-            new ReportGenerator().generate(resultStore, outputDirectory, resultJson);
+            new ReportGenerator().generate(resultStore, outputDirectory, resultJson, projectName);
         } finally {
             resultStore.close();
         }
     }
 
-    void generate(final ResultsStore store, File outputDirectory, File resultJson) {
+    void generate(final ResultsStore store, File outputDirectory, File resultJson, String projectName) {
         try {
             FileRenderer fileRenderer = new FileRenderer();
-            TestPageGenerator testHtmlRenderer = new TestPageGenerator();
+            TestPageGenerator testHtmlRenderer = new TestPageGenerator(projectName);
             TestDataGenerator testDataRenderer = new TestDataGenerator();
 
             fileRenderer.render(store, new IndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));

@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 import org.gradle.internal.FileUtils
 import org.gradle.util.TextUtil
 import org.hamcrest.Matcher
@@ -75,6 +76,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return getExecutedTestClasses().size()
     }
 
+    @ToString
     @EqualsAndHashCode(includes = ['name', 'displayName'])
     private static class TestCase {
         String name

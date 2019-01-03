@@ -18,6 +18,9 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -111,4 +114,18 @@ public abstract class TaskNode extends Node {
         return getMustSuccessors().contains(successor)
             || getFinalizingSuccessors().contains(successor);
     }
+
+    /**
+     * Attach an action to execute immediately after the <em>successful</em> completion of this task.
+     *
+     * <p>This is used to ensure that dependency resolution metadata for a particular artifact is calculated immediately after that artifact is produced and cached, to avoid consuming tasks having to lock the producing project in order to calculate this metadata.</p>
+     *
+     * <p>This action should really be modelled as a real node in the graph. This 'post action' concept is intended to be a step in this direction.</p>
+     */
+    public abstract void appendPostAction(Action<? super Task> action);
+
+    public abstract Action<? super Task> getPostAction();
+
+    public abstract TaskInternal getTask();
+
 }

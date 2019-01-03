@@ -77,7 +77,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         then:
         compiledJavaClass.exists()
         compiledScalaClass.exists()
-        output.contains "Caching disabled for task ':compileMainJarMainScala': Gradle does not know how file 'build"
+        output.contains("Caching disabled for task ':compileMainJarMainScala': Gradle does not know how file 'build")
     }
 
     def "incremental compilation works with caching"() {

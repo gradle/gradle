@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Buildable;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.tasks.FinalizeAction;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -30,12 +33,13 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, ResolvableArtifact {
+public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependency buildDependencies;
     private volatile Factory<File> artifactSource;
+    private final ResolvableArtifact sourceArtifact;
     private volatile File file;
     private volatile Throwable failure;
 
@@ -44,20 +48,49 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
+        this.sourceArtifact = null;
         this.artifactSource = artifactSource;
     }
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, ResolvableArtifact sourceArtifact, File artifactFile) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
-        this.buildDependencies = buildDependencies;
+        this.buildDependencies = null;
+        this.sourceArtifact = sourceArtifact;
         this.file = artifactFile;
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return buildDependencies;
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(new FinalizeAction() {
+            @Override
+            public TaskDependencyContainer getDependencies() {
+                return new TaskDependencyContainer() {
+                    @Override
+                    public void visitDependencies(TaskDependencyResolveContext context) {
+                        if (buildDependencies != null) {
+                            context.add(buildDependencies);
+                        } else if (sourceArtifact != null) {
+                            context.add(sourceArtifact);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public void execute(Task task) {
+                // Eagerly calculate the file if this will be used as a dependency of some task
+                // This is to avoid having to lock the project when a consuming task in another project runs
+                if (isResolveSynchronously()) {
+                    try {
+                        getFile();
+                    } catch (Exception e) {
+                        // Ignore, this will be reported later
+                    }
+                }
+            }
+        });
     }
 
     public ResolvedModuleVersion getModuleVersion() {
@@ -139,7 +172,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
             try {
                 f = artifactSource.create();
                 file = f;
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 err = e;
                 failure = err;
                 throw UncheckedException.throwAsUncheckedException(err);

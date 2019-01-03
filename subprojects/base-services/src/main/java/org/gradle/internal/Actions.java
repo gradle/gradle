@@ -214,7 +214,7 @@ public abstract class Actions {
     }
 
     /**
-     * Creates a new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
+     * Creates a new action that only forwards arguments on to the given filter if they are satisfied by the given spec.
      *
      * @param action The action to delegate filtered items to
      * @param filter The spec to use to filter items by

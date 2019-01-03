@@ -21,6 +21,7 @@ import spock.lang.Specification
 import spock.lang.Timeout
 
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 
 /**
  * A specification that uses multiple test threads. Provides an {@link Executor} and {@link org.gradle.internal.concurrent.ExecutorFactory} implementation.
@@ -91,8 +92,8 @@ class ConcurrentSpec extends Specification {
     /**
      * Executes the given action and then blocks until all test threads have completed. The action may define instants for later querying outside the block.
      */
-    void async(Runnable action) {
-        Date timeout = new Date(System.currentTimeMillis() + 20000)
+    void async(long timeoutInSeconds = 20, Runnable action) {
+        Date timeout = new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(timeoutInSeconds))
         executor.start()
         try {
             executor.execute(action)

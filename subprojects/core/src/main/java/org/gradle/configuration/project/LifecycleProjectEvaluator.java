@@ -20,7 +20,6 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -70,12 +69,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
-        Exception exception = wrapException(project, e);
+        ProjectConfigurationException exception = wrapException(project, e);
         ctx.failed(exception);
         state.failed(exception);
     }
 
-    private static Exception wrapException(ProjectInternal project, Exception e) {
+    private static ProjectConfigurationException wrapException(ProjectInternal project, Exception e) {
         return new ProjectConfigurationException(
             String.format("A problem occurred configuring %s.", project.getDisplayName()), e
         );
@@ -138,7 +137,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return BuildOperationDescriptor.displayName(displayName)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
                 .progressDisplayName(progressDisplayName)
-                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath(), project.getRootDir()));
         }
     }
 
@@ -196,28 +195,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 try {
                     nextBatch = project.stepEvaluationListener(nextBatch, fireAction);
                 } catch (Exception e) {
-                    if (state.hasFailure()) {
-                        // Just log this failure, and pass the existing failure out in the project state
-                        logError(e, project);
-                        context.failed(wrapException(project, e));
-                    } else {
-                        addConfigurationFailure(project, state, e, context);
-                    }
+                    addConfigurationFailure(project, state, e, context);
                     return;
                 }
             } while (nextBatch != null);
 
             context.setResult(NotifyProjectAfterEvaluatedBuildOperationType.RESULT);
-        }
-
-        private void logError(Exception e, ProjectInternal project) {
-            boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-            String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
-            if (logStackTraces) {
-                LOGGER.error(infoMessage, e);
-            } else {
-                LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
-            }
         }
 
         @Override

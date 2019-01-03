@@ -33,6 +33,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
@@ -83,7 +85,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
                 return dirProp.get();
             }
         }));
-        this.linkerArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.linkerArgs = getProject().getObjects().listProperty(String.class);
         this.debuggable = objectFactory.property(Boolean.class).value(false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
@@ -162,6 +164,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The source object files to be passed to the linker.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
     public ConfigurableFileCollection getSource() {
@@ -175,6 +178,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The library files to be passed to the linker.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getLibs() {
         return libs;

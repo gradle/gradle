@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
@@ -45,7 +46,9 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
-        }).withPropertyName("publication.publishableFiles");
+        })
+            .withPropertyName("publication.publishableFiles")
+            .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files
@@ -95,6 +98,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         }
     }
 
+    @Deprecated
     @Inject
     protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
         throw new UnsupportedOperationException();

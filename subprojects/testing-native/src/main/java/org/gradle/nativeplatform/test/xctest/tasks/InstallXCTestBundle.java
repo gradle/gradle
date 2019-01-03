@@ -32,6 +32,8 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -160,6 +162,7 @@ public class InstallXCTestBundle extends DefaultTask {
     @SkipWhenEmpty
     @Nullable
     @Optional
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     protected File getBundleBinary() {
         RegularFile bundle = getBundleBinaryFile().get();

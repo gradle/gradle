@@ -61,7 +61,6 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         DefaultNativePlatform.currentArchitecture.name
     }
 
-
     protected abstract void makeSingleProject()
 
     protected abstract String getComponentUnderTestDsl()

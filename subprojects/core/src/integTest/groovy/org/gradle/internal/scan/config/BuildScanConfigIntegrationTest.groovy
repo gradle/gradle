@@ -189,6 +189,19 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         description = applied ? "applied" : "not applied"
     }
 
+    def "conveys that is task executing build"() {
+        given:
+        scanPlugin.collectConfig = true
+
+        when:
+        succeeds "t"
+
+        then:
+        with(scanPlugin.attributes(output)) {
+            isTaskExecutingBuild()
+        }
+    }
+
     def "can convey unsupported to plugin that supports it"() {
         given:
         scanPlugin.runtimeVersion = "3.0"

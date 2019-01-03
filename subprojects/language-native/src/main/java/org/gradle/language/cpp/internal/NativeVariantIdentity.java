@@ -23,7 +23,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
@@ -35,22 +36,27 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final Provider<String> version;
     private final boolean debuggable;
     private final boolean optimized;
-    private final OperatingSystemFamily operatingSystemFamily;
+    private final TargetMachine targetMachine;
     private final UsageContext linkUsage;
     private final UsageContext runtimeUsage;
+    private final Linkage linkage;
     private final Set<UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, OperatingSystemFamily operatingSystemFamily,
-        UsageContext linkUsage, UsageContext runtimeUsage) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage) {
+        this(name, baseName, group, version, debuggable, optimized, targetMachine, linkUsage, runtimeUsage, null);
+    }
+
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage, Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
         this.version = version;
         this.debuggable = debuggable;
         this.optimized = optimized;
-        this.operatingSystemFamily = operatingSystemFamily;
+        this.targetMachine = targetMachine;
         this.linkUsage = linkUsage;
         this.runtimeUsage = runtimeUsage;
+        this.linkage = linkage;
         this.usageContexts = Sets.newLinkedHashSet();
         if (linkUsage!=null) {
             usageContexts.add(linkUsage);
@@ -68,8 +74,12 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return optimized;
     }
 
-    public OperatingSystemFamily getOperatingSystemFamily() {
-        return operatingSystemFamily;
+    public TargetMachine getTargetMachine() {
+        return targetMachine;
+    }
+
+    public Linkage getLinkage() {
+        return linkage;
     }
 
     @Override

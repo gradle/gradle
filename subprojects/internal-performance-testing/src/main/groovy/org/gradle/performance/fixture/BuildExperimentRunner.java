@@ -186,11 +186,7 @@ public class BuildExperimentRunner {
         }
 
         MeasuredOperation operation = new MeasuredOperation();
-        try {
-            runner.execute(operation);
-        } catch (Exception e) {
-            operation.setException(e);
-        }
+        runner.execute(operation);
 
         final AtomicBoolean omitMeasurement = new AtomicBoolean();
         if (experiment.getListener() != null) {

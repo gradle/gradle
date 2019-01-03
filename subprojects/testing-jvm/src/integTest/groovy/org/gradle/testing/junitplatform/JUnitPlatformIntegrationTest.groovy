@@ -101,12 +101,13 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     }
 
     @Unroll
-    def 'can handle class level error in #location'() {
+    def 'can handle class-level error in #location method'() {
         given:
         file('src/test/java/org/gradle/ClassErrorTest.java') << """ 
             package org.gradle;
             
             import org.junit.jupiter.api.*;
+            import static org.junit.jupiter.api.Assertions.*;
 
             public class ClassErrorTest {
                 @Test
@@ -131,12 +132,14 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('org.gradle.ClassErrorTest')
-            .testClass('org.gradle.ClassErrorTest').assertTestCount(successCount + failureCount, failureCount, 0)
+            .testClass('org.gradle.ClassErrorTest')
+            .assertTestCount(successCount + 1, 1, 0)
+            .assertTestFailed(failedTestName, containsString(location))
 
         where:
-        location    | beforeStatement                | afterStatement                 | successCount | failureCount
-        'beforeAll' | 'throw new RuntimeException()' | ''                             | 0            | 1
-        'afterAll'  | ''                             | 'throw new RuntimeException()' | 1            | 1
+        location     | beforeStatement      | afterStatement      | successCount | failedTestName
+        '@BeforeAll' | 'fail("@BeforeAll")' | ''                  | 0            | "initializationError"
+        '@AfterAll'  | ''                   | 'fail("@AfterAll")' | 1            | "executionError"
     }
 
     def 'can handle class level assumption'() {
@@ -361,5 +364,50 @@ public class StaticInnerTest {
         'excludeTags'    | '"ok"'
         'includeEngines' | '"junit-jupiter"'
         'excludeEngines' | '"junit-jupiter"'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/6453')
+    def "can handle parallel test execution"() {
+        given:
+        def numTestClasses = 32
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+                systemProperty('junit.jupiter.execution.parallel.enabled', 'true')
+                systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
+                systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', '$numTestClasses')
+            }
+        """)
+        file('src/test/java/org/gradle/Tests.java') << """
+            package org.gradle;
+
+            import java.util.concurrent.*;
+            import org.junit.jupiter.api.*;
+            import static org.junit.jupiter.api.Assertions.*;
+
+            class Sync {
+                static CountDownLatch LATCH = new CountDownLatch($numTestClasses);
+            }
+
+            ${(1..numTestClasses).collect { classNumber -> """
+                class Test$classNumber extends Sync {
+                    @Test
+                    public void test() throws Exception {
+                        LATCH.countDown();
+                        LATCH.await();
+                    }
+                }
+            """ }.join("") }
+        """
+
+        when:
+        succeeds(':test')
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory)) {
+            (1..numTestClasses).every { classNumber ->
+                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
+            }
+        }
     }
 }

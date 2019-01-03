@@ -42,6 +42,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
@@ -72,7 +74,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
         publication = objectFactory.property(Publication.class);
-        publications = objectFactory.listProperty(Publication.class).empty();
+        publications = objectFactory.listProperty(Publication.class);
         outputFile = objectFactory.fileProperty();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
@@ -114,6 +116,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     FileCollection getArtifacts() {
         return getFileCollectionFactory().create(new VariantFiles());
     }

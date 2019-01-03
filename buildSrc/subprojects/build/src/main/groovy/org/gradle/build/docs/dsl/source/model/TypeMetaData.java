@@ -55,8 +55,8 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return arrayDimensions + (varargs ? 1 : 0);
     }
 
-    public TypeMetaData addArrayDimension() {
-        arrayDimensions++;
+    public TypeMetaData setArrayDimensions(int arrayDimensions) {
+        this.arrayDimensions = arrayDimensions;
         return this;
     }
 

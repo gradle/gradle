@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -59,7 +60,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -141,11 +141,7 @@ public class DynamicVersionResolver {
             // (after conflict resolution), so it is not a failure at this stage.
             return;
         }
-        Set<String> unmatched = new LinkedHashSet<String>();
-        for (RejectedBySelectorVersion rejected : result.getUnmatchedVersions()) {
-            unmatched.add(rejected.getId().getVersion());
-        }
-        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), unmatched, result.getRejectedVersions()));
+        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), result.getUnmatchedVersions(), result.getRejectedVersions()));
     }
 
     private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
@@ -175,7 +171,7 @@ public class DynamicVersionResolver {
             RepositoryResolveState request = queue.removeFirst();
             try {
                 request.resolve();
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 failures.add(t);
                 if (isCriticalFailure(t)) {
                     queue.clear();
@@ -243,7 +239,7 @@ public class DynamicVersionResolver {
         private final VersionedComponentChooser versionedComponentChooser;
         private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
-        private final Set<RejectedBySelectorVersion> unmatchedVersions = Sets.newLinkedHashSet();
+        private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
         private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
         private final ModuleComponentRepository repository;
@@ -326,7 +322,7 @@ public class DynamicVersionResolver {
 
         @Override
         public void notMatched(ModuleComponentIdentifier id, VersionSelector requestedVersionMatcher) {
-            unmatchedVersions.add(new RejectedBySelectorVersion(id, requestedVersionMatcher));
+            unmatchedVersions.add(id.getVersion());
         }
 
         @Override
@@ -337,6 +333,27 @@ public class DynamicVersionResolver {
         @Override
         public void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion) {
             rejectedVersions.add(rejectedVersion);
+        }
+
+        @Override
+        public Action<? super ArtifactResolutionDetails> getContentFilter() {
+            if (repository instanceof FilteredModuleComponentRepository) {
+                return ((FilteredModuleComponentRepository) repository).getFilterAction();
+            }
+            return null;
+        }
+
+        @Override
+        public String getConfigurationName() {
+            if (repository instanceof FilteredModuleComponentRepository) {
+                return ((FilteredModuleComponentRepository) repository).getConsumerName();
+            }
+            return null;
+        }
+
+        @Override
+        public ImmutableAttributes getConsumerAttributes() {
+            return consumerAttributes;
         }
 
         @Override

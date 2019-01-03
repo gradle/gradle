@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -32,6 +33,7 @@ class DefaultCppComponentTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def objectFactory = TestUtil.objectFactory()
+    def targetMachineFactory = new DefaultTargetMachineFactory(objectFactory)
     DefaultCppComponent component
 
     def setup() {

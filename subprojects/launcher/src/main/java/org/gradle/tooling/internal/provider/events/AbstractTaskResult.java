@@ -16,10 +16,29 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 
-public abstract class AbstractTaskResult extends AbstractResult implements InternalTaskResult {
-    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription) {
+import java.util.List;
+
+public abstract class AbstractTaskResult extends AbstractResult implements InternalIncrementalTaskResult {
+
+    private final boolean incremental;
+    private final List<String> executionReasons;
+
+    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons) {
         super(startTime, endTime, outcomeDescription);
+        this.incremental = incremental;
+        this.executionReasons = executionReasons;
     }
+
+    @Override
+    public boolean isIncremental() {
+        return incremental;
+    }
+
+    @Override
+    public List<String> getExecutionReasons() {
+        return executionReasons;
+    }
+
 }

@@ -3,11 +3,11 @@ package org.gradle.test
 /**
  * This is a groovy class.
  */
-class GroovyClass extends A implements GroovyInterface, JavaInterface {
+class GroovyClass extends A implements CombinedInterface, JavaInterface {
     /**
      * A groovy property.
      */
-    GroovyInterface groovyProp
+    CombinedInterface groovyProp
 
     /**
      * A read-only groovy property.
@@ -34,11 +34,11 @@ class GroovyClass extends A implements GroovyInterface, JavaInterface {
     /**
      * A property.
      */
-    GroovyInterface getSomeProp() {
+    CombinedInterface getSomeProp() {
         this
     }
 
-    void setSomeProp(GroovyInterface value) {
+    void setSomeProp(CombinedInterface value) {
     }
 
     /**

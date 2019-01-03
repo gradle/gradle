@@ -56,7 +56,7 @@ Gradle takes your dependency declarations and repository definitions and attempt
 
 * Given a required dependency, Gradle attempts to resolve the dependency by searching for the module the dependency points at. Each repository is inspected in order. Depending on the type of repository, Gradle looks for metadata files describing the module (`.module`, `.pom` or `ivy.xml` file) or directly for artifact files.
 
-** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+** If the dependency is declared as a dynamic version (like `1.+`, `[1.0,)`, `[1.0, 2.0)`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
 
 ** If the module metadata is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
 
@@ -73,3 +73,8 @@ Gradle takes your dependency declarations and repository definitions and attempt
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 
 The dependency resolution process is highly customizable to meet enterprise requirements. For more information, see the chapter on <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,customizing dependency resolution>>.
+
+[[sub:http-retries]]
+### HTTP Retries
+
+Gradle will make several attempts to connect to a given repository. If it fails, Gradle will retry, increasing the amount of time waiting between each retry. After a max number of failed attempts, the repository will be blacklisted for the whole build.

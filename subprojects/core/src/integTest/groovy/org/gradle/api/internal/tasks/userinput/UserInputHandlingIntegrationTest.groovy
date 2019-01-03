@@ -27,6 +27,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToSt
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
+    private static final int INTERACTIVE_WAIT_TIME_SECONDS = 60
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
     private static final String YES_NO_PROMPT = "thing? [yes, no]"
     private static final String YES_NO_PROMPT_WITH_DEFAULT = "thing? (default: yes) [yes, no]"
@@ -62,6 +63,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
                 }
             }
         """
+
+        settingsFile << ''
     }
 
     @Unroll
@@ -131,7 +134,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def gradleHandle = executer.withTasks("askYesNo").start()
 
         then:
-        poll(20) {
+        poll(INTERACTIVE_WAIT_TIME_SECONDS) {
             assert gradleHandle.standardOutput.contains(YES_NO_PROMPT)
         }
         gradleHandle.stdinPipe.write(input.bytes)
@@ -215,7 +218,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
 
         then:
-        poll(20) {
+        poll(INTERACTIVE_WAIT_TIME_SECONDS) {
             assert gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
         }
         gradleHandle.stdinPipe.write(input.bytes)
@@ -313,7 +316,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def gradleHandle = executer.withTasks("selectOption").start()
 
         then:
-        poll(20) {
+        poll(INTERACTIVE_WAIT_TIME_SECONDS) {
             assert gradleHandle.standardOutput.contains(SELECT_PROMPT)
         }
         gradleHandle.stdinPipe.write(input.bytes)

@@ -286,7 +286,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (buildOperationCategory.isTopLevelWorkItem() && (shouldPrintHeader() || statusIsFailed()));
+            return !bufferedLogs.isEmpty() || (buildOperationCategory.isShowHeader() && (shouldPrintHeader() || statusIsFailed()));
         }
     }
 }

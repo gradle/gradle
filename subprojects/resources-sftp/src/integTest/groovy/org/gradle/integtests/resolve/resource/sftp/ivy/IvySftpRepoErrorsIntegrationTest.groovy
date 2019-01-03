@@ -85,7 +85,8 @@ Required by:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause("""Could not find any matches for org.group.name:projectA:1.+ as no versions of org.group.name:projectA are available.
-Searched in the following locations: ${ivySftpRepo.uri}/org.group.name/projectA/
+Searched in the following locations:
+  - ${ivySftpRepo.uri}/org.group.name/projectA/
 Required by:
 """)
     }

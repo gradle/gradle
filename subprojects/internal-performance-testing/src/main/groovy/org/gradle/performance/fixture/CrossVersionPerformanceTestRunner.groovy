@@ -106,7 +106,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
-            channel: ResultsStoreHelper.determineChannel()
+            channel: ResultsStoreHelper.determineChannel(),
+            teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
@@ -119,8 +120,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         results.endTime = clock.getCurrentTime()
-
-        results.assertEveryBuildSucceeds()
 
         reporter.report(results)
 
@@ -180,7 +179,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             def releasedVersion = findRelease(releases, version)
             def versionObject = GradleVersion.version(version)
-            if (minimumVersion != null && versionObject < GradleVersion.version(minimumVersion)) {
+            if (minimumVersion != null && targetVersionLowerThanMinimumRequirement(versionObject, GradleVersion.version(minimumVersion))) {
                 //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
                 continue
             }
@@ -205,9 +204,21 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         baselineVersions
     }
 
+    private static boolean targetVersionLowerThanMinimumRequirement(GradleVersion target, GradleVersion minimum) {
+        if (isCommitVersion(target)) {
+            return target.getBaseVersion() < minimum.getBaseVersion()
+        } else {
+            return target < minimum
+        }
+    }
+
     private static boolean isRcVersion(GradleVersion versionObject) {
         // there is no public API for checking for RC version, this is an internal way
         versionObject.stage.stage == 3
+    }
+
+    private static boolean isCommitVersion(GradleVersion version) {
+        return version.toString().contains("-commit-")
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {

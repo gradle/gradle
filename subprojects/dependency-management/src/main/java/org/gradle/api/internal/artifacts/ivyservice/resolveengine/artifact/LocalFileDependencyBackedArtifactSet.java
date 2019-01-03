@@ -25,8 +25,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
@@ -69,7 +69,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         Set<File> files;
         try {
             files = dependencyMetadata.getFiles().getFiles();
-        } catch (Throwable throwable) {
+        } catch (Exception throwable) {
             return new BrokenResolvedArtifactSet(throwable);
         }
 
@@ -94,11 +94,16 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
+    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        // Artifacts are not known until the file collection is queried
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(dependencyMetadata.getFiles().getBuildDependencies());
+    }
+
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
@@ -119,6 +124,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public ComponentIdentifier getComponentId() {
+            return artifactIdentifier.getComponentIdentifier();
+        }
+
+        @Override
         public ResolvedArtifactSet getArtifacts() {
             return this;
         }
@@ -134,7 +144,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public ImmutableAttributes getOverridenAttributes() {
+        public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
 
@@ -153,28 +163,22 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        }
+
+        @Override
         public void visit(ArtifactVisitor visitor) {
             visitor.visitFile(artifactIdentifier, variantName, variantAttributes, file);
         }
 
         @Override
-        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(getBuildDependencies());
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
-        }
-
-        @Override
-        public ComponentArtifactIdentifier getArtifactId() {
-            return artifactIdentifier;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return dependencyMetadata.getFiles().getBuildDependencies();
         }
     }
 }

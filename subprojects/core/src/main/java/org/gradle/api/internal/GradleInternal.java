@@ -132,4 +132,15 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     String contextualize(String description);
 
     PublicBuildPath getPublicBuildPath();
+
+    enum BuildType {
+        NONE,
+        TASKS,
+        MODEL
+    }
+
+    void setBuildType(BuildType buildType);
+
+    BuildType getBuildType();
+
 }

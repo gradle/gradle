@@ -19,10 +19,12 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
+    protected CompileJavaBuildOperationsFixture operations
     protected CompilationOutputsFixture outputs
 
     protected TestFile annotationProjectDir
@@ -32,6 +34,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
     def setup() {
         executer.requireOwnGradleUserHomeDir()
 
+        operations = new CompileJavaBuildOperationsFixture(executer, testDirectoryProvider)
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         annotationProjectDir = testDirectory.file("annotation").createDir()

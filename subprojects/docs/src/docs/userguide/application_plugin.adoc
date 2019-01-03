@@ -118,7 +118,7 @@ _Depends on_: `classes`
 +
 Starts the application.
 
-`startScripts` — link:{groovyDslPath}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]::
+`startScripts` — link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts]::
 _Depends on_: `jar`
 +
 Creates OS specific scripts to run the project as a JVM application.

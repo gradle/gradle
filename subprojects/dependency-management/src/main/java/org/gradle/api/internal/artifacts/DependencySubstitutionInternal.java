@@ -21,12 +21,14 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 
+import java.util.List;
+
 public interface DependencySubstitutionInternal extends DependencySubstitution {
-    void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription);
+    void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor);
 
     ComponentSelector getTarget();
 
-    ComponentSelectionDescriptorInternal getSelectionDescription();
+    List<ComponentSelectionDescriptorInternal> getRuleDescriptors();
 
     boolean isUpdated();
 }

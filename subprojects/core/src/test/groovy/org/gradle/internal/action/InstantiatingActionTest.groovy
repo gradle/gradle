@@ -46,7 +46,7 @@ class InstantiatingActionTest extends Specification {
                         actionConfiguration.params(123, "test string")
                     }
                 }, SnapshotTestUtil.valueSnapshotter())),
-            TestUtil.instantiatorFactory().decorate(),
+            TestUtil.instantiatorFactory().decorateLenient(),
             shouldNotFail
         )
 

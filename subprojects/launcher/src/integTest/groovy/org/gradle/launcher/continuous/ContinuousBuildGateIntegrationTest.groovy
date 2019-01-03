@@ -99,8 +99,8 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
     }
 
     def "build only starts when gate is opened"() {
-        server.expect(server.resource("command", "close"))
-        def command = server.expectAndBlock(server.resource("command", "open"))
+        server.expect(server.get("command").send("close"))
+        def command = server.expectAndBlock(server.get("command").send("open"))
 
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")
@@ -120,7 +120,7 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
         and:
         // command the gate keeper to open the gate and shutdown
         command.releaseAll()
-        server.expect(server.resource("command", "stop"))
+        server.expect(server.get("command").send("stop"))
         then:
         // waits for build to start and finish
         succeeds()

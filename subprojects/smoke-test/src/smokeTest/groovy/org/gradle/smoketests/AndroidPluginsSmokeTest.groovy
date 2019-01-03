@@ -257,7 +257,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
                 defaultConfig {
                     minSdkVersion 22
-                    targetSdkVersion 23
+                    targetSdkVersion 26
                     versionCode 1
                     versionName "1.0"
                 }

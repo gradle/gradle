@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -43,4 +45,13 @@ public interface ArtifactRepository {
      * @throws IllegalStateException If the name is set after it has been added to the container.
      */
     void setName(String name);
+
+    /**
+     * Configures the content of this repository.
+     * @param configureAction the configuration action
+     *
+     * @since 5.1
+     */
+    @Incubating
+    void content(Action<? super RepositoryContentDescriptor> configureAction);
 }

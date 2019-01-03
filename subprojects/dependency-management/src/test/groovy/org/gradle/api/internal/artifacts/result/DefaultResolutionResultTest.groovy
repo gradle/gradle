@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -91,7 +90,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
         root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), new DefaultMutableVersionConstraint('1')), root, dep1.selected))
+        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, dep1.selected))
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies
@@ -134,7 +133,7 @@ class DefaultResolutionResultTest extends Specification {
         )
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         def dep = new DefaultUnresolvedDependencyResult(
-            Stub(ComponentSelector),
+            Stub(ComponentSelector), false,
             Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, Stub(ResolvedVariantResult), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), "too bad")

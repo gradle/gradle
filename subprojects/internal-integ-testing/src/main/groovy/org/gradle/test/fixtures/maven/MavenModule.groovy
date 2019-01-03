@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 interface MavenModule extends Module {
     /**
@@ -75,6 +76,11 @@ interface MavenModule extends Module {
      * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
      */
     MavenModule variant(String variant, Map<String, String> attributes)
+
+    /**
+     * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
+     */
+    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration)
 
     String getPublishArtifactVersion()
 

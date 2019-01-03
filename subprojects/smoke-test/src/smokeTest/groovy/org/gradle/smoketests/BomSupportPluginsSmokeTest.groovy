@@ -109,19 +109,19 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {
                     module("org.springframework.boot:spring-boot-dependencies:$bomVersion:${bomSupportProvider == 'gradle' ? 'platform-compile' : 'compile'}") {
-                        module("org.springframework:spring-core:${springVersion}")
-                        module("org.springframework:spring-aop:${springVersion}")
-                        module("org.springframework:spring-beans:${springVersion}")
-                        module("org.springframework:spring-context:${springVersion}")
-                        module("org.springframework:spring-expression:${springVersion}")
-                        module("org.springframework:spring-test:${springVersion}")
-                        module("org.springframework:spring-jcl:${springVersion}")
-                        module("org.springframework.boot:spring-boot:$bomVersion")
-                        module("org.springframework.boot:spring-boot-test:$bomVersion")
-                        module("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
-                        module("org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion")
-                        module("junit:junit:4.12")
-                        module("org.hamcrest:hamcrest-core:1.3")
+                        constraint("org.springframework:spring-core:${springVersion}")
+                        constraint("org.springframework:spring-aop:${springVersion}")
+                        constraint("org.springframework:spring-beans:${springVersion}")
+                        constraint("org.springframework:spring-context:${springVersion}")
+                        constraint("org.springframework:spring-expression:${springVersion}")
+                        constraint("org.springframework:spring-test:${springVersion}")
+                        constraint("org.springframework:spring-jcl:${springVersion}")
+                        constraint("org.springframework.boot:spring-boot:$bomVersion")
+                        constraint("org.springframework.boot:spring-boot-test:$bomVersion")
+                        constraint("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
+                        constraint("org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion")
+                        constraint("junit:junit:4.12")
+                        constraint("org.hamcrest:hamcrest-core:1.3")
                         noArtifacts()
                     }
                 }

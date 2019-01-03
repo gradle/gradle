@@ -88,6 +88,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         builder.setDaemonRegistryDir(configuration.getBaseDir());
         builder.setIdleTimeout(configuration.getIdleTimeout());
         builder.setUid(configuration.getUid());
+        builder.setPriority(configuration.getPriority());
 
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
 

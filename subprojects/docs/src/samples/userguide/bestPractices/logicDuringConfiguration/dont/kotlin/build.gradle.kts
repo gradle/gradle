@@ -17,7 +17,7 @@ dependencies {
     implementation("log4j:log4j:1.2.17")
 }
 
-task("printArtifactNames") {
+tasks.register("printArtifactNames") {
     // always executed
     val libraryNames = configurations.compileClasspath.get().map { it.name }
 

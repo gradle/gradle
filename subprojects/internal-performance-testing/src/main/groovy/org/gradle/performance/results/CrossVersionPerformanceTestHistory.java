@@ -40,11 +40,6 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-");
-    }
-
-    @Override
     public String getDisplayName() {
         return name;
     }
@@ -165,6 +160,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         @Override
         public String getExecutionId() {
             return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+        }
+
+        @Override
+        public String getTeamCityBuildId() {
+            return result.getTeamCityBuildId();
         }
 
         public String getVersionUnderTest() {

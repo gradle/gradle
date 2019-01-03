@@ -19,7 +19,5 @@ package org.gradle.api.internal.tasks.testing.junit;
 public interface TestClassExecutionListener {
     void testClassStarted(String testClassName);
 
-    void testClassStarted(String testClassName, String testClassDisplayName);
-
     void testClassFinished(Throwable failure);
 }

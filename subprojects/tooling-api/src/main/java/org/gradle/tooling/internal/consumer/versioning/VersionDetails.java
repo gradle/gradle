@@ -26,6 +26,9 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("5.1")) >= 0) {
+            return new R51VersionDetails(version.getVersion());
+        }
         if (version.getBaseVersion().compareTo(GradleVersion.version("4.8")) >= 0) {
             return new R48VersionDetails(version.getVersion());
         }
@@ -34,6 +37,9 @@ public abstract class VersionDetails implements Serializable {
         }
         if (version.getBaseVersion().compareTo(GradleVersion.version("3.5")) >= 0) {
             return new R35VersionDetails(version.getVersion());
+        }
+        if (version.getBaseVersion().compareTo(GradleVersion.version("2.8")) >= 0) {
+            return new R28VersionDetails(version.getVersion());
         }
         return new R26VersionDetails(version.getVersion());
     }
@@ -74,8 +80,19 @@ public abstract class VersionDetails implements Serializable {
         return false;
     }
 
+    public boolean supportsPluginClasspathInjection() {
+        return false;
+    }
+
+    /**
+     * Returns true if this provider correctly implements the protocol contract wrt exceptions thrown on cancel
+     */
+    public boolean honorsContractOnCancel() {
+        return false;
+    }
+
     private static class R26VersionDetails extends VersionDetails {
-        public R26VersionDetails(String version) {
+        R26VersionDetails(String version) {
             super(version);
         }
 
@@ -85,8 +102,19 @@ public abstract class VersionDetails implements Serializable {
         }
     }
 
-    private static class R35VersionDetails extends R26VersionDetails {
-        public R35VersionDetails(String version) {
+    private static class R28VersionDetails extends R26VersionDetails {
+        R28VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsPluginClasspathInjection() {
+            return true;
+        }
+    }
+
+    private static class R35VersionDetails extends R28VersionDetails {
+        R35VersionDetails(String version) {
             super(version);
         }
 
@@ -102,7 +130,7 @@ public abstract class VersionDetails implements Serializable {
     }
 
     private static class R44VersionDetails extends R35VersionDetails {
-        public R44VersionDetails(String version) {
+        R44VersionDetails(String version) {
             super(version);
         }
 
@@ -113,12 +141,23 @@ public abstract class VersionDetails implements Serializable {
     }
 
     private static class R48VersionDetails extends R44VersionDetails {
-        public R48VersionDetails(String version) {
+        R48VersionDetails(String version) {
             super(version);
         }
 
         @Override
         public boolean supportsRunPhasedActions() {
+            return true;
+        }
+    }
+
+    private static class R51VersionDetails extends R48VersionDetails {
+        R51VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean honorsContractOnCancel() {
             return true;
         }
     }

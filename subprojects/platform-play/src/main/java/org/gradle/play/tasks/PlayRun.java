@@ -21,10 +21,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
@@ -52,19 +53,14 @@ public class PlayRun extends ConventionTask {
 
     private final DirectoryProperty workingDir = getProject().getObjects().directoryProperty();
 
-    @InputFile
     private File applicationJar;
 
-    @InputFile
     private File assetsJar;
 
-    @InputFiles
     private Set<File> assetsDirs;
 
-    @Classpath
     private FileCollection runtimeClasspath;
 
-    @Classpath
     private FileCollection changingClasspath;
 
     private BaseForkOptions forkOptions;
@@ -128,6 +124,7 @@ public class PlayRun extends ConventionTask {
     /**
      * The Play application jar to run.
      */
+    @Classpath
     public File getApplicationJar() {
         return applicationJar;
     }
@@ -139,6 +136,7 @@ public class PlayRun extends ConventionTask {
     /**
      * The assets jar to run with the Play application.
      */
+    @Classpath
     public File getAssetsJar() {
         return assetsJar;
     }
@@ -150,6 +148,8 @@ public class PlayRun extends ConventionTask {
     /**
      * The directories of the assets for the Play application (for live reload functionality).
      */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public Set<File> getAssetsDirs() {
         return assetsDirs;
     }
@@ -158,8 +158,28 @@ public class PlayRun extends ConventionTask {
         this.assetsDirs = assetsDirs;
     }
 
+    /**
+     * The runtime classpath for the Play application.
+     *
+     * @since 5.0
+     */
+    @Classpath
+    public FileCollection getRuntimeClasspath() {
+        return runtimeClasspath;
+    }
+
     public void setRuntimeClasspath(FileCollection runtimeClasspath) {
         this.runtimeClasspath = runtimeClasspath;
+    }
+
+    /**
+     * The changing classpath for the Play application.
+     *
+     * @since 5.0
+     */
+    @Classpath
+    public FileCollection getChangingClasspath() {
+        return changingClasspath;
     }
 
     public void setChangingClasspath(FileCollection changingClasspath) {

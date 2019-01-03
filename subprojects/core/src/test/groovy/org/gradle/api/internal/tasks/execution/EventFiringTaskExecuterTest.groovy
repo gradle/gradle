@@ -19,8 +19,10 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
@@ -32,7 +34,7 @@ class EventFiringTaskExecuterTest extends Specification {
     def taskExecutionListener = Mock(TaskExecutionListener)
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
-    def state = Mock(TaskStateInternal)
+    def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
 
     def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, delegate)
@@ -42,11 +44,11 @@ class EventFiringTaskExecuterTest extends Specification {
         executer.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListener.beforeExecute(task)
         _ * task.getIdentityPath() >> Path.path(":a")
+        1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext)
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
@@ -59,27 +61,112 @@ class EventFiringTaskExecuterTest extends Specification {
         buildOperationExecutor.operations[0].operationType == BuildOperationCategory.TASK
     }
 
-    def "result of buildoperation is set even if listener throws exception"() {
+    def "does not run task action when beforeExecute event fails"() {
         def failure = new RuntimeException()
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListener.beforeExecute(task)
         _ * task.getIdentityPath() >> Path.path(":a")
+        1 * taskExecutionListener.beforeExecute(task) >> { throw failure }
+        0 * delegate._
+        0 * taskExecutionListener._
+
+        and:
+        state.failure instanceof TaskExecutionException
+        state.failure.cause == failure
+
+        and:
+        def operation = buildOperationExecutor.log.records[0]
+        operation.failure != null
+    }
+
+    def "notifies task listeners when task execution fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        executer.execute(task, state, executionContext)
 
         then:
-        1 * delegate.execute(task, state, executionContext)
+        _ * task.getIdentityPath() >> Path.path(":a")
+        1 * taskExecutionListener.beforeExecute(task)
+
+        then:
+        1 * delegate.execute(task, state, executionContext) >> {
+            state.setOutcome(failure)
+            return TaskExecuterResult.NO_REUSED_OUTPUT
+        }
+
+        then:
+        1 * taskExecutionListener.afterExecute(task, state)
+        0 * taskExecutionListener._
+
+        and:
+        state.failure == failure
+
+        and:
+        def operation = buildOperationExecutor.log.records[0]
+        operation.failure != null
+    }
+
+    def "result of build operation is set even if listener throws exception"() {
+        def failure = new RuntimeException()
+
+        when:
+        executer.execute(task, state, executionContext)
+
+        then:
+        _ * task.getIdentityPath() >> Path.path(":a")
+        1 * taskExecutionListener.beforeExecute(task)
+
+        then:
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
 
         then:
         1 * taskExecutionListener.afterExecute(task, state) >> {
             throw failure
         }
+        0 * taskExecutionListener._
+
+        and:
+        state.failure instanceof TaskExecutionException
+        state.failure.cause == failure
+
+        and:
+        def operation = buildOperationExecutor.log.records[0]
+        operation.failure != null
+    }
+
+    def "result of build operation is set even if both execution and listener fail"() {
+        def failure = new RuntimeException("one")
+        def failure2 = new RuntimeException("two")
+
+        when:
+        executer.execute(task, state, executionContext)
 
         then:
-        def e = thrown(RuntimeException)
-        e.is(failure)
-        buildOperationExecutor.log.mostRecentResult(ExecuteTaskBuildOperationType)
+        _ * task.getIdentityPath() >> Path.path(":a")
+        1 * taskExecutionListener.beforeExecute(task)
+
+        then:
+        1 * delegate.execute(task, state, executionContext) >> {
+            state.setOutcome(failure)
+            return TaskExecuterResult.NO_REUSED_OUTPUT
+        }
+
+        then:
+        1 * taskExecutionListener.afterExecute(task, state) >> {
+            throw failure2
+        }
+        0 * taskExecutionListener._
+
+        and:
+        state.failure instanceof TaskExecutionException
+        state.failure.causes == [failure, failure2]
+
+        and:
+        def operation = buildOperationExecutor.log.records[0]
+        operation.failure != null
     }
 }

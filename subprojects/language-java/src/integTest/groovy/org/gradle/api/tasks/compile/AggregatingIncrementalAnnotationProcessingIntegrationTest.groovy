@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
+
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.AGGREGATING
 
 class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
@@ -147,14 +150,14 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/ServiceRegistry.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         when:
         a.delete()
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/ServiceRegistry.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
     }
 
     def "generated files and classes are deleted when processor is removed"() {
@@ -165,14 +168,14 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/ServiceRegistry.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/ServiceRegistry.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").exists()
 
         and:
         outputs.deletedClasses("ServiceRegistry")
@@ -235,8 +238,22 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputContains("Full recompilation is required because '@Service' has source retention. Aggregating annotation processors require class or runtime retention.")
     }
 
+    def "reports aggregating processor in build operation"() {
+        java "class Irrelevant {}"
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'ServiceProcessor'
+            first().type == AGGREGATING.name()
+        }
+    }
+
     private boolean serviceRegistryReferences(String... services) {
-        def registry = file("build/classes/java/main/ServiceRegistry.java").text
+        def registry = file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").text
         services.every() {
             registry.contains("get$it")
         }

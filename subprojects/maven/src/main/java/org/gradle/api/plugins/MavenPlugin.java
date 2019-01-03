@@ -139,8 +139,8 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureUploadArchivesTask() {
-        configurationActionContainer.add(new Action<Project>() {
-            public void execute(Project project) {
+        configurationActionContainer.add(new Action<ProjectInternal>() {
+            public void execute(ProjectInternal project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) {
                     return;
@@ -155,7 +155,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                             pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
                             pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
                     );
-                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
+                    publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
                 }
             }
         });

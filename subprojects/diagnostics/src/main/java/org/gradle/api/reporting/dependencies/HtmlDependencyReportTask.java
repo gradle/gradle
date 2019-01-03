@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -68,7 +69,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this);
+        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
@@ -111,6 +112,16 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     @Inject
     protected  VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Required for decorating reports container callbacks for tracing user code application.
+     *
+     * @since 5.1
+     */
+    @Inject
+    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 

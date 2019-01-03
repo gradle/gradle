@@ -24,10 +24,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -37,18 +38,21 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
+    private final ResolveOptimizations resolveOptimizations;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent) {
+    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
         this.rootModuleId = rootComponent.getId().getModule();
+        this.resolveOptimizations = resolveOptimizations;
     }
 
     public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
@@ -65,6 +69,19 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
             return candidates.get(0);
+        }
+
+        if (resolveOptimizations.mayHaveForcedPlatforms()) {
+            List<T> allowed = candidates
+                    .stream()
+                    .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
+                    .collect(Collectors.toList());
+            if (!allowed.isEmpty()) {
+                if (allowed.size() == 1) {
+                    return allowed.get(0);
+                }
+                candidates = allowed;
+            }
         }
 
         // Perform conflict resolution
@@ -206,8 +223,8 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         } else {
-            ComponentSelectionDescriptorInternal desc = VersionSelectionReasons.CONFLICT_RESOLUTION;
-            selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
+            ComponentSelectionDescriptorInternal desc = ComponentSelectionReasons.CONFLICT_RESOLUTION;
+            selected.addCause(desc.withDescription(new VersionConflictResolutionDetails(candidates)));
         }
         return selected;
     }

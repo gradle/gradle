@@ -16,9 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
-import com.google.common.collect.Multimap;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -29,13 +28,6 @@ import java.util.Map;
 public interface FileCollectionFingerprint {
 
     /**
-     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
-     *
-     * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
-     */
-    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
-
-    /**
      * The underlying fingerprints.
      */
     Map<String, FileSystemLocationFingerprint> getFingerprints();
@@ -43,10 +35,17 @@ public interface FileCollectionFingerprint {
     /**
      * The Merkle hashes of the roots which make up this file collection fingerprint.
      */
-    Multimap<String, HashCode> getRootHashes();
+    ImmutableMultimap<String, HashCode> getRootHashes();
 
-    /**
-     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
-     */
-    HistoricalFileCollectionFingerprint archive();
+    FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
+        @Override
+        public Map<String, FileSystemLocationFingerprint> getFingerprints() {
+            return ImmutableSortedMap.of();
+        }
+
+        @Override
+        public ImmutableMultimap<String, HashCode> getRootHashes() {
+            return ImmutableMultimap.of();
+        }
+    };
 }

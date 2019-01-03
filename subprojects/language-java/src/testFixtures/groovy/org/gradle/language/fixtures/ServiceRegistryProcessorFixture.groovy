@@ -17,7 +17,7 @@
 package org.gradle.language.fixtures
 
 import groovy.transform.CompileStatic
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 
 /**
  * A processor that collects all types annotated with the @Service annotation

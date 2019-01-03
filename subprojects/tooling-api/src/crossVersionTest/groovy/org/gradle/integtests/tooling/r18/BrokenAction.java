@@ -25,5 +25,8 @@ public class BrokenAction implements BuildAction<String> {
     }
 
     static class CustomException extends RuntimeException {
+        CustomException() {
+            super("this is a custom exception");
+        }
     }
 }

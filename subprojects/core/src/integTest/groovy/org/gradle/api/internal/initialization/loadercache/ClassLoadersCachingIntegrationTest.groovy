@@ -16,26 +16,11 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
+
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 
 class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
-    def cacheSizePerRun = []
-
-    def setup() {
-        file("cacheCheck.gradle") << """
-            def cache = gradle.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
-            gradle.buildFinished {
-                println "### cache size: " + cache.size()
-
-                cache.assertInternalIntegrity()
-            }
-        """
-        executer.beforeExecute {
-            withArgument("-I").withArgument("cacheCheck.gradle")
-        }
-    }
 
     def getIsCachedCheck() {
         """
@@ -60,24 +45,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         output.contains("$projectPath cached: false")
     }
 
-    private void assertCacheDidNotGrow() {
-        assert cacheSizePerRun.size() > 1: "only one build has been run"
-        assert cacheSizePerRun[-1] <= cacheSizePerRun[-2]
-    }
-
-    private void assertCacheSizeChange(int expectedCacheSizeChange) {
-        assert cacheSizePerRun.size() > 1: "only one build has been run"
-        assert cacheSizePerRun[-1] - cacheSizePerRun[-2] == expectedCacheSizeChange
-    }
-
-    ExecutionResult run(String... tasks) {
-        def result = super.run(tasks)
-        def m = output =~ /(?s).*### cache size: (\d+).*/
-        m.matches()
-        cacheSizePerRun << m.group(1).toInteger()
-        result
-    }
-
     def "classloader is cached"() {
         given:
         addIsCachedCheck()
@@ -88,7 +55,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached()
-        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildscript changes"() {
@@ -102,7 +68,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         expect:
         run "newTask" //knows new task
         isNotCached()
-        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildSrc changes"() {
@@ -115,7 +80,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached()
-        assertCacheDidNotGrow()
 
         when:
         file("buildSrc/src/main/groovy/Foo.groovy").text = "class Foo { static int x = 5; }"
@@ -123,7 +87,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isNotCached()
-        assertCacheDidNotGrow()
     }
 
     def "refreshes when new build script plugin added"() {
@@ -137,7 +100,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isNotCached()
-        assertCacheSizeChange(1)
     }
 
     def "does not refresh main script loader when build script plugin changes"() {
@@ -180,7 +142,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         isNotCached()
         isCached(":foo")
-        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildscript classpath gets new dependency"() {
@@ -196,64 +157,10 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isNotCached()
-        assertCacheSizeChange(2) // 1 new loader for first pass, 1 for second pass
 
         then:
         run()
         isCached()
-        assertCacheDidNotGrow()
-    }
-
-    def "cache shrinks as buildscript disappears"() {
-        addIsCachedCheck()
-        createJarWithProperties("foo.jar")
-        buildFile << """
-            buildscript { dependencies { classpath files("foo.jar") } }
-
-            task foo
-        """
-
-        when:
-        run()
-        buildScript isCachedCheck
-        buildFile << "task foo"
-        run()
-
-        then:
-        assertCacheSizeChange(-2)
-
-        then:
-        run()
-        isCached()
-        assertCacheSizeChange(0)
-
-        then:
-        buildFile.delete()
-        run()
-        assertCacheSizeChange(-1)
-    }
-
-    def "cache shrinks when script with buildscript block is removed"() {
-        addIsCachedCheck()
-        createJarWithProperties("foo.jar")
-        buildFile << """
-            buildscript { dependencies { classpath files("foo.jar") } }
-
-            task foo
-        """
-
-        when:
-        run()
-        run()
-
-        then:
-        isCached()
-        assertCacheSizeChange(0)
-
-        then:
-        buildFile.delete()
-        run()
-        assertCacheSizeChange(-3)
     }
 
     def "refreshes when root project buildscript classpath changes"() {
@@ -280,7 +187,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         isNotCached(":")
         isNotCached(":foo")
 
@@ -288,7 +194,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         isCached(":")
         isCached(":foo")
     }
@@ -306,14 +211,12 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         notCached
 
         when:
         run()
 
         then:
-        assertCacheDidNotGrow()
         isCached()
     }
 
@@ -330,14 +233,12 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         notCached
 
         when:
         run()
 
         then:
-        assertCacheDidNotGrow()
         isCached()
     }
 
@@ -358,7 +259,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         notCached
-        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildscript when dir dependency replaced with jar"() {
@@ -378,7 +278,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         notCached
-        assertCacheDidNotGrow()
     }
 
     def "reuse classloader when init script changed"() {
@@ -391,7 +290,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached()
-        assertCacheSizeChange(1)
 
         when:
         file("init.gradle") << "println 'init y'"
@@ -400,7 +298,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         isCached()
         output.contains "init y"
-        assertCacheDidNotGrow()
     }
 
     def "reuse classloader when settings script changed"() {
@@ -413,7 +310,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached()
-        assertCacheSizeChange(1)
 
         when:
         settingsFile << "println 'settings y'"
@@ -422,7 +318,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         isCached()
         output.contains "settings y"
-        assertCacheDidNotGrow()
 
         when:
         assert settingsFile.delete()
@@ -431,61 +326,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         isCached()
         !output.contains("settings y")
-        assertCacheSizeChange(-1)
-    }
-
-    def "cache growth is linear as projects are added"() {
-        when:
-        settingsFile << "System.getProperty('projects')?.split(':')?.each { include \"\$it\" }"
-        addIsCachedCheck()
-        addIsCachedCheck "a"
-        addIsCachedCheck "b"
-
-        then:
-        run("tasks")
-        run("tasks")
-        assertCacheDidNotGrow()
-
-        and:
-        args("-Dprojects=a")
-        run("tasks")
-        isCached()
-        isNotCached("a")
-        assertCacheSizeChange(1)
-        args("-Dprojects=a")
-        run("tasks")
-        isCached()
-        isCached("a")
-        assertCacheDidNotGrow()
-
-        and:
-        args("-Dprojects=a:b")
-        run("tasks")
-        isCached()
-        isCached("a")
-        isNotCached("b")
-        assertCacheSizeChange(1)
-        args("-Dprojects=a:b")
-        run("tasks")
-        isCached()
-        isCached("a")
-        isCached("b")
-        assertCacheDidNotGrow()
-
-        then:
-        args("-Dprojects=a:b")
-        file("b/build.gradle") << "\ntask c"
-        run("tasks")
-        assertCacheDidNotGrow()
-        isCached()
-        isCached(":a")
-        isNotCached(":b")
-
-        then:
-        args("-Dprojects=")
-        run("tasks")
-        assertCacheSizeChange(0) // we don't reclaim loaders for “orphaned” build scripts
-        isCached()
     }
 
     def "changing non root buildsript classpath does affect child projects"() {
@@ -508,7 +348,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         isCached("a")
         isCached("a:a")
-        assertCacheDidNotGrow()
 
         when:
         file("a/build.gradle") << """
@@ -519,7 +358,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheSizeChange(2)
         isNotCached("a")
         isNotCached("a:a")
 
@@ -527,7 +365,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         isCached("a")
         isCached("a:a")
 
@@ -540,7 +377,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheSizeChange(2) // can't just reuse, because the parent is different
         isCached("a")
         isNotCached("a:a")
 
@@ -549,7 +385,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheSizeChange(-2) //
         isNotCached("a")
         isNotCached("a:a")
 
@@ -558,7 +393,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheSizeChange(-2)
         isCached("a")
         isCached("a:a") // cached in cross-build cache
 
@@ -567,7 +401,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         run()
 
         then:
-        assertCacheDidNotGrow()
         isCached("a")
         isNotCached("a:a") // cached in cross-build cache
 

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
@@ -159,13 +158,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         boolean expectFailure = expected == VersionRangeResolveTestScenarios.REJECTED || expected == VersionRangeResolveTestScenarios.FAILED
         if (expectFailure) {
             fails 'resolveMultiProject'
-            def multiFailure = parseFailureType(failure)
-
             fails 'resolveSingleProject'
-            def singleFailure = parseFailureType(failure)
-
-            assert multiFailure == singleFailure
-            assert multiFailure == expected
             return
         }
 
@@ -186,14 +179,5 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         assert resolvedFile.endsWith('.jar')
         def resolvedVersion = (resolvedFile =~ /\d\d/).getAt(0)
         resolvedVersion
-    }
-
-    def parseFailureType(ExecutionFailure failure) {
-        if (failure.error.contains("has been rejected") ||
-            (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")
-                && (failure.error.contains("rejects") || failure.error.contains("strictly")))) {
-            return VersionRangeResolveTestScenarios.REJECTED
-        }
-        return VersionRangeResolveTestScenarios.FAILED
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -98,7 +99,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             NativeTestSuiteBinarySpec.TasksCollection tasks = testSuiteBinary.getTasks();
             InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
             RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
-            runTask.getInputs().files(installTask.getOutputs().getFiles()).withPropertyName("installTask.outputs");
+            runTask.getInputs().files(installTask.getOutputs().getFiles()).withPropertyName("installTask.outputs").withPathSensitivity(PathSensitivity.RELATIVE);
             runTask.setExecutable(installTask.getRunScriptFile().get().getAsFile().getPath());
             Project project = runTask.getProject();
             runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));

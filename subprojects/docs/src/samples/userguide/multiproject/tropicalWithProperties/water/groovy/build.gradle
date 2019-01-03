@@ -8,9 +8,14 @@ allprojects {
 subprojects {
     hello {
         doLast {println "- I depend on water"}
-        afterEvaluate { Project project ->
-            if (project.arctic) { doLast {
-                println '- I love to spend time in the arctic waters.' }
+    }
+
+    afterEvaluate { Project project ->
+        if (project.arctic) {
+            hello.configure {
+                doLast {
+                    println '- I love to spend time in the arctic waters.'
+                }
             }
         }
     }

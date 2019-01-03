@@ -26,41 +26,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResourceHandler, ResourceExpectation {
-    private final String path;
+class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResponseProducer {
     private final byte[] content;
     private final Lock lock;
     private final int timeoutMs;
     private final Condition condition;
+    private final WaitPrecondition precondition;
     private boolean requestStarted;
     private boolean released;
     private final Clock clock = Time.clock();
-    private WaitPrecondition precondition;
     private long mostRecentEvent;
     private AssertionError failure;
 
-    SendPartialResponseThenBlock(Lock lock, int timeoutMs, String path, byte[] content) {
+    SendPartialResponseThenBlock(Lock lock, int timeoutMs, WaitPrecondition precondition, byte[] content) {
         this.lock = lock;
         this.timeoutMs = timeoutMs;
-        this.path = ExpectGetAndSendFixedContent.removeLeadingSlash(path);
-        this.content = content;
         condition = lock.newCondition();
-    }
-
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public String getMethod() {
-        return "GET";
-    }
-
-    @Override
-    public ResourceHandler create(WaitPrecondition precondition) {
         this.precondition = precondition;
-        return this;
+        this.content = content;
     }
 
     @Override

@@ -109,6 +109,19 @@ class BuildProcessTest extends Specification {
         buildProcess.configureForBuild(emptyRequest)
     }
 
+    def "current VM does not match if it was started with the default client heap size"() {
+        given:
+        def currentJvmOptions = new JvmOptions(fileResolver)
+        currentJvmOptions.maxHeapSize = "64m"
+        def defaultRequest = buildParameters(null as Iterable)
+
+        when:
+        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+
+        then:
+        !buildProcess.configureForBuild(defaultRequest)
+    }
+
     def "current and requested build vm match if no arguments are requested even if the daemon defaults are applied"() {
         //if the user does not configure any jvm args Gradle uses some defaults
         //however, we don't want those defaults to influence the decision whether to use existing process or not

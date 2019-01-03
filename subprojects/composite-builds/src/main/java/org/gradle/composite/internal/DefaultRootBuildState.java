@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -34,16 +33,16 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.util.Path;
 
 class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private GradleLauncher gradleLauncher;
+    private final GradleLauncher gradleLauncher;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry parentServices) {
+    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeScopeServices parentServices) {
         this.listenerManager = listenerManager;
-        gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, requestContext, parentServices);
+        gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, parentServices);
     }
 
     @Override

@@ -20,7 +20,7 @@ dependencies {
 }
 // end::exclude-transitive-dependencies[]
 
-task<Copy>("copyLibs") {
+tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

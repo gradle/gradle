@@ -56,7 +56,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public final void load(BuildCacheKey key, LoadTarget loadTarget) {
-        String description = "Load entry " + key.getHashCode() + " from " + role.getDisplayName() + " build cache";
+        String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             loadInner(description, key, loadTarget);
@@ -80,7 +80,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     @Override
     public final void store(BuildCacheKey key, StoreTarget storeTarget) {
-        String description = "Store entry " + key.getHashCode() + " in " + role.getDisplayName() + " build cache";
+        String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             storeInner(description, key, storeTarget);

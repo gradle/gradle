@@ -21,5 +21,5 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import java.util.Collection;
 
 public interface TransformationNodeFactory {
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation);
+    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
 }

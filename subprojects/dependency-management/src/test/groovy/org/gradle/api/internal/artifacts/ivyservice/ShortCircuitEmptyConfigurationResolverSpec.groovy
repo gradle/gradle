@@ -29,8 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -48,7 +47,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
 
     def "returns empty build dependencies when no dependencies"() {
-        def depVisitor = Stub(BuildDependenciesVisitor)
+        def depVisitor = Stub(TaskDependencyResolveContext)
         def artifactVisitor = Stub(ArtifactVisitor)
 
         given:
@@ -66,7 +65,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
-        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:
@@ -76,7 +75,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     }
 
     def "returns empty graph when no dependencies"() {
-        def depVisitor = Stub(BuildDependenciesVisitor)
+        def depVisitor = Stub(TaskDependencyResolveContext)
         def artifactVisitor = Stub(ArtifactVisitor)
 
         given:
@@ -99,7 +98,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
-        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:
@@ -229,19 +228,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         given:
         dependencies.isEmpty() >> false
         configuration.getAllDependencies() >> dependencies
-
-        when:
-        dependencyResolver.resolveArtifacts(configuration, results)
-
-        then:
-        1 * delegate.resolveArtifacts(configuration, results)
-    }
-
-    def "delegates to backing service to resolve artifacts when there are no dependencies but result seems to have state"() {
-        given:
-        dependencies.isEmpty() >> true
-        configuration.getAllDependencies() >> dependencies
-        results.graphResolved(Mock(VisitedArtifactSet))
 
         when:
         dependencyResolver.resolveArtifacts(configuration, results)

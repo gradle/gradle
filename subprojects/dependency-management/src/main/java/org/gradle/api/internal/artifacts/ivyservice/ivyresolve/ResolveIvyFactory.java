@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -30,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -79,7 +82,8 @@ public class ResolveIvyFactory {
         this.instantiatorFactory = instantiatorFactory;
     }
 
-    public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
+    public ComponentResolvers create(String resolveContextName,
+                                     ResolutionStrategyInternal resolutionStrategy,
                                      Collection<? extends ResolutionAwareRepository> repositories,
                                      ComponentMetadataProcessorFactory metadataProcessor,
                                      AttributeContainer consumerAttributes,
@@ -110,13 +114,13 @@ public class ResolveIvyFactory {
 
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryCaches(),
-                    cachePolicy, timeProvider, componentMetadataProcessor, moduleIdentifierFactory);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(),
+                    cachePolicy, timeProvider, componentMetadataProcessor);
                 moduleComponentRepository = new LocalModuleComponentRepository(moduleComponentRepository);
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getCaches(),
-                    cachePolicy, timeProvider, componentMetadataProcessor, moduleIdentifierFactory);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getPersistentCaches(),
+                    cachePolicy, timeProvider, componentMetadataProcessor);
             }
             moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository);
 
@@ -124,12 +128,21 @@ public class ResolveIvyFactory {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
-
+            moduleComponentRepository = filterRepository(repository, moduleComponentRepository, resolveContextName, consumerAttributes);
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
         }
 
         return moduleResolver;
+    }
+
+    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
+        Action<? super ArtifactResolutionDetails> filter = null;
+        if (repository instanceof AbstractArtifactRepository) {
+            filter = ((AbstractArtifactRepository) repository).getContentFilter();
+        }
+        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
+        return moduleComponentRepository;
     }
 
     /**

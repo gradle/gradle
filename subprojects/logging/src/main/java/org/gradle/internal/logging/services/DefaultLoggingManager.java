@@ -29,7 +29,6 @@ import org.gradle.internal.logging.config.LoggingSystem;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 
 import java.io.Closeable;
 import java.io.OutputStream;
@@ -219,7 +218,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, FallbackConsoleMetaData.INSTANCE);
+        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, null);
     }
 
     @Override

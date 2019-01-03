@@ -34,15 +34,15 @@ public interface FileSystem extends Chmod, Stat {
     /**
      * Tells whether the file system is case sensitive.
      *
-     * @return <tt>true</tt> if the file system is case sensitive, <tt>false</tt> otherwise
+     * @return <code>true</code> if the file system is case sensitive, <code>false</code> otherwise
      */
     boolean isCaseSensitive();
 
     /**
      * Tells if the file system can create symbolic links. If the answer cannot be determined accurately,
-     * <tt>false</tt> is returned.
+     * <code>false</code> is returned.
      *
-     * @return <tt>true</tt> if the file system can create symbolic links, <tt>false</tt> otherwise
+     * @return <code>true</code> if the file system can create symbolic links, <code>false</code> otherwise
      */
     boolean canCreateSymbolicLink();
 

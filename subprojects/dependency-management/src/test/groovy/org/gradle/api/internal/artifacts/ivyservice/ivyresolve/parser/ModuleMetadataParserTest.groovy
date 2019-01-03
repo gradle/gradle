@@ -58,7 +58,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint strictly(String version) {
-        DefaultImmutableVersionConstraint.of('', version, version, [])
+        DefaultImmutableVersionConstraint.of('', '', version, [])
     }
 
     VersionConstraint prefersAndStrictly(String prefers, String strictly) {

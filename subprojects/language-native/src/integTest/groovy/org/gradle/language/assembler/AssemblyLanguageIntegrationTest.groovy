@@ -18,11 +18,14 @@
 package org.gradle.language.assembler
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
 
+@RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)

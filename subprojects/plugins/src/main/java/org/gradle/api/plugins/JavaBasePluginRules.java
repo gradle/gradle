@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
@@ -59,13 +60,15 @@ class JavaBasePluginRules implements Plugin<Project> {
     private final Instantiator instantiator;
     private final JavaToolChain javaToolChain;
     private final NamedEntityInstantiator<Task> taskInstantiator;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public JavaBasePluginRules(ModelRegistry modelRegistry, Instantiator instantiator, JavaToolChain javaToolChain, TaskInstantiator taskInstantiator) {
+    public JavaBasePluginRules(ModelRegistry modelRegistry, Instantiator instantiator, JavaToolChain javaToolChain, TaskInstantiator taskInstantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.javaToolChain = javaToolChain;
         this.taskInstantiator = taskInstantiator;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     @Override
@@ -92,7 +95,7 @@ class JavaBasePluginRules implements Plugin<Project> {
                 Provider<JavaCompile> compileTask = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
 
                 DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskInstantiator);
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskInstantiator, collectionCallbackActionDecorator);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);

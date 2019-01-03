@@ -42,7 +42,7 @@ class ReportGeneratorTest extends ResultSpecification {
         store.report(result2)
 
         when:
-        generator.generate(store, reportDir, resultsJson)
+        generator.generate(store, reportDir, resultsJson, 'testProject')
 
         then:
         reportDir.file("index.html").isFile()

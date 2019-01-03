@@ -39,10 +39,10 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         def cacheFiles = listCacheFiles()
         cacheFiles.size() == 1
         def cacheEntry = new TarTestFixture(cacheFiles[0])
-        cacheEntry.assertContainsFile("property-outputDir/output")
+        cacheEntry.assertContainsFile("tree-outputDir/output")
         def metadata = cacheEntry.content("METADATA")
         metadata.contains("type=")
-        metadata.contains("path=")
+        metadata.contains("identity=")
         metadata.contains("gradleVersion=")
         metadata.contains("creationTime=")
         metadata.contains("executionTime=")

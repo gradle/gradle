@@ -18,14 +18,12 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -83,7 +81,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor) {
         if (hasSameRootHashes(oldFingerprint)) {
             return true;
         }
@@ -105,12 +103,18 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
+    public boolean isEmpty() {
+        // We'd have created an EmptyCurrentFileCollectionFingerprint if there were no file fingerprints
+        return false;
+    }
+
+    @Override
     public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return fingerprints;
     }
 
     @Override
-    public Multimap<String, HashCode> getRootHashes() {
+    public ImmutableMultimap<String, HashCode> getRootHashes() {
         return rootHashes;
     }
 
@@ -127,10 +131,5 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
-    }
-
-    @Override
-    public HistoricalFileCollectionFingerprint archive() {
-        return new DefaultHistoricalFileCollectionFingerprint(fingerprints, compareStrategy, rootHashes);
     }
 }

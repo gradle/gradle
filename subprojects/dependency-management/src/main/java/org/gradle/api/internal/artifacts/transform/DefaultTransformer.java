@@ -16,39 +16,63 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.Workspace;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.instantiation.InstanceFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
+import org.gradle.internal.service.UnknownServiceException;
 
-import java.io.File;
-import java.util.List;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
+    private final boolean requiresDependencies;
     private final Isolatable<Object[]> parameters;
-    private final Instantiator instantiator;
+    private final InstanceFactory<? extends ArtifactTransform> instanceFactory;
     private final HashCode inputsHash;
+    private final ImmutableAttributes fromAttributes;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class)).forType(implementationClass);
+        this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
         this.parameters = parameters;
-        this.instantiator = instantiator;
         this.inputsHash = inputsHash;
+        this.fromAttributes = fromAttributes;
+    }
+
+    public boolean requiresDependencies() {
+        return requiresDependencies;
     }
 
     @Override
-    public List<File> apply(File primaryInput, File outputDir) {
-        ArtifactTransform transformer = newTransformer();
+    public ImmutableAttributes getFromAttributes() {
+        return fromAttributes;
+    }
+
+    @Override
+    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+        ArtifactTransform transformer = newTransformer(primaryInput, outputDir, dependencies);
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         return validateOutputs(primaryInput, outputDir, outputs);
     }
 
-    private List<File> validateOutputs(File primaryInput, File outputDir, @Nullable List<File> outputs) {
+    private static List<File> validateOutputs(File primaryInput, File outputDir, @Nullable List<File> outputs) {
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }
@@ -72,8 +96,9 @@ public class DefaultTransformer implements Transformer {
         return outputs;
     }
 
-    private ArtifactTransform newTransformer() {
-        return instantiator.newInstance(implementationClass, parameters.isolate());
+    private ArtifactTransform newTransformer(File inputFile, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
+        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, requiresDependencies ? artifactTransformDependencies : null);
+        return instanceFactory.newInstance(services, parameters.isolate());
     }
 
     @Override
@@ -108,5 +133,60 @@ public class DefaultTransformer implements Transformer {
     @Override
     public int hashCode() {
         return inputsHash.hashCode();
+    }
+
+    private static class TransformServiceLookup implements ServiceLookup {
+        private final File inputFile;
+        private final File outputDir;
+        private final ArtifactTransformDependencies artifactTransformDependencies;
+
+        public TransformServiceLookup(File inputFile, File outputDir, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+            this.inputFile = inputFile;
+            this.outputDir = outputDir;
+            this.artifactTransformDependencies = artifactTransformDependencies;
+        }
+
+        @Nullable
+        private
+        Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
+            if (!(serviceType instanceof Class)) {
+                return null;
+            }
+            Class<?> serviceClass = (Class<?>) serviceType;
+            if (annotatedWith == Workspace.class && serviceClass.isAssignableFrom(File.class)) {
+                return outputDir;
+            }
+            if (annotatedWith == PrimaryInput.class && serviceClass.isAssignableFrom(File.class)) {
+                return inputFile;
+            }
+            if (annotatedWith == null && artifactTransformDependencies != null && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
+                return artifactTransformDependencies;
+            }
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Object find(Type serviceType) throws ServiceLookupException {
+            return find(serviceType, null);
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType);
+            if (result == null) {
+                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+            }
+            return result;
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType, annotatedWith);
+            if (result == null) {
+                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
+            }
+            return result;
+        }
     }
 }

@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import java.util.Iterator;
 import java.util.Set;
 
 public class AttributeSelectionUtils {
@@ -27,7 +28,7 @@ public class AttributeSelectionUtils {
         for (ImmutableAttributes attributes : candidateAttributeSets) {
             extraAttributes.addAll(attributes.keySet());
         }
-        extraAttributes.removeAll(requested.keySet());
+        removeSameAttributes(requested, extraAttributes);
         Attribute<?>[] extraAttributesArray = extraAttributes.toArray(new Attribute[0]);
         for (int i = 0; i < extraAttributesArray.length; i++) {
             Attribute<?> extraAttribute = extraAttributesArray[i];
@@ -37,5 +38,18 @@ public class AttributeSelectionUtils {
             }
         }
         return extraAttributesArray;
+    }
+
+    private static void removeSameAttributes(ImmutableAttributes requested, Set<Attribute<?>> extraAttributes) {
+        for (Attribute<?> attribute : requested.keySet()) {
+            Iterator<Attribute<?>> it = extraAttributes.iterator();
+            while (it.hasNext()) {
+                Attribute<?> next = it.next();
+                if (next.getName().equals(attribute.getName())) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
     }
 }

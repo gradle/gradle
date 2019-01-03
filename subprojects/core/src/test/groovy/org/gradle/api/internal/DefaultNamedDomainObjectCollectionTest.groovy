@@ -20,8 +20,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCollectionSpec<Bean> {
 
@@ -29,15 +29,16 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         String determineName(Bean bean) { return bean.name }
     };
 
-    Instantiator instantiator = DirectInstantiator.INSTANCE
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     Set<Bean> store
 
-    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer)
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer, callbackActionDecorator)
     final Bean a = new BeanSub1("a")
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
     final boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     def setup() {
         container.clear()

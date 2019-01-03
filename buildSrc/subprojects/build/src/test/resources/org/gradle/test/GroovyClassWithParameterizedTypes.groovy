@@ -1,17 +1,17 @@
 package org.gradle.test
 
 class GroovyClassWithParameterizedTypes {
-    Set<GroovyInterface> setProp
+    Set<CombinedInterface> setProp
 
-    Map<GroovyInterface, GroovyClassWithParameterizedTypes> mapProp
+    Map<CombinedInterface, GroovyClassWithParameterizedTypes> mapProp
 
     List<?> wildcardProp
 
-    List<? extends GroovyInterface> upperBoundProp
+    List<? extends CombinedInterface> upperBoundProp
 
-    List<? super GroovyInterface> lowerBoundProp
+    List<? super CombinedInterface> lowerBoundProp
 
-    List<? super Set<? extends Map<?, GroovyInterface[]>>>[] nestedProp
+    List<? super Set<? extends Map<?, CombinedInterface[]>>>[] nestedProp
 
     static <T> T paramMethod(T param) {
         null

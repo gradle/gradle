@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,36 +42,38 @@ public class TransformationStep implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform) {
-        if (subjectToTransform.getFailure() != null) {
-            return subjectToTransform;
-        }
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
-        }
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File file : subjectToTransform.getFiles()) {
-            TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
-            transformerInvoker.invoke(invocation);
-            if (invocation.getFailure() != null) {
-                return subjectToTransform.transformationFailed(invocation.getFailure());
-            }
-            builder.addAll(invocation.getResult());
-        }
-        return subjectToTransform.transformationSuccessful(builder.build());
+    public boolean endsWith(Transformation otherTransform) {
+        return this == otherTransform;
     }
 
     @Override
-    public boolean hasCachedResult(TransformationSubject subject) {
-        if (subject.getFailure() != null) {
-            return true;
+    public int stepsCount() {
+        return 1;
+    }
+
+    @Override
+    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
-        for (File file : subject.getFiles()) {
-            if (!transformerInvoker.hasCachedResult(file, transformer)) {
-                return false;
+        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
+            ImmutableList.Builder<File> builder = ImmutableList.builder();
+            for (File primaryInput : primaryInputs) {
+                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
+
+                if (result.getFailure().isPresent()) {
+                    return Try.failure(result.getFailure().get());
+                }
+                builder.addAll(result.get());
             }
-        }
-        return true;
+            return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
+        });
+    }
+
+    @Override
+    public boolean requiresDependencies() {
+        return transformer.requiresDependencies();
     }
 
     @Override
@@ -80,6 +84,10 @@ public class TransformationStep implements Transformation {
     @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         action.execute(this);
+    }
+
+    public ImmutableAttributes getFromAttributes() {
+        return transformer.getFromAttributes();
     }
 
     @Override

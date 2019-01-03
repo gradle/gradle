@@ -558,7 +558,7 @@ To help you understand how incremental compilation works, the following provides
 === Incremental annotation processing
 
 Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
-Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+All annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
 
 As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
 Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.

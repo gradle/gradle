@@ -64,12 +64,12 @@ class DefaultModuleComponentSelectorTest extends Specification {
         versionSelector.toString() == "some-group:some-name:1.0"
 
         def branchSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), b('release'))
-        branchSelector.displayName == "some-group:some-name (branch: release)"
-        branchSelector.toString() == "some-group:some-name (branch: release)"
+        branchSelector.displayName == "some-group:some-name:{branch release}"
+        branchSelector.toString() == "some-group:some-name:{branch release}"
 
         def bothSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0', 'release'))
-        bothSelector.displayName == "some-group:some-name:1.0 (branch: release)"
-        bothSelector.toString() == "some-group:some-name:1.0 (branch: release)"
+        bothSelector.displayName == "some-group:some-name:{require 1.0; branch release}"
+        bothSelector.toString() == "some-group:some-name:{require 1.0; branch release}"
 
         def noSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v(''))
         noSelector.displayName == "some-group:some-name"

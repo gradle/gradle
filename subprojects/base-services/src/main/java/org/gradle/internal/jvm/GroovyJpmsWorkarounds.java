@@ -22,10 +22,12 @@ import java.util.List;
 
 public class GroovyJpmsWorkarounds {
     /**
-     * These JVM arguments should be passed to any process that will be using Groovy on Java 9+ to avoid noisy illegal access warnings that the user can't do anything about.
+     * These JVM arguments should be passed to any process that will be using Groovy on Java 9+
+     * to avoid noisy illegal access warnings that the user can't do anything about.
      */
     public static final List<String> SUPPRESS_COMMON_GROOVY_WARNINGS = Collections.unmodifiableList(Arrays.asList(
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED"
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
     ));
 }

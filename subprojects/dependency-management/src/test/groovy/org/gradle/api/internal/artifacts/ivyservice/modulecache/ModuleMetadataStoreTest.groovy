@@ -53,7 +53,7 @@ class ModuleMetadataStoreTest extends Specification {
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
+        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier))
         then:
         1 * pathKeyFileStore.get("org.test", "testArtifact", "1.0", "repositoryId", "descriptor.bin") >> null
     }

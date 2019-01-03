@@ -2,4 +2,5 @@
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-task ':hangingTask' exceeded its timeout
+Execution failed for task ':hangingTask'.
+> Timeout has been exceeded

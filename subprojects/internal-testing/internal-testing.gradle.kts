@@ -47,5 +47,5 @@ gradlebuildJava {
 }
 
 ideConfiguration {
-    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+    makeAllSourceDirsTestSourceDirsInIdeaModule()
 }

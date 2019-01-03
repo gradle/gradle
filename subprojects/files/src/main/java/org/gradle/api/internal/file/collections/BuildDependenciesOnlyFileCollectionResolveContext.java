@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
@@ -53,41 +51,19 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     @Override
     public FileCollectionResolveContext add(Object element) {
         // TODO - need to sync with DefaultFileCollectionResolveContext
-        if (element instanceof Buildable) {
+        if (element instanceof TaskDependencyContainer) {
+            taskContext.add(element);
+        } else if (element instanceof Buildable) {
             taskContext.add(element);
         } else if (element instanceof Task) {
             taskContext.add(element);
         } else if (element instanceof TaskOutputs) {
             TaskOutputs outputs = (TaskOutputs) element;
             taskContext.add(outputs.getFiles());
-        } else if (element instanceof TaskDependencyContainer) {
-            TaskDependencyContainer container = (TaskDependencyContainer) element;
-            container.visitDependencies(new AbstractTaskDependencyResolveContext() {
-                @Override
-                public void add(Object dependency) {
-                    if (dependency instanceof Task) {
-                        taskContext.add(dependency);
-                    } else {
-                        BuildDependenciesOnlyFileCollectionResolveContext.this.add(dependency);
-                    }
-                }
-
-                @Override
-                public Task getTask() {
-                    return taskContext.getTask();
-                }
-            });
-        } else if (element instanceof Closure) {
-            Closure closure = (Closure) element;
-            Object closureResult = closure.call();
-            if (closureResult != null) {
-                add(closureResult);
-            }
         } else if (element instanceof Callable) {
-            Callable callable = (Callable) element;
-            Object callableResult = uncheckedCall(callable);
-            if (callableResult != null) {
-                add(callableResult);
+            Object deferredResult = uncheckedCall((Callable) element);
+            if (deferredResult != null) {
+                add(deferredResult);
             }
         } else if (element instanceof Iterable && !(element instanceof Path)) {
             // Ignore Path

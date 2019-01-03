@@ -16,13 +16,11 @@
 
 package org.gradle.language.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -34,14 +32,11 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.PublishableComponent;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -62,6 +57,8 @@ import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStat
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -73,8 +70,8 @@ import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
@@ -101,18 +98,28 @@ import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
  *
  * <li>Maven publications. Currently requires component implements internal API {@link PublicationAwareComponent}.</li>
  *
+ * <li>Adds {@link TargetMachineFactory} for configuring {@link TargetMachine}.</li>
+ *
  * </ul>
  *
  * @since 4.5
  */
 @Incubating
-public class NativeBasePlugin implements Plugin<ProjectInternal> {
+public class NativeBasePlugin implements Plugin<Project> {
+    private final TargetMachineFactory targetMachineFactory;
+
+    @Inject
+    public NativeBasePlugin(TargetMachineFactory targetMachineFactory) {
+        this.targetMachineFactory = targetMachineFactory;
+    }
+
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
+        addTargetMachineFactoryAsExtension(project.getExtensions(), targetMachineFactory);
+
         final TaskContainer tasks = project.getTasks();
-        final ProviderFactory providers = project.getProviders();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         final SoftwareComponentContainer components = project.getComponents();
@@ -121,9 +128,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
         // Add tasks to build various kinds of components
 
-        addTasksForComponentWithExecutable(tasks, providers, buildDirectory, components);
-        addTasksForComponentWithSharedLibrary(tasks, providers, buildDirectory, components);
-        addTasksForComponentWithStaticLibrary(tasks, providers, buildDirectory, components);
+        addTasksForComponentWithExecutable(tasks, buildDirectory, components);
+        addTasksForComponentWithSharedLibrary(tasks, buildDirectory, components);
+        addTasksForComponentWithStaticLibrary(tasks, buildDirectory, components);
 
         // Add outgoing configurations and publications
         final ConfigurationContainer configurations = project.getConfigurations();
@@ -136,409 +143,243 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         addPublicationsFromVariants(project, components);
     }
 
+    private static void addTargetMachineFactoryAsExtension(ExtensionContainer extensions, TargetMachineFactory targetMachineFactory) {
+        extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
+    }
+
     private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
-        components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
-            @Override
-            public void execute(final ComponentWithBinaries component) {
-                // Register each child of each component
-                component.getBinaries().whenElementKnown(new Action<SoftwareComponent>() {
-                    @Override
-                    public void execute(SoftwareComponent binary) {
-                        components.add(binary);
+        components.withType(ComponentWithBinaries.class, component -> {
+            // Register each child of each component
+            component.getBinaries().whenElementKnown(binary -> components.add(binary));
+
+            if (component instanceof ProductionComponent) {
+                // Add an assemble task for each binary and also wire the development binary in to the `assemble` task
+                component.getBinaries().whenElementFinalized(ComponentWithOutputs.class, binary -> {
+                    // Determine which output to produce at development time.
+                    final FileCollection outputs = binary.getOutputs();
+                    Names names = ((ComponentWithNames) binary).getNames();
+                    tasks.register(names.getTaskName("assemble"), task -> task.dependsOn(outputs));
+
+                    if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
+                        tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> task.dependsOn(outputs));
                     }
                 });
-                if (component instanceof ProductionComponent) {
-                    // Add an assemble task for each binary and also wire the development binary in to the `assemble` task
-                    component.getBinaries().whenElementFinalized(ComponentWithOutputs.class, new Action<ComponentWithOutputs>() {
-                        @Override
-                        public void execute(ComponentWithOutputs binary) {
-                            // Determine which output to produce at development time.
-                            final FileCollection outputs = binary.getOutputs();
-                            Names names = ((ComponentWithNames) binary).getNames();
-                            tasks.register(names.getTaskName("assemble"), new Action<Task>() {
-                                @Override
-                                public void execute(Task lifecycleTask) {
-                                    lifecycleTask.dependsOn(outputs);
-                                }
-                            });
-
-                            if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
-                                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, new Action<Task>() {
-                                    @Override
-                                    public void execute(Task task) {
-                                        task.dependsOn(outputs);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }
             }
         });
     }
 
-    private void addTasksForComponentWithExecutable(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
-        components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
-            @Override
-            public void execute(final ConfigurableComponentWithExecutable executable) {
-                final Names names = executable.getNames();
-                final NativeToolChain toolChain = executable.getToolChain();
-                final NativePlatform targetPlatform = executable.getTargetPlatform();
-                final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
+    private void addTasksForComponentWithExecutable(final TaskContainer tasks, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
+        components.withType(ConfigurableComponentWithExecutable.class, executable -> {
+            final Names names = executable.getNames();
+            final NativeToolChain toolChain = executable.getToolChain();
+            final NativePlatform targetPlatform = executable.getTargetPlatform();
+            final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
 
-                // Add a link task
-                TaskProvider<LinkExecutable> link = tasks.register(names.getTaskName("link"), LinkExecutable.class, new Action<LinkExecutable>() {
-                    @Override
-                    public void execute(LinkExecutable link) {
-                        link.source(executable.getObjects());
-                        link.lib(executable.getLinkLibraries());
-                        link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + executable.getBaseName().get());
-                            }
-                        })));
-                        link.getTargetPlatform().set(targetPlatform);
-                        link.getToolChain().set(toolChain);
-                        link.getDebuggable().set(executable.isDebuggable());
+            // Add a link task
+            TaskProvider<LinkExecutable> link = tasks.register(names.getTaskName("link"), LinkExecutable.class, task -> {
+                task.source(executable.getObjects());
+                task.lib(executable.getLinkLibraries());
+                task.getLinkedFile().set(buildDirectory.file(executable.getBaseName().map(baseName -> toolProvider.getExecutableName("exe/" + names.getDirName() + baseName))));
+                task.getTargetPlatform().set(targetPlatform);
+                task.getToolChain().set(toolChain);
+                task.getDebuggable().set(executable.isDebuggable());
+            });
 
-                    }
-                });
+            executable.getLinkTask().set(link);
+            executable.getDebuggerExecutableFile().set(link.flatMap(linkExecutable -> linkExecutable.getLinkedFile()));
 
-                executable.getLinkTask().set(link);
-                executable.getDebuggerExecutableFile().set(link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkExecutable>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(LinkExecutable linkExecutable) {
-                        return linkExecutable.getLinkedFile();
-                    }
-                }));
+            if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
+                Provider<RegularFile> symbolLocation = buildDirectory.file(
+                        executable.getBaseName().map(baseName -> toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + baseName)));
+                Provider<RegularFile> strippedLocation = buildDirectory.file(
+                        executable.getBaseName().map(baseName -> toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + baseName)));
 
-                if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
-                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
-                        }
-                    }));
-                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
-                        }
-                    }));
-                    TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
-                    executable.getExecutableFile().set(stripSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, StripSymbols>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(StripSymbols stripSymbols) {
-                            return stripSymbols.getOutputFile();
-                        }
-                    }));
-                    TaskProvider<ExtractSymbols> extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
-                    executable.getOutputs().from(extractSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, ExtractSymbols>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(ExtractSymbols extractSymbols) {
-                            return extractSymbols.getSymbolFile();
-                        }
-                    }));
-                } else {
-                    executable.getExecutableFile().set(link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkExecutable>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(LinkExecutable linkExecutable) {
-                            return linkExecutable.getLinkedFile();
-                        }
-                    }));
-                }
-
-                // Add an install task
-                // TODO - should probably not add this for all executables?
-                // TODO - add stripped symbols to the installation
-                final TaskProvider<InstallExecutable> install = tasks.register(names.getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
-                    @Override
-                    public void execute(InstallExecutable install) {
-                        install.getTargetPlatform().set(targetPlatform);
-                        install.getToolChain().set(toolChain);
-                        install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                        install.getExecutableFile().set(executable.getExecutableFile());
-                        install.lib(executable.getRuntimeLibraries());
-
-                    }
-                });
-
-                executable.getInstallTask().set(install);
-                executable.getInstallDirectory().set(install.flatMap(new Transformer<Provider<? extends Directory>, InstallExecutable>() {
-                    @Override
-                    public Provider<? extends Directory> transform(InstallExecutable installExecutable) {
-                        return installExecutable.getInstallDirectory();
-                    }
-                }));
-
-                executable.getOutputs().from(executable.getInstallDirectory());
-
-                executable.getDebuggerExecutableFile().set(install.flatMap(new Transformer<Provider<? extends RegularFile>, InstallExecutable>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(InstallExecutable installExecutable) {
-                        return installExecutable.getInstalledExecutable();
-                    }
-                }));
+                TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
+                executable.getExecutableFile().set(stripSymbols.flatMap(task -> task.getOutputFile()));
+                TaskProvider<ExtractSymbols> extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
+                executable.getOutputs().from(extractSymbols.flatMap(task -> task.getSymbolFile()));
+                executable.getExecutableFileProducer().set(stripSymbols);
+            } else {
+                executable.getExecutableFile().set(link.flatMap(task -> task.getLinkedFile()));
+                executable.getExecutableFileProducer().set(link);
             }
+
+            // Add an install task
+            // TODO - should probably not add this for all executables?
+            // TODO - add stripped symbols to the installation
+            final TaskProvider<InstallExecutable> install = tasks.register(names.getTaskName("install"), InstallExecutable.class, task -> {
+                task.getTargetPlatform().set(targetPlatform);
+                task.getToolChain().set(toolChain);
+                task.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
+                task.getExecutableFile().set(executable.getExecutableFile());
+                task.lib(executable.getRuntimeLibraries());
+            });
+
+            executable.getInstallTask().set(install);
+            executable.getInstallDirectory().set(install.flatMap(task -> task.getInstallDirectory()));
+            executable.getOutputs().from(executable.getInstallDirectory());
+
+            executable.getDebuggerExecutableFile().set(install.flatMap(task -> task.getInstalledExecutable()));
         });
     }
 
-    private void addTasksForComponentWithSharedLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
-        components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
-            @Override
-            public void execute(final ConfigurableComponentWithSharedLibrary library) {
-                final Names names = library.getNames();
-                final NativePlatform targetPlatform = library.getTargetPlatform();
-                final NativeToolChain toolChain = library.getToolChain();
+    private void addTasksForComponentWithSharedLibrary(final TaskContainer tasks, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
+        components.withType(ConfigurableComponentWithSharedLibrary.class, library -> {
+            final Names names = library.getNames();
+            final NativePlatform targetPlatform = library.getTargetPlatform();
+            final NativeToolChain toolChain = library.getToolChain();
+            final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
+
+            // Add a link task
+            final TaskProvider<LinkSharedLibrary> link = tasks.register(names.getTaskName("link"), LinkSharedLibrary.class, task -> {
+                task.source(library.getObjects());
+                task.lib(library.getLinkLibraries());
+                task.getLinkedFile().set(buildDirectory.file(library.getBaseName().map(baseName -> toolProvider.getSharedLibraryName("lib/" + names.getDirName() + baseName))));
+                // TODO: We should set this for macOS, but this currently breaks XCTest support for Swift
+                // when Swift depends on C++ libraries built by Gradle.
+                if (!targetPlatform.getOperatingSystem().isMacOsX()) {
+                    task.getInstallName().set(task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName()));
+                }
+                task.getTargetPlatform().set(targetPlatform);
+                task.getToolChain().set(toolChain);
+                task.getDebuggable().set(library.isDebuggable());
+            });
+
+            Provider<RegularFile> linkFile = link.flatMap(task -> task.getLinkedFile());
+            Provider<RegularFile> runtimeFile = link.flatMap(task -> task.getLinkedFile());
+            Provider<? extends Task> linkFileTask = link;
+
+            if (toolProvider.producesImportLibrary()) {
+                link.configure(linkSharedLibrary -> {
+                    linkSharedLibrary.getImportLibrary().set(buildDirectory.file(
+                            library.getBaseName().map(baseName -> toolProvider.getImportLibraryName("lib/" + names.getDirName() + baseName))));
+                });
+                linkFile = link.flatMap(task -> task.getImportLibrary());
+            }
+
+            if (library.isDebuggable() && library.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
+
+                Provider<RegularFile> symbolLocation = buildDirectory.file(
+                        library.getBaseName().map(baseName -> toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + baseName)));
+                Provider<RegularFile> strippedLocation = buildDirectory.file(
+                        library.getBaseName().map(baseName -> toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + baseName)));
+
+                TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
+                linkFile = runtimeFile = stripSymbols.flatMap(task -> task.getOutputFile());
+
+                TaskProvider<ExtractSymbols> extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
+                library.getOutputs().from(extractSymbols.flatMap(task -> task.getSymbolFile()));
+                linkFileTask = stripSymbols;
+            }
+            library.getLinkTask().set(link);
+            library.getLinkFile().set(linkFile);
+            library.getLinkFileProducer().set(linkFileTask);
+            library.getRuntimeFile().set(runtimeFile);
+            library.getOutputs().from(library.getLinkFile());
+            library.getOutputs().from(library.getRuntimeFile());
+        });
+    }
+
+    private void addTasksForComponentWithStaticLibrary(final TaskContainer tasks, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
+        components.withType(ConfigurableComponentWithStaticLibrary.class, library -> {
+            final Names names = library.getNames();
+
+            // Add a create task
+            final TaskProvider<CreateStaticLibrary> createTask = tasks.register(names.getTaskName("create"), CreateStaticLibrary.class, task -> {
+                task.source(library.getObjects());
                 final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
+                Provider<RegularFile> linktimeFile = buildDirectory.file(
+                        library.getBaseName().map(baseName -> toolProvider.getStaticLibraryName("lib/" + names.getDirName() + baseName)));
+                task.getOutputFile().set(linktimeFile);
+                task.getTargetPlatform().set(library.getTargetPlatform());
+                task.getToolChain().set(library.getToolChain());
+            });
 
-                // Add a link task
-                final TaskProvider<LinkSharedLibrary> link = tasks.register(names.getTaskName("link"), LinkSharedLibrary.class, new Action<LinkSharedLibrary>() {
-                    @Override
-                    public void execute(LinkSharedLibrary link) {
-                        link.source(library.getObjects());
-                        link.lib(library.getLinkLibraries());
-                        // TODO - need to set soname
-                        link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                            }
-                        })));
-                        link.getTargetPlatform().set(targetPlatform);
-                        link.getToolChain().set(toolChain);
-                        link.getDebuggable().set(library.isDebuggable());
-                    }
-                });
-
-
-                Provider<RegularFile> linkFile = link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkSharedLibrary>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(LinkSharedLibrary linkSharedLibrary) {
-                        return linkSharedLibrary.getLinkedFile();
-                    }
-                });
-                Provider<RegularFile> runtimeFile = link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkSharedLibrary>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(LinkSharedLibrary linkSharedLibrary) {
-                        return linkSharedLibrary.getLinkedFile();
-                    }
-                });
-
-                if (toolProvider.producesImportLibrary()) {
-                    link.configure(new Action<LinkSharedLibrary>() {
-                        @Override
-                        public void execute(LinkSharedLibrary linkSharedLibrary) {
-                            linkSharedLibrary.getImportLibrary().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                                @Override
-                                public String call() {
-                                    return toolProvider.getImportLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                                }
-                            })));
-                        }
-                    });
-                    linkFile = link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkSharedLibrary>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(LinkSharedLibrary linkSharedLibrary) {
-                            return linkSharedLibrary.getImportLibrary();
-                        }
-                    });
-                }
-
-                if (library.isDebuggable() && library.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
-                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
-                        }
-                    }));
-                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
-                        }
-                    }));
-
-                    TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
-                    linkFile = runtimeFile = stripSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, StripSymbols>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(StripSymbols stripSymbols) {
-                            return stripSymbols.getOutputFile();
-                        }
-                    });
-
-                    TaskProvider<ExtractSymbols> extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
-                    library.getOutputs().from(extractSymbols.flatMap(new Transformer<Provider<? extends RegularFile>, ExtractSymbols>() {
-                        @Override
-                        public Provider<? extends RegularFile> transform(ExtractSymbols extractSymbols) {
-                            return extractSymbols.getSymbolFile();
-                        }
-                    }));
-                }
-                library.getLinkTask().set(link);
-                library.getLinkFile().set(linkFile);
-                library.getRuntimeFile().set(runtimeFile);
-                library.getOutputs().from(library.getLinkFile());
-                library.getOutputs().from(library.getRuntimeFile());
-            }
-        });
-    }
-
-    private void addTasksForComponentWithStaticLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
-        components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
-            @Override
-            public void execute(final ConfigurableComponentWithStaticLibrary library) {
-                final Names names = library.getNames();
-
-                // Add a create task
-                final TaskProvider<CreateStaticLibrary> createTask = tasks.register(names.getTaskName("create"), CreateStaticLibrary.class, new Action<CreateStaticLibrary>() {
-                    @Override
-                    public void execute(CreateStaticLibrary createTask) {
-                        createTask.source(library.getObjects());
-                        final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-                        Provider<RegularFile> linktimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
-                            }
-                        }));
-                        createTask.getOutputFile().set(linktimeFile);
-                        createTask.getTargetPlatform().set(library.getTargetPlatform());
-                        createTask.getToolChain().set(library.getToolChain());
-                    }
-                });
-
-                // Wire the task into the library model
-                library.getLinkFile().set(createTask.flatMap(new Transformer<Provider<? extends RegularFile>, CreateStaticLibrary>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(CreateStaticLibrary createStaticLibrary) {
-                        return createStaticLibrary.getBinaryFile();
-                    }
-                }));
-                library.getCreateTask().set(createTask);
-                library.getOutputs().from(library.getLinkFile());
-            }
+            // Wire the task into the library model
+            library.getLinkFile().set(createTask.flatMap(task -> task.getBinaryFile()));
+            library.getLinkFileProducer().set(createTask);
+            library.getCreateTask().set(createTask);
+            library.getOutputs().from(library.getLinkFile());
         });
     }
 
     private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
-        components.withType(ConfigurableComponentWithLinkUsage.class, new Action<ConfigurableComponentWithLinkUsage>() {
-            @Override
-            public void execute(ConfigurableComponentWithLinkUsage component) {
-                Names names = component.getNames();
+        components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
+            Names names = component.getNames();
 
-                Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
-                linkElements.extendsFrom(component.getImplementationDependencies());
-                linkElements.setCanBeResolved(false);
-                AttributeContainer attributes = component.getLinkAttributes();
-                copyAttributesTo(attributes, linkElements);
+            Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
+            linkElements.extendsFrom(component.getImplementationDependencies());
+            linkElements.setCanBeResolved(false);
+            AttributeContainer attributes = component.getLinkAttributes();
+            copyAttributesTo(attributes, linkElements);
 
-                linkElements.getOutgoing().artifact(component.getLinkFile());
+            linkElements.getOutgoing().artifact(component.getLinkFile());
 
-                component.getLinkElements().set(linkElements);
-            }
+            component.getLinkElements().set(linkElements);
         });
     }
 
     private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
-        components.withType(ConfigurableComponentWithRuntimeUsage.class, new Action<ConfigurableComponentWithRuntimeUsage>() {
-            @Override
-            public void execute(ConfigurableComponentWithRuntimeUsage component) {
-                Names names = component.getNames();
+        components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
+            Names names = component.getNames();
 
-                Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
-                runtimeElements.extendsFrom(component.getImplementationDependencies());
-                runtimeElements.setCanBeResolved(false);
+            Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
+            runtimeElements.extendsFrom(component.getImplementationDependencies());
+            runtimeElements.setCanBeResolved(false);
 
-                AttributeContainer attributes = component.getRuntimeAttributes();
-                copyAttributesTo(attributes, runtimeElements);
+            AttributeContainer attributes = component.getRuntimeAttributes();
+            copyAttributesTo(attributes, runtimeElements);
 
-                if (component.hasRuntimeFile()) {
-                    runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
-                }
-
-                component.getRuntimeElements().set(runtimeElements);
+            if (component.hasRuntimeFile()) {
+                runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
             }
+
+            component.getRuntimeElements().set(runtimeElements);
         });
     }
 
-    private void addPublicationsFromVariants(final ProjectInternal project, final SoftwareComponentContainer components) {
-        project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
-            @Override
-            public void execute(AppliedPlugin appliedPlugin) {
-                components.withType(PublicationAwareComponent.class, new Action<PublicationAwareComponent>() {
-                    @Override
-                    public void execute(final PublicationAwareComponent component) {
-                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                            @Override
-                            public void execute(final PublishingExtension publishing) {
-                                final ComponentWithVariants mainVariant = component.getMainPublication();
-                                publishing.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
-                                    @Override
-                                    public void execute(final MavenPublication publication) {
-                                        MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
-                                        publicationInternal.getMavenProjectIdentity().getArtifactId().set(component.getBaseName());
-                                        publicationInternal.from(mainVariant);
-                                        publicationInternal.publishWithOriginalFileName();
-                                    }
-                                });
-                                Set<? extends SoftwareComponent> variants = mainVariant.getVariants();
-                                if (variants instanceof DomainObjectSet) {
-                                    ((DomainObjectSet<? extends SoftwareComponent>) variants).all(new Action<SoftwareComponent>() {
-                                        @Override
-                                        public void execute(final SoftwareComponent child) {
-                                            addPublicationFromVariant(child, publishing);
-                                        }
-                                    });
-                                } else {
-                                    for (SoftwareComponent variant : variants) {
-                                        addPublicationFromVariant(variant, publishing);
-                                    }
-                                }
-                            }
+    private void addPublicationsFromVariants(final Project project, final SoftwareComponentContainer components) {
+        project.getPluginManager().withPlugin("maven-publish", plugin -> {
+            components.withType(PublicationAwareComponent.class, component -> {
+                project.getExtensions().configure(PublishingExtension.class, publishing -> {
+                    final ComponentWithVariants mainVariant = component.getMainPublication();
+                    publishing.getPublications().create("main", MavenPublication.class, publication -> {
+                        MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
+                        publicationInternal.getMavenProjectIdentity().getArtifactId().set(component.getBaseName());
+                        publicationInternal.from(mainVariant);
+                        publicationInternal.publishWithOriginalFileName();
+                    });
 
-                            private void addPublicationFromVariant(final SoftwareComponent child, PublishingExtension publishing) {
-                                if (child instanceof PublishableComponent) {
-                                    publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                        @Override
-                                        public void execute(MavenPublication publication) {
-                                            MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
-                                            fillInCoordinates(project, publicationInternal, (PublishableComponent) child);
-                                            publicationInternal.from(child);
-                                            publicationInternal.publishWithOriginalFileName();
-                                        }
-                                    });
-                                }
-                            }
-                        });
+                    Set<? extends SoftwareComponent> variants = mainVariant.getVariants();
+                    if (variants instanceof DomainObjectSet) {
+                        ((DomainObjectSet<? extends SoftwareComponent>) variants).all(child -> addPublicationFromVariant(child, publishing, project));
+                    } else {
+                        for (SoftwareComponent variant : variants) {
+                            addPublicationFromVariant(variant, publishing, project);
+                        }
                     }
                 });
-            }
+            });
         });
     }
 
-    private void fillInCoordinates(ProjectInternal project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
+    private void addPublicationFromVariant(SoftwareComponent child, PublishingExtension publishing, Project project) {
+        if (child instanceof PublishableComponent) {
+            publishing.getPublications().create(child.getName(), MavenPublication.class, publication -> {
+                MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
+                fillInCoordinates(project, publicationInternal, (PublishableComponent) child);
+                publicationInternal.from(child);
+                publicationInternal.publishWithOriginalFileName();
+            });
+        }
+    }
+
+    private void fillInCoordinates(Project project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
         final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
         MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
-        identity.getGroupId().set(project.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return coordinates.getGroup();
-            }
-        }));
-        identity.getArtifactId().set(project.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return coordinates.getName();
-            }
-        }));
-        identity.getVersion().set(project.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return coordinates.getVersion();
-            }
-        }));
+        identity.getGroupId().set(project.provider(() -> coordinates.getGroup()));
+        identity.getArtifactId().set(project.provider(() -> coordinates.getName()));
+        identity.getVersion().set(project.provider(() -> coordinates.getVersion()));
     }
 
     private void copyAttributesTo(AttributeContainer attributes, Configuration linkElements) {
@@ -549,37 +390,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private TaskProvider<StripSymbols> stripSymbols(final TaskProvider<? extends AbstractLinkTask> link, Names names, TaskContainer tasks, final NativeToolChain toolChain, final NativePlatform currentPlatform, final Provider<RegularFile> strippedLocation) {
-        return tasks.register(names.getTaskName("stripSymbols"), StripSymbols.class, new Action<StripSymbols>() {
-            @Override
-            public void execute(StripSymbols stripSymbols) {
-                stripSymbols.getBinaryFile().set(link.flatMap(new Transformer<Provider<? extends RegularFile>, AbstractLinkTask>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(AbstractLinkTask abstractLinkTask) {
-                        return abstractLinkTask.getLinkedFile();
-                    }
-                }));
-                stripSymbols.getOutputFile().set(strippedLocation);
-                stripSymbols.getTargetPlatform().set(currentPlatform);
-                stripSymbols.getToolChain().set(toolChain);
-
-            }
+        return tasks.register(names.getTaskName("stripSymbols"), StripSymbols.class, stripSymbols -> {
+            stripSymbols.getBinaryFile().set(link.flatMap(task -> task.getLinkedFile()));
+            stripSymbols.getOutputFile().set(strippedLocation);
+            stripSymbols.getTargetPlatform().set(currentPlatform);
+            stripSymbols.getToolChain().set(toolChain);
         });
     }
 
     private TaskProvider<ExtractSymbols> extractSymbols(final TaskProvider<? extends AbstractLinkTask> link, Names names, TaskContainer tasks, final NativeToolChain toolChain, final NativePlatform currentPlatform, final Provider<RegularFile> symbolLocation) {
-        return tasks.register(names.getTaskName("extractSymbols"), ExtractSymbols.class, new Action<ExtractSymbols>() {
-            @Override
-            public void execute(ExtractSymbols extractSymbols) {
-                extractSymbols.getBinaryFile().set(link.flatMap(new Transformer<Provider<? extends RegularFile>, AbstractLinkTask>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(AbstractLinkTask abstractLinkTask) {
-                        return abstractLinkTask.getLinkedFile();
-                    }
-                }));
-                extractSymbols.getSymbolFile().set(symbolLocation);
-                extractSymbols.getTargetPlatform().set(currentPlatform);
-                extractSymbols.getToolChain().set(toolChain);
-            }
+        return tasks.register(names.getTaskName("extractSymbols"), ExtractSymbols.class, extractSymbols -> {
+            extractSymbols.getBinaryFile().set(link.flatMap(task -> task.getLinkedFile()));
+            extractSymbols.getSymbolFile().set(symbolLocation);
+            extractSymbols.getTargetPlatform().set(currentPlatform);
+            extractSymbols.getToolChain().set(toolChain);
         });
     }
 

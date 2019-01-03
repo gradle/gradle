@@ -15,26 +15,37 @@
  */
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.OverlappingOutputs
-import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
-import org.gradle.internal.id.UniqueId
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
 @Subject(SkipEmptySourceFilesTaskExecuter)
 class SkipEmptySourceFilesTaskExecuterTest extends Specification {
+    @Rule TestNameTestDirectoryProvider temporaryFolder
+
     final target = Mock(TaskExecuter)
     final task = Mock(TaskInternal)
     final state = Mock(TaskStateInternal)
@@ -43,16 +54,17 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskFiles = Mock(FileCollectionInternal)
     final taskInputsListener = Mock(TaskInputsListener)
     final taskContext = Mock(TaskExecutionContext)
-    final taskArtifactState = Mock(TaskArtifactState)
-    final taskExecutionHistory = Mock(TaskExecutionHistory)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    final taskOutputChangesListener = Mock(TaskOutputChangesListener)
-    final buildInvocationId = UniqueId.generate()
-    final taskExecutionTime = 1L
-    final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
-    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputChangesListener, target, new BuildInvocationScopeId(buildInvocationId))
+    final outputChangeListener = Mock(OutputChangeListener)
+    final executionHistoryStore = Mock(ExecutionHistoryStore)
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target)
+    final stringInterner = new StringInterner()
+    final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
+    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
+        def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+
         when:
         executer.execute(task, state, taskContext)
 
@@ -63,16 +75,15 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
+        1 * taskContext.afterPreviousExecution >> afterPreviousExecution
 
         then: 'if no previous output files existed...'
-        1 * taskExecutionHistory.outputFiles >> new HashSet<File>()
+        1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.of()
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
@@ -81,8 +92,15 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
     def 'deletes previous output when sourceFiles are empty'() {
         given:
-        def previousFile = Mock(File)
-        Set<File> outputFiles = [previousFile]
+        def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+        def previousFile = temporaryFolder.file("output.txt")
+        previousFile << "some content"
+        def previousOutputFiles = ImmutableSortedMap.of(
+                "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
+                "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
 
         when:
         executer.execute(task, state, taskContext)
@@ -94,33 +112,37 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-        1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputChangesListener.beforeTaskOutputChanged()
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
+        _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> Optional.empty()
+        1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
-        _ * previousFile.exists() >> true
-        _ * previousFile.isDirectory() >> false
-        1 * previousFile.delete() >> true
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
+        !previousFile.exists()
         0 * _
     }
 
     def 'does not delete previous output when they are not safe to delete'() {
         given:
-        def previousFile = Mock(File)
-        Set<File> outputFiles = [previousFile]
+        def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+        def previousFile = temporaryFolder.file("output.txt")
+        previousFile.createNewFile()
+        def previousOutputFiles = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
 
         when:
         executer.execute(task, state, taskContext)
@@ -132,32 +154,53 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-        1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputChangesListener.beforeTaskOutputChanged()
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecution
+        _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> Optional.empty()
+        1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
-        1 * previousFile.exists() >> true
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata.buildInvocationId, taskContext)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
+        previousFile.exists()
         0 * _
     }
 
     def 'does not delete directories when there are overlapping outputs'() {
         given:
-        def previousFile = Mock(File)
-        def previousDirectory = Mock(File)
-        Set<File> outputFiles = [previousFile, previousDirectory]
+        def outputFiles = []
+        def outputDir = temporaryFolder.createDir("rootDir")
+
+        outputFiles << outputDir.file("some-output.txt")
+        def subDir = outputDir.createDir("subDir")
+        outputFiles << subDir.file("in-subdir.txt")
+
+        def outputFile = temporaryFolder.createFile("output.txt")
+        outputFiles << outputFile
+
+        outputFiles.each {
+            it << "output ${it.name}"
+        }
+
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousOutputFiles = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(outputDir, outputFile))
+        )
+
+        def overlappingFile = outputDir.file("overlap")
+        overlappingFile << "overlapping file"
+        def outputFilesBefore = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(outputDir, outputFile, overlappingFile))
+        )
+        def overlappingOutputs = new OverlappingOutputs("someProperty", "path/to/outputFile")
 
         when:
         executer.execute(task, state, taskContext)
@@ -169,28 +212,25 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-        1 * taskExecutionHistory.overlappingOutputs >> new OverlappingOutputs("outputProperty", "some/path")
-        1 * taskOutputChangesListener.beforeTaskOutputChanged()
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
+        _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> Optional.of(overlappingOutputs)
+        1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
-        _ * previousFile.exists() >> true
-        _ * previousDirectory.exists() >> true
-        _ * previousDirectory.compareTo(previousFile) >> 1
-        _ * previousFile.compareTo(previousDirectory) >> -1
-        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
-        1 * cleanupRegistry.isOutputOwnedByBuild(previousDirectory) >> true
-        _ * previousFile.isDirectory() >> false
-        _ * previousDirectory.isDirectory() >> true
-        1 * previousFile.delete() >> true
+        5 * cleanupRegistry.isOutputOwnedByBuild(_) >> true
+        outputDir.exists()
+        subDir.exists()
+        overlappingFile.exists()
+        outputFiles.each {
+            assert !it.exists()
+        }
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
-
-        then:
+        1 * task.path >> "task"
+        1 * executionHistoryStore.remove("task")
         1 * taskInputsListener.onExecute(task, sourceFiles)
 
         then:
@@ -199,8 +239,15 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
     def 'exception thrown when sourceFiles are empty and deletes previous output, but delete fails'() {
         given:
-        def previousFile = Mock(File)
-        Set<File> outputFiles = [previousFile]
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousFile = temporaryFolder.file("output.txt")
+        previousFile.createNewFile()
+        def previousOutputFiles = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
+        def outputFilesBefore = ImmutableSortedMap.of(
+            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(previousFile))
+        )
 
         when:
         executer.execute(task, state, taskContext)
@@ -212,22 +259,22 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
-        1 * taskArtifactState.executionHistory >> taskExecutionHistory
-        1 * taskExecutionHistory.outputFiles >> outputFiles
-        1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputChangesListener.beforeTaskOutputChanged()
+        _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
+        _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
+        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
+        1 * taskContext.overlappingOutputs >> Optional.empty()
+        1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'
-        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
-        _ * previousFile.exists() >> true
-        _ * previousFile.isDirectory() >> false
-        1 * previousFile.delete() >> false
-        1 * previousFile.toString() >> "output"
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
+            // Delete the file here so that deletion in SkipEmptySourceFilesTaskExecuter fails
+            assert previousFile.delete()
+            return true
+        }
 
         then:
         UncheckedIOException exception = thrown()
-        exception.message.contains("Unable to delete file: output")
+        exception.message.contains("java.io.FileNotFoundException: File does not exist")
     }
 
     def 'executes task when sourceFiles are not empty'() {
@@ -242,7 +289,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext)
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:
@@ -260,7 +307,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext)
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:

@@ -20,12 +20,14 @@ import groovy.lang.GString;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ValueSanitizers {
     private static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
-        public Object sanitize(Object value) {
+        @Nullable
+        public Object sanitize(@Nullable Object value) {
             if (value instanceof GString) {
                 return value.toString();
             } else {
@@ -35,13 +37,14 @@ public class ValueSanitizers {
     };
     private static final ValueSanitizer<Object> IDENTITY_SANITIZER = new ValueSanitizer<Object>() {
         @Override
-        public Object sanitize(Object value) {
+        @Nullable
+        public Object sanitize(@Nullable Object value) {
             return value;
         }
     };
     private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = new ValueCollector<Object>() {
         @Override
-        public void add(Object value, Collection<Object> dest) {
+        public void add(@Nullable Object value, Collection<Object> dest) {
             dest.add(value);
         }
 
@@ -52,7 +55,7 @@ public class ValueSanitizers {
     };
     private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = new ValueCollector<Object>() {
         @Override
-        public void add(Object value, Collection<Object> dest) {
+        public void add(@Nullable Object value, Collection<Object> dest) {
             dest.add(STRING_VALUE_SANITIZER.sanitize(value));
         }
 

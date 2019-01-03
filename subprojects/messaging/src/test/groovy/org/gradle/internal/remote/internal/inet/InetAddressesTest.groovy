@@ -28,11 +28,6 @@ class InetAddressesTest extends Specification{
         !addresses.loopback.empty
     }
 
-    def "always contains at least one multicast interface"() {
-        expect:
-        !addresses.multicastInterfaces.empty
-    }
-
     @Requires(TestPrecondition.ONLINE)
     def "always contains at least one remote address"() {
         expect:

@@ -15,20 +15,9 @@
  */
 package org.gradle.build.docs.dsl.source
 
+import com.github.javaparser.JavaParser
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
-import groovyjarjarantlr.collections.AST
-import org.codehaus.groovy.antlr.AntlrASTProcessor
-import org.codehaus.groovy.antlr.SourceBuffer
-import org.codehaus.groovy.antlr.UnicodeEscapingReader
-import org.codehaus.groovy.antlr.java.Java2GroovyConverter
-import org.codehaus.groovy.antlr.java.JavaLexer
-import org.codehaus.groovy.antlr.java.JavaRecognizer
-import org.codehaus.groovy.antlr.parser.GroovyLexer
-import org.codehaus.groovy.antlr.parser.GroovyRecognizer
-import org.codehaus.groovy.antlr.treewalker.PreOrderTraversal
-import org.codehaus.groovy.antlr.treewalker.SourceCodeTraversal
-import org.codehaus.groovy.antlr.treewalker.Visitor
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
@@ -89,57 +78,14 @@ class ExtractDslMetaDataTask extends SourceTask {
     }
 
     def parse(File sourceFile, ClassMetaDataRepository<ClassMetaData> repository) {
+        if (!sourceFile.name.endsWith('.java')) {
+            throw new DocGenerationException("Parsing non-Java files is not supported: $sourceFile")
+        }
         try {
-            sourceFile.withReader { reader ->
-                if (sourceFile.name.endsWith('.java')) {
-                    parseJava(reader, repository)
-                } else {
-                    parseGroovy(reader, repository)
-                }
-            }
+            JavaParser.parse(sourceFile).accept(new SourceMetaDataVisitor(), repository)
         } catch (Exception e) {
             throw new DocGenerationException("Could not parse '$sourceFile'.", e)
         }
-    }
-
-    def parseJava(Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
-        SourceBuffer sourceBuffer = new SourceBuffer();
-        UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
-        JavaLexer lexer = new JavaLexer(unicodeReader);
-        unicodeReader.setLexer(lexer);
-        JavaRecognizer parser = JavaRecognizer.make(lexer);
-        parser.setSourceBuffer(sourceBuffer);
-        String[] tokenNames = parser.getTokenNames();
-
-        parser.compilationUnit();
-        AST ast = parser.getAST();
-
-        // modify the Java AST into a Groovy AST (just token types)
-        Visitor java2groovyConverter = new Java2GroovyConverter(tokenNames);
-        AntlrASTProcessor java2groovyTraverser = new PreOrderTraversal(java2groovyConverter);
-        java2groovyTraverser.process(ast);
-
-        def visitor = new SourceMetaDataVisitor(sourceBuffer, repository, false)
-        AntlrASTProcessor traverser = new SourceCodeTraversal(visitor);
-        traverser.process(ast);
-        visitor.complete()
-    }
-
-    def parseGroovy(Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
-        SourceBuffer sourceBuffer = new SourceBuffer();
-        UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
-        GroovyLexer lexer = new GroovyLexer(unicodeReader);
-        unicodeReader.setLexer(lexer);
-        GroovyRecognizer parser = GroovyRecognizer.make(lexer);
-        parser.setSourceBuffer(sourceBuffer);
-
-        parser.compilationUnit();
-        AST ast = parser.getAST();
-
-        def visitor = new SourceMetaDataVisitor(sourceBuffer, repository, true)
-        AntlrASTProcessor traverser = new SourceCodeTraversal(visitor);
-        traverser.process(ast);
-        visitor.complete()
     }
 
     def fullyQualifyAllTypeNames(ClassMetaData classMetaData, TypeNameResolver resolver) {

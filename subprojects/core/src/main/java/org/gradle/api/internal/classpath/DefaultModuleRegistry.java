@@ -200,16 +200,34 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        List<String> suffixes = getClasspathSuffixes(name);
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
+        matcher.matches();
+        String projectDirName = matcher.group(1);
+        String projectName = toCamelCase(projectDirName);
+        List<String> suffixesForProjectDir = getClasspathSuffixesForProjectDir(projectDirName);
+        List<String> suffixesForProjectName = getClasspathSuffixesForProjectName(projectName);
         for (File file : classpath) {
             if (file.isDirectory()) {
-                for (String suffix : suffixes) {
-                    if (file.getAbsolutePath().endsWith(suffix)) {
-                        implementationClasspath.add(file);
+                String path = file.getAbsolutePath();
+                if (path.endsWith(projectName) && !isLocatedInSubproject(file)) {
+                    for (String suffix : suffixesForProjectName) {
+                        if (path.endsWith(suffix)) {
+                            implementationClasspath.add(file);
+                        }
+                    }
+                } else {
+                    for (String suffix : suffixesForProjectDir) {
+                        if (path.endsWith(suffix)) {
+                            implementationClasspath.add(file);
+                        }
                     }
                 }
             }
         }
+    }
+
+    private boolean isLocatedInSubproject(File file) {
+        return "subprojects".equals(file.getParentFile().getParentFile().getParentFile().getParentFile().getName());
     }
 
     /**
@@ -218,20 +236,12 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
      *
      * <ul>
      * <li>In Eclipse, they are in the bin/ folder.</li>
-     * <li>In IDEA, they are in a folder derived from their module name.</li>
-     * Due to de-duplication with names in the buildSrc project, that module name can start with "gradle-"
+     * <li>In IDEA (native import), they are in in the out/production/ folder.</li>
      * </ul>
      * <li>In both cases we also include the static and generated resources of the project.</li>
      */
-    private List<String> getClasspathSuffixes(String name) {
+    private List<String> getClasspathSuffixesForProjectDir(String projectDirName) {
         List<String> suffixes = new ArrayList<String>();
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
-        matcher.matches();
-        String projectDirName = matcher.group(1);
-        String projectName = toCamelCase(projectDirName);
-
-        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
-        suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
 
         suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/out/production/resources").replace('/', File.separatorChar));
@@ -243,6 +253,19 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
+        return suffixes;
+    }
+
+    /**
+     * Provides the locations where classes and resources of a Gradle module can be found when
+     * running in embedded mode from IDEA, where the project was generated using the `idea` task.
+     * To avoid name conflicts with buildSrc projects, that module name can start with "gradle-".
+     */
+    private List<String> getClasspathSuffixesForProjectName(String projectName) {
+        List<String> suffixes = new ArrayList<String>();
+
+        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
+        suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
         return suffixes;
     }
 

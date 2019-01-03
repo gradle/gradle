@@ -130,7 +130,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The maximum number of errors that are tolerated before breaking the build
-     * or setting the failure property. Defaults to <tt>0</tt>.
+     * or setting the failure property. Defaults to <code>0</code>.
      * <p>
      * Example: maxErrors = 42
      *
@@ -153,7 +153,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The maximum number of warnings that are tolerated before breaking the build
-     * or setting the failure property. Defaults to <tt>Integer.MAX_VALUE</tt>.
+     * or setting the failure property. Defaults to <code>Integer.MAX_VALUE</code>.
      * <p>
      * Example: maxWarnings = 1000
      *
@@ -175,7 +175,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
+     * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
      */
@@ -184,7 +184,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
+     * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
      */

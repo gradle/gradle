@@ -17,11 +17,17 @@
 package org.gradle.util
 
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.Internal
 
 class TestTask extends ConventionTask  {
+    @Internal
     TestTask self
+    @Internal
     String customProp
+    @Internal
     List list1
+    @Internal
     List list2
+    @Internal
     Map map1
 }

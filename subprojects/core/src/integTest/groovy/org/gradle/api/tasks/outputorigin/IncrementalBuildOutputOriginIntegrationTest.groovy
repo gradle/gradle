@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginFixture
 import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
@@ -28,7 +28,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     @Rule
-    public final TaskOutputOriginFixture originBuildInvocationId = new TaskOutputOriginFixture(executer, temporaryFolder)
+    public final OriginFixture originBuildInvocationId = new OriginFixture(executer, temporaryFolder)
 
     UniqueId getBuildInvocationId() {
         scopeIds.buildInvocationId

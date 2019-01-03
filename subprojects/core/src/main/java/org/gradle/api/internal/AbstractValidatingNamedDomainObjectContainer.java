@@ -31,13 +31,13 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
 
     private final String nameDescription;
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, instantiator, namer);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, namer, callbackActionDecorator);
         nameDescription = type.getSimpleName() + " name";
     }
 
-    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        super(type, instantiator);
+    protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, instantiator, callbackActionDecorator);
         nameDescription = type.getSimpleName() + " name";
     }
 

@@ -23,6 +23,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.TreeVisitor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class LocationAwareException extends GradleException implements FailureRe
 
     /**
      * <p>Returns the display name of the script where this exception occurred.</p>
+     *
      * @return The source display name. May return null.
      */
     public String getSourceDisplayName() {
@@ -111,7 +113,7 @@ public class LocationAwareException extends GradleException implements FailureRe
      */
     public List<Throwable> getReportableCauses() {
         final List<Throwable> causes = new ArrayList<Throwable>();
-        visitCauses(getCause(), new TreeVisitor<Throwable>(){
+        visitCauses(getCause(), new TreeVisitor<Throwable>() {
             @Override
             public void node(Throwable node) {
                 causes.add(node);
@@ -125,7 +127,9 @@ public class LocationAwareException extends GradleException implements FailureRe
      */
     public void visitReportableCauses(TreeVisitor<? super Throwable> visitor) {
         visitor.node(this);
-        visitCauses(getCause(), visitor);
+        if (this.getCause() != null) {
+            visitCauses(this.getCause(), visitor);
+        }
     }
 
     private void visitCauses(Throwable t, TreeVisitor<? super Throwable> visitor) {
@@ -135,39 +139,37 @@ public class LocationAwareException extends GradleException implements FailureRe
             if (!causes.isEmpty()) {
                 visitor.startChildren();
                 for (Throwable cause : causes) {
-                    visitor.node(cause);
-                    if (cause.getClass().getAnnotation(Contextual.class) != null) {
-                        visitCauses(cause, visitor);
-                    }
+                    visitContextual(cause, visitor);
                 }
                 visitor.endChildren();
             }
-            return;
-        }
-
-        if (t.getCause() != null) {
+        } else if (t.getCause() != null) {
             visitor.startChildren();
-            Throwable next = findNearestContextualCause(t);
-            if (next != null) {
-                // Show any contextual cause recursively
-                visitor.node(next);
-                visitCauses(next, visitor);
-            } else {
-                // Show the direct cause of the last contextual cause.
-                visitor.node(t.getCause());
-            }
+            visitContextual(t.getCause(), visitor);
             visitor.endChildren();
         }
     }
 
-    private Throwable findNearestContextualCause(Throwable t) {
-        if (t.getCause() == null) {
+    private void visitContextual(Throwable t, TreeVisitor<? super Throwable> visitor) {
+        Throwable next = findNearestContextual(t);
+        if (next != null) {
+            // Show any contextual cause recursively
+            visitor.node(next);
+            visitCauses(next, visitor);
+        } else {
+            // Show the direct cause of the last contextual cause only
+            visitor.node(t);
+        }
+    }
+
+    @Nullable
+    private Throwable findNearestContextual(@Nullable Throwable t) {
+        if (t == null) {
             return null;
         }
-        Throwable cause = t.getCause();
-        if (cause.getClass().getAnnotation(Contextual.class) != null) {
-            return cause;
+        if (t.getClass().getAnnotation(Contextual.class) != null || t instanceof MultiCauseException) {
+            return t;
         }
-        return findNearestContextualCause(cause);
+        return findNearestContextual(t.getCause());
     }
 }

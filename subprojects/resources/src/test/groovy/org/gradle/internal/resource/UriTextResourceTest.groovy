@@ -259,15 +259,15 @@ class UriTextResourceTest extends Specification {
     def extractsCharacterEncodingFromContentType() {
         expect:
         extractCharacterEncoding('content/unknown', null) == null
-        extractCharacterEncoding('content/unknown', 'default') == 'default'
-        extractCharacterEncoding(null, 'default') == 'default'
+        extractCharacterEncoding('content/unknown', Charset.defaultCharset()) == Charset.defaultCharset()
+        extractCharacterEncoding(null, Charset.defaultCharset()) == Charset.defaultCharset()
         extractCharacterEncoding('text/html', null) == null
-        extractCharacterEncoding('text/html; charset=UTF-8', null) == 'UTF-8'
-        extractCharacterEncoding('text/html; other=value; other="value"; charset=US-ASCII', null) == 'US-ASCII'
+        extractCharacterEncoding('text/html; charset=UTF-8', null).name() == 'UTF-8'
+        extractCharacterEncoding('text/html; other=value; other="value"; charset=US-ASCII', null).name() == 'US-ASCII'
         extractCharacterEncoding('text/plain; other=value;', null) == null
-        extractCharacterEncoding('text/plain; charset="charset"', null) == 'charset'
-        extractCharacterEncoding('text/plain; charset="\\";\\="', null) == '";\\='
+        extractCharacterEncoding('text/plain; charset="UTF-8"', null).name() == 'UTF-8'
+        extractCharacterEncoding('text/plain; other="\\";\\="; charset="UTF-8"', null).name() == 'UTF-8'
         extractCharacterEncoding('text/plain; charset=', null) == null
-        extractCharacterEncoding('text/plain; charset; charset=;charset="missing-quote', null) == "missing-quote"
+        extractCharacterEncoding('text/plain; charset; other=;charset="UTF-8', null).name() == "UTF-8"
     }
 }

@@ -15,31 +15,15 @@
  */
 package org.gradle.api.internal.tasks.execution.statistics;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.InternalBuildAdapter;
 
-public class TaskExecutionStatisticsEventAdapter extends InternalBuildAdapter implements BuildListener, TaskExecutionListener {
-    private final TaskExecutionStatisticsListener listener;
+public class TaskExecutionStatisticsEventAdapter implements TaskExecutionListener {
     private int executedTasksCount;
     private int fromCacheTaskCount;
     private int upToDateTaskCount;
-
-    public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public void buildFinished(BuildResult result) {
-        // Do not report stats for nested builds
-        if (result.getGradle().getParent() == null) {
-            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, fromCacheTaskCount, upToDateTaskCount));
-        }
-    }
 
     @Override
     public void beforeExecute(Task task) {
@@ -48,28 +32,26 @@ public class TaskExecutionStatisticsEventAdapter extends InternalBuildAdapter im
 
     @Override
     public void afterExecute(Task task, TaskState state) {
-        if (!taskIsForNestedBuild(task)) {
-            TaskStateInternal stateInternal = (TaskStateInternal) state;
-            if (stateInternal.isActionable()) {
-                switch (stateInternal.getOutcome()) {
-                    case EXECUTED:
-                        executedTasksCount++;
-                        break;
-                    case FROM_CACHE:
-                        fromCacheTaskCount++;
-                        break;
-                    case UP_TO_DATE:
-                        upToDateTaskCount++;
-                        break;
-                    default:
-                        // Ignore any other outcome
-                        break;
-                }
+        TaskStateInternal stateInternal = (TaskStateInternal) state;
+        if (stateInternal.isActionable()) {
+            switch (stateInternal.getOutcome()) {
+                case EXECUTED:
+                    executedTasksCount++;
+                    break;
+                case FROM_CACHE:
+                    fromCacheTaskCount++;
+                    break;
+                case UP_TO_DATE:
+                    upToDateTaskCount++;
+                    break;
+                default:
+                    // Ignore any other outcome
+                    break;
             }
         }
     }
 
-    private boolean taskIsForNestedBuild(Task task) {
-        return task.getProject().getGradle().getParent() != null;
+    public TaskExecutionStatistics getStatistics() {
+        return new TaskExecutionStatistics(executedTasksCount, fromCacheTaskCount, upToDateTaskCount);
     }
 }

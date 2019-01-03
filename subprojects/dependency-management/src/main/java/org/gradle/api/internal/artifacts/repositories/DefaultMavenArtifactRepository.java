@@ -25,8 +25,9 @@ import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -49,6 +50,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -126,7 +128,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -239,6 +241,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         configureAction.execute(metadataSources);
     }
 
+    @Override
+    public void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction) {
+        content(Cast.uncheckedCast(configureAction));
+    }
+
     ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
@@ -285,6 +292,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     protected InstantiatorFactory getInstantiatorFactory() {
         return instantiatorFactory;
+    }
+
+    @Override
+    protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+        return new DefaultMavenRepositoryContentDescriptor();
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

@@ -19,8 +19,8 @@ class GreetingPluginExtension {
 
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
-        // Create the extension, passing in an ObjectFactory for it to use
-        def extension = project.extensions.create('greeting', GreetingPluginExtension, project.objects)
+        // Create the 'greeting' extension
+        def extension = project.extensions.create('greeting', GreetingPluginExtension)
         project.task('hello') {
             doLast {
                 println "${extension.message} from ${extension.greeter.name}"

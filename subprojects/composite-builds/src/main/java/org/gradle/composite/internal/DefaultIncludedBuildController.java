@@ -25,7 +25,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -105,8 +104,6 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             }
             try {
                 doBuild(tasksToExecute);
-            } catch (ReportedException e) {
-                // Ignore: we record failure in the BuildListener during the build
             } finally {
                 setState(State.CollectingTasks);
             }
@@ -196,9 +193,9 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         IncludedBuildExecutionListener listener = new IncludedBuildExecutionListener(tasksToExecute);
         try {
             includedBuild.execute(tasksToExecute, listener);
-            listener.tasksFinished(null);
-        } catch (ReportedException failure) {
-            listener.tasksFinished(failure);
+            tasksDone(tasksToExecute, null);
+        } catch (RuntimeException failure) {
+            tasksDone(tasksToExecute, failure);
         }
     }
 
@@ -206,6 +203,10 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         lock.lock();
         try {
             TaskState taskState = tasks.get(task);
+            if (taskState == null) {
+                taskState = new TaskState();
+                tasks.put(task, taskState);
+            }
             taskState.status = failure == null ? TaskStatus.SUCCESS : TaskStatus.FAILED;
         } finally {
             lock.unlock();
@@ -219,7 +220,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         coordinationService.notifyStateChange();
     }
 
-    private void tasksDone(Collection<String> tasksExecuted, @Nullable ReportedException failure) {
+    private void tasksDone(Collection<String> tasksExecuted, @Nullable RuntimeException failure) {
         boolean someTasksNotCompleted = false;
         lock.lock();
         try {
@@ -231,10 +232,10 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                 }
             }
             if (failure != null) {
-                if (failure.getCause() instanceof MultipleBuildFailures) {
-                    taskFailures.addAll(((MultipleBuildFailures) failure.getCause()).getCauses());
+                if (failure instanceof MultipleBuildFailures) {
+                    taskFailures.addAll(((MultipleBuildFailures) failure).getCauses());
                 } else {
-                    taskFailures.add(failure.getCause());
+                    taskFailures.add(failure);
                 }
             }
         } finally {
@@ -304,10 +305,6 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             }
         }
 
-        public void tasksFinished(@Nullable ReportedException failure) {
-            tasksDone(tasksToExecute, failure);
-        }
-
         @Override
         public void beforeExecute(Task task) {
         }
@@ -316,9 +313,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
             String taskPath = task.getPath();
             Throwable failure = state.getFailure();
-            if (tasksToExecute.contains(taskPath)) {
-                taskCompleted(taskPath, failure);
-            }
+            taskCompleted(taskPath, failure);
         }
     }
 }

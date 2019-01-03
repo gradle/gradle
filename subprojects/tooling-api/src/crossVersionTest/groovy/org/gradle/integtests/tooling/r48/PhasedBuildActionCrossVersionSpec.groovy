@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.tooling.r48
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
@@ -135,16 +137,19 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=4.8")
-    def "failures are received and future actions not run"() {
-        IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
-        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
+    def "failures from action are received and future actions not run"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.action().projectsLoaded(new FailAction(), projectsLoadedHandler)
-                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+            def action = connection.action()
+                .projectsLoaded(new FailAction(), projectsLoadedHandler)
+                .buildFinished(new BrokenAction(), buildFinishedHandler)
                 .build()
-                .run()
+
+            collectOutputs(action)
+            action.run()
         }
 
         then:
@@ -154,6 +159,82 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "actionFailure"
         projectsLoadedHandler.getResult() == null
         buildFinishedHandler.getResult() == null
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        if (targetDist.toolingApiHasCauseOnPhasedActionFail) {
+            failure.assertHasDescription('actionFailure')
+        } else {
+            failure.assertHasCause('actionFailure')
+        }
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=4.8")
+    def "actions are not run when configuration fails"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        given:
+        buildFile << """
+            throw new RuntimeException("broken")
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action()
+                .projectsLoaded(new BrokenAction(), projectsLoadedHandler)
+                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("A problem occurred evaluating root project")
+        projectsLoadedHandler.getResult() == null
+        buildFinishedHandler.getResult() == null
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=4.8")
+    def "build finished action does not run when build fails"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
+                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.forTasks("broken")
+            action.run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        projectsLoadedHandler.getResult() == "loading"
+        buildFinishedHandler.getResult() == null
+
+        and:
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        assertHasBuildFailedLogging()
     }
 
     @TargetGradleVersion(">=4.8")

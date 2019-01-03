@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -36,21 +37,22 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    @Override
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         boolean skip;
         try {
             skip = !task.getOnlyIf().isSatisfiedBy(task);
         } catch (Throwable t) {
             state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
-            return;
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         }
 
         if (skip) {
             LOGGER.info("Skipping {} as task onlyIf is false.", task);
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
-            return;
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         }
 
-        executer.execute(task, state, context);
+        return executer.execute(task, state, context);
     }
 }

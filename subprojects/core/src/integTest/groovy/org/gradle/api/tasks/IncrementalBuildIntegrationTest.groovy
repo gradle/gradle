@@ -1097,7 +1097,7 @@ task generate(type: TransformerTask) {
         succeeds "customTask", "--info"
         then:
         skippedTasks.empty
-        output.contains "Task ':customTask' was loaded with an unknown classloader"
+        output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask\$Dsl')."
     }
 
     def "task with custom action loaded with custom classloader is never up-to-date"() {
@@ -1144,7 +1144,7 @@ task generate(type: TransformerTask) {
         succeeds "customTask", "--info"
         then:
         skippedTasks.empty
-        output.contains "Task ':customTask' has an additional action that was loaded with an unknown classloader"
+        output.contains "Additional action for task ':customTask': was loaded with an unknown classloader (class 'CustomTaskAction')."
     }
 
     @Issue("gradle/gradle#1168")

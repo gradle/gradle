@@ -19,6 +19,8 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -28,6 +30,7 @@ import spock.lang.Issue
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
@@ -90,13 +93,12 @@ model {
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'
                 linker.args '-pthread'
-           
-                if (toolChain instanceof Gcc || toolChain instanceof Clang) {
-                    // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
-                    // Later, Gradle's dependency management will understand ABI
-                    cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
-                    linker.args '-std=c++03'
-                }
+            }
+            if ((toolChain instanceof Gcc || toolChain instanceof Clang) && ${!toolChain.displayName.startsWith("gcc cygwin")}) {
+                // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
+                // Later, Gradle's dependency management will understand ABI
+                cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                linker.args '-std=c++03'
             }
         }
     }

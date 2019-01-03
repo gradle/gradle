@@ -28,10 +28,11 @@ public class ValidatingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public void run(BuildAction action, BuildController buildController) {
-        delegate.run(action, buildController);
-        if (!buildController.hasResult()) {
+    public Result run(BuildAction action, BuildController buildController) {
+        Result result = delegate.run(action, buildController);
+        if (!result.hasResult()) {
             throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
         }
+        return result;
     }
 }

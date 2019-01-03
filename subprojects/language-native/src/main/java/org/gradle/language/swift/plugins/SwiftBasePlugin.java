@@ -16,23 +16,17 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
@@ -46,11 +40,11 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the Swift application and library plugins
@@ -58,7 +52,7 @@ import java.util.concurrent.Callable;
  * @since 4.1
  */
 @Incubating
-public class SwiftBasePlugin implements Plugin<ProjectInternal> {
+public class SwiftBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
     private final MacOSSdkPathLocator locator;
 
@@ -69,105 +63,68 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
-        final TaskContainerInternal tasks = project.getTasks();
+        final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ProviderFactory providers = project.getProviders();
 
         project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
 
-        project.getComponents().withType(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
-            @Override
-            public void execute(final DefaultSwiftBinary binary) {
-                final Names names = binary.getNames();
-                TaskProvider<SwiftCompile> compile = tasks.register(names.getCompileTaskName("swift"), SwiftCompile.class, new Action<SwiftCompile>() {
-                    @Override
-                    public void execute(SwiftCompile compile) {
-                        compile.getModules().from(binary.getCompileModules());
-                        compile.getSource().from(binary.getSwiftSource());
-                        compile.getDebuggable().set(binary.isDebuggable());
-                        compile.getOptimized().set(binary.isOptimized());
-                        if (binary.isTestable()) {
-                            compile.getCompilerArgs().add("-enable-testing");
-                        }
-                        if (binary.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
-                            compile.getCompilerArgs().add("-sdk");
-                            compile.getCompilerArgs().add(locator.find().getAbsolutePath());
-                        }
-                        compile.getModuleName().set(binary.getModule());
-                        compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
-                        compile.getModuleFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
-                            }
-                        })));
-                        compile.getSourceCompatibility().set(binary.getSourceCompatibility());
+        project.getComponents().withType(DefaultSwiftBinary.class, binary -> {
+            final Names names = binary.getNames();
+            TaskProvider<SwiftCompile> compile = tasks.register(names.getCompileTaskName("swift"), SwiftCompile.class, task -> {
+                task.getModules().from(binary.getCompileModules());
+                task.getSource().from(binary.getSwiftSource());
+                task.getDebuggable().set(binary.isDebuggable());
+                task.getOptimized().set(binary.isOptimized());
+                if (binary.isTestable()) {
+                    task.getCompilerArgs().add("-enable-testing");
+                }
+                if (binary.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
+                    task.getCompilerArgs().add("-sdk");
+                    task.getCompilerArgs().add(locator.find().getAbsolutePath());
+                }
+                task.getModuleName().set(binary.getModule());
+                task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                task.getModuleFile().set(buildDirectory.file(binary.getModule().map(moduleName -> "modules/" + names.getDirName() + moduleName + ".swiftmodule")));
+                task.getSourceCompatibility().set(binary.getSourceCompatibility());
 
-                        compile.getTargetPlatform().set(binary.getTargetPlatform());
+                task.getTargetPlatform().set(binary.getTargetPlatform());
 
-                        // TODO - make this lazy
-                        compile.getToolChain().set(binary.getToolChain());
+                // TODO - make this lazy
+                task.getToolChain().set(binary.getToolChain());
 
-                        if (binary instanceof SwiftSharedLibrary || binary instanceof SwiftStaticLibrary) {
-                            compile.getCompilerArgs().add("-parse-as-library");
-                        }
-                    }
-                });
+                if (binary instanceof SwiftSharedLibrary || binary instanceof SwiftStaticLibrary) {
+                    task.getCompilerArgs().add("-parse-as-library");
+                }
+            });
 
-                binary.getModuleFile().set(compile.flatMap(new Transformer<Provider<? extends RegularFile>, SwiftCompile>() {
-                    @Override
-                    public Provider<? extends RegularFile> transform(SwiftCompile swiftCompile) {
-                        return swiftCompile.getModuleFile();
-                    }
-                }));
-                binary.getCompileTask().set(compile);
-                binary.getObjectsDir().set(compile.flatMap(new Transformer<Provider<? extends Directory>, SwiftCompile>() {
-                    @Override
-                    public Provider<? extends Directory> transform(SwiftCompile swiftCompile) {
-                        return swiftCompile.getObjectFileDir();
-                    }
-                }));
-            }
+            binary.getModuleFile().set(compile.flatMap(task -> task.getModuleFile()));
+            binary.getCompileTask().set(compile);
+            binary.getObjectsDir().set(compile.flatMap(task -> task.getObjectFileDir()));
         });
 
-        project.getComponents().withType(DefaultSwiftComponent.class, new Action<DefaultSwiftComponent>() {
-            @Override
-            public void execute(final DefaultSwiftComponent component) {
-                component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
-                    @Override
-                    public void execute(final DefaultSwiftBinary binary) {
-                        Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftVersion>() {
-                            @Override
-                            public SwiftVersion call() throws Exception {
-                                component.getSourceCompatibility().finalizeValue();
-                                SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
-                                if (swiftSourceCompatibility == null) {
-                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
-                                }
-                                return swiftSourceCompatibility;
-                            }
-                        });
+        project.getComponents().withType(DefaultSwiftComponent.class, component -> {
+            component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, binary -> {
+                Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(() -> {
+                    component.getSourceCompatibility().finalizeValue();
+                    SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                    if (swiftSourceCompatibility == null) {
+                        return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
+                    }
+                    return swiftSourceCompatibility;
+                });
 
-                        binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
-                    }
-                });
-            }
+                binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
+            });
         });
-        project.getComponents().withType(ProductionSwiftComponent.class, new Action<ProductionSwiftComponent>() {
-            @Override
-            public void execute(final ProductionSwiftComponent component) {
-                project.afterEvaluate(new Action<Project>() {
-                    @Override
-                    public void execute(Project project) {
-                        DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
-                    }
-                });
-            }
+        project.getComponents().withType(ProductionSwiftComponent.class, component -> {
+            project.afterEvaluate(p -> {
+                DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
+                publicationRegistry.registerPublication((ProjectInternal) project, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
+            });
         });
     }
 
@@ -175,7 +132,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
-                && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
         }

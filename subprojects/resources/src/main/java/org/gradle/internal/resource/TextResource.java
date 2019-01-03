@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -97,4 +98,9 @@ public interface TextResource extends Resource {
      * @throws ResourceException On failure to read content.
      */
     String getText() throws ResourceException;
+
+    /**
+     * Returns a hashcode of this resource's contents.
+     */
+    HashCode getContentHash() throws ResourceException;
 }

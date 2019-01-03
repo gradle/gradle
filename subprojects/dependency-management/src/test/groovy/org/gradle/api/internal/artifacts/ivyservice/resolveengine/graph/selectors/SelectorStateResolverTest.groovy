@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -70,9 +71,9 @@ class SelectorStateResolverTest extends Specification {
     private final conflictResolver = new ConflictResolverFactory(new DefaultVersionComparator(), new VersionParser()).createConflictResolver(ConflictResolution.latest)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
-
-    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root)
-    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root)
+    private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
+    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations)
+    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations)
 
     @Unroll
     def "resolve selector #permutation"() {
@@ -183,7 +184,7 @@ class SelectorStateResolverTest extends Specification {
         def nine = new TestProjectSelectorState(projectId)
         def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
-        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root)
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations)
 
         when:
         def selected = resolverWithMock.selectBest(moduleId, [nine, otherNine])

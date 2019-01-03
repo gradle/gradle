@@ -61,7 +61,7 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-This API is likely to be replaced in the near future. See the <<task_configuration_avoidance#sec:what_is_new_task_configuration,task configuration avoidance chapter>> for more information.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance,task configuration avoidance chapter>>.
 ====
 
 .Defining tasks using strings for task names
@@ -78,7 +78,7 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
 
 And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
@@ -157,7 +157,7 @@ include::sample[dir="userguide/tasks/configureUsingBlock/groovy",files="build.gr
 include::sample[dir="userguide/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This works for _any_ task. Task access is just a shortcut for the `tasks.getByName()` method. It is important to note that if you pass a block to the `getByName()` method, this block is applied to _configure_ the task, not when the task executes.
+This works for _any_ task. Task access is just a shortcut for the `tasks.named()` method. It is important to note that if you pass a block to the `named()` method, this block is applied to _configure_ the task, not when the task executes.
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 
@@ -201,6 +201,12 @@ You can also create the task using a `constructorArgs` Map argument using the Pr
 ====
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/groovy",files="build.gradle[tags=on-project]"]
 include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
+====
+
+[NOTE]
+.Prefer creating a task with constructor arguments using the TaskContainer
+====
+It's recommended to use the <<task_configuration_avoidance.adoc,Task Configuration Avoidance>> APIs to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.
@@ -705,7 +711,7 @@ Note that any inputs to such actions should be tracked, either by annotated prop
 
 Using nested inputs allows richer modeling and extensibility for tasks, as e.g. shown by link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders[Test.getJvmArgumentProviders()].
 
-This allows us to link:https://github.com/gradle/gradle/blob/7b047c7cbb4932743243a76123f5347be6d07856/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L138-L157[model the JaCoCo Java agent], thus declaring the necessary JVM arguments and providing the inputs and outputs to Gradle:
+This allows us to model the JaCoCo Java agent, thus declaring the necessary JVM arguments and providing the inputs and outputs to Gradle:
 
 ====
 [source,java]
@@ -1045,7 +1051,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 
 Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.layout.configurableFiles()` in place of `project.fileTree()`:
 
-.Setting up an inferred task dependency with filesFor()
+.Setting up an inferred task dependency with `layout.files()`
 ====
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
 include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]

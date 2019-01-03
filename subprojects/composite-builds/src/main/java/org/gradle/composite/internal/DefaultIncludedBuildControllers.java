@@ -91,11 +91,15 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void finishBuild() {
+    public void finishBuild(Collection<? super Throwable> failures) {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
         for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
-            includedBuild.finishBuild();
+            try {
+                includedBuild.finishBuild();
+            } catch (Exception e) {
+                failures.add(e);
+            }
         }
     }
 

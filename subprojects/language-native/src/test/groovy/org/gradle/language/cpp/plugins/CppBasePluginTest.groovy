@@ -36,6 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
+import org.gradle.swiftpm.internal.NativeProjectPublication
 import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -146,7 +147,7 @@ class CppBasePluginTest extends Specification {
         project.evaluate()
 
         then:
-        def publications = project.services.get(ProjectPublicationRegistry).getPublications(project.path)
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(NativeProjectPublication, project.identityPath)
         publications.size() == 1
         publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }

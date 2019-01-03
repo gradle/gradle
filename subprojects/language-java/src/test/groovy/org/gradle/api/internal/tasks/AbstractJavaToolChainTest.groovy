@@ -21,13 +21,13 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
@@ -72,7 +72,7 @@ abstract class AbstractJavaToolChainTest extends Specification {
         toolProvider.available
 
         when:
-        TreeVisitor<String> visitor = Mock()
+        DiagnosticsVisitor visitor = Mock()
         toolProvider.explain(visitor)
 
         then:
@@ -82,7 +82,7 @@ abstract class AbstractJavaToolChainTest extends Specification {
     @Requires(JDK8_OR_EARLIER)
     def "creates unavailable tool provider for incompatible platform"() {
         def futurePlatform = platform(JavaVersion.VERSION_1_9)
-        TreeVisitor<String> visitor = Mock()
+        DiagnosticsVisitor visitor = Mock()
 
         when:
         def toolProvider = toolChain.select(futurePlatform)

@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":versioning"))
     implementation(project(":performance"))
-    implementation("org.pegdown:pegdown:1.6.0")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.google.guava:guava-jdk5:14.0.1")
     implementation("org.ow2.asm:asm:6.0")
@@ -30,4 +29,8 @@ gradlePlugin {
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
         }
     }
+}
+
+tasks.withType<Test> {
+    environment("BUILD_BRANCH", "myBranch")
 }

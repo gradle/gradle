@@ -40,10 +40,6 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         this.optionValueMethod = optionValueMethod;
     }
 
-    public OptionElement getOptionElement() {
-        return optionElement;
-    }
-
     public String getName() {
         return optionElement.getOptionName();
     }

@@ -268,8 +268,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
                     jar.setDescription("Assembles the application jar for the " + binary.getDisplayName() + ".");
-                    jar.setDestinationDir(binary.getJarFile().getParentFile());
-                    jar.setArchiveName(binary.getJarFile().getName());
+                    jar.getDestinationDirectory().set(binary.getJarFile().getParentFile());
+                    jar.getArchiveFileName().set(binary.getJarFile().getName());
                     jar.from(binary.getAssembly().getClassDirectories());
                     jar.from(binary.getAssembly().getResourceDirectories());
                     jar.dependsOn(binary.getAssembly());
@@ -280,9 +280,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             tasks.create(assetsJarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
                     jar.setDescription("Assembles the assets jar for the " + binary.getDisplayName() + ".");
-                    jar.setDestinationDir(binary.getAssetsJarFile().getParentFile());
-                    jar.setArchiveName(binary.getAssetsJarFile().getName());
-                    jar.setClassifier("assets");
+                    jar.getDestinationDirectory().set(binary.getAssetsJarFile().getParentFile());
+                    jar.getArchiveFileName().set(binary.getAssetsJarFile().getName());
+                    jar.getArchiveClassifier().set("assets");
                     CopySpecInternal newSpec = jar.getRootSpec().addChild();
                     newSpec.from(binary.getAssets().getAssetDirs());
                     newSpec.into("public");

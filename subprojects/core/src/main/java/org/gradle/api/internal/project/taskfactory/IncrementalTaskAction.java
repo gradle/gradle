@@ -16,33 +16,69 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.changes.StatefulIncrementalTaskInputs;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
-    private TaskArtifactState taskArtifactState;
+    private final Instantiator instantiator;
+    private TaskExecutionContext context;
 
-    public IncrementalTaskAction(Class<? extends Task> type, Method method) {
+    public IncrementalTaskAction(Instantiator instantiator, Class<? extends Task> type, Method method) {
         super(type, method);
+        this.instantiator = instantiator;
     }
 
     public void contextualise(TaskExecutionContext context) {
-        this.taskArtifactState = context.getTaskArtifactState();
+        this.context = context;
     }
 
     @Override
     public void releaseContext() {
-        this.taskArtifactState = null;
+        this.context = null;
     }
 
-    protected void doExecute(Task task, String methodName) {
-        JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
+    protected void doExecute(final Task task, String methodName) {
+        IncrementalTaskInputs incrementalInputs = context.getExecutionStateChanges()
+            .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
+                @Override
+                public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
+                    return changes.isRebuildRequired()
+                        ? createRebuildInputs(task)
+                        : createIncrementalInputs(changes.getInputFilesChanges());
+                }
+            }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
+                @Override
+                public StatefulIncrementalTaskInputs get() {
+                    return createRebuildInputs(task);
+                }
+            });
+
+        context.setTaskExecutedIncrementally(incrementalInputs.isIncremental());
+        JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
+    }
+
+    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
+    }
+
+    private RebuildIncrementalTaskInputs createRebuildInputs(Task task) {
+        ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = context.getBeforeExecutionState().get().getInputFileProperties().values();
+        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
     }
 }

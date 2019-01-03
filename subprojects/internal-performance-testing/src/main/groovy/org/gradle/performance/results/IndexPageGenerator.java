@@ -34,10 +34,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     public static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90;
@@ -65,8 +67,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     Set<ScenarioBuildResultData> sortBuildResultData(Stream<ScenarioBuildResultData> data) {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
+            .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::isCrossBuild).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -76,11 +78,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
-        if (currentCommitExecutions.isEmpty()) {
+        List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream().filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId())).collect(toList());
+        if (currentBuildExecutions.isEmpty()) {
             scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         } else {
-            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
+            scenario.setCurrentBuildExecutions(currentBuildExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         }
 
         scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
@@ -114,6 +116,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {
+            AtomicInteger counter = new AtomicInteger(0);
             // @formatter:off
             {
                 html();
@@ -129,7 +132,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     body();
                         div().id("acoordion").classAttr("mx-auto");
                         renderHeader();
-                        renderTable();
+                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", ScenarioBuildResultData::isCrossVersion);
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", ScenarioBuildResultData::isCrossBuild);
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -144,13 +148,19 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Performance Coordinator Build")
                             .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
-                    div().classAttr("col-8 p-0");
+                    div().classAttr("col-6 p-0");
                         text("Scenarios (" + successCount + " successful");
                         if (failureCount > 0) {
                             text(", " + failureCount + " failed");
                         }
                         text(")");
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
+                    end();
+                    div().classAttr("col-2 p-0");
+                        if(failureCount > 0) {
+                            button().id("failed-scenarios").classAttr("btn-sm btn-danger").text("Failed scenarios").end();
+                            button().id("all-scenarios").classAttr("btn-sm btn-primary").text("All scenarios").end();
+                        }
                     end();
                     div().classAttr("col text-right mt-1");
                         i().classAttr("fa fa-filter").attr("data-toggle", "popover", "data-placement", "bottom").title("Filter by tag").style("cursor: pointer").text(" ").end();
@@ -187,13 +197,19 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
             }
 
-            private void renderTable() {
-                AtomicInteger index = new AtomicInteger(0);
-                scenarios.forEach(scenario -> renderScenario(index.incrementAndGet(), scenario));
+            private void renderTable(String title, String description, Predicate<ScenarioBuildResultData> predicate) {
+                div().classAttr("row alert alert-primary m-0");
+                    div().classAttr("col-12 p-0").text(title);
+                i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                    end();
+                end();
+                scenarios.stream().filter(predicate).forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
             }
 
             private String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
-                if (!scenario.isSuccessful()) {
+                if(scenario.isUnknown()) {
+                    return "alert-dark";
+                } else if (!scenario.isSuccessful()) {
                     return "alert-danger";
                 } else if (scenario.isAboutToRegress()) {
                     return "alert-warning";
@@ -234,7 +250,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             end();
                             div().classAttr("col-2");
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("Build").end();
-                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("Graph").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(scenario.getScenarioName()) + ".html")).text("Graph").end();
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail ▼").end();
                             end();
                             div().classAttr("col-2 p-0");
@@ -269,8 +285,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     tr();
                         th().text("Date").end();
                         th().text("Commit").end();
-                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName()).end();
-                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
+                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName());
+                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName());
                         th().text("Difference").end();
                         th().text("Confidence").end();
                     end();
@@ -278,7 +294,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         tr();
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
-                            td().text(format.timestamp(execution.getTime())).end();
+                            td().text(FormatSupport.timestamp(execution.getTime())).end();
                             td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getCommitId()).text(execution.getCommitId()).end().end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
@@ -290,17 +306,26 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 });
                 end();
             }
+
+            private void renderVersionHeader(String version) {
+                th();
+                    colspan("2").text(version);
+                    if (version.contains("-commit-")) {
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The test is executed against the commit where your branch forks from master.").text(" ").end();
+                    }
+                end();
+            }
             // @formatter:on
         };
     }
 
     private enum Tag {
         FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
-        CROSS_BUILD("CROSS-BUILD", "badge badge-info", "This scenario is comparing two builds' performance difference, not versions'. Therefore, it's not seen as regression."),
         FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
+        UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
         UNTAGGED("UNTAGGED", null, null);
 
         private String name;
@@ -326,12 +351,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             if (scenario.isFromCache()) {
                 result.add(FROM_CACHE);
             }
-            if (scenario.isCrossBuild()) {
-                result.add(CROSS_BUILD);
-            }
-            if (scenario.isBuildFailed()) {
+            if(scenario.isUnknown()) {
+                result.add(UNKNOWN);
+            } else if (scenario.isBuildFailed()) {
                 result.add(FAILED);
-            } else if (!scenario.isSuccessful()) {
+            } else if (scenario.isRegressed()) {
                 result.add(REGRESSED);
             } else if (scenario.isAboutToRegress()) {
                 result.add(NEARLY_FAILED);

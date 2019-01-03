@@ -36,7 +36,7 @@ import spock.lang.Specification
 
 import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
+import static ComponentSelectionReasons.*
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
@@ -65,7 +65,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(1, "org", "dep1", "2.0")
         def selector2 = selector(2, "org", "dep2", "3.0")
-        def dep1 = node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION]))
+        def dep1 = node(2, "org", "dep1", "2.0", of(CONFLICT_RESOLUTION))
         root.outgoingEdges >> [
                 dep(selector1, 2),
                 dep(selector2, new RuntimeException("Boo!"))
@@ -101,7 +101,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.visitNode(root)
         builder.visitNode(node(1, "org", "root", "1.0", requested())) //it's fine
 
-        builder.visitNode(node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION])))
+        builder.visitNode(node(2, "org", "dep1", "2.0", of(CONFLICT_RESOLUTION)))
         builder.visitNode(node(2, "org", "dep1", "2.0", requested())) //will be ignored
 
         builder.visitSelector(selector)

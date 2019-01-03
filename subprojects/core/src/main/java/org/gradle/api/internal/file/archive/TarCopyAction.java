@@ -34,7 +34,15 @@ import java.io.File;
 import java.io.OutputStream;
 
 public class TarCopyAction implements CopyAction {
-    public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 0;
+    /**
+     * An arbitrary timestamp chosen to provide constant file timestamps inside the tar archive.
+     *
+     * The value 0 is avoided to circumvent certain limitations of languages and applications that do not work well with the zero value.
+     * (Like older Java implementations and libraries)
+     *
+     * The date is January 2, 1970.
+     */
+    public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 86400000;
 
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;

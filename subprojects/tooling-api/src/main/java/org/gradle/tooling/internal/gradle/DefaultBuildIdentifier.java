@@ -16,16 +16,19 @@
 
 package org.gradle.tooling.internal.gradle;
 
+import org.gradle.tooling.model.BuildIdentifier;
+
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity {
+public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity, BuildIdentifier {
     private final File rootDir;
 
     public DefaultBuildIdentifier(File rootDir) {
         this.rootDir = rootDir.getAbsoluteFile();
     }
 
+    @Override
     public File getRootDir() {
         return rootDir;
     }

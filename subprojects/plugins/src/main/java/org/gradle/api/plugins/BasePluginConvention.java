@@ -29,6 +29,7 @@ public abstract class BasePluginConvention {
      *
      * @return The directory. Never returns null.
      */
+    @Deprecated
     public abstract File getDistsDir();
 
     /**
@@ -36,6 +37,7 @@ public abstract class BasePluginConvention {
      *
      * @return The directory. Never returns null.
      */
+    @Deprecated
     public abstract File getLibsDir();
 
     public abstract ProjectInternal getProject();

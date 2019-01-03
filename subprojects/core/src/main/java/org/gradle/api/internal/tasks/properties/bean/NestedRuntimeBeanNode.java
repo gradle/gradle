@@ -19,13 +19,13 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
+import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
@@ -34,8 +34,8 @@ import java.lang.reflect.Proxy;
 import java.util.Queue;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
-    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, bean, typeMetadata);
+    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypePropertyMetadata typePropertyMetadata) {
+        super(parentNode, propertyName, bean, typePropertyMetadata);
     }
 
     @Override
@@ -45,7 +45,7 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     private void visitImplementation(PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())));
+        DeclaredTaskInputProperty implementation = specFactory.createInputPropertySpec(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())));
         implementation.optional(false);
         visitor.visitInputProperty(implementation);
     }

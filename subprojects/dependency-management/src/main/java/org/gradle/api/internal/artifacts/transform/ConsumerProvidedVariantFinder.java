@@ -78,7 +78,8 @@ public class ConsumerProvidedVariantFinder {
 
         for (final VariantTransformRegistry.Registration candidate : candidates) {
             ConsumerVariantMatchResult inputVariants = new ConsumerVariantMatchResult();
-            collectConsumerVariants(actual, candidate.getFrom(), inputVariants);
+            AttributeContainerInternal requestedPrevious = computeRequestedAttributes(requested, candidate);
+            collectConsumerVariants(actual, requestedPrevious, inputVariants);
             if (!inputVariants.hasMatches()) {
                 continue;
             }
@@ -88,6 +89,10 @@ public class ConsumerProvidedVariantFinder {
                 result.matched(variantAttributes, transformation, inputVariant.depth + 1);
             }
         }
+    }
+
+    private AttributeContainerInternal computeRequestedAttributes(AttributeContainerInternal result, VariantTransformRegistry.Registration transform) {
+        return attributesFactory.concat(result.asImmutable(), transform.getFrom().asImmutable()).asImmutable();
     }
 
     private AttributeSpecificCache getCache(AttributeContainer attributes) {

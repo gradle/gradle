@@ -20,8 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
@@ -69,6 +70,7 @@ import org.gradle.configuration.project.DefaultProjectConfigurationActionContain
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -96,6 +98,7 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
  * Contains the services for a given project.
@@ -111,7 +114,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration);
+                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerProjectServices(registration);
                 }
@@ -154,7 +157,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
-        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorate());
+        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorateLenient());
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -173,13 +176,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator) {
         PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, InstantiatorFactory instantiatorFactory) {
@@ -190,26 +193,22 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new TaskInstantiator(taskFactory, project);
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator);
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator);
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer() {
+    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {
         Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator);
     }
 
-    protected ProjectFinder createProjectFinder() {
-        return new ProjectFinder() {
-            public ProjectInternal getProject(String path) {
-                return project.project(path);
-            }
-
+    protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {
+        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
             @Override
-            public ProjectInternal findProject(String path) {
-                return project.findProject(path);
+            public ProjectInternal get() {
+                return project;
             }
-        };
+        });
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {

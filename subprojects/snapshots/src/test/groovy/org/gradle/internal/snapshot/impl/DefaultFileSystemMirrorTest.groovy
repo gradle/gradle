@@ -65,7 +65,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
 
-        mirror.beforeTaskOutputChanged()
+        mirror.beforeOutputChange()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
@@ -122,7 +122,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
 
-        mirror.beforeTaskOutputChanged()
+        mirror.beforeOutputChange()
 
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot

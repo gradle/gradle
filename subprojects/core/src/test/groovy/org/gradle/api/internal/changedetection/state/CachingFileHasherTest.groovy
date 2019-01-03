@@ -33,7 +33,7 @@ class CachingFileHasherTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def target = Mock(FileHasher)
     def cache = Mock(PersistentIndexedCache)
-    def cacheAccess = Mock(TaskHistoryStore)
+    def cacheAccess = Mock(CrossBuildFileHashCache)
     def timeStampInspector = Mock(FileTimeStampInspector)
     def hash = HashCode.fromInt(0x0123)
     def oldHash = HashCode.fromInt(0x0321)
@@ -43,7 +43,7 @@ class CachingFileHasherTest extends Specification {
 
     def setup() {
         file.write("some-content")
-        1 * cacheAccess.createCache("fileHashes", _, _, _, _) >> cache
+        1 * cacheAccess.createCache({ it.cacheName == "fileHashes"  }, _, _) >> cache
         hasher = new CachingFileHasher(target, cacheAccess, new StringInterner(), timeStampInspector, "fileHashes", fileSystem)
     }
 

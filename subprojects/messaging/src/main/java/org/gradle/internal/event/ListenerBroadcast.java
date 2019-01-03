@@ -139,4 +139,13 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     public void dispatch(MethodInvocation event) {
         broadcast.dispatch(event);
     }
+
+    /**
+     * Returns a new {@link ListenerBroadcast} with the same {@link BroadcastDispatch} as this class.
+     */
+    public ListenerBroadcast<T> copy() {
+        ListenerBroadcast<T> result = new ListenerBroadcast<T>(type);
+        result.broadcast = this.broadcast;
+        return result;
+    }
 }

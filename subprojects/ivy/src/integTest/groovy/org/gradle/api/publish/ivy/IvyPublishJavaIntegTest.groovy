@@ -358,15 +358,18 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
     void "generated ivy descriptor includes configuration exclusions"() {
         requiresExternalDependencies = true
+        def exclusion = { name -> "$name-group:$name-module" }
+        def exclusions = { conf -> javaLibrary.parsedIvy.exclusions.findAll { it.conf == conf }.collect { it.org + ":" + it.module } }
 
         given:
         createBuildScripts("""
-            configurations.apiElements {
-                exclude group: "foo", module: "bar"
-            }
-
-            configurations.runtimeElements {
-                exclude group: "baz", module: "qux"
+            configurations {
+                api.exclude(group: "api-group", module: "api-module")
+                apiElements.exclude(group: "apiElements-group", module: "apiElements-module")
+                runtime.exclude(group: "runtime-group", module: "runtime-module")
+                runtimeElements.exclude(group: "runtimeElements-group", module: "runtimeElements-module")
+                implementation.exclude(group: "implementation-group", module: "implementation-module")
+                runtimeOnly.exclude(group: "runtimeOnly-group", module: "runtimeOnly-module")
             }
 
             $dependencies
@@ -378,25 +381,32 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
-""")
+        """)
 
         when:
         run "publish"
 
         then:
         javaLibrary.assertPublishedAsJavaModule()
-        javaLibrary.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile", "baz:qux@runtime"]
+        exclusions('compile') == [exclusion("apiElements"), exclusion("runtime"), exclusion("api")]
+        exclusions('runtime') == [exclusion("runtimeElements"), exclusion("implementation"), exclusion("api"), exclusion("runtimeOnly"), exclusion("runtime")]
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
             dependency('commons-collections:commons-collections:3.2.2') {
-                hasExclude('foo', 'bar')
+                hasExclude('apiElements-group', 'apiElements-module')
+                hasExclude('runtime-group', 'runtime-module')
+                hasExclude('api-group', 'api-module')
                 noMoreExcludes()
             }
         }
         javaLibrary.parsedModuleMetadata.variant('runtime') {
             dependency('commons-io:commons-io:1.4') {
-                hasExclude('baz', 'qux')
+                hasExclude('runtimeElements-group', 'runtimeElements-module')
+                hasExclude('implementation-group', 'implementation-module')
+                hasExclude('api-group', 'api-module')
+                hasExclude('runtimeOnly-group', 'runtimeOnly-module')
+                hasExclude('runtime-group', 'runtime-module')
                 noMoreExcludes()
             }
         }
@@ -528,7 +538,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
                 prefers(null)
                 strictly('3.2.2')
@@ -609,7 +619,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:') {
+            constraint('org.tukaani:xz:1.6') {
                 prefers(null)
                 strictly('1.6')
                 rejects()

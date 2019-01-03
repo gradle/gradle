@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
     /**
-     * Builder for a a build action that hooks into different phases of the build.
+     * Builder for a build action that hooks into different phases of the build.
      *
      * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
      *

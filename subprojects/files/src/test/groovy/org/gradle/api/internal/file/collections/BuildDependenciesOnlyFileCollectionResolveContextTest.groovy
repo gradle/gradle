@@ -158,44 +158,12 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
 
     def delegatesToDependencyContainerToDetermineBuildDependencies() {
         def container = Mock(TaskDependencyContainer)
-        def task = Mock(Task)
 
         when:
         context.add(container)
 
         then:
-        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
-        1 * taskContext.add(task)
-        0 * taskContext._
-        0 * container._
-    }
-
-    def delegatesToNestedDependencyContainer() {
-        def container = Mock(TaskDependencyContainer)
-        def nested = Mock(TaskDependencyContainer)
-        def task = Mock(Task)
-
-        when:
-        context.add(container)
-
-        then:
-        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(nested) }
-        1 * nested.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
-        1 * taskContext.add(task)
-        0 * taskContext._
-        0 * container._
-    }
-
-    def ignoresTaskDependencyContainerElementThatCannotBeConverted() {
-        def container = Mock(TaskDependencyContainer)
-
-        when:
-        context.add(container)
-
-        then:
-        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext ->
-            nestedContext.add("thing")
-        }
+        1 * taskContext.add(container)
         0 * taskContext._
         0 * container._
     }

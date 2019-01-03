@@ -18,17 +18,18 @@ package org.gradle.api.internal
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
-import spock.lang.Specification
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
-    final Instantiator instantiator = Mock()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final namer = { it } as Namer
 
     def usesFactoryToCreateContainerElements() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity())
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         def result = container.create('a')
@@ -39,20 +40,9 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         0 * _._
     }
 
-    def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, MutationGuards.identity())
-
-        when:
-        def result = container.create('a')
-
-        then:
-        result == 'a'
-        0 * _._
-    }
-
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl, MutationGuards.identity())
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         def result = container.create('a')
@@ -73,7 +63,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
+        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, instantiator, *extraArgs), CollectionCallbackActionDecorator.NOOP).create(name)
     }
 
     static class JustName implements Named {

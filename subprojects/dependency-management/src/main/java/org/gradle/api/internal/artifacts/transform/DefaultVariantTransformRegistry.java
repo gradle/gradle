@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -53,7 +53,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
-        RecordingRegistration reg = instantiatorFactory.decorate().newInstance(RecordingRegistration.class, immutableAttributesFactory);
+        RecordingRegistration reg = instantiatorFactory.decorateLenient().newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
         if (reg.type == null) {
             throw new VariantTransformConfigurationException("Could not register transform: an ArtifactTransform must be provided.");
@@ -71,7 +71,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject(), transformerInvoker);
+        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
         transforms.add(registration);
     }
 

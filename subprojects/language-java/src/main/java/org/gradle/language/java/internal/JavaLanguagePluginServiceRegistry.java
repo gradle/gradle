@@ -23,10 +23,12 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,8 +37,20 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
+import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
+
+import java.util.Collections;
+
+import static java.util.Collections.emptyList;
 
 public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegistry {
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new JavaGlobalScopeServices());
+    }
+
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         registration.addProvider(new JavaGradleScopeServices());
@@ -45,6 +59,24 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new JavaProjectScopeServices());
+    }
+
+    private static class JavaGlobalScopeServices {
+        SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
+            return new SubscribableBuildActionRunnerRegistration() {
+                @Override
+                public Iterable<Object> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
+                    if (clientSubscriptions.isRequested(OperationType.TASK)) {
+                        return Collections.<Object>singletonList(factory);
+                    }
+                    return emptyList();
+                }
+            };
+        }
+
+        public JavaCompileTaskSuccessResultPostProcessor createJavaCompileTaskSuccessResultDecoratorFactory() {
+            return new JavaCompileTaskSuccessResultPostProcessor();
+        }
     }
 
     private static class JavaGradleScopeServices {

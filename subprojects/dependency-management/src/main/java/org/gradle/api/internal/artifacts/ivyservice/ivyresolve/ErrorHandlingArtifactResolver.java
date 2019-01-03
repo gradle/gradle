@@ -35,7 +35,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveArtifactsWithType(component, artifactType, result);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             result.failed(new ArtifactResolveException(component.getId(), t));
         }
     }
@@ -44,7 +44,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         try {
             resolver.resolveArtifact(artifact, moduleSource, result);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             result.failed(new ArtifactResolveException(artifact.getId(), t));
         }
     }

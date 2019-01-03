@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
@@ -74,7 +74,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -92,6 +91,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.build.BuildState;
@@ -152,7 +152,7 @@ class DependencyManagementBuildScopeServices {
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, stringInterner),
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             projectDependencyFactory,
             attributesFactory);
@@ -188,11 +188,11 @@ class DependencyManagementBuildScopeServices {
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
-            new DefaultModuleVersionsCache(
+            new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
                 timeProvider,
                 artifactCacheLockingManager,
-                moduleIdentifierFactory),
-            new DefaultModuleMetadataCache(
+                moduleIdentifierFactory)),
+            new InMemoryModuleMetadataCache(timeProvider, new PersistentModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactCacheMetadata,
@@ -200,17 +200,17 @@ class DependencyManagementBuildScopeServices {
                 attributeContainerSerializer,
                 mavenMetadataFactory,
                 ivyMetadataFactory,
-                stringInterner),
-            new DefaultModuleArtifactsCache(
+                stringInterner)),
+            new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager
-            ),
-            new DefaultModuleArtifactCache(
+            )),
+            new InMemoryModuleArtifactCache(timeProvider, new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactIdentifierFileStore.getFileAccessTracker()
-            )
+            ))
         );
         ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
             new InMemoryModuleVersionsCache(timeProvider),

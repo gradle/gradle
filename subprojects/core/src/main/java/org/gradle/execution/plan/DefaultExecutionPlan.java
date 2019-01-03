@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -119,8 +118,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return path.toString();
     }
 
-    @VisibleForTesting
-    TaskNode getNode(Task task) {
+    @Override
+    public TaskNode getNode(Task task) {
         return nodeMapping.get(task);
     }
 
@@ -313,33 +312,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     mutations.producingNodes.add(dependency);
                 }
 
-                if (node instanceof LocalTaskNode) {
-                    LocalTaskNode taskNode = (LocalTaskNode) node;
-                    TaskInternal task = taskNode.getTask();
-                    Project project = task.getProject();
+                Project project = node.getProject();
+                if (project != null) {
                     projectLocks.put(project, getOrCreateProjectLock(project));
+                }
 
-                    // Add any finalizers to the queue
-                    for (Node finalizer : taskNode.getFinalizers()) {
-                        if (!visitingNodes.containsKey(finalizer)) {
-                            nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
-                        }
+                // Add any finalizers to the queue
+                for (Node finalizer : node.getFinalizers()) {
+                    if (!visitingNodes.containsKey(finalizer)) {
+                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
                     }
                 }
             }
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
-    }
-
-    @Override
-    public Set<Task> getDependencies(Task task) {
-        TaskNode node = nodeMapping.get(task);
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (Node dependencyNode : node.getDependencySuccessors()) {
-            dependencyNode.collectTaskInto(builder);
-        }
-        return builder.build();
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -574,21 +561,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            return getProjectLock((LocalTaskNode) node).tryLock();
+        if (node.getProject() != null) {
+            return getProjectLock(node.getProject()).tryLock();
         } else {
             return true;
         }
     }
 
     private void unlockProjectFor(Node node) {
-        if (node instanceof LocalTaskNode) {
-            getProjectLock((LocalTaskNode) node).unlock();
+        if (node.getProject() != null) {
+            getProjectLock(node.getProject()).unlock();
         }
     }
 
-    private ResourceLock getProjectLock(LocalTaskNode taskNode) {
-        return projectLocks.get(taskNode.getTask().getProject());
+    private ResourceLock getProjectLock(Project project) {
+        return projectLocks.get(project);
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {
@@ -853,10 +840,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static void enforceFinalizers(Node node) {
-        if (!(node instanceof TaskNode)) {
-            return;
-        }
-        for (Node finalizerNode : ((TaskNode) node).getFinalizers()) {
+        for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<Node>newHashSet());
             }
@@ -938,10 +922,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void collectFailures(Collection<? super Throwable> failures) {
-        if (buildCancelled) {
+        List<Throwable> collectedFailures = failureCollector.getFailures();
+        failures.addAll(collectedFailures);
+        if (buildCancelled && collectedFailures.isEmpty()) {
             failures.add(new BuildCancelledException());
         }
-        failures.addAll(failureCollector.getFailures());
     }
 
     @Override
@@ -967,7 +952,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public int size() {
-        return nodeMapping.nodes.size();
+        return nodeMapping.size();
     }
 
     private static class GraphEdge {

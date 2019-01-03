@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
+
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +30,8 @@ class ArchivePublishArtifactTest extends Specification {
     def testUtil = TestUtil.create(temporaryFolder)
 
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = testUtil.task(DummyJar, [destinationDir: temporaryFolder.testDirectory])
+        def quiteEmptyJar = testUtil.task(DummyJar)
+        quiteEmptyJar.destinationDir = temporaryFolder.testDirectory
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
@@ -45,10 +47,15 @@ class ArchivePublishArtifactTest extends Specification {
 
     def "configures name correctly"() {
         def noName = testUtil.task(DummyJar)
-        def withArchiveName = testUtil.task(DummyJar, [archiveName: "hey"])
-        def withBaseName = testUtil.task(DummyJar, [baseName: "foo"])
-        def withAppendix = testUtil.task(DummyJar, [baseName: "foo", appendix: "javadoc"])
-        def withAppendixOnly = testUtil.task(DummyJar, [appendix: "javadoc"])
+        def withArchiveName = testUtil.task(DummyJar)
+        withArchiveName.archiveName = "hey"
+        def withBaseName = testUtil.task(DummyJar)
+        withBaseName.baseName = "foo"
+        def withAppendix = testUtil.task(DummyJar)
+        withAppendix.baseName = "foo"
+        withAppendix.appendix = "javadoc"
+        def withAppendixOnly = testUtil.task(DummyJar)
+        withAppendixOnly.appendix = "javadoc"
 
         expect:
         new ArchivePublishArtifact(noName).name == null

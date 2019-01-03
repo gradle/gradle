@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectState;
-import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents the the lifecycle state of a project, with regard to configuration.
+ * Represents the lifecycle state of a project, with regard to configuration.
  *
  * There are three synonymous terms mixed in here (configure, evaluate, execute) for legacy reasons.
  * Where not bound to backwards compatibility constraints, we use the term “configure”.
@@ -38,7 +42,7 @@ public class ProjectStateInternal implements ProjectState {
     }
 
     private State state = State.UNCONFIGURED;
-    private Throwable failure;
+    private ProjectConfigurationException failure;
 
     @Override
     public boolean getExecuted() {
@@ -77,9 +81,14 @@ public class ProjectStateInternal implements ProjectState {
         state = State.CONFIGURED;
     }
 
-    public void failed(Throwable failure) {
-        assert this.failure == null;
-        this.failure = failure;
+    public void failed(ProjectConfigurationException failure) {
+        if (this.failure == null) {
+            this.failure = failure;
+        } else {
+            List<Throwable> causes = new ArrayList<Throwable>(this.failure.getCauses());
+            CollectionUtils.addAll(causes, failure.getCauses());
+            this.failure.initCauses(causes);
+        }
     }
 
     public boolean hasFailure() {
@@ -94,7 +103,7 @@ public class ProjectStateInternal implements ProjectState {
     @Override
     public void rethrowFailure() {
         if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            throw failure;
         }
     }
 

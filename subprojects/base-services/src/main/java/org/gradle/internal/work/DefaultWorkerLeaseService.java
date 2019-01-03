@@ -16,6 +16,7 @@
 
 package org.gradle.internal.work;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
@@ -31,18 +32,23 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ExclusiveAccessResourceLock;
+import org.gradle.internal.resources.ProjectLock;
+import org.gradle.internal.resources.ProjectLockStatistics;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
@@ -50,6 +56,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
+    public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
     private volatile int maxWorkerCount;
@@ -60,6 +67,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private final ProjectLockRegistry projectLockRegistry;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
     private final ParallelismConfigurationManager parallelismConfigurationManager;
+    private final ProjectLockStatisticsImpl projectLockStatistics = new ProjectLockStatisticsImpl();
 
     public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
         this.maxWorkerCount = parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount();
@@ -130,6 +138,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
                 return FINISHED;
             }
         });
+
+        if (projectLockStatistics.isEnabled()) {
+            LOGGER.warn("Time spent waiting on project locks: " + projectLockStatistics.getTotalWaitTimeMillis() + "ms");
+        }
     }
 
     @Override
@@ -141,7 +153,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     public Collection<? extends ResourceLock> getCurrentProjectLocks() {
         return projectLockRegistry.getResourceLocksByCurrentThread();
     }
-
 
     @Override
     public void withoutProjectLock(Runnable runnable) {
@@ -167,12 +178,38 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
             return factory.create();
         }
 
-        coordinationService.withStateLock(lock(locksToAcquire));
+        acquireLocks(locksToAcquire);
         try {
             return factory.create();
         } finally {
-            coordinationService.withStateLock(unlock(locksToAcquire));
+            releaseLocks(locksToAcquire);
         }
+    }
+
+    private void releaseLocks(Iterable<? extends ResourceLock> locks) {
+        coordinationService.withStateLock(unlock(locks));
+    }
+
+    private void acquireLocks(final Iterable<? extends ResourceLock> locks) {
+        if (containsProjectLocks(locks)) {
+            projectLockStatistics.measure(new Runnable() {
+                @Override
+                public void run() {
+                    coordinationService.withStateLock(lock(locks));
+                }
+            });
+        } else {
+            coordinationService.withStateLock(lock(locks));
+        }
+    }
+
+    private boolean containsProjectLocks(Iterable<? extends ResourceLock> locks) {
+        return Iterables.any(locks, new Predicate<ResourceLock>() {
+            @Override
+            public boolean apply(@Nullable ResourceLock lock) {
+                return lock instanceof ProjectLock;
+            }
+        });
     }
 
     private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {
@@ -212,7 +249,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
             throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
         }
 
-        coordinationService.withStateLock(unlock(locks));
+        releaseLocks(locks);
         try {
             return factory.create();
         } finally {
@@ -228,7 +265,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         allLocks.add(workerLease);
         Iterables.addAll(allLocks, locks);
         coordinationService.withStateLock(unlock(workerLease));
-        coordinationService.withStateLock(lock(allLocks));
+        acquireLocks(allLocks);
     }
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
@@ -248,7 +285,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         return allLocked.get();
     }
 
-    private static class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ExclusiveAccessResourceLock> {
+    private static class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
         private volatile boolean parallelEnabled;
 
         public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
@@ -265,10 +302,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         }
 
         ResourceLock getResourceLock(final Path lockPath) {
-            return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ExclusiveAccessResourceLock>() {
+            return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ProjectLock>() {
                 @Override
-                public ExclusiveAccessResourceLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new ExclusiveAccessResourceLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
+                public ProjectLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new ProjectLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
                 }
             });
         }
@@ -406,6 +443,30 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         @Override
         public void leaseFinish() {
             coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(this));
+        }
+    }
+
+    private static class ProjectLockStatisticsImpl implements ProjectLockStatistics {
+        private final AtomicLong total = new AtomicLong(-1);
+
+        @Override
+        public void measure(Runnable runnable) {
+            if (isEnabled()) {
+                Timer timer = Time.startTimer();
+                runnable.run();
+                total.addAndGet(timer.getElapsedMillis());
+            } else {
+                runnable.run();
+            }
+        }
+
+        @Override
+        public long getTotalWaitTimeMillis() {
+            return total.get();
+        }
+
+        public boolean isEnabled() {
+            return System.getProperty(PROJECT_LOCK_STATS_PROPERTY) != null;
         }
     }
 }

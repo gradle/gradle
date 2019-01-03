@@ -47,6 +47,11 @@ class GradleVersionTest extends Specification {
         version.baseVersion
     }
 
+    def 'can parse commitId from commit version'() {
+        expect:
+        GradleVersion.version('5.1-commit-123abc').commitId == '123abc'
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-1892")
     def "build time should always print in UTC"() {
         expect:
@@ -73,7 +78,8 @@ class GradleVersionTest extends Specification {
                 '1.0-milestone-5',
                 '1.0-milestone-5a',
                 '3.2-rc-2',
-                '3.0-snapshot-1'
+                '3.0-snapshot-1',
+                '5.1-commit-2149a1d'
         ]
     }
 
@@ -105,12 +111,16 @@ class GradleVersionTest extends Specification {
                 '1.2.1']
     }
 
+    void canCompareTwoVersions(String a, String b) {
+        assert GradleVersion.version(a) > GradleVersion.version(b)
+        assert GradleVersion.version(b) < GradleVersion.version(a)
+        assert GradleVersion.version(a) == GradleVersion.version(a)
+        assert GradleVersion.version(b) == GradleVersion.version(b)
+    }
+
     def canCompareMajorVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a      | b
@@ -122,10 +132,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                   | b
@@ -138,10 +145,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersionAndMajorVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a       | b
@@ -151,10 +155,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePreviewsMilestonesAndRCVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                 | b
@@ -169,10 +170,7 @@ class GradleVersionTest extends Specification {
 
     def canComparePatchVersion() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                  | b
@@ -184,10 +182,7 @@ class GradleVersionTest extends Specification {
 
     def canCompareSnapshotVersions() {
         expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
+        canCompareTwoVersions(a, b)
 
         where:
         a                         | b
@@ -201,6 +196,21 @@ class GradleVersionTest extends Specification {
         '0.9'                     | '0.9-20101220100000'
         '0.9'                     | '0.9-SNAPSHOT'
         '0.9'                     | '0.9-snapshot-1'
+    }
+
+    def canCompareCommitVersions() {
+        expect:
+        canCompareTwoVersions(a, b)
+
+        where:
+        a                       | b
+        '5.1'                   | '5.1-commit-123456789'
+        '5.1'                   | '5.1-commit-bcda90482104'
+        '5.1-commit-1234'       | '5.0'
+        '5.1-commit-1234abcdef' | '4.10.2'
+        '5.1-commit-1234'       | '5.0-commit-1234'
+        '5.0-commit-222'        | '5.0-commit-111'
+        '5.0-commit-f1efb03'    | '5.0-commit-f1efb02'
     }
 
     def "can get version base"() {
@@ -236,16 +246,9 @@ class GradleVersionTest extends Specification {
         '20.17-20101220100000+1000'           | "21.0"
         '0.9-SNAPSHOT'                        | "1.0"
         '3.0-snapshot-1'                      | "4.0"
-    }
-
-    def "milestones are part of previous major version"() {
-        expect:
-        GradleVersion.version(v).nextMajor == GradleVersion.version(major)
-
-        where:
-        v                                     | major
-        '1.0-milestone-3'                     | "1.0"
-        '1.0-milestone-3-20121012100000+1000' | "1.0"
-        '2.0-milestone-3'                     | "2.0" // not that we're planning to do this
+        '5.1-milestone-1'                     | "6.0"
+        '1.0-milestone-3'                     | "2.0"
+        '1.0-milestone-3-20121012100000+1000' | "2.0"
+        '2.0-milestone-3'                     | "3.0"
     }
 }

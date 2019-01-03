@@ -34,8 +34,8 @@ class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
     }
 
     @Override
-    protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugCpp", ":linkDebug"]
+    protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
+        return [":compileDebug${variant.capitalize()}Cpp", ":linkDebug${variant.capitalize()}"]
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.Copy
 import org.gradle.model.internal.core.NamedEntityInstantiator
 import spock.lang.Specification
@@ -27,7 +28,7 @@ import spock.lang.Specification
 class DefaultBinaryTasksCollectionTest extends Specification {
     def binary = Mock(BinarySpecInternal)
     def taskFactory = Mock(NamedEntityInstantiator)
-    def tasks = new DefaultBinaryTasksCollection(binary, taskFactory)
+    def tasks = new DefaultBinaryTasksCollection(binary, taskFactory, CollectionCallbackActionDecorator.NOOP)
     def task = Mock(Task)
 
     def "can create task"() {

@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.TransformInvocationException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.Try
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -42,15 +45,22 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+        getFiles() >> []
+        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
+    }
+    def dependenciesProvider = Stub(ExecutionGraphDependenciesResolver) {
+        forTransformer(_ as Transformer) >> Try.successful(dependencies)
+    }
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
-    def transformedFileCache = Mock(CachingTransformerExecutor)
+    def transformerInvoker = Mock(TransformerInvoker)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, Stub(ArtifactTransformListener))
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
+    def configuration = Mock(ConfigurationInternal)
 
     def "creates registration without configuration"() {
         given:
@@ -77,7 +87,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).get().files
 
         then:
         transformed.size() == 1
@@ -116,7 +126,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).files
+        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).get().files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -139,25 +149,23 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(AbstractArtifactTransform)
+            it.artifactTransform(CannotConstructTransform)
         }
 
         then:
         1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(CannotConstructTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
         registry.transforms.size() == 1
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT))
+        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider)
 
         then:
-        def failure = result.failure
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
-        failure.cause instanceof ObjectInstantiationException
-        failure.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
+        def failure = result.failure.get()
+        failure.message == "Could not create an instance of type $CannotConstructTransform.name."
 
         and:
         interaction {
@@ -190,15 +198,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure.get()
 
         then:
-        failure instanceof TransformInvocationException
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
-        failure.cause instanceof ObjectInstantiationException
-        failure.cause.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
-        failure.cause.cause instanceof IllegalArgumentException
-        failure.cause.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
+        failure instanceof ObjectInstantiationException
+        failure.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
+        failure.cause instanceof IllegalArgumentException
+        failure.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
 
         and:
         interaction {
@@ -226,13 +232,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT)).failure
+        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure.get()
 
         then:
-        failure instanceof TransformInvocationException
-        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.BrokenTransform"
-        failure.cause instanceof RuntimeException
-        failure.cause.message == 'broken'
+        failure.message == 'broken'
 
         and:
         interaction {
@@ -323,8 +326,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    private void runTransformer(File primaryInput) {
-        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.apply(file, outputDirectory) }
+    private void runTransformer(File input) {
+        1 * transformerInvoker.invoke(_ as Transformer, input, _ as ArtifactTransformDependenciesInternal, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject ->
+            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, dependencies)) }
+        }
     }
 
     static class TestArtifactTransform extends ArtifactTransform {
@@ -363,5 +368,14 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static abstract class AbstractArtifactTransform extends ArtifactTransform {}
+    static class CannotConstructTransform extends ArtifactTransform {
+        CannotConstructTransform() {
+            throw new RuntimeException("broken")
+        }
+
+        @Override
+        List<File> transform(File input) {
+            return []
+        }
+    }
 }

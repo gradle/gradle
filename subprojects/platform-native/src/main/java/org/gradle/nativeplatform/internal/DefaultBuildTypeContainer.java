@@ -17,14 +17,15 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.BuildTypeContainer;
 
 public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType> implements BuildTypeContainer {
 
-    public DefaultBuildTypeContainer(Instantiator instantiator) {
-        super(BuildType.class, instantiator);
+    public DefaultBuildTypeContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(BuildType.class, instantiator, collectionCallbackActionDecorator);
     }
 
     @Override

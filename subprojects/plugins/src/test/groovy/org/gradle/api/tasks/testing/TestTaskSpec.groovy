@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
-import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.report.TestReporter
@@ -31,7 +30,6 @@ import org.gradle.util.TestUtil
 
 class TestTaskSpec extends AbstractProjectBuilderSpec {
     def testExecuter = Mock(TestExecuter)
-    def testFramework = Mock(TestFramework)
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)
 
@@ -39,7 +37,8 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     private Test task
 
     def setup() {
-        task = TestUtil.create(temporaryFolder).task(Test, [testExecuter: testExecuter, testFramework: testFramework])
+        task = TestUtil.create(temporaryFolder).task(Test)
+        task.testExecuter = testExecuter
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')

@@ -30,7 +30,7 @@ class SigningTasksSpec extends SigningProjectSpec {
             sign jar
             sign sourcesJar, javadocJar
         }
-        
+
         then:
         def signingTasks = [signJar, signSourcesJar, signJavadocJar]
         
@@ -70,11 +70,12 @@ class SigningTasksSpec extends SigningProjectSpec {
         addSigningProperties()
 
         when:
-        def signTask = signing.sign(jar).first()
+        Sign signTask = signing.sign(jar).first()
 
         then:
         File libsDir = jar.outputs.files.singleFile.parentFile
-        signTask.outputFiles == ["test_jar_asc": new File(libsDir, "test.jar.asc")]
+        signTask.outputFiles == ["test.jar.asc:jar.asc:asc:": new File(libsDir, "test.jar.asc")]
+        signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
     }
 
     def "sign task has description"() {

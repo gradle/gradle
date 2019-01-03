@@ -19,7 +19,6 @@ package org.gradle.internal.scan.config
 import org.gradle.StartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.testing.internal.util.Specification
-import spock.lang.Unroll
 import spock.util.environment.RestoreSystemProperties
 
 class BuildScanConfigManagerTest extends Specification {
@@ -62,80 +61,6 @@ class BuildScanConfigManagerTest extends Specification {
             disabled
             attributes.is this.attributes
         }
-    }
-
-    def "throws if plugin version is too old"() {
-        when:
-        config("1.7")
-
-        then:
-        thrown UnsupportedBuildScanPluginVersionException
-
-        when:
-        config("1.13")
-
-        then:
-        notThrown UnsupportedBuildScanPluginVersionException
-
-        when:
-        config("1.13-TIMESTAMP")
-
-        then:
-        notThrown UnsupportedBuildScanPluginVersionException
-    }
-
-    def "throws if has vcs mappings and plugin version is too old"() {
-        given:
-        attributes.isRootProjectHasVcsMappings() >> true
-
-        when:
-        config("1.9")
-
-        then:
-        thrown UnsupportedBuildScanPluginVersionException
-    }
-
-    @Unroll
-    def "does not throw if has vcs mappings and plugin version #version"() {
-        given:
-        attributes.isRootProjectHasVcsMappings() >> true
-
-        when:
-        config(version)
-
-        then:
-        notThrown UnsupportedBuildScanPluginVersionException
-
-        where:
-        version << ["1.11", "1.12"]
-    }
-
-    @RestoreSystemProperties
-    def "throws if kotlin script build caching used and version doesnt support"() {
-        given:
-        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
-
-        when:
-        config("1.9")
-
-        then:
-        thrown UnsupportedBuildScanPluginVersionException
-    }
-
-    @Unroll
-    @RestoreSystemProperties
-    def "does not throw if kotlin script build caching used and version #version"() {
-        given:
-        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
-
-        when:
-        config(version)
-
-        then:
-        notThrown UnsupportedBuildScanPluginVersionException
-
-        where:
-        version << ["1.15.2", "1.16"]
     }
 
     @RestoreSystemProperties

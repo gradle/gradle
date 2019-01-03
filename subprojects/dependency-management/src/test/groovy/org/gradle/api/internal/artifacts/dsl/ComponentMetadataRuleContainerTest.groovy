@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,7 +35,7 @@ class ComponentMetadataRuleContainerTest extends Specification {
     def 'records added rules in order'() {
         given:
         def rule1 = Mock(SpecRuleAction)
-        def rule2 = Mock(SpecConfigurableRule)
+        def rule2 = configurableRule()
 
         when:
         container.addRule(rule1)
@@ -54,8 +55,8 @@ class ComponentMetadataRuleContainerTest extends Specification {
 
     def 'records subsequent class based rule in a single wrapper'() {
         given:
-        def rule1 = Mock(SpecConfigurableRule)
-        def rule2 = Mock(SpecConfigurableRule)
+        def rule1 = configurableRule()
+        def rule2 = configurableRule()
 
         when:
         container.addClassRule(rule1)
@@ -68,5 +69,11 @@ class ComponentMetadataRuleContainerTest extends Specification {
         def ruleWrapper = iterator.next()
         ruleWrapper.isClassBased()
         ruleWrapper.classRules.containsAll([rule1, rule2])
+    }
+
+    private SpecConfigurableRule configurableRule() {
+        Mock(SpecConfigurableRule) {
+            getConfigurableRule() >> Stub(ConfigurableRule)
+        }
     }
 }

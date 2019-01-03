@@ -59,7 +59,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         taskName = input[1]
         taskType = taskName.capitalize()
         fileExtension = taskName
-        expectedHash = taskName == 'tar' ? 'b99ef9e1ce3d2f85334a4a23a2620932' : 'cecc57bfa8747b4f39fa4a5e1c0dbd31'
+        expectedHash = taskName == 'tar' ? '4e9d60004783f52d612200aa73ee58f5' : 'cecc57bfa8747b4f39fa4a5e1c0dbd31'
     }
 
     def "timestamps are ignored in #taskName"() {
@@ -122,8 +122,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         compression | md5
-        'gzip'      | '9981efce12fd025835922ce0f2961ab9'
-        'bzip2'     | '60f165136a27358d02926f26fb184c86'
+        'gzip'      | 'a9339a2b2bb7f96057c480834d00e29e'
+        'bzip2'     | '3da0b978d23f0a774ea7cf07d73f3283'
     }
 
     def "#taskName preserves order of child specs"() {

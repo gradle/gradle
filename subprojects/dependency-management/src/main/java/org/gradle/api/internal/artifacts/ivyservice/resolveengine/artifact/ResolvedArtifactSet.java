@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -24,7 +26,7 @@ import java.io.File;
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
-public interface ResolvedArtifactSet {
+public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**
      * Starts preparing the result of this set for later visiting. To visit the final result, call {@link Completion#visit(ArtifactVisitor)} after all work added to the supplied queue has completed.
      *
@@ -33,9 +35,9 @@ public interface ResolvedArtifactSet {
     Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener);
 
     /**
-     * Collects the build dependencies required to build the artifacts in this set.
+     * Visits the local artifacts of this set, if known without further resolution. Ignores artifacts that are not build locally and local artifacts that cannot be determined without further resolution.
      */
-    void collectBuildDependencies(BuildDependenciesVisitor visitor);
+    void visitLocalArtifacts(LocalArtifactVisitor listener);
 
     Completion EMPTY_RESULT = new Completion() {
         @Override
@@ -50,7 +52,11 @@ public interface ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
     };
 
@@ -67,7 +73,7 @@ public interface ResolvedArtifactSet {
      */
     interface AsyncArtifactListener {
         /**
-         * Visits an artifact once it is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
+         * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
          */
         void artifactAvailable(ResolvableArtifact artifact);
 
@@ -88,6 +94,9 @@ public interface ResolvedArtifactSet {
          * Called from any thread and in any order.
          */
         void fileAvailable(File file);
+    }
 
+    interface LocalArtifactVisitor {
+        void visitArtifact(ResolvableArtifact artifact);
     }
 }

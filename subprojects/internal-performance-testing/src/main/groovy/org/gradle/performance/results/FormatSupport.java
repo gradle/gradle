@@ -17,40 +17,76 @@
 package org.gradle.performance.results;
 
 import org.gradle.performance.measure.Amount;
-import org.gradle.performance.measure.DataAmount;
+import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static org.gradle.performance.measure.DataSeries.confidenceInDifference;
+
 public class FormatSupport {
-    private final DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    public static String executionTimestamp() {
+        return timestamp(new Date());
+    }
 
-    public FormatSupport() {
+    public static String timestamp(Date date) {
+        return format(date, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    public static String date(Date date) {
+        return format(date, "yyyy-MM-dd");
+    }
+
+    private static String format(Date date, String format) {
+        DateFormat timeStampFormat = new SimpleDateFormat(format);
         timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
-    public String executionTimestamp() {
-        return timeStampFormat.format(new Date());
-    }
-
-    public String timestamp(Date date) {
         return timeStampFormat.format(date);
     }
 
-    public String date(Date date) {
-        return dateFormat.format(date);
+    public static Number getTotalTimeSeconds(MeasuredOperationList baseline, MeasuredOperationList current) {
+        return baseline.getTotalTime().getMedian().toUnits(Duration.SECONDS).getValue();
     }
 
-    public String seconds(Amount<Duration> duration) {
-        return duration.toUnits(Duration.SECONDS).getValue().toString();
+    public static Number getConfidencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
+        if (baseline.isEmpty() || current.isEmpty()) {
+            // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
+            return new BigDecimal(0);
+        }
+
+        double sign = Math.signum(getDifferencePercentage(baseline, current).doubleValue());
+        return new BigDecimal(sign * 100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public String megabytes(Amount<DataAmount> amount) {
-        return amount.toUnits(DataAmount.MEGA_BYTES).getValue().toString();
+    public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
+        if (baseline.isEmpty() || current.isEmpty()) {
+            // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
+            return new BigDecimal(0);
+        }
+        return new BigDecimal(100.0 * getDifferenceRatio(baseline.getTotalTime(), current.getTotalTime()).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public static Number getDifferenceRatio(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+        double base = baselineVersion.getMedian().getValue().doubleValue();
+        double current = currentVersion.getMedian().getValue().doubleValue();
+        return (current - base) / base;
+    }
+
+    public static String getFormattedDifference(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+        Amount<Duration> base = baselineVersion.getMedian();
+        Amount<Duration> current = currentVersion.getMedian();
+        Amount<Duration> diff = current.minus(base);
+
+        String sign = diff.getValue().doubleValue() > 0 ? "+" : "";
+
+        return String.format("%s%s (%.2f%%)", sign, diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
+    }
+
+    public static String getFormattedConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {
+        return String.format("%.1f%%", 100.0 * confidenceInDifference(baselineVersion, currentVersion));
     }
 }

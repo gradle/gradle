@@ -18,15 +18,19 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import java.util.Collection;
+
 interface TrackingHttpHandler {
     /**
-     * Selects a resource handler to handle the given request. Returns null when this handler does not want to handle the request.
+     * Selects a response producer to handle the given request.
      *
      * This method is called under the state lock. The handler is _not_ called under the state lock. That is, the lock is held only while selecting how to handle the request.
      *
-     * The method may block until the request is ready to be handled.
+     * This method may block until the request is ready to be handled, but must do so using a condition created from the state lock.
+     *
+     * @throws Exception on failure to handle request. The handler is considered broken.
      */
-    ResourceHandler handle(int id, HttpExchange exchange) throws Exception;
+    ResponseProducer selectResponseProducer(int id, HttpExchange exchange) throws Exception;
 
     /**
      * Returns a precondition that asserts that this handler is not expecting any further requests to be released by the test in order to complete.
@@ -34,8 +38,12 @@ interface TrackingHttpHandler {
     WaitPrecondition getWaitPrecondition();
 
     /**
+     * Releases any blocked requests, in preparation for shutdown.
+     */
+    void cancelBlockedRequests();
+
+    /**
      * Asserts that this handler has been completed successfully.
      */
-    void assertComplete() throws AssertionError;
-
+    void assertComplete(Collection<Throwable> failures);
 }

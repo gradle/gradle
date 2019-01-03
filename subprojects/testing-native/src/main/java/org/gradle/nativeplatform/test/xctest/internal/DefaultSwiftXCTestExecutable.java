@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -41,6 +42,7 @@ import javax.inject.Inject;
 public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary implements SwiftXCTestExecutable, ConfigurableComponentWithExecutable {
     private final Property<LinkExecutable> linkTask;
     private final Property<InstallExecutable> installTask;
+    private final Property<Task> executableFileProducer;
     private final ConfigurableFileCollection files;
     private final RegularFileProperty debuggerExecutableFile;
 
@@ -48,6 +50,7 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
     public DefaultSwiftXCTestExecutable(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         debuggerExecutableFile = objectFactory.fileProperty();
+        this.executableFileProducer = objectFactory.property(Task.class);
         linkTask = objectFactory.property(LinkExecutable.class);
         installTask = objectFactory.property(InstallExecutable.class);
         files = fileOperations.configurableFiles();
@@ -56,6 +59,11 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
     @Override
     public Property<RegularFile> getDebuggerExecutableFile() {
         return debuggerExecutableFile;
+    }
+
+    @Override
+    public Property<Task> getExecutableFileProducer() {
+        return executableFileProducer;
     }
 
     @Override

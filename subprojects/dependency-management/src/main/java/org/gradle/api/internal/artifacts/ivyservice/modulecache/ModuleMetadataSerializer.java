@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
@@ -40,16 +41,16 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableComponentVariant;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MavenDependencyType;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.MutableComponentVariant;
-import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -62,7 +63,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -691,20 +691,20 @@ public class ModuleMetadataSerializer {
 
         private List<String> readStringList() throws IOException {
             int size = readCount();
-            List<String> list = new ArrayList<String>(size);
+            ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(size);
             for (int i = 0; i < size; i++) {
-                list.add(readString());
+                builder.add(readString());
             }
-            return list;
+            return builder.build();
         }
 
         private Set<String> readStringSet() throws IOException {
             int size = readCount();
-            Set<String> set = new LinkedHashSet<String>(3 * size / 2, 0.9f);
+            ImmutableSet.Builder<String> builder = ImmutableSet.builderWithExpectedSize(size);
             for (int i = 0; i < size; i++) {
-                set.add(readString());
+                builder.add(readString());
             }
-            return set;
+            return builder.build();
         }
     }
 

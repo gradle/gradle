@@ -32,13 +32,12 @@ class WrapperPlugin : Plugin<Project> {
         wrapperUpdateTask("current", "current")
 
         tasks.withType<Wrapper>().configureEach {
-            val jvmOpts = "-Xmx128m -Dfile.encoding=UTF-8"
+            val jvmOpts = "-Dfile.encoding=UTF-8"
             inputs.property("jvmOpts", jvmOpts)
-            // TODO Do we want to use doLast or a finalizedBy task?
             doLast {
                 val optsEnvVar = "DEFAULT_JVM_OPTS"
-                scriptFile.writeText(scriptFile.readText().replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\""))
-                batchScript.writeText(batchScript.readText().replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts"))
+                scriptFile.writeText(scriptFile.readText().replace("$optsEnvVar='", "$optsEnvVar='$jvmOpts "))
+                batchScript.writeText(batchScript.readText().replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts "))
             }
         }
     }

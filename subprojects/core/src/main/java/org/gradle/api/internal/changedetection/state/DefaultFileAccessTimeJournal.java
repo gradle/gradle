@@ -22,6 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
@@ -53,7 +54,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             .withLockOptions(mode(FileLockManager.LockMode.None)) // lock on demand
             .open();
         store = cache.createCache(PersistentIndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
-            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+            .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
         inceptionTimestamp = loadOrPersistInceptionTimestamp();
     }
 

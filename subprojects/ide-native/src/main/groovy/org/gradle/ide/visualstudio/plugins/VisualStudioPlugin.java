@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
@@ -66,12 +67,14 @@ public class VisualStudioPlugin extends IdePlugin {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry artifactRegistry;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry) {
+    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.artifactRegistry = artifactRegistry;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class VisualStudioPlugin extends IdePlugin {
         // Create Visual Studio project extensions
         final VisualStudioExtensionInternal extension;
         if (isRoot()) {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry, collectionCallbackActionDecorator);
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
             getLifecycleTask().configure(new Action<Task>() {
                 @Override
@@ -96,7 +99,7 @@ public class VisualStudioPlugin extends IdePlugin {
             });
             addWorkspace(solution);
         } else {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry, collectionCallbackActionDecorator);
             getLifecycleTask().configure(new Action<Task>() {
                 @Override
                 public void execute(Task task) {

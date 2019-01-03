@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
@@ -89,6 +89,7 @@ import java.util.Set;
 
 public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
+    private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
     private final String name;
     private final List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
@@ -100,7 +101,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
@@ -118,18 +118,17 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        ImmutableMetadataSources metadataSources,
                                        MetadataArtifactProvider metadataArtifactProvider,
                                        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister, Instantiator injector) {
+                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
+                                       Instantiator injector) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataSources = metadataSources;
         this.metadataArtifactProvider = metadataArtifactProvider;
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
@@ -480,7 +479,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                 } else {
                     result.resolved(artifactResource.getFile());
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 result.failed(new ArtifactResolveException(artifact.getId(), e));
             }
         }
@@ -510,7 +509,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             cacheHasher.putString(artifactPattern.getPattern());
         }
         appendId(cacheHasher);
-        return cacheHasher.hash().toString();
+        return REPOSITORY_ID_INTERNER.intern(cacheHasher.hash().toString());
     }
 
     protected void appendId(Hasher hasher) {

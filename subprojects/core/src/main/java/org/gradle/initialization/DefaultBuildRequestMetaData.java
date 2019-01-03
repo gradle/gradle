@@ -45,11 +45,6 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
         return clientMetaData;
     }
 
-    @SuppressWarnings("deprecation")
-    public org.gradle.util.Clock getBuildTimeClock() {
-        return new org.gradle.util.Clock(startTime);
-    }
-
     @Override
     public long getStartTime() {
         return startTime;

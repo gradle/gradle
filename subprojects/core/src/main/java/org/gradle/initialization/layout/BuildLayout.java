@@ -16,17 +16,16 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.initialization.SettingsLocation;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
-@UsedByScanPlugin
 public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
 
     // Note: `null` for `settingsFile` means explicitly no settings
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLayout(File rootDirectory, File settingsDir, File settingsFile) {
+    public BuildLayout(File rootDirectory, File settingsDir, @Nullable File settingsFile) {
         super(settingsDir, settingsFile);
         this.rootDirectory = rootDirectory;
     }

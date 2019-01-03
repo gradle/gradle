@@ -206,6 +206,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return updatedMetadata;
     }
 
+    @Override
+    public int getRulesHash() {
+        return metadataRuleContainer.getRulesHash();
+    }
+
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {
         for (MetadataRuleWrapper wrapper : metadataRuleContainer) {
             if (wrapper.isClassBased()) {

@@ -1,3 +1,5 @@
+import org.gradle.api.internal.FeaturePreviews
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -101,6 +103,9 @@ include("versionControl")
 include("files")
 include("snapshots")
 include("architectureTest")
+include("buildCachePackaging")
+include("execution")
+include("buildProfile")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -165,13 +170,16 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
     }
-    resolutionStrategy {
-        eachPlugin {
-            when (requested.id.id) {
-                // FIXME: Publish plugin marker artifacts for the ci tagging plugin
-                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.43")
-            }
-        }
+}
+
+val ignoredFeatures = setOf(
+    // we don't want to publish Gradle metadata to public repositories until the format is stable.
+    FeaturePreviews.Feature.GRADLE_METADATA
+)
+
+FeaturePreviews.Feature.values().forEach { feature ->
+    if (feature.isActive && !ignoredFeatures.contains(feature)) {
+        enableFeaturePreview(feature.name)
     }
 }
 

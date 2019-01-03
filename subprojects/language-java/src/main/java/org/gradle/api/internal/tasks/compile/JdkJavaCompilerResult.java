@@ -21,7 +21,7 @@ import org.gradle.workers.internal.DefaultWorkResult;
 
 public class JdkJavaCompilerResult extends DefaultWorkResult {
 
-    private AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
+    private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
 
     JdkJavaCompilerResult() {
         super(true, null);

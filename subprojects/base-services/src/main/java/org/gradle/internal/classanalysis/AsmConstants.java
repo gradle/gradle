@@ -19,6 +19,5 @@ package org.gradle.internal.classanalysis;
 import org.objectweb.asm.Opcodes;
 
 public class AsmConstants {
-    @SuppressWarnings("deprecation")
-    public static final int ASM_LEVEL = Opcodes.ASM7_EXPERIMENTAL;
+    public static final int ASM_LEVEL = Opcodes.ASM7;
 }

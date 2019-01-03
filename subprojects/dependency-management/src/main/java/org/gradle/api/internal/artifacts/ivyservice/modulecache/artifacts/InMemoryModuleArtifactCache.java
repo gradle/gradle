@@ -27,29 +27,52 @@ import java.util.Map;
 public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
     private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = Maps.newConcurrentMap();
     private final BuildCommencedTimeProvider timeProvider;
+    private final ModuleArtifactCache delegate;
 
     public InMemoryModuleArtifactCache(BuildCommencedTimeProvider timeProvider) {
         this.timeProvider = timeProvider;
+        this.delegate = null;
+    }
+
+    public InMemoryModuleArtifactCache(BuildCommencedTimeProvider timeProvider, ModuleArtifactCache delegate) {
+        this.timeProvider = timeProvider;
+        this.delegate = delegate;
     }
 
     @Override
     public void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash) {
         inMemoryCache.put(key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash));
+        if (delegate != null) {
+            delegate.store(key, artifactFile, moduleDescriptorHash);
+        }
     }
 
     @Override
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
         inMemoryCache.put(key, new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash));
+        if (delegate != null) {
+            delegate.storeMissing(key, attemptedLocations, descriptorHash);
+        }
     }
 
     @Nullable
     @Override
     public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
-        return inMemoryCache.get(key);
+        CachedArtifact cachedArtifact = inMemoryCache.get(key);
+        if (cachedArtifact == null && delegate != null) {
+            cachedArtifact = delegate.lookup(key);
+            if (cachedArtifact != null) {
+                inMemoryCache.put(key, cachedArtifact);
+            }
+        }
+        return cachedArtifact;
     }
 
     @Override
     public void clear(ArtifactAtRepositoryKey key) {
         inMemoryCache.remove(key);
+        if (delegate != null) {
+            delegate.clear(key);
+        }
     }
 }

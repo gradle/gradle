@@ -69,16 +69,4 @@ public interface MavenDeployer extends MavenResolver {
      * the appropriate Maven wagon jars have to be passed via this method.
      */
     void addProtocolProviderJars(Collection<File> jars);
-
-    /**
-     * Returns whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the
-     * same version each time. Defaults to true.
-     */
-    boolean isUniqueVersion();
-
-    /**
-     * Sets whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same
-     * version each time. Defaults to true.
-     */
-    void setUniqueVersion(boolean uniqueVersion);
 }

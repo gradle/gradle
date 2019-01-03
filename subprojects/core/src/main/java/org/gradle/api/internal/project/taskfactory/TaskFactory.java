@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
@@ -29,24 +28,20 @@ import org.gradle.util.NameValidator;
 import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {
-    private static final Object[] NO_ARGS = new Object[0];
-
-    private final ClassGenerator generator;
     private final ProjectInternal project;
     private final Instantiator instantiator;
 
-    public TaskFactory(ClassGenerator generator) {
-        this(generator, null, null);
+    public TaskFactory() {
+        this(null, null);
     }
 
-    TaskFactory(ClassGenerator generator, ProjectInternal project, Instantiator instantiator) {
-        this.generator = generator;
+    private TaskFactory(ProjectInternal project, Instantiator instantiator) {
         this.project = project;
         this.instantiator = instantiator;
     }
 
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new TaskFactory(generator, project, instantiator);
+        return new TaskFactory(project, instantiator);
     }
 
     @Override
@@ -59,17 +54,17 @@ public class TaskFactory implements ITaskFactory {
 
         NameValidator.validate(identity.name, "task name", "");
 
-        final Class<? extends Task> generatedType;
+        final Class<? extends Task> implType;
         if (identity.type.isAssignableFrom(DefaultTask.class)) {
-            generatedType = generator.generate(DefaultTask.class);
+            implType = DefaultTask.class;
         } else {
-            generatedType = generator.generate(identity.type);
+            implType = identity.type;
         }
 
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             public S call() {
                 try {
-                    return identity.type.cast(instantiator.newInstance(generatedType, args));
+                    return identity.type.cast(instantiator.newInstance(implType, args));
                 } catch (ObjectInstantiationException e) {
                     throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", identity.type.getSimpleName()),
                         e.getCause());

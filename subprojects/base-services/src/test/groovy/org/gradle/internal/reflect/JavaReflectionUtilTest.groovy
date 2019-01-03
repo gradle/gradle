@@ -31,13 +31,13 @@ class JavaReflectionUtilTest extends Specification {
 
     def "property names"() {
         expect:
-        propertyNames(new JavaTestSubject()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue'] as Set
+        propertyNames(new JavaTestSubject()) == ['class', 'myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue'] as Set
 
         and:
-        propertyNames(new JavaTestSubjectSubclass()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue', 'subclassBoolean'] as Set
+        propertyNames(new JavaTestSubjectSubclass()) == ['class', 'myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue', 'subclassBoolean'] as Set
 
         and:
-        propertyNames(new WithProperties()) == ['metaClass', 'prop1', 'prop2', 'something', 'somethingElse', 'writeOnly'] as Set
+        propertyNames(new WithProperties()) == ['class', 'metaClass', 'prop1', 'prop2', 'something', 'somethingElse', 'writeOnly'] as Set
     }
 
     def "read property"() {

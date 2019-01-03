@@ -21,7 +21,6 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -30,6 +29,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry

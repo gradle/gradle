@@ -93,7 +93,6 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
-    @Incubating
     NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -106,6 +105,5 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
-    @Incubating
     NamedDomainObjectProvider<T> register(String name) throws InvalidUserDataException;
 }

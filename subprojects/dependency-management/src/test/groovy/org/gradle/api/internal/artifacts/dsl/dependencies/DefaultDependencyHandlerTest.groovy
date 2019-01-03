@@ -30,13 +30,12 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.Factory
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
@@ -52,20 +51,9 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(
-        DefaultDependencyHandler,
-        configurationContainer,
-        dependencyFactory,
-        projectFinder,
-        Stub(DependencyConstraintHandler),
-        Stub(ComponentMetadataHandler),
-        Stub(ComponentModuleMetadataHandler),
-        Stub(ArtifactResolutionQueryFactory),
-        Stub(AttributesSchema),
-        Stub(VariantTransformRegistry),
-        Stub(Factory),
-        DirectInstantiator.INSTANCE
-    )
+    private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
+        configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
+        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

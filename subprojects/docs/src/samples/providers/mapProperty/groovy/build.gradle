@@ -1,0 +1,26 @@
+class Generator extends DefaultTask {
+    @Input
+    final MapProperty<String, Integer> properties = project.objects.mapProperty(String, Integer)
+
+    @TaskAction
+    void generate() {
+        properties.get().each { key, value ->
+            logger.quiet("${key} = ${value}")
+        }
+    }
+}
+
+// Some values to be configured later
+def b = 0
+def c = 0
+
+task generate(type: Generator) {
+    properties.put("a", 1)
+    // Values have not been configured yet
+    properties.put("b", providers.provider { b })
+    properties.putAll(providers.provider { [c: c, d: c + 1] })
+}
+
+// Configure the values. There is no need to reconfigure the task
+b = 2
+c = 3

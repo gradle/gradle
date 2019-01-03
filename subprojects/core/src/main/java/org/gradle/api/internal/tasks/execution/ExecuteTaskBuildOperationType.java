@@ -16,8 +16,13 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.NotUsedByScanPlugin;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * The overall execution of a task, including:
@@ -31,21 +36,98 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * If the operation gets as far as invoking the task executer
  * (i.e. beforeTask callbacks did not fail), then a result is expected.
  * If the task execution fails, or if afterTask callbacks fail, an operation failure is expected _in addition_.
- *
- * Important note: the scan listener currently expects to receive the operation started notification on the
- * _same thread_ that is about to execute the task. If this changes (e.g. notifications are dispatched async),
- * additional changes need to be made to convey the thread/worker that is going to be used to execute the task.
  */
 @UsedByScanPlugin
 public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
 
-    @SuppressWarnings("deprecation")
-    public interface Details extends org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details {
+    public interface Details {
+
+        String getBuildPath();
+
+        String getTaskPath();
+
+        /**
+         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         */
+        long getTaskId();
+
+        Class<?> getTaskClass();
 
     }
 
-    @SuppressWarnings("deprecation")
-    public interface Result extends org.gradle.internal.execution.ExecuteTaskBuildOperationType.Result {
+    public interface Result {
+
+        /**
+         * The message describing why the task was skipped.
+         *
+         * Expected to be {@link org.gradle.api.tasks.TaskState#getSkipMessage()}.
+         */
+        @Nullable
+        String getSkipMessage();
+
+        /**
+         * Whether the task had any actions.
+         * See {@link org.gradle.api.internal.tasks.TaskStateInternal#isActionable()}.
+         */
+        boolean isActionable();
+
+        /**
+         * If task was UP_TO_DATE or FROM_CACHE, this will convey the ID of the build that produced the outputs being reused.
+         * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the task executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism.
+         * This is not necessarily ideal behaviour, but it is the current.
+         */
+        @Nullable
+        String getOriginBuildInvocationId();
+
+        /**
+         * If task was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the task in the build that produced the outputs being reused.
+         * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the task executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism.
+         * This is not necessarily ideal behaviour, but it is the current.
+         *
+         * @since 4.5
+         */
+        @Nullable
+        Long getOriginExecutionTime();
+
+        /**
+         * The human friendly description of why this task was not cacheable.
+         * Null if the task was cacheable.
+         * Not null if {@link #getCachingDisabledReasonCategory()} is not null.
+         */
+        @Nullable
+        String getCachingDisabledReasonMessage();
+
+        /**
+         * The categorisation of the why the task was not cacheable.
+         * Null if the task was cacheable.
+         * Not null if {@link #getCachingDisabledReasonMessage()}l is not null.
+         * Values are expected to correlate to {@link org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory}.
+         */
+        @Nullable
+        String getCachingDisabledReasonCategory();
+
+        /**
+         * Opaque messages describing why the task was not up to date.
+         * In the order emitted by Gradle.
+         * Null if execution did not get so far as to test “up-to-date-ness”.
+         * Empty if tested, but task was considered up to date.
+         */
+        @Nullable
+        List<String> getUpToDateMessages();
+
+        /**
+         * Returns if this task was executed incrementally.
+         *
+         * @see IncrementalTaskInputs#isIncremental()
+         */
+        @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
+        boolean isIncremental();
 
     }
 

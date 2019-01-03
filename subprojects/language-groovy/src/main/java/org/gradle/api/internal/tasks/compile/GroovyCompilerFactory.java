@@ -40,7 +40,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final WorkerDaemonFactory workerDaemonFactory;
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
     private final PathToFileResolver fileResolver;
-    private AnnotationProcessorDetector processorDetector;
+    private final AnnotationProcessorDetector processorDetector;
     private final JvmVersionDetector jvmVersionDetector;
 
     public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, PathToFileResolver fileResolver, AnnotationProcessorDetector processorDetector, JvmVersionDetector jvmVersionDetector) {

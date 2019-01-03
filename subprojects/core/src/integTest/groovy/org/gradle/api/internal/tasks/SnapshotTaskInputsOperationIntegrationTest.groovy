@@ -28,7 +28,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
@@ -55,7 +54,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    @Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         buildFile << customTaskCode('foo', 'bar')
@@ -71,8 +69,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             
             apply plugin: "com.gradle.build-scan"
             buildScan {
-                licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-                licenseAgree = 'yes'
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
             }
         """.stripIndent()
 
@@ -331,6 +329,34 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 children[0].path == "Other.class"
                 children[1].path == "Thing.class"
             }
+        }
+    }
+
+    def "single root file are represented as roots"() {
+        given:
+        withBuildCache()
+        file('inputFile').text = 'inputFile'
+        buildScript """
+            task copy(type:Copy) {
+               from 'inputFile'
+               into 'destDir'
+            }
+        """
+        when:
+        succeeds("copy")
+
+        then:
+        def copy = snapshotResults(":copy").inputFileProperties
+
+        with(copy['rootSpec$1']) {
+            hash != null
+            roots.size() == 1
+            with(roots[0]) {
+                hash != null
+                path == file("inputFile").absolutePath
+                !containsKey("children")
+            }
+            normalization == "RELATIVE_PATH"
         }
     }
 

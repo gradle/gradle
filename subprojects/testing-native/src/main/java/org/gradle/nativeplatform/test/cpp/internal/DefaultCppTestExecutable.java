@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -48,6 +49,7 @@ import java.util.concurrent.Callable;
 public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
     private final Provider<CppComponent> testedComponent;
     private final RegularFileProperty executableFile;
+    private final Property<Task> executableFileProducer;
     private final DirectoryProperty installationDirectory;
     private final Property<InstallExecutable> installTaskProperty;
     private final Property<LinkExecutable> linkTaskProperty;
@@ -61,6 +63,7 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
         super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
         this.executableFile = objects.fileProperty();
+        this.executableFileProducer = objects.property(Task.class);
         this.debuggerExecutableFile = objects.fileProperty();
         this.installationDirectory = objects.directoryProperty();
         this.linkTaskProperty = objects.property(LinkExecutable.class);
@@ -77,6 +80,11 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public RegularFileProperty getExecutableFile() {
         return executableFile;
+    }
+
+    @Override
+    public Property<Task> getExecutableFileProducer() {
+        return executableFileProducer;
     }
 
     @Override

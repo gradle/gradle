@@ -20,9 +20,9 @@ Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/g
 
 To run:
 
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesCopyIntegrationTest"
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesFilesMiscIntegrationTest"
-   ./gradlew :integTest:intTestImage :docs:extractSamples :integTest:integTest --tests "*SamplesArchivesIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesCopyIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesFilesMiscIntegrationTest"
+   ./gradlew :integTest:intTestImage :integTest:integTest --tests "*SamplesArchivesIntegrationTest"
 ////
 
 Almost every Gradle build interacts with files in some way: think source files, file dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to perform the file operations you need.
@@ -195,7 +195,7 @@ In this case, we're taking the runtime dependencies of the project — `configur
 [[sec:creating_directories_example]]
 == Creating directories
 
-Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user guide. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
+Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user manual. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
 
 In cases where you need to create a directory manually, you can use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:mkdir(java.lang.Object)[Project.mkdir(java.lang.Object)] method from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
 
@@ -302,7 +302,7 @@ Relative paths are resolved relative to the project directory, while absolute pa
 
 [CAUTION]
 ====
-Never use `new File(relative path)`, as this creates a path relative to the current working directory, which could be anywhere.
+Never use `new File(relative path)` because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
 ====
 
 Here are some examples of using the `file()` method with different types of argument:
@@ -336,6 +336,11 @@ The recommended way to specify a collection of files is to use the link:{javadoc
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.
 You can even pass in tasks as arguments if they have <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>.
 Learn about all the supported argument types in the reference guide.
+
+[CAUTION]
+====
+Although the `files()` method accepts `File` instances, never use `new File(relative path)` with it because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+====
 
 As with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
 

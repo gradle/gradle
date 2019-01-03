@@ -15,6 +15,8 @@
 [[tutorial_using_tasks]]
 = Build Script Basics
 
+This chapter introduces you to the basics of writing Gradle build scripts. For a quick hands-on introduction, try the link:{guidesUrl}/creating-new-gradle-builds/[Creating New Gradle Builds] guide.
+
 
 [[sec:projects_and_tasks]]
 == Projects and tasks
@@ -342,10 +344,3 @@ For multi-project builds, the dependencies declared with a project's `buildscrip
 Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
 
 Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
-
-[[sec:tasks_tutorial_where_to_next]]
-== Where to next?
-
-In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details, have a look at <<more_about_tasks.adoc#more_about_tasks,More About Tasks>>.
-
-Otherwise, continue on to <<tutorial_java_projects.adoc#tutorial_java_projects,the tutorials>> and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects,Dependency Management for Java Projects>>.

@@ -66,7 +66,7 @@ class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
         return testCases.collect {
             new ScenarioBuildResultData(scenarioName: it.name,
                 webUrl: TC_URL + buildId,
-                successful: !it.errors && !it.failures,
+                status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
                 testFailure: collectFailures(testSuite))
         }
     }

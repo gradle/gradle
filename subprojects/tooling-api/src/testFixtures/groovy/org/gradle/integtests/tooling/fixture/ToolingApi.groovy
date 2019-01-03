@@ -55,7 +55,7 @@ class ToolingApi implements TestRule {
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this.dist = dist
-        this.useSeparateDaemonBaseDir = dist.toolingApiDaemonBaseDirSupported && DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
+        this.useSeparateDaemonBaseDir = DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
         this.gradleUserHomeDir = context.gradleUserHomeDir
         this.daemonBaseDir = context.daemonBaseDir
         this.requiresDaemon = !GradleContextualExecuter.embedded

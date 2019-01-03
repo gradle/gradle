@@ -17,12 +17,13 @@
 package org.gradle.api.internal
 
 
-import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
 import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
-    abstract NamedDomainObjectCollection<T> getContainer()
+    abstract NamedDomainObjectContainer<T> getContainer()
 
     @Override
     protected Map<String, Closure> getMutatingMethods() {
@@ -50,6 +51,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         methods << getQueryMethods() + getMutatingMethods()
     }
 
+    @Unroll
     def "disallow mutating from register actions using #mutatingMethods.key"() {
         setupContainerDefaults()
         String methodUnderTest = mutatingMethods.key
@@ -57,6 +59,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
         when:
         container.register("a", method).get()
+
         then:
         def ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
@@ -78,5 +81,40 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
         where:
         queryMethods << getQueryMethods()
+    }
+
+    def "deferred configuration methods emit operations"() {
+        containerSupportsBuildOperations()
+
+        when:
+        setupContainerDefaults()
+        UserCodeApplicationId id1 = null
+        UserCodeApplicationId id2 = null
+        List<UserCodeApplicationId> ids = []
+        userCodeApplicationContext.apply {
+            id1 = it
+            container.register("a") {
+                ids << userCodeApplicationContext.current()
+            }
+        }
+        userCodeApplicationContext.apply {
+            id2 = it
+            container.named("a").configure {
+                ids << userCodeApplicationContext.current()
+            }
+        }
+
+        then:
+        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+
+        when:
+        container.getByName("a")
+
+        then:
+        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        ops.size() == 2
+        ids.size() == 2
+        ops[0].details.applicationId == id1.longValue()
+        ops[1].details.applicationId == id2.longValue()
     }
 }

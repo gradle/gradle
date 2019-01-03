@@ -16,12 +16,14 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.internal.ImmutableActionSet;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -29,18 +31,32 @@ import java.util.Set;
  */
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
+    private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
 
     public LocalTaskNode(TaskInternal task) {
         this.task = task;
     }
 
+    @Nullable
+    @Override
+    public Project getProject() {
+        // Running the task requires access to the task's owning project
+        return task.getProject();
+    }
+
+    @Override
     public TaskInternal getTask() {
         return task;
     }
 
     @Override
-    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
-        builder.add(task);
+    public Action<? super Task> getPostAction() {
+        return postAction;
+    }
+
+    @Override
+    public void appendPostAction(Action<? super Task> action) {
+        postAction = postAction.add(action);
     }
 
     @Override

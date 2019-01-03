@@ -16,54 +16,40 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Set;
 
-public class InMemoryModuleVersionsCache implements ModuleVersionsCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleVersionsCache.class);
-    private final BuildCommencedTimeProvider timeProvider;
+public class InMemoryModuleVersionsCache extends AbstractModuleVersionsCache {
     private final Map<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
+    private final AbstractModuleVersionsCache delegate;
 
     public InMemoryModuleVersionsCache(BuildCommencedTimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+        super(timeProvider);
+        this.delegate = null;
     }
 
-    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
-        LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
-        ModuleAtRepositoryKey key = createKey(repository, moduleId);
-        ModuleVersionsCacheEntry entry = createEntry(listedVersions);
-        store(key, entry);
+    public InMemoryModuleVersionsCache(BuildCommencedTimeProvider timeProvider, AbstractModuleVersionsCache delegate) {
+        super(timeProvider);
+        this.delegate = delegate;
     }
 
     protected void store(ModuleAtRepositoryKey key, ModuleVersionsCacheEntry entry) {
         inMemoryCache.put(key, entry);
-    }
-
-    public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
-        ModuleAtRepositoryKey key = createKey(repository, moduleId);
-        ModuleVersionsCacheEntry entry = get(key);
-        return entry == null ? null : versionList(entry);
+        if (delegate != null) {
+            delegate.store(key, entry);
+        }
     }
 
     protected ModuleVersionsCacheEntry get(ModuleAtRepositoryKey key) {
-        return inMemoryCache.get(key);
+        ModuleVersionsCacheEntry entry = inMemoryCache.get(key);
+        if (entry == null && delegate != null) {
+            entry = delegate.get(key);
+            if (entry != null) {
+                inMemoryCache.put(key, entry);
+            }
+        }
+        return entry;
     }
 
-    private CachedModuleVersionList versionList(ModuleVersionsCacheEntry moduleVersionsCacheEntry) {
-        return new DefaultCachedModuleVersionList(moduleVersionsCacheEntry, timeProvider);
-    }
-
-    private ModuleAtRepositoryKey createKey(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
-        return new ModuleAtRepositoryKey(repository.getId(), moduleId);
-    }
-
-    private ModuleVersionsCacheEntry createEntry(Set<String> listedVersions) {
-        return new ModuleVersionsCacheEntry(listedVersions, timeProvider.getCurrentTime());
-    }
 }

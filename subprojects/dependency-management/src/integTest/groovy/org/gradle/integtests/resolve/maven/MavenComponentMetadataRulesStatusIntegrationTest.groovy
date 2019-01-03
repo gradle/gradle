@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.resolve.ComponentMetadataRulesStatusIntegrationTest
+import org.gradle.integtests.resolve.rules.ComponentMetadataRulesStatusIntegrationTest
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class MavenComponentMetadataRulesStatusIntegrationTest extends ComponentMetadataRulesStatusIntegrationTest {

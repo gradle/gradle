@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import groovy.transform.CompileStatic
-import org.gradle.internal.exceptions.DefaultMultiCauseException
 
 @CompileStatic
 class CrossBuildPerformanceResults extends PerformanceTestResult {
@@ -60,11 +59,5 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
         List.cast(buildResults.values().collect() {
             it.exception
         }.flatten().findAll())
-    }
-
-    void assertEveryBuildSucceeds() {
-        if (failures && whatToCheck().exceptions()) {
-            throw new DefaultMultiCauseException("Performance test '$testId' failed", failures)
-        }
     }
 }

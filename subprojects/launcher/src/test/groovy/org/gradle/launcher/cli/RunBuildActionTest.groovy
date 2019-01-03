@@ -20,11 +20,14 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.cli.action.ExecuteBuildAction
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.exec.BuildActionResult
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class RunBuildActionTest extends Specification {
@@ -52,6 +55,23 @@ class RunBuildActionTest extends Specification {
             assert context.startTime == startTime
             assert build == parameters
             assert services == sharedServices
+            return BuildActionResult.of(null)
+        }
+        1 * stoppable.stop()
+        0 * _._
+    }
+
+    def throwsExceptionOnBuildFailure() {
+        when:
+        action.run()
+
+        then:
+        thrown(ReportedException)
+
+        and:
+        startParameter.logLevel >> LogLevel.ERROR
+        1 * client.execute(_, _, _, _) >> {
+            return BuildActionResult.failed(new SerializedPayload("thing", []))
         }
         1 * stoppable.stop()
         0 * _._

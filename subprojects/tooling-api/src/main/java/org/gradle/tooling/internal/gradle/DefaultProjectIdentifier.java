@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.gradle;
 
+import org.gradle.tooling.model.ProjectIdentifier;
+
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultProjectIdentifier implements Serializable, GradleProjectIdentity {
+public class DefaultProjectIdentifier implements Serializable, GradleProjectIdentity, ProjectIdentifier {
     private final DefaultBuildIdentifier build;
     private final String projectPath;
 
@@ -32,10 +34,12 @@ public class DefaultProjectIdentifier implements Serializable, GradleProjectIden
         this(new DefaultBuildIdentifier(rootDir), projectPath);
     }
 
+    @Override
     public DefaultBuildIdentifier getBuildIdentifier() {
         return build;
     }
 
+    @Override
     public String getProjectPath() {
         return projectPath;
     }

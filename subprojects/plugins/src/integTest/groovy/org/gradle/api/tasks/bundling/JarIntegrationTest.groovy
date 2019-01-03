@@ -33,10 +33,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     def canCreateAnEmptyJar() {
         given:
         buildFile << """
-                task jar(type: Jar) {
-                    from 'test'
-                    destinationDir = buildDir
-                    archiveName = 'test.jar'
+        task jar(type: Jar) {
+            from 'test'
+            destinationDir = buildDir
+            archiveName = 'test.jar'
         }
         """
 
@@ -319,8 +319,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = buildDir
                 archiveName = 'test.jar'
                 manifest { $manifest }
-            }
-"""
+            }"""
         }
 
         createDir('test') {
@@ -674,7 +673,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         fails('jar')
 
         then:
-        failureCauseContains('The destinationDir property must be set')
+        failureCauseContains('No value has been specified for property \'archiveFile\'.')
     }
 
     private static String customJarManifestTask() {

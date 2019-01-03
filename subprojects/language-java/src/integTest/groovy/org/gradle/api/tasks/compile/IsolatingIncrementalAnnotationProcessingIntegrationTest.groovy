@@ -17,13 +17,16 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.TextUtil
+
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 
 class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private HelperProcessorFixture helperProcessor
@@ -122,14 +125,14 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         when:
         a.delete()
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
     }
 
     def "generated files and classes are deleted when processor is removed"() {
@@ -140,14 +143,14 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AHelper.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava"
 
         then:
-        !file("build/classes/java/main/AHelper.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AHelper.java").exists()
 
         and:
         outputs.deletedClasses("AHelper")
@@ -199,7 +202,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.snapshot { run "compileJava" }
 
         when:
-        file("build/classes/java/main/AHelper.java").delete()
+        file("build/generated/sources/annotationProcessor/java/main/AHelper.java").delete()
         run "compileJava"
 
         then:
@@ -269,6 +272,20 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
         and:
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+    }
+
+    def "reports isolating processor in build operation"() {
+        java "class Irrelevant {}"
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'HelperProcessor'
+            first().type == ISOLATING.name()
+        }
     }
 
     /**

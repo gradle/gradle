@@ -15,42 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.execution.history.ExecutionState;
 
 /**
  * The state for a single task execution.
  */
-public interface TaskExecution {
-
-    @Nullable
-    OriginTaskExecutionMetadata getOriginExecutionMetadata();
-
-    /**
-     * Returns the names of all cacheable output property names that have a value set.
-     * The collection includes names of properties declared via mapped plural outputs,
-     * and excludes optional properties that don't have a value set. If the task is not
-     * cacheable, it returns an empty collection.
-     */
-    ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey();
-
-    ImplementationSnapshot getTaskImplementation();
-
-    ImmutableList<ImplementationSnapshot> getTaskActionImplementations();
-
-    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
-
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
-
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFingerprints();
-
-    boolean isSuccessful();
+public interface TaskExecution extends ExecutionState {
 
 }

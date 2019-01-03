@@ -38,6 +38,7 @@ public interface RenderableDependency {
     enum ResolutionState {
         FAILED,
         RESOLVED,
+        RESOLVED_CONSTRAINT,
         UNRESOLVED
     }
 }

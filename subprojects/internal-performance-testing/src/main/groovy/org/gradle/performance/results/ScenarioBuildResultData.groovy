@@ -17,18 +17,22 @@
 package org.gradle.performance.results
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
+    String teamCityBuildId
     String scenarioName
     String webUrl
     String testFailure
-    boolean successful
+    String status
     boolean crossBuild
-    List<ExecutionData> currentCommitExecutions = []
+    List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
+
+    boolean isCrossVersion() {
+        return !crossBuild
+    }
 
     boolean isAboutToRegress() {
         return !crossBuild && executions.any { it.confidentToSayWorse() }
@@ -38,12 +42,24 @@ class ScenarioBuildResultData {
         return !crossBuild && executionsToDisplayInRow.every { it.confidentToSayBetter() }
     }
 
+    boolean isUnknown() {
+        return status == 'UNKNOWN'
+    }
+
+    boolean isSuccessful() {
+        return status == 'SUCCESS'
+    }
+
     boolean isBuildFailed() {
-        return !successful && currentCommitExecutions.empty
+        return status == 'FAILURE' && currentBuildExecutions.empty
+    }
+
+    boolean isRegressed() {
+        return status == 'FAILURE' && !currentBuildExecutions.empty
     }
 
     boolean isFromCache() {
-        return successful && currentCommitExecutions.empty
+        return status == 'SUCCESS' && currentBuildExecutions.empty
     }
 
     double getDifferenceSortKey() {
@@ -63,7 +79,7 @@ class ScenarioBuildResultData {
     }
 
     List<ExecutionData> getExecutions() {
-        return currentCommitExecutions.isEmpty() ? recentExecutions : currentCommitExecutions
+        return currentBuildExecutions.isEmpty() ? recentExecutions : currentBuildExecutions
     }
 
     List<ExecutionData> getExecutionsToDisplayInRow() {
@@ -88,17 +104,11 @@ class ScenarioBuildResultData {
         }
 
         String getDifferenceDisplay() {
-            Amount base = baseVersion.totalTime.median
-            Amount current = currentVersion.totalTime.median
-            Amount diff = current - base
-
-            return String.format("%s (%s)", diff.format(), formattedDifferencePercentage)
+            return FormatSupport.getFormattedDifference(baseVersion.totalTime, currentVersion.totalTime)
         }
 
         double getDifferencePercentage() {
-            double base = baseVersion.totalTime.median.value.doubleValue()
-            double current = currentVersion.totalTime.median.value.doubleValue()
-            return 100.0 * (current - base) / base
+            return FormatSupport.getDifferencePercentage(baseVersion, currentVersion).doubleValue()
         }
 
         double getConfidencePercentage() {

@@ -84,6 +84,6 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputDoesNotContain('Worker Daemon(s) expired to free some system memory')
-        outputContains 'Worker Daemons expiration is disabled, skipping'
+        outputContains 'Worker Daemon(s) had expiration disabled and were skipped'
     }
 }

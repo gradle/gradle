@@ -15,19 +15,19 @@
  */
 package org.gradle.internal.invocation;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
 
     private State state = State.Created;
-    private boolean hasResult;
-    private Object result;
     private final GradleLauncher gradleLauncher;
     private final WorkerLeaseService workerLeaseService;
 
@@ -47,55 +47,46 @@ public class GradleBuildController implements BuildController {
         return gradleLauncher;
     }
 
-    @Override
-    public boolean hasResult() {
-        return hasResult;
-    }
-
-    @Override
-    public Object getResult() {
-        if (!hasResult) {
-            throw new IllegalStateException("No result has been provided for this build action.");
-        }
-        return result;
-    }
-
-    @Override
-    public void setResult(Object result) {
-        this.hasResult = true;
-        this.result = result;
-    }
-
     public GradleInternal getGradle() {
         return getLauncher().getGradle();
     }
 
     public GradleInternal run() {
-        return doBuild(new Factory<GradleInternal>() {
+        return doBuild(GradleInternal.BuildType.TASKS, new Action<GradleLauncher>() {
             @Override
-            public GradleInternal create() {
-                GradleInternal gradle = getLauncher().executeTasks();
-                getLauncher().finishBuild();
-                return gradle;
+            public void execute(@Nonnull GradleLauncher gradleLauncher) {
+                gradleLauncher.executeTasks();
             }
         });
     }
 
     public GradleInternal configure() {
-        return doBuild(new Factory<GradleInternal>() {
+        return doBuild(GradleInternal.BuildType.MODEL, new Action<GradleLauncher>() {
             @Override
-            public GradleInternal create() {
-                GradleInternal gradle = getLauncher().getConfiguredBuild();
-                getLauncher().finishBuild();
-                return gradle;
+            public void execute(@Nonnull GradleLauncher gradleLauncher) {
+                gradleLauncher.getConfiguredBuild();
             }
         });
     }
 
-    private GradleInternal doBuild(final Factory<GradleInternal> build) {
+    private GradleInternal doBuild(final GradleInternal.BuildType buildType, final Action<? super GradleLauncher> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), build);
+            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<GradleInternal>() {
+                @Override
+                public GradleInternal create() {
+                    GradleInternal gradle = getGradle();
+                    try {
+                        gradle.setBuildType(buildType);
+                        GradleLauncher launcher = getLauncher();
+                        build.execute(launcher);
+                        launcher.finishBuild();
+                    } finally {
+                        gradle.setBuildType(GradleInternal.BuildType.NONE);
+                    }
+                    return gradle;
+                }
+            });
         } finally {
             state = State.Completed;
         }

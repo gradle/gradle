@@ -49,6 +49,21 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         daemons.daemon.stops()
     }
 
+    def "forks build when default client VM memory is used and user didn't specify a different limit"() {
+        executer.withCommandLineGradleOpts('-Xmx64m')
+        executer.useOnlyRequestedJvmOpts()
+        executer.requireGradleDistribution()
+
+        when:
+        succeeds()
+
+        then:
+        wasForked()
+
+        and:
+        daemons.daemon.stops()
+    }
+
     def "stops single use daemon when build fails"() {
         requireJvmArg('-Xmx64m')
 
@@ -73,7 +88,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
         file('build.gradle') << """
 println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx512m')
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
 """
 

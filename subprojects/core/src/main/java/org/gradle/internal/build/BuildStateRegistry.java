@@ -18,22 +18,29 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.BuildRequestContext;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
  * A registry of all the builds present in a build tree.
  */
 public interface BuildStateRegistry {
-    RootBuildState getRootBuild();
+    /**
+     * Creates the root build.
+     */
+    RootBuildState createRootBuild(BuildDefinition buildDefinition);
 
     /**
-     * Creates the root build of the build tree.
+     * Attaches the root build.
      */
-    RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext);
+    void attachRootBuild(RootBuildState rootBuild);
+
+    /**
+     * Returns the root build of the build tree.
+     *
+     * @throws IllegalStateException When root build has not been attached.
+     */
+    RootBuildState getRootBuild() throws IllegalStateException;
 
     /**
      * Returns all children of the root build.
@@ -43,7 +50,6 @@ public interface BuildStateRegistry {
     /**
      * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
-    @Nullable
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**
@@ -56,7 +62,7 @@ public interface BuildStateRegistry {
      *
      * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
-    void registerRootBuild(SettingsInternal settings);
+    void finalizeIncludedBuilds();
 
     /**
      * Notification that the root build is about to be configured.
@@ -71,22 +77,17 @@ public interface BuildStateRegistry {
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
 
     /**
-     * Creates a standalone nested build.
-     */
-    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner);
-
-    /**
      * Creates an implicit included build. An implicit build is-a nested build that is managed by Gradle and whose outputs are used by dependency resolution.
      */
     IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);
 
     /**
-     * Creates a new standalone nested build tree.
+     * Creates a standalone nested build.
      */
-    StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner);
+    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner);
 
     /**
-     * Adds a build to this registry. In general, you should use one of the factory methods above instead.
+     * Creates a new standalone nested build tree.
      */
-    void register(BuildState build);
+    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner);
 }

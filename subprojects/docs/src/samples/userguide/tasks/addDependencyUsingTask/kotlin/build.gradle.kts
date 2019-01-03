@@ -1,13 +1,15 @@
-val taskX by tasks.creating {
+val taskX by tasks.registering {
     doLast {
         println("taskX")
     }
 }
 
-val taskY by tasks.creating {
+val taskY by tasks.registering {
     doLast {
         println("taskY")
     }
 }
 
-taskX.dependsOn(taskY)
+taskX {
+    dependsOn(taskY)
+}

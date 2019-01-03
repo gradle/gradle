@@ -16,8 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
@@ -31,13 +29,13 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.util.GUtil;
@@ -49,6 +47,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
@@ -64,23 +63,13 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
-        return new Worker() {
+        return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, buildOperationExecutor.getCurrentOperation());
-            }
-
-            @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
-                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
                     @Override
-                    public DefaultWorkResult call(BuildOperationContext context) {
+                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         return executeInWorkerClassLoader(spec, forkOptions);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
                     }
                 });
             }
@@ -107,6 +96,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             actionClasspathGroovy.shutdown();
+            CompositeStoppable.stoppable(workerClassLoader, actionClasspathLoader).stop();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
@@ -170,7 +160,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         @Override
         public Object call() throws Exception {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
-            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.<InjectAnnotationHandler>emptyList());
             WorkerProtocol worker = new DefaultWorkerServer(instantiatorFactory.inject());
             return worker.execute(spec);
         }

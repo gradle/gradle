@@ -23,11 +23,19 @@ import spock.lang.Unroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     @Override
-    Provider<C> providerWithNoValue() {
+    AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
     }
 
-    Provider<C> providerWithValue(C value) {
+    @Override
+    AbstractCollectionProperty<String, C> propertyWithNoValue() {
+        def p = property()
+        p.set((Iterable) null)
+        return p
+    }
+
+    @Override
+    AbstractCollectionProperty<String, C> providerWithValue(C value) {
         def p = property()
         p.set(value)
         return p
@@ -43,11 +51,15 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         return toMutable(["s1"])
     }
 
-    @Override
     abstract AbstractCollectionProperty<String, C> property()
 
     @Override
     abstract Class<C> type()
+
+    @Override
+    protected void setToNull(Object property) {
+        property.set((Iterable) null)
+    }
 
     def property = property()
 
@@ -68,6 +80,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     protected abstract C toMutable(Collection<String> values)
 
     protected abstract Class<? extends ImmutableCollection<?>> getImmutableCollectionType()
+
+    def "has empty collection as value by default"() {
+        expect:
+        assertValueIs([])
+    }
 
     def "can change value to empty collection"() {
         property.empty()
@@ -223,7 +240,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from array #value using addAll"() {
         given:
-        property.empty()
         property.addAll(value as String[])
 
         expect:
@@ -248,7 +264,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from provider #value using addAll"() {
         given:
-        property.empty()
         property.addAll(Providers.of(value))
 
         expect:
@@ -267,7 +282,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         _ * provider.get() >>> [["abc"], ["def"]]
 
         expect:
-        property.empty()
         property.addAll(provider)
         assertValueIs(["abc"])
         assertValueIs(["def"])
@@ -285,7 +299,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Unroll
     def "appends zero or more values from collection #value using addAll"() {
         given:
-        property.empty()
         property.addAll(value)
 
         expect:
@@ -301,7 +314,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "queries values of collection on every call to get()"() {
         expect:
         def value = ["abc"]
-        property.empty()
         property.addAll(value)
         assertValueIs(["abc"])
         value.add("added")
@@ -355,7 +367,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         0 * _
     }
 
-    def "property has no value when value not set and values appended"() {
+    def "can append values to empty property"() {
         given:
         property.add("1")
         property.add(Providers.of("2"))
@@ -363,20 +375,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.addAll(Providers.of(["4"]))
 
         expect:
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(toMutable(["other"])) == toMutable(["other"])
+        assertValueIs(["1", "2", "3", "4"])
+    }
 
-        when:
-        property.get()
+    def "empty collection is used as value when elements added after convention set"() {
+        given:
+        property.convention(["1", "2"])
+        property.add("3")
 
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        expect:
+        assertValueIs(["3"])
     }
 
     def "property has no value when set to null and other values appended"() {
         given:
+        property.set((Iterable) null)
         property.add("1")
         property.add(Providers.of("2"))
         property.addAll(["3"])
@@ -509,7 +522,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "throws NullPointerException when provider returns list with null to property"() {
         given:
-        property.empty()
         property.addAll(Providers.of([null]))
 
         when:
@@ -526,6 +538,41 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         then:
         def ex = thrown(NullPointerException)
         ex.message == "Cannot add a null element to a property of type ${type().simpleName}."
+    }
+
+    def "ignores convention after element added"() {
+        expect:
+        property.add("a")
+        property.convention(["other"])
+        assertValueIs(["a"])
+    }
+
+    def "ignores convention after element added using provider"() {
+        expect:
+        property.add(Providers.of("a"))
+        property.convention(["other"])
+        assertValueIs(["a"])
+    }
+
+    def "ignores convention after elements added"() {
+        expect:
+        property.addAll(["a", "b"])
+        property.convention(["other"])
+        assertValueIs(["a", "b"])
+    }
+
+    def "ignores convention after elements added using provider"() {
+        expect:
+        property.addAll(Providers.of(["a", "b"]))
+        property.convention(["other"])
+        assertValueIs(["a", "b"])
+    }
+
+    def "ignores convention after collection made empty"() {
+        expect:
+        property.empty()
+        property.convention(["other"])
+        assertValueIs([])
     }
 
     def "cannot set to empty list after value finalized"() {

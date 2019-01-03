@@ -16,7 +16,6 @@
 
 package org.gradle.internal.scan.config;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -37,8 +36,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
 
-    @VisibleForTesting
-    static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
+    private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
     private static final String SYSPROP_KEY = "scan";
@@ -111,7 +109,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         BuildScanConfig.Attributes configAttributes = this.configAttributes.create();
 
         VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        String unsupportedReason = compatibility.unsupportedReason(pluginVersion, configAttributes);
+        String unsupportedReason = compatibility.unsupportedReason(pluginVersion);
 
         if (unsupportedReason != null) {
             if (isPluginAwareOfUnsupported(pluginVersion)) {

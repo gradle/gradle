@@ -17,11 +17,12 @@
 package org.gradle.language.base.internal.registry;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 
 public class DefaultLanguageTransformContainer extends DefaultDomainObjectSet<LanguageTransform<?, ?>> implements LanguageTransformContainer {
-    public DefaultLanguageTransformContainer() {
-        super(getLanguageTransformType());
+    public DefaultLanguageTransformContainer(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(getLanguageTransformType(), collectionCallbackActionDecorator);
     }
 
     private static Class<LanguageTransform<?, ?>> getLanguageTransformType() {

@@ -21,7 +21,9 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.internal.DefaultUsageContext
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -62,8 +64,8 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
-        binary.name == "mainDebug"
+        def binary = library.addStaticLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
+        binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable
@@ -81,8 +83,8 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
-        binary.name == "mainDebug"
+        def binary = library.addSharedLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
+        binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable
@@ -107,10 +109,18 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     private NativeVariantIdentity getIdentity() {
-        return new NativeVariantIdentity("test", null, null, null, true, false, TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS),
+        return new NativeVariantIdentity("test", null, null, null, true, false, targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64),
             new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable()),
             new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable())
         )
+    }
+
+    private TargetMachine targetMachine(String os, String arch) {
+        def objectFactory = TestUtil.objectFactory()
+        return Stub(TargetMachine) {
+            getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
+            getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
+        }
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

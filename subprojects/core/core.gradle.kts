@@ -43,6 +43,7 @@ dependencies {
     api(project(":native"))
     api(project(":persistentCache"))
     api(project(":buildCache"))
+    api(project(":buildCachePackaging"))
     api(project(":coreApi"))
     api(project(":files"))
 
@@ -56,6 +57,8 @@ dependencies {
 
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
+
     implementation(library("asm"))
     implementation(library("asm_commons"))
     implementation(library("slf4j_api"))

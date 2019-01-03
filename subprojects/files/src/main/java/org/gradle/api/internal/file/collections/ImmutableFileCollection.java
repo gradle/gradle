@@ -50,7 +50,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
     }
 
-    public static ImmutableFileCollection of(Iterable<File> files) {
+    public static ImmutableFileCollection of(Iterable<? extends File> files) {
         if (Iterables.isEmpty(files)) {
             return EMPTY;
         }
@@ -87,6 +87,16 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         @Override
         public Set<File> getFiles() {
             return files;
+        }
+
+
+        @Override
+        public String toString() {
+            if (files.size() == 1) {
+                return String.format("file '%s'", files.iterator().next().getAbsolutePath());
+            }
+
+            return super.toString();
         }
     }
 

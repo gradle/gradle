@@ -76,5 +76,5 @@ testFixtures {
 }
 
 ideConfiguration {
-    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+    makeAllSourceDirsTestSourceDirsInIdeaModule()
 }

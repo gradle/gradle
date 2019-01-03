@@ -21,8 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.MapFileTree;
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
@@ -35,6 +36,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -56,7 +58,7 @@ public class Ear extends Jar {
     private CopySpec lib;
 
     public Ear() {
-        setExtension(EAR_EXTENSION);
+        getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>() {
             public String call() {
@@ -103,21 +105,28 @@ public class Ear extends Jar {
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
-        metaInf.addChild().from(new Callable<FileTreeAdapter>() {
+        CopySpecInternal descriptorChild = metaInf.addChild();
+        descriptorChild.from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
+
                 if (descriptor != null) {
-                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                     if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
 
-                    descriptorSource.add(descriptor.getFileName(), new Action<OutputStream>() {
+                    RelativePath relativePath = RelativePath.parse(true, descriptor.getFileName());
+                    if (relativePath.getSegments().length > 1) {
+                        DeprecationLogger.nagUserOfDeprecated("File paths in deployment descriptor file name", "Use simple file name instead.");
+                        descriptorChild.into(relativePath.getParent().getPathString());
+                    }
+                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), relativePath.getLastName(), new Action<OutputStream>() {
                         public void execute(OutputStream outputStream) {
                             descriptor.writeTo(new OutputStreamWriter(outputStream));
                         }
-
                     });
+
+
                     return new FileTreeAdapter(descriptorSource);
                 }
 
@@ -160,7 +169,7 @@ public class Ear extends Jar {
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getObjectFactory());
+            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class);
         }
         return deploymentDescriptor;
     }

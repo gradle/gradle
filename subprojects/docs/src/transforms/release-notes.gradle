@@ -135,16 +135,6 @@ transformDocument {
         def anchor = topicHeading.attr("id")
 
         toc.append("<li><a/></li>").children().last().select("a").first().text(name).attr("href", "#$anchor")
-
-        def subs = topic.select("h3")
-        if (subs) {
-            def sublist = toc.children().last().append("<ul class='toc-sub'/>").children().last()
-            subs.each {
-                def subName = it.html()
-                def subAnchorName = it.attr("id")
-                sublist.append("<li><a/></li>").children().last().select("a").first().html(subName).attr("href", "#$subAnchorName")
-            }
-        }
     }
 }
 

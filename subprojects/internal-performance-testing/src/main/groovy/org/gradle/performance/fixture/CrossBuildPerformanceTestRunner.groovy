@@ -57,7 +57,8 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
-            channel: determineChannel()
+            channel: determineChannel(),
+            teamCityBuildId: determineTeamCityBuildId()
         )
     }
 

@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
+
+import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.UNKNOWN
 
 class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
@@ -49,6 +52,11 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
 
         then:
         output.contains("Full recompilation is required because ThingProcessor is not incremental.")
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+            size() == 1
+            first().className == 'ThingProcessor'
+            first().type == UNKNOWN.name()
+        }
     }
 
     def "compilation is incremental if the non-incremental processor is not used"() {
@@ -72,14 +80,14 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AThing.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AThing.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava", "--info"
 
         then:
-        !file("build/classes/java/main/AThing.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AThing.java").exists()
 
         and:
         outputs.deletedClasses("AThing")

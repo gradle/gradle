@@ -23,6 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,7 +57,7 @@ class DaemonRegistryServicesTest extends Specification {
         def registry = registry("someDir").get(DaemonRegistry)
         5.times { idx ->
             concurrent.start {
-                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
+                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], DaemonParameters.Priority.NORMAL)
                 registry.store(new DaemonInfo(
                     new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx".bytes, Idle))
             }

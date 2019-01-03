@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.file.TreeType;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
@@ -27,12 +28,12 @@ import java.io.File;
 @NonNullApi
 public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec, DeclaredTaskOutputFileProperty {
     private final TaskPropertyFileCollection files;
-    private final OutputType outputType;
+    private final TreeType outputType;
     private final PathToFileResolver resolver;
     private final ValidatingValue value;
     private final ValidationAction validationAction;
 
-    public DefaultCacheableTaskOutputFilePropertySpec(String taskDisplayName, PathToFileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+    public DefaultCacheableTaskOutputFilePropertySpec(String taskDisplayName, PathToFileResolver resolver, TreeType outputType, ValidatingValue value, ValidationAction validationAction) {
         this.resolver = resolver;
         this.outputType = outputType;
         this.value = value;
@@ -55,7 +56,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     }
 
     @Override
-    public OutputType getOutputType() {
+    public TreeType getOutputType() {
         return outputType;
     }
 

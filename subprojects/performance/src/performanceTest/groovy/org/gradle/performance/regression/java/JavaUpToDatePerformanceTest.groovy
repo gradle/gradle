@@ -34,7 +34,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.targetVersions = ["5.2-20181218000039+0000"]
         runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
@@ -56,7 +56,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.targetVersions = ["5.2-20181218000039+0000"]
+        runner.minimumVersion = "3.5"
         runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         def cacheDir = temporaryFolder.file("local-cache")
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {

@@ -118,6 +118,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
+        println("Running against baseline ${determinedBaselines.getOrElse('defaults')}")
         try {
             doExecuteTests()
         } finally {
@@ -130,9 +131,10 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
+                teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: scenarioResult.buildResult.webUrl.toString(),
-                successful: scenarioResult.buildResult.status == 'SUCCESS',
+                status: scenarioResult.buildResult.status.toString(),
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }
@@ -170,7 +172,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: baselines ?: 'defaults'],
+                    [name: 'baselines', value: determinedBaselines.getOrElse('defaults')],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],
@@ -227,7 +229,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             cancel(workerBuildId)
         }
         def scheduledChangeId = findLastChangeIdInJson(response)
-        if (lastChangeId && scheduledChangeId != lastChangeId) {
+        if (lastChangeId && lastChangeId != scheduledChangeId) {
             throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: $response")
         }
         scheduledBuilds.put(workerBuildId, scenario)
@@ -244,7 +246,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private String findLastChangeIdInJson(Map responseJson) {
-        responseJson.lastChanges.change[0].id
+        responseJson?.lastChanges?.change?.get(0)?.id
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)

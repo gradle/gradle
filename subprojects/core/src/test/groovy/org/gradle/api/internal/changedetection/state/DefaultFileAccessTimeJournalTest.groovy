@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

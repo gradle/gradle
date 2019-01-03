@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
@@ -88,7 +87,6 @@ project.logger.debug("debug logging yyy");
     }
 
     def "client receives same standard output and standard error as if running from the command-line"() {
-        Assume.assumeTrue targetDist.toolingApiNonAsciiOutputSupported
         toolingApi.verboseLogging = false
 
         file("build.gradle") << """
@@ -118,8 +116,7 @@ project.logger.debug("debug logging");
 
         and:
         def errLogging
-        if (targetVersion.baseVersion >= GradleVersion.version("4.7")) {
-            // Handling of error log message changed
+        if (targetDist.toolingApiMergesStderrIntoStdout) {
             errLogging = out
         } else {
             errLogging = err
@@ -151,17 +148,17 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
-            .withTestConsoleAttached()
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
 
-        if (targetVersion.baseVersion >= GradleVersion.version("4.0")) {
+        if (targetDist.toolingApiMergesStderrIntoStdout) {
+            // The TAPI provider merges the streams, so need to merge the streams for command-line execution too
             executer.withArgument("--console=plain")
-        }
-
-        // We changed the test console system property value in 4.9
-        if (targetVersion.baseVersion >= GradleVersion.version("4.8")
-            && targetVersion.baseVersion < GradleVersion.version("4.9")) {
-            executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
+            executer.withTestConsoleAttached()
+            // We changed the test console system property values in 4.9, need to use "both" instead of "BOTH"
+            if (targetVersion.baseVersion >= GradleVersion.version("4.8")
+                    && targetVersion.baseVersion < GradleVersion.version("4.9")) {
+                executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
+            }
         }
 
         return executer.run()

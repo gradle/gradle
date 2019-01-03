@@ -227,6 +227,8 @@ To enable this feature, download the `.sha256` file associated with the Gradle d
 
 You can download the `.sha256` file from the link:https://services.gradle.org/distributions/[stable releases] or link:https://services.gradle.org/distributions-snapshots/[release candidate and nightly releases]. The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
 
+You can also reference the link:https://gradle.org/release-checksums/[list of Gradle distribution checksums].
+
 ==== Configuring checksum verification
 
 Add the downloaded hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line.
@@ -238,3 +240,80 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 ----
 
 Gradle will report a build failure in case the configured checksum does not match the checksum found on the server for hosting the distribution. Checksum Verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.
+
+[[wrapper_checksum_verification]]
+== Verifying the checksum of the Gradle Wrapper JAR
+
+The Wrapper JAR is a binary file that will be executed on the computers of developers and build servers.
+As with all such files, you should be sure that it's trustworthy before executing it.
+For example, since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by committing it or submitting a pull request that seemingly only upgrades the Gradle version.
+
+In order to allow checking the integrity of the Wrapper JAR, Gradle publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs) alongside the corresponding Gradle distribution on https://services.gradle.org/.
+You can manually verify the checksum of the Wrapper JAR to ensure that it has not been tampered with by running the following commands on one of the major operating systems:
+
+[source,bash,subs=+attributes]
+.Manually verifying the checksum of the Wrapper JAR on Linux
+----
+$ cd gradle/wrapper
+$ curl --location --output gradle-wrapper.jar.sha256 \
+       https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
+$ echo "  gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ sha256sum --check gradle-wrapper.jar.sha256
+gradle-wrapper.jar: OK
+----
+
+[source,bash,subs=+attributes]
+.Manually verifying the checksum of the Wrapper JAR on macOS
+----
+$ cd gradle/wrapper
+$ curl --location --output gradle-wrapper.jar.sha256 \
+       https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
+$ echo "  gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ shasum --check gradle-wrapper.jar.sha256
+gradle-wrapper.jar: OK
+----
+
+[source,powershell,subs=+attributes]
+.Manually verifying the checksum of the Wrapper JAR on Windows (using PowerShell)
+----
+> $expected = Invoke-RestMethod -Uri https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
+> $actual = (Get-FileHash gradle\wrapper\gradle-wrapper.jar -Algorithm SHA256).Hash.ToLower()
+> @{$true = 'OK: Checksum match'; $false = "ERROR: Checksum mismatch!`nExpected: $expected`nActual:   $actual"}[$actual -eq $expected]
+OK: Checksum match
+----
+
+=== Troubleshooting a checksum mismatch
+
+If the checksum does not match the one you expected, chances are the `wrapper` task wasn't executed with the upgraded Gradle distribution.
+Thus, you should first check whether the actual checksum matches the one of a different Gradle version.
+Here are the commands you can run on the major operating systems to generate the actual checksum of the Wrapper JAR:
+
+[source,bash,subs=+attributes]
+.Generating the actual checksum of the Wrapper JAR on Linux
+----
+$ sha256sum gradle/wrapper/gradle-wrapper.jar
+d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95  gradle/wrapper/gradle-wrapper.jar
+----
+
+[source,bash,subs=+attributes]
+.Generating the actual checksum of the Wrapper JAR on macOS
+----
+$ shasum --algorithm=256 gradle/wrapper/gradle-wrapper.jar
+d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95  gradle/wrapper/gradle-wrapper.jar
+----
+
+[source,powershell,subs=+attributes]
+.Generating the actual checksum of the Wrapper JAR on Windows (using PowerShell)
+----
+> (Get-FileHash gradle\wrapper\gradle-wrapper.jar -Algorithm SHA256).Hash.ToLower()
+d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95
+----
+
+Once you know the actual checksum, check whether it's listed on https://gradle.org/release-checksums/.
+If it is listed, you have verified the integrity of the Wrapper JAR.
+However, it belongs to a different -- probably older -- Gradle version.
+In this case, it's safe to run the `wrapper` task again to update the Wrapper JAR so it matches the Gradle version in `gradle/wrapper/gradle-wrapper.properties`.
+
+If the checksum is not listed on the page, the Wrapper JAR might be from a milestone, release candidate, or nightly build -- or it might indeed not be legitimate.
+You should try to find out how it was generated but treat it as untrustworthy until proven otherwise.
+If you think it was manipulated, please let the Gradle team know by sending an email to mailto:security@gradle.com[security@gradle.com].

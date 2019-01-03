@@ -25,8 +25,9 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
+import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
@@ -41,6 +42,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
@@ -51,15 +53,16 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
+    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
+        this.repositoryContentDescriptor = createRepositoryDescriptor();
     }
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
     }
-
 
     public String getName() {
         return name;
@@ -98,6 +101,20 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
         this.componentMetadataListerRuleClass = lister;
         this.componentMetadataListerRuleConfiguration = configureAction;
+    }
+
+    protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+        return new DefaultRepositoryContentDescriptor();
+    }
+
+    @Nullable
+    public Action<? super ArtifactResolutionDetails> getContentFilter() {
+        return repositoryContentDescriptor.toContentFilter();
+    }
+
+    @Override
+    public void content(Action<? super RepositoryContentDescriptor> configureAction) {
+        configureAction.execute(repositoryContentDescriptor);
     }
 
     InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {

@@ -22,14 +22,14 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ComponentResultSerializer implements Serializer<ComponentResult> {
+public class ComponentResultSerializer implements Serializer<ResolvedGraphComponent> {
 
     private final ModuleVersionIdentifierSerializer idSerializer;
     private final ComponentSelectionReasonSerializer reasonSerializer;
@@ -43,7 +43,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         componentIdSerializer = new ComponentIdentifierSerializer();
     }
 
-    public ComponentResult read(Decoder decoder) throws IOException {
+    public ResolvedGraphComponent read(Decoder decoder) throws IOException {
         long resultId = decoder.readSmallLong();
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
@@ -54,7 +54,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         return new DetachedComponentResult(resultId, id, reason, componentId, variantName, attributes, repositoryName);
     }
 
-    public void write(Encoder encoder, ComponentResult value) throws IOException {
+    public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
         encoder.writeSmallLong(value.getResultId());
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
@@ -62,9 +62,5 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         encoder.writeString(value.getVariantName().getDisplayName());
         attributeContainerSerializer.write(encoder, value.getVariantAttributes());
         encoder.writeNullableString(value.getRepositoryName());
-    }
-
-    void reset() {
-        reasonSerializer.reset();
     }
 }

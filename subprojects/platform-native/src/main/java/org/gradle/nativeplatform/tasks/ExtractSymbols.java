@@ -25,6 +25,8 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
@@ -65,6 +67,7 @@ public class ExtractSymbols extends DefaultTask {
      * The file to extract debug symbols from.
      */
     @InputFile
+    @PathSensitive(PathSensitivity.NONE)
     public RegularFileProperty getBinaryFile() {
         return binaryFile;
     }

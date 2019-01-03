@@ -16,12 +16,10 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -46,9 +44,9 @@ import java.util.concurrent.Callable;
  * @since 4.5
  */
 @Incubating
-public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
+public class NativeTestingBasePlugin implements Plugin<Project> {
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(TestingBasePlugin.class);
@@ -56,28 +54,15 @@ public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
         // Create test lifecycle task
         TaskContainer tasks = project.getTasks();
 
-        final TaskProvider<Task> test = tasks.register("test", new Action<Task>() {
-            @Override
-            public void execute(Task test) {
-                test.dependsOn(new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
-                        if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
-                            return unitTestSuite.getTestBinary().get().getRunTask().get();
-                        }
-                        return null;
-                    }
-                });
+        final TaskProvider<Task> test = tasks.register("test", task -> task.dependsOn((Callable<Object>) () -> {
+            TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
+            if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
+                return unitTestSuite.getTestBinary().get().getRunTask();
             }
-        });
+            return null;
+        }));
 
 
-        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(test);
-            }
-        });
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(test));
     }
 }

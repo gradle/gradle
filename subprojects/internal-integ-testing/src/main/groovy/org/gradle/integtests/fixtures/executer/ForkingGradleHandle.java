@@ -24,6 +24,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.IOException;
 import java.io.PipedOutputStream;
@@ -80,6 +81,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
             throw new IllegalStateException("you have already called start() on this handle");
         }
 
+        checkDistributionExists();
         printExecHandleSettings();
 
         execHandle.start();
@@ -87,6 +89,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
             durationMeasurement.start();
         }
         return this;
+    }
+
+    private void checkDistributionExists() {
+        String hintForMissingDistribution = String.format("This integration test can not run embedded and the Gradle distribution is missing: run 'gradle %s:intTestImage'.", IntegrationTestBuildContext.INSTANCE.getCurrentSubprojectName());
+        new TestFile(getExecHandle().getCommand()).getParentFile().assertIsDir(hintForMissingDistribution);
     }
 
     private ExecHandle buildExecHandle() {
@@ -219,9 +226,6 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
                     + "Error:%n%s%n"
                     + "-----%n",
                 status, execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), execResult.toString(), output, error);
-        Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) executionResult).getException() : null;
-        return exception != null
-            ? new UnexpectedBuildFailure(message, exception)
-            : new UnexpectedBuildFailure(message);
+        return new UnexpectedBuildFailure(message);
     }
 }

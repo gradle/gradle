@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
@@ -30,17 +28,25 @@ import java.util.Set;
 /**
  * Children of this renderable dependency node are its dependents.
  */
-public class InvertedRenderableModuleResult extends RenderableModuleResult {
+public class InvertedRenderableModuleResult extends AbstractRenderableModuleResult {
+
+    private final ResolvedDependencyResult dependencyResult;
 
     public InvertedRenderableModuleResult(ResolvedComponentResult module) {
         super(module);
+        this.dependencyResult = null;
+    }
+
+    public InvertedRenderableModuleResult(ResolvedDependencyResult dependencyResult) {
+        super(dependencyResult.getFrom());
+        this.dependencyResult = dependencyResult;
     }
 
     @Override
     public Set<RenderableDependency> getChildren() {
         Map<ComponentIdentifier, RenderableDependency> children = new LinkedHashMap<ComponentIdentifier, RenderableDependency>();
         for (ResolvedDependencyResult dependent : module.getDependents()) {
-            InvertedRenderableModuleResult child = new InvertedRenderableModuleResult(dependent.getFrom());
+            InvertedRenderableModuleResult child = new InvertedRenderableModuleResult(dependent);
             if (!children.containsKey(child.getId())) {
                 children.put(child.getId(), child);
             }
@@ -49,14 +55,12 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult {
     }
 
     @Override
-    public String getName() {
-        String base = super.getName();
-        for (ComponentSelectionDescriptor descriptor : module.getSelectionReason().getDescriptions()) {
-            if (descriptor.getCause() == ComponentSelectionCause.CONFLICT_RESOLUTION) {
-                return base + " (" + descriptor.getCause().getDefaultReason() + " " + descriptor.getDescription() + ")";
+    public String getDescription() {
+        if (dependencyResult != null) {
+            if (!exactMatch(dependencyResult.getRequested(), dependencyResult.getSelected().getId())) {
+                return "(requested " + dependencyResult.getRequested() + ")";
             }
         }
-        return base;
+        return null;
     }
-
 }

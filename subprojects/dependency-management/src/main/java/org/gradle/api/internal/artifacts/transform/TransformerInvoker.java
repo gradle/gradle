@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Try;
+
 import java.io.File;
 
-/**
- * Invokes a transformer on a single primary input.
- */
+@ThreadSafe
 public interface TransformerInvoker {
-    void invoke(TransformerInvocation invocation);
-    boolean hasCachedResult(File primaryInput, Transformer transformer);
+    /**
+     * Returns the result of applying the given transformer to the given file.
+     */
+    Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject);
 }

@@ -27,20 +27,9 @@ A Groovy build script can contain any Groovy language element.footnote:[Any lang
 [[sec:project_api]]
 == The Project API
 
-In <<tutorial_java_projects.adoc#tutorial_java_projects,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
+Build scripts describe your build by configuring _projects_. A project is an abstract concept, but you typically map a Gradle project to a software component that needs to be built, like a library or an application. Each build script you have is associated with an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project] and as the build script executes, it configures this `Project`.
 
-[TIP]
-.Getting help writing build scripts
-====
-
-Don't forget that your build script is simply Groovy or Kotlin code that drives the Gradle API. And the link:{groovyDslPath}/org.gradle.api.Project.html[Project] interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
-
-====
-
-* Any method you call in your build script which _is not defined_ in the build script, is delegated to the `Project` object.
-* Any property you access in your build script, which _is not defined_ in the build script, is delegated to the `Project` object.
-
-Let's try this out and try to access the `name` property of the `Project` object.
+In fact, almost all top-level properties and blocks in a build script are part of the `Project` API. To demonstrate, take a look at this example build script that prints the name of its project, which is accessed via the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.name] property:
 
 .Accessing property of the Project object
 ====

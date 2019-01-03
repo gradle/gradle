@@ -24,7 +24,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicLong;
 
-class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
+public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
@@ -51,7 +51,7 @@ class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
         }
     }
 
-    void reapply(UserCodeApplicationId id, Runnable runnable) {
+    public void reapply(UserCodeApplicationId id, Runnable runnable) {
         Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
         stack.push(id);
         try {
@@ -59,6 +59,27 @@ class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
         } finally {
             stack.pop();
         }
+    }
+
+    @Override
+    public <T> Action<T> decorateWithCurrent(final Action<T> action) {
+        final UserCodeApplicationId id = current();
+        if (id == null) {
+            return action;
+        }
+
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
+                stack.push(id);
+                try {
+                    action.execute(t);
+                } finally {
+                    stack.pop();
+                }
+            }
+        };
     }
 
     @VisibleForTesting

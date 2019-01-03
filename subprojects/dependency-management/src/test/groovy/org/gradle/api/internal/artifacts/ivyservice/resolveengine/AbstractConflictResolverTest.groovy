@@ -21,13 +21,12 @@ import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.resolve.RejectedBySelectorVersion
-import org.gradle.internal.resolve.RejectedVersion
 import spock.lang.Specification
 
 abstract class AbstractConflictResolverTest extends Specification {
@@ -108,22 +107,12 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
+        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
 
         }
 
         @Override
         void reject() {
-
-        }
-
-        @Override
-        void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
-
-        }
-
-        @Override
-        void rejected(Collection<RejectedVersion> rejectedVersions) {
 
         }
 
@@ -137,6 +126,15 @@ abstract class AbstractConflictResolverTest extends Specification {
         @Override
         void selectedBy(ResolvableSelectorState selectorState) {
 
+        }
+
+        @Override
+        Set<VirtualPlatformState> getPlatformOwners() {
+            Collections.emptySet()
+        }
+
+        @Override
+        VirtualPlatformState getPlatformState() {
         }
     }
 }

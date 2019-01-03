@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DefaultSection;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
@@ -41,7 +41,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -144,7 +144,7 @@ public class DependencyInsightReporter {
     }
 
     private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors) {
-        TreeFormatter formatter = new TreeFormatter(false);
+        TreeFormatter formatter = new TreeFormatter();
         collectErrorMessages(failure, formatter, alreadyReportedErrors);
         return formatter.toString();
     }
@@ -170,7 +170,7 @@ public class DependencyInsightReporter {
             ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) entry;
             boolean hasCustomDescription = descriptor.hasCustomDescription();
 
-            if (VersionSelectionReasons.isCauseExpected(descriptor) && !hasCustomDescription) {
+            if (ComponentSelectionReasons.isCauseExpected(descriptor) && !hasCustomDescription) {
                 // Don't render empty 'requested' reason
                 continue;
             }

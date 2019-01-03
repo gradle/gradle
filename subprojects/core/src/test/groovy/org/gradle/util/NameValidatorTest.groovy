@@ -17,7 +17,7 @@ package org.gradle.util
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
@@ -30,7 +30,6 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import spock.lang.Shared
@@ -46,10 +45,10 @@ class NameValidatorTest extends Specification {
 
     @Shared
     def domainObjectContainersWithValidation = [
-        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, AttributeTestUtil.attributesFactory())],
-        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, Stub(DocumentationRegistry))],
-        ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)],
-        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())]
+            ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
+            ["configurations", new DefaultConfigurationContainer(null, TestUtil.instantiatorFactory().decorateLenient(), domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, Stub(DocumentationRegistry), CollectionCallbackActionDecorator.NOOP, null)],
+            ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
+            ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 
     def cleanup() {
@@ -66,7 +65,7 @@ class NameValidatorTest extends Specification {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskInstantiator(new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)), project).create(name, DefaultTask)
+        new TaskInstantiator(new TaskFactory(project, Mock(Instantiator)), project).create(name, DefaultTask)
 
         then:
         def exception = thrown(InvalidUserDataException)

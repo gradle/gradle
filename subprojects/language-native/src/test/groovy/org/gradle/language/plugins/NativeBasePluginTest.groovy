@@ -156,6 +156,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getStaticLibraryName(_) >> { String p -> p + ".lib" }
 
         def linkFileProp = project.objects.property(RegularFile)
+        def linkFileTasKProp = project.objects.property(Task)
         def createTaskProp = project.objects.property(CreateStaticLibrary)
 
         def staticLib = Stub(ConfigurableComponentWithStaticLibrary)
@@ -166,6 +167,7 @@ class NativeBasePluginTest extends Specification {
         staticLib.platformToolProvider >> toolProvider
         staticLib.baseName >> Providers.of("test_lib")
         staticLib.linkFile >> linkFileProp
+        staticLib.linkFileProducer >> linkFileTasKProp
         staticLib.createTask >> createTaskProp
 
         given:
@@ -180,6 +182,7 @@ class NativeBasePluginTest extends Specification {
         and:
         linkFileProp.get().asFile == createTask.binaryFile.get().asFile
         createTaskProp.get() == createTask
+        linkFileTasKProp.get() == createTask
     }
 
     def "adds tasks to assemble a shared library"() {
@@ -188,6 +191,7 @@ class NativeBasePluginTest extends Specification {
 
         def runtimeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkSharedLibrary)
+        def linkFileTasKProp = project.objects.property(Task)
 
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
@@ -198,6 +202,7 @@ class NativeBasePluginTest extends Specification {
         sharedLibrary.baseName >> Providers.of("test_lib")
         sharedLibrary.runtimeFile >> runtimeFileProp
         sharedLibrary.linkTask >> linkTaskProp
+        sharedLibrary.linkFileProducer >> linkFileTasKProp
 
         given:
         project.pluginManager.apply(NativeBasePlugin)
@@ -211,6 +216,7 @@ class NativeBasePluginTest extends Specification {
         and:
         runtimeFileProp.get().asFile == linkTask.linkedFile.get().asFile
         linkTaskProp.get() == linkTask
+        linkFileTasKProp.get() == linkTask
     }
 
     def "adds tasks to assemble and strip a shared library"() {
@@ -221,6 +227,7 @@ class NativeBasePluginTest extends Specification {
 
         def runtimeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkSharedLibrary)
+        def linkFileTasKProp = project.objects.property(Task)
 
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
@@ -233,6 +240,7 @@ class NativeBasePluginTest extends Specification {
         sharedLibrary.baseName >> Providers.of("test_lib")
         sharedLibrary.runtimeFile >> runtimeFileProp
         sharedLibrary.linkTask >> linkTaskProp
+        sharedLibrary.linkFileProducer >> linkFileTasKProp
 
         given:
         project.pluginManager.apply(NativeBasePlugin)
@@ -256,6 +264,7 @@ class NativeBasePluginTest extends Specification {
         and:
         runtimeFileProp.get().asFile == stripTask.outputFile.get().asFile
         linkTaskProp.get() == linkTask
+        linkFileTasKProp.get() == stripTask
     }
 
     def "adds tasks to assemble an executable"() {
@@ -263,6 +272,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
 
         def exeFileProp = project.objects.property(RegularFile)
+        def exeFileTaskProp = project.objects.property(Task)
         def debugExeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkExecutable)
         def installDirProp = project.objects.property(Directory)
@@ -276,6 +286,7 @@ class NativeBasePluginTest extends Specification {
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> exeFileProp
+        executable.executableFileProducer >> exeFileTaskProp
         executable.debuggerExecutableFile >> debugExeFileProp
         executable.linkTask >> linkTaskProp
         executable.installDirectory >> installDirProp
@@ -300,6 +311,7 @@ class NativeBasePluginTest extends Specification {
         debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
 
         linkTaskProp.get() == linkTask
+        exeFileTaskProp.get() == linkTask
 
         and:
         installDirProp.get().asFile == installTask.installDirectory.get().asFile
@@ -313,6 +325,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.requiresDebugBinaryStripping() >> true
 
         def exeFileProp = project.objects.property(RegularFile)
+        def exeFileTaskProp = project.objects.property(Task)
         def debugExeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkExecutable)
         def installDirProp = project.objects.property(Directory)
@@ -328,6 +341,7 @@ class NativeBasePluginTest extends Specification {
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> exeFileProp
+        executable.executableFileProducer >> exeFileTaskProp
         executable.debuggerExecutableFile >> debugExeFileProp
         executable.linkTask >> linkTaskProp
         executable.installDirectory >> installDirProp
@@ -362,6 +376,7 @@ class NativeBasePluginTest extends Specification {
         debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
 
         linkTaskProp.get() == linkTask
+        exeFileTaskProp.get() == stripTask
 
         and:
         installDirProp.get().asFile == installTask.installDirectory.get().asFile

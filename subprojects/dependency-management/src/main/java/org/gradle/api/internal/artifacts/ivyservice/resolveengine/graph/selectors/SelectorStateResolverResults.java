@@ -23,13 +23,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 class SelectorStateResolverResults {
     private static final VersionParser VERSION_PARSER = new VersionParser();
@@ -43,13 +44,13 @@ class SelectorStateResolverResults {
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
+        boolean hasSoftForce = hasSoftForce();
         for (Registration entry : results) {
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
-            if (selectorState.isForce()) {
+            if (selectorState.isForce() && !hasSoftForce) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
-                forcedComponent.addCause(VersionSelectionReasons.FORCED);
                 return Collections.singletonList(forcedComponent);
             }
 
@@ -75,11 +76,37 @@ class SelectorStateResolverResults {
         return resolved == null ? Collections.<T>emptyList() : resolved;
     }
 
+    static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
+        Set<VirtualPlatformState> platformOwners = componentState.getPlatformOwners();
+        if (!platformOwners.isEmpty()) {
+            for (VirtualPlatformState platformOwner : platformOwners) {
+                if (platformOwner.isGreaterThanForcedVersion(componentState.getVersion())) {
+                    return false;
+                }
+            }
+        } else {
+            VirtualPlatformState platform = componentState.getPlatformState();
+            if (platform != null && platform.isGreaterThanForcedVersion(componentState.getVersion())) {
+                // the platform itself is greater than the forced version
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasSoftForce() {
+        for (Registration entry : results) {
+            ResolvableSelectorState selectorState = entry.selector;
+            if (selectorState.isSoftForce()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
         T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
         component.selectedBy(selector);
-        component.unmatched(idResolveResult.getUnmatchedVersions());
-        component.rejected(idResolveResult.getRejectedVersions());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -106,7 +133,7 @@ class SelectorStateResolverResults {
         boolean replaces = false;
         for (Registration registration : results) {
             if (emptyVersion(registration.result) || sameVersion(registration.result, resolveResult) ||
-                (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
+                    (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
                 replaces = true;
             }
@@ -153,7 +180,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector

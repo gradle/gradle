@@ -21,7 +21,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
@@ -34,6 +36,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
     protected final String projectName;
@@ -84,11 +87,15 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     @Override
     public String getVisualStudioConfigurationName() {
         // TODO: this is terrible
+        String buildType = "debug";
         if (getBinary().isOptimized()) {
-            return "release";
-        } else {
-            return "debug";
+            buildType = "release";
         }
+
+        String operatingSystemFamilySuffix = Dimensions.createDimensionSuffix(getBinary().getTargetPlatform().getOperatingSystemFamily(), component.getBinaries().get().stream().map(CppBinary::getTargetPlatform).map(CppPlatform::getOperatingSystemFamily).collect(Collectors.toSet()));
+        String architectureSuffix = Dimensions.createDimensionSuffix(getBinary().getTargetPlatform().getArchitecture(), component.getBinaries().get().stream().map(CppBinary::getTargetPlatform).map(CppPlatform::getArchitecture).collect(Collectors.toSet()));
+
+        return buildType + operatingSystemFamilySuffix + architectureSuffix;
     }
 
     protected String taskPath(final String taskName) {

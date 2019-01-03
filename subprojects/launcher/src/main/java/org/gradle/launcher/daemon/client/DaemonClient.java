@@ -49,6 +49,7 @@ import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 
 import java.io.InputStream;
 import java.util.List;
@@ -125,9 +126,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
-     * @throws org.gradle.initialization.ReportedException On failure, when the failure has already been logged/reported.
      */
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
         UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
 
@@ -154,7 +154,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             + parameters + ".", accumulatedExceptions);
     }
 
-    protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
+    protected BuildActionResult executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
         Object result;
         try {
             LOGGER.debug("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
@@ -186,14 +186,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         if (result instanceof Failure) {
             Throwable failure = ((Failure) result).getValue();
             if (failure instanceof DaemonStoppedException && cancellationToken.isCancellationRequested()) {
-                LOGGER.error("Daemon was stopped to handle build cancel request.");
-                throw new BuildCancelledException();
+                return BuildActionResult.cancelled(new BuildCancelledException("Daemon was stopped to handle build cancel request.", failure));
             }
             throw UncheckedException.throwAsUncheckedException(failure);
         } else if (result instanceof DaemonUnavailable) {
             throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
         } else if (result instanceof Result) {
-            return ((Result) result).getValue();
+            return (BuildActionResult)((Result) result).getValue();
         } else {
             throw invalidResponse(result, build, diagnostics);
         }

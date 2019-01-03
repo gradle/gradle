@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -49,6 +50,7 @@ import java.util.Set;
 
 public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty linkFile;
+    private final Property<Task> linkFileProducer;
     private final Property<CreateStaticLibrary> createTaskProperty;
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
@@ -58,6 +60,7 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.linkFile = objectFactory.fileProperty();
+        this.linkFileProducer = objectFactory.property(Task.class);
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
@@ -72,6 +75,11 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     @Override
     public RegularFileProperty getLinkFile() {
         return linkFile;
+    }
+
+    @Override
+    public Property<Task> getLinkFileProducer() {
+        return linkFileProducer;
     }
 
     @Override

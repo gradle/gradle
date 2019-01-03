@@ -53,23 +53,24 @@ tasks {
 
             val versionProperties = Properties()
 
+            // Currently no scalatest for 2.13
             findLatest("scala-library", "org.scala-lang:scala-library:2.12.+", versionProperties)
             val scalaVersion = VersionNumber.parse(versionProperties["scala-library"] as String)
             versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"
 
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
-            findLatest("groovy", "org.codehaus.groovy:groovy:(2.4,2.5]", versionProperties)
+            findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
-            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)", versionProperties)
+            findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,)", versionProperties)
 
             val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
             org.gradle.build.ReproduciblePropertiesWriter.store(

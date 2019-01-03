@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -65,4 +67,6 @@ public interface DaemonContext extends Serializable {
      * @return the JVM options that the daemon was started with
      */
     List<String> getDaemonOpts();
+
+    DaemonParameters.Priority getPriority();
 }

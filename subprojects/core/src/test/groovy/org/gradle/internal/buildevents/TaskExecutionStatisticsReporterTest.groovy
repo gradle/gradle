@@ -50,7 +50,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(1, 0, 0))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}1 actionable task: 1 executed\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.TaskExecutionStatisticsReporter}{LIFECYCLE}1 actionable task: 1 executed\n"
     }
 
     @Unroll
@@ -59,7 +59,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}$expected\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.TaskExecutionStatisticsReporter}{LIFECYCLE}$expected\n"
 
         where:
         executed | fromCache | upToDate | expected

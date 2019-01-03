@@ -139,6 +139,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        // Remove this IDEA import workaround once we completely migrated to the native IDEA import
+        // See: https://github.com/gradle/gradle-private/issues/1675
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
@@ -175,10 +177,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureJarTasks() {
         tasks.withType<Jar>().configureEach {
-            version = rootProject.extra["baseVersion"] as String
+            val baseVersion: String by rootProject.extra
+            archiveVersion.set(baseVersion)
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to version))
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to baseVersion))
         }
     }
 
@@ -196,9 +199,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
             }
             if (javaInstallationForTest.javaVersion.isJava9Compatible) {
-                //allow embedded executer to modify environment variables
+                // allow embedded executer to modify environment variables
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-                //allow embedded executer to inject legacy types into the system classloader
+                // allow embedded executer to inject legacy types into the system classloader
                 jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version

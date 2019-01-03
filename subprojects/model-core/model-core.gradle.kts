@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
@@ -25,6 +26,8 @@ plugins {
 }
 
 dependencies {
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${BuildEnvironment.kotlinVersion}")
+
     api(project(":baseServices"))
     api(project(":coreApi"))
     api(library("groovy"))
@@ -61,6 +64,7 @@ classycle {
         "org/gradle/model/internal/inspect/**",
         "org/gradle/api/internal/tasks/**",
         "org/gradle/model/internal/manage/schema/**",
-        "org/gradle/model/internal/type/**"
+        "org/gradle/model/internal/type/**",
+        "org/gradle/api/internal/plugins/*"
     ))
 }

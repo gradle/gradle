@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.internal.file.TreeType;
 
 import javax.annotation.Nullable;
 
@@ -60,26 +61,26 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputFileSpec(ValidatingValue path) {
-        return createOutputFilePropertySpec(path, OutputType.FILE, ValidationActions.OUTPUT_FILE_VALIDATOR);
+        return createOutputFilePropertySpec(path, TreeType.FILE, ValidationActions.OUTPUT_FILE_VALIDATOR);
     }
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue path) {
-        return createOutputFilePropertySpec(path, OutputType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR);
+        return createOutputFilePropertySpec(path, TreeType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR);
     }
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, TreeType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
     }
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, TreeType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
     }
 
-    private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, OutputType file, ValidationAction outputFileValidator) {
-        return new DefaultCacheableTaskOutputFilePropertySpec(task.toString(), resolver, file, path, outputFileValidator);
+    private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, TreeType type, ValidationAction outputFileValidator) {
+        return new DefaultCacheableTaskOutputFilePropertySpec(task.toString(), resolver, type, path, outputFileValidator);
     }
 
     private static class FileTreeValue implements ValidatingValue {

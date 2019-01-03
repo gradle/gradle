@@ -330,6 +330,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" FAILED");
                     break;
                 case RESOLVED:
+                case RESOLVED_CONSTRAINT:
                     break;
                 case UNRESOLVED:
                     out.withStyle(Failure).text(" (n)");
@@ -461,6 +462,9 @@ public class DependencyInsightReportTask extends DefaultTask {
         public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
             boolean leaf = node.getChildren().isEmpty();
             target.text(leaf ? configuration.getName() : node.getName());
+            if (node.getDescription() != null) {
+                target.text(" ").withStyle(Description).text(node.getDescription());
+            }
             if (alreadyRendered && !leaf) {
                 target.withStyle(Info).text(" (*)");
             }

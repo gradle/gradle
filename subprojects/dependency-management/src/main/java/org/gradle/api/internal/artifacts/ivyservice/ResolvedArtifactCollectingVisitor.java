@@ -48,7 +48,7 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
                 File file = artifact.getFile();
                 this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, variantName, Artifact.class, file));
             }
-        } catch (Throwable t) {
+        } catch (Exception t) {
             failures.add(t);
         }
     }

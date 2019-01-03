@@ -226,7 +226,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 4.10
      */
-    @Incubating
     NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
@@ -238,7 +237,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -250,7 +248,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
 
     /**
@@ -264,7 +261,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 5.0
      */
-    @Incubating
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -273,6 +269,5 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 4.10
      */
     @Internal
-    @Incubating
     NamedDomainObjectCollectionSchema getCollectionSchema();
 }

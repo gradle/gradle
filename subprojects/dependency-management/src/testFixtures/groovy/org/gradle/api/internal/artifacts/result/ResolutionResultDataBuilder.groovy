@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -35,20 +35,20 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version)), newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(group, module, selectedVersion), newModule())
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
-        def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), "broken"))
+        def requested = newSelector(group, module, version)
+        new DefaultUnresolvedDependencyResult(requested, false, ComponentSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), "broken"))
     }
 
-    static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = VersionSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
+    static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), variant, repoId)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(componentSelector, newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(componentSelector, false, newModule(group, module, selectedVersion), newModule())
     }
 
     static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
@@ -57,5 +57,9 @@ class ResolutionResultDataBuilder {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
         return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes)
+    }
+
+    static ModuleComponentSelector newSelector(String group, String module, String version) {
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), version)
     }
 }

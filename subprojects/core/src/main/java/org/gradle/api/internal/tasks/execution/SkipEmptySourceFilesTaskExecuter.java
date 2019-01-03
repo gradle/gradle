@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -29,11 +29,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
@@ -42,47 +44,53 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final TaskOutputChangesListener taskOutputChangesListener;
+    private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
-    private final BuildInvocationScopeId buildInvocationScopeId;
+    private final ExecutionHistoryStore executionHistoryStore;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputChangesListener taskOutputChangesListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, ExecutionHistoryStore executionHistoryStore, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
+        this.executionHistoryStore = executionHistoryStore;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
-        this.taskOutputChangesListener = taskOutputChangesListener;
+        this.outputChangeListener = outputChangeListener;
         this.executer = executer;
-        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    @Override
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
         FileCollection sourceFiles = taskProperties.getSourceFiles();
         if (taskProperties.hasSourceFiles() && sourceFiles.isEmpty()) {
-            TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-            TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
-            Set<File> outputFiles = executionHistory.getOutputFiles();
+            AfterPreviousExecutionState previousExecution = context.getAfterPreviousExecution();
+            @SuppressWarnings("RedundantTypeArguments")
+            ImmutableSortedMap<String, FileCollectionFingerprint> outputFiles = previousExecution == null
+                ? ImmutableSortedMap.<String, FileCollectionFingerprint>of()
+                : previousExecution.getOutputFileProperties();
             if (outputFiles.isEmpty()) {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                boolean cleanupDirectories = executionHistory.getOverlappingOutputs() == null;
+                boolean cleanupDirectories = !context.getOverlappingOutputs().isPresent();
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }
-                taskOutputChangesListener.beforeTaskOutputChanged();
+                outputChangeListener.beforeOutputChange();
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
 
-                for (File file : outputFiles) {
-                    if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
-                        if (!cleanupDirectories && file.isDirectory()) {
-                            continue;
+                for (FileCollectionFingerprint outputFingerprints : outputFiles.values()) {
+                    for (String outputPath : outputFingerprints.getFingerprints().keySet()) {
+                        File file = new File(outputPath);
+                        if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
+                            if (!cleanupDirectories && file.isDirectory()) {
+                                continue;
+                            }
+                            if (debugEnabled) {
+                                LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
+                            }
+                            GFileUtils.forceDelete(file);
+                            deletedFiles = true;
                         }
-                        if (debugEnabled) {
-                            LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
-                        }
-                        GFileUtils.forceDelete(file);
-                        deletedFiles = true;
                     }
                 }
                 if (deletedFiles) {
@@ -91,13 +99,13 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
-                taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationScopeId.getId(), context);
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
-            return;
+            executionHistoryStore.remove(task.getPath());
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskProperties.getInputFiles()));
         }
-        executer.execute(task, state, context);
+        return executer.execute(task, state, context);
     }
 }

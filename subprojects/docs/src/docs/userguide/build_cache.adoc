@@ -30,7 +30,7 @@ When using a shared build cache for task output caching this even works across d
 
 Apart from task output caching, we expect other features to use the build cache in the future.
 
-NOTE: A complete guide is available about https://guides.gradle.org/using-build-cache/[using the build cache]. It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
+TIP: For a hands-on approach to learning how to use the build cache, try the https://guides.gradle.org/using-build-cache/[Using the Build Cache] guide. It covers the different scenarios that caching can improve and has detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 [[sec:build_cache_enable]]
 == Enable the Build Cache
@@ -210,7 +210,7 @@ When possible, it is better to use delegation instead of creating a subclass.
 That is the case for the built in `JavaExec`, `Exec`, `Copy` and `Sync` tasks, which have a method on `Project` to do the actual work.
 
 If you're a modern JavaScript developer, you know that bundling can be quite long, and is worth caching.
-To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html] annotation.
+To achieve that, we need to tell Gradle that it's allowed to cache the output of that task, using the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask] annotation.
 
 This is sufficient to make the task cacheable on your own machine.
 However, input files are identified by default by their absolute path.
@@ -253,7 +253,7 @@ You can configure the build cache by using the link:{groovyDslPath}/org.gradle.a
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
 If outputs are found in the remote cache, they are also stored in the local cache, so next time they will be found locally.
-Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}//org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()] set to `true`.
+Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}/org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()] set to `true`.
 
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 

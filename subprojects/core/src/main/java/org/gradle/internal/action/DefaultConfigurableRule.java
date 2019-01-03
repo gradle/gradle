@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.action;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.CacheableRule;
@@ -70,6 +71,25 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     @Override
     public boolean isCacheable() {
         return cacheable;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultConfigurableRule<?> that = (DefaultConfigurableRule<?>) o;
+        return cacheable == that.cacheable &&
+            Objects.equal(rule, that.rule) &&
+            Objects.equal(ruleParams, that.ruleParams);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(rule, ruleParams, cacheable);
     }
 
     @Override

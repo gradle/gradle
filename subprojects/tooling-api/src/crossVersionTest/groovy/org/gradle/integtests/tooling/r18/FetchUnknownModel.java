@@ -18,15 +18,9 @@ package org.gradle.integtests.tooling.r18;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.UnknownModelException;
 
 public class FetchUnknownModel implements BuildAction<CustomModel> {
     public CustomModel execute(BuildController controller) {
-        try {
-            controller.getModel(CustomModel.class);
-            throw new AssertionError("Expected model request to fail.");
-        } catch (UnknownModelException e) {
-            return null;
-        }
+        return controller.getModel(CustomModel.class);
     }
 }

@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableIncrementalArtifactTransformations
+
 abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -304,6 +306,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
             include 'lib'
             include 'util'
         """
+
+        enableIncrementalArtifactTransformations(settingsFile)
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)

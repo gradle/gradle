@@ -74,7 +74,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 2
         result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof SingletonFileTree
+        result[0].tree instanceof DefaultSingletonFileTree
         result[0].tree.file == file
         result[1] instanceof FileTreeAdapter
         result[1].tree instanceof DirectoryFileTree
@@ -388,7 +388,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 1
         result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof SingletonFileTree
+        result[0].tree instanceof DefaultSingletonFileTree
         result[0].tree.file == file
         1 * resolver.resolve('a') >> file
     }
@@ -435,7 +435,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 1
         result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof SingletonFileTree
+        result[0].tree instanceof DefaultSingletonFileTree
         result[0].tree.file == file
         1 * fileResolver.resolve('a') >> file
     }

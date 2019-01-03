@@ -10,7 +10,7 @@ val compileJava by tasks.existing(JavaCompile::class)
 val myCopy1 by tasks.registering(Copy::class)
 
 val assemble by tasks.existing {
-    dependsOn(myTask1)
+    dependsOn(myTask1)  // <1>
 }
 val myTask2 by tasks.registering {
     description = "Some meaningful words"

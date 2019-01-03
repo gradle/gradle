@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')

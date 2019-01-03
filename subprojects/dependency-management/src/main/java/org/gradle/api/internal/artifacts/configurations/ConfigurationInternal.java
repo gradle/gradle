@@ -16,12 +16,20 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.util.Path;
 
+import java.util.Set;
+
 public interface ConfigurationInternal extends ResolveContext, Configuration, DependencyMetaDataProvider {
-    enum InternalState {UNRESOLVED, GRAPH_RESOLVED, ARTIFACTS_RESOLVED}
+    enum InternalState {
+        UNRESOLVED,
+        BUILD_DEPENDENCIES_RESOLVED,
+        GRAPH_RESOLVED,
+        ARTIFACTS_RESOLVED}
 
     @Override
     ResolutionStrategyInternal getResolutionStrategy();
@@ -52,4 +60,12 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     OutgoingVariant convertToOutgoingVariant();
 
     void preventFromFurtherMutation();
+
+    /**
+     * Gets the complete set of exclude rules including those contributed by
+     * superconfigurations.
+     */
+    Set<ExcludeRule> getAllExcludeRules();
+
+    ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
 }

@@ -18,7 +18,14 @@ package org.gradle.plugins.javascript.envjs.browser;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.plugins.javascript.envjs.http.HttpFileServer;
 import org.gradle.plugins.javascript.envjs.http.simple.SimpleHttpFileServerFactory;
 
@@ -44,6 +51,7 @@ public class BrowserEvaluate extends DefaultTask {
     }
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     public File getContent() {
         return content == null ? null : getProject().files(content).getSingleFile();
     }

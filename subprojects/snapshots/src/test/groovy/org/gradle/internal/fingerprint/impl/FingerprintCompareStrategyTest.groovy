@@ -16,8 +16,8 @@
 
 package org.gradle.internal.fingerprint.impl
 
-import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
-import org.gradle.internal.changes.FileChange
+import org.gradle.internal.change.CollectingChangeVisitor
+import org.gradle.internal.change.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy
@@ -268,8 +268,8 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", true) == null
-        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", false) == null
+        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test", true) == null
+        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test", false) == null
 
         where:
         current                                                | previous
@@ -278,13 +278,13 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+        def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
     def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+        def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }

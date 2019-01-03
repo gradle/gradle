@@ -23,9 +23,10 @@ import org.gradle.api.provider.Provider;
 public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private ProviderInternal<? extends T> provider = Providers.notDefined();
+    private ProviderInternal<? extends T> provider;
 
     public DefaultPropertyState(Class<T> type) {
+        applyDefaultValue();
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
     }
@@ -46,11 +47,12 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public void set(T value) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         if (value == null) {
             this.provider = Providers.notDefined();
+            afterMutate();
             return;
         }
         value = sanitizer.sanitize(value);
@@ -58,6 +60,7 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
         }
         this.provider = Providers.of(value);
+        afterMutate();
     }
 
     @Override
@@ -68,7 +71,7 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public void set(Provider<? extends T> provider) {
-        if (!assertMutable()) {
+        if (!beforeMutate()) {
             return;
         }
         if (provider == null) {
@@ -91,6 +94,28 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
         }
 
         this.provider = p;
+        afterMutate();
+    }
+
+    @Override
+    public Property<T> convention(T value) {
+        if (shouldApplyConvention()) {
+            this.provider = Providers.of(value);
+        }
+        return this;
+    }
+
+    @Override
+    public Property<T> convention(Provider<? extends T> valueProvider) {
+        if (shouldApplyConvention()) {
+            this.provider = Providers.internal(valueProvider);
+        }
+        return this;
+    }
+
+    @Override
+    protected void applyDefaultValue() {
+        provider = Providers.notDefined();
     }
 
     @Override
@@ -104,19 +129,19 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public T get() {
-        assertReadable();
+        beforeRead();
         return provider.get();
     }
 
     @Override
     public T getOrNull() {
-        assertReadable();
+        beforeRead();
         return provider.getOrNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        assertReadable();
+        beforeRead();
         T t = provider.getOrNull();
         if (t == null) {
             return defaultValue;
@@ -126,7 +151,7 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
 
     @Override
     public boolean isPresent() {
-        assertReadable();
+        beforeRead();
         return provider.isPresent();
     }
 

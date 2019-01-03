@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.scan.BuildScanRequest;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.vcs.internal.VcsResolver;
 
@@ -44,11 +43,6 @@ public class BuildScanConfigServices {
         return new BuildScanConfigManager(startParameter, listenerManager, compatibility, serviceRegistry.getFactory(BuildScanConfig.Attributes.class));
     }
 
-    // legacy support
-    BuildScanRequest createBuildScanRequest(BuildScanPluginCompatibility compatibilityEnforcer) {
-        return new BuildScanRequestLegacyBridge(compatibilityEnforcer);
-    }
-
     Factory<BuildScanConfig.Attributes> createBuildScanConfigAttributes(final GradleInternal gradle) {
         return new Factory<BuildScanConfig.Attributes>() {
             @Override
@@ -62,8 +56,8 @@ public class BuildScanConfigServices {
                     }
 
                     @Override
-                    public boolean isAnyDeploymentsStarted() {
-                        return false;
+                    public boolean isTaskExecutingBuild() {
+                        return gradle.getBuildType() == GradleInternal.BuildType.TASKS;
                     }
                 };
             }

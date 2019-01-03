@@ -24,6 +24,8 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
 
@@ -38,6 +40,7 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
     /**
      * Installation directory of the build-builder tool.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     final DirectoryProperty buildBuilderInstall
 

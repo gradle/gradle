@@ -20,7 +20,6 @@ import junit.framework.AssertionFailedError;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -38,7 +37,6 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
@@ -58,17 +56,22 @@ import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
+import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -106,6 +109,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -141,14 +145,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         BuildResult result = doRun(outputStream, errorStream, buildListener);
-        try {
-            result.rethrowFailure();
-        } catch (Exception e) {
-            throw new UnexpectedBuildFailure(e);
+        if (result.getFailure() != null) {
+            throw new UnexpectedBuildFailure(result.getFailure());
         }
 
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
+                OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
 
     @Override
@@ -160,13 +162,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
-        try {
-            doRun(outputStream, errorStream, buildListener).rethrowFailure();
+        BuildResult result = doRun(outputStream, errorStream, buildListener);
+        if (result.getFailure() == null) {
             throw new AssertionError("expected build to fail but it did not.");
-        } catch (GradleException e) {
-            return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), e));
         }
+        return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
+                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
     }
 
     private boolean isForkRequired() {
@@ -319,16 +320,21 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                    BuildActionResult result = actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                    if (result.getException() != null) {
+                        return new BuildResult(null, result.getException());
+                    }
+                    if (result.getFailure() != null) {
+                        PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
+                        return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
+                    }
+                    return new BuildResult(null, null);
                 } finally {
                     stopMeasurement();
                 }
             } finally {
                 loggingManager.stop();
             }
-            return new BuildResult(null, null);
-        } catch (ReportedException e) {
-            return new BuildResult(null, e.getCause());
         } finally {
             listenerManager.removeListener(listener);
         }
@@ -401,7 +407,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final List<String> executedTasks;
         private final Set<String> skippedTasks;
 
-        public TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
+        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
             this.planned = planned;
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
@@ -441,7 +447,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
 
-        public InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
+        InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
             this.outputResult = outputResult;
@@ -536,6 +542,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+            assertTasksExecuted(taskPaths);
+            assertTasksNotSkipped(taskPaths);
+            return this;
+        }
+
+        @Override
         public ExecutionResult assertTaskExecuted(String taskPath) {
             assertThat(executedTasks, hasItem(taskPath));
             outputResult.assertTaskExecuted(taskPath);
@@ -600,48 +613,46 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
         private final OutputScrapingExecutionFailure outputFailure;
-        private final GradleException failure;
-        private final String fileName;
-        private final String lineNumber;
+        private final Throwable failure;
+        private final List<String> fileNames = new ArrayList<String>();
+        private final List<String> lineNumbers = new ArrayList<String>();
         private final List<String> descriptions = new ArrayList<String>();
 
-        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
+        InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
 
-            // Chop up the exception message into its expected parts
-            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
-            if (matcher.find()) {
-                fileName = matcher.group(1);
-                lineNumber = matcher.group(3);
-                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
-            } else {
-                fileName = "";
-                lineNumber = "";
-                descriptions.add(failure.getMessage().trim());
-            }
             if (failure instanceof MultipleBuildFailures) {
                 for (Throwable cause : ((MultipleBuildFailures) failure).getCauses()) {
-                    matcher = LOCATION_PATTERN.matcher(cause.getMessage());
-                    if (matcher.find()) {
-                        descriptions.add(cause.getMessage().substring(matcher.end()).trim());
-                    } else {
-                        descriptions.add(cause.getMessage().trim());
-                    }
+                    extractDetails(cause);
                 }
+            } else {
+                extractDetails(failure);
+            }
+        }
+
+        private void extractDetails(Throwable failure) {
+            String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
+            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
+            if (matcher.find()) {
+                fileNames.add(matcher.group(1));
+                lineNumbers.add(matcher.group(3));
+                descriptions.add(failureMessage.substring(matcher.end()).trim());
+            } else {
+                descriptions.add(failureMessage.trim());
             }
         }
 
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
             outputFailure.assertHasLineNumber(lineNumber);
-            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
+            assertThat(this.lineNumbers, hasItem(equalTo(String.valueOf(lineNumber))));
             return this;
         }
 
         public ExecutionFailure assertHasFileName(String filename) {
             outputFailure.assertHasFileName(filename);
-            assertThat(this.fileName, equalTo(filename));
+            assertThat(this.fileNames, hasItem(equalTo(filename)));
             return this;
         }
 
@@ -656,7 +667,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             if (count == 1) {
                 assertFalse(failure instanceof MultipleBuildFailures);
             } else {
-                assertEquals(((MultipleBuildFailures)failure).getCauses().size(), count);
+                assertEquals(((MultipleBuildFailures) failure).getCauses().size(), count);
             }
             return this;
         }
@@ -670,7 +681,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
+            Matcher<Throwable> messageMatcher = hasMessage(normalizedLineSeparators(matcher));
+            for (Throwable cause : causes) {
+                if (messageMatcher.matches(cause)) {
+                    return this;
+                }
+            }
+            fail(String.format("Could not find matching cause in: %s%nFailure is: %s", causes, failure));
             return this;
         }
 
@@ -730,6 +747,24 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
             return new DependencyResolutionFailure(this, configurationPath);
+        }
+    }
+
+    private static class TestClassLoaderRegistry implements PayloadClassLoaderRegistry {
+        @Override
+        public SerializeMap newSerializeSession() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public DeserializeMap newDeserializeSession() {
+            return new DeserializeMap() {
+                @Override
+                public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                    // Assume everything is loaded into the current classloader
+                    return Class.forName(className);
+                }
+            };
         }
     }
 }

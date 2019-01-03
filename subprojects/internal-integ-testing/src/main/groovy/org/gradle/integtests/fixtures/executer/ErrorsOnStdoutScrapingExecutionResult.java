@@ -119,6 +119,12 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
+        delegate.assertTasksExecutedAndNotSkipped(taskPaths);
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertTaskExecuted(String taskPath) {
         delegate.assertTaskExecuted(taskPath);
         return this;

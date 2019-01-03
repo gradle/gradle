@@ -17,8 +17,8 @@
 package org.gradle.language.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.test.fixtures.file.TestFile
 
 /**

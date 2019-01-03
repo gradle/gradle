@@ -33,7 +33,6 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
     protected MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         MavenInstallAction installAction = new MavenInstallAction(packaging, projectIdentity);
         installAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
-        installAction.produceLegacyMavenMetadata();
         return installAction;
     }
 }

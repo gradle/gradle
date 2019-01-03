@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
@@ -67,7 +66,7 @@ public interface ComponentIdResolveResult extends ResolveResult {
     /**
      * @return the list of unmatched versions, that is to say versions which were listed but didn't match the selector
      */
-    Collection<RejectedBySelectorVersion> getUnmatchedVersions();
+    Collection<String> getUnmatchedVersions();
 
     /**
      * @return the list of versions which were considered for this module but rejected.

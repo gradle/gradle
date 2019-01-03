@@ -184,16 +184,7 @@ class NodeState implements DependencyGraphNode {
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveIncoming.isEmpty() && !isRoot()) {
-            // If node was previously traversed, need to remove outgoing edges.
-            if (previousTraversalExclusions != null) {
-                removeOutgoingEdges();
-            }
-            boolean hasIncomingEdges = !incomingEdges.isEmpty();
-            if (hasIncomingEdges) {
-                LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
-            } else {
-                LOGGER.debug("{} has no incoming edges. ignoring.", this);
-            }
+            handleNonTransitiveNode(discoveredEdges);
             return;
         }
 
@@ -216,6 +207,25 @@ class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    /**
+     * Removes outgoing edges from no longer transitive node
+     * Also process {@code belongsTo} if node still has edges at all.
+     *
+     * @param discoveredEdges In/Out parameter collecting dependencies or platforms
+     */
+    private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
+        // If node was previously traversed, need to remove outgoing edges.
+        if (previousTraversalExclusions != null) {
+            removeOutgoingEdges();
+        }
+        if (!incomingEdges.isEmpty()) {
+            LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
+            visitOwners(discoveredEdges);
+        } else {
+            LOGGER.debug("{} has no incoming edges. ignoring.", this);
+        }
     }
 
     /**
@@ -284,6 +294,8 @@ class NodeState implements DependencyGraphNode {
             // the platform doesn't exist, so we're building a lenient one
             metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setMetadata(metadata);
+            // And now let's make sure we do not have another version of that virtual platform missing its metadata
+            potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
         if (virtualEdges == null) {
             virtualEdges = Lists.newArrayList();
@@ -309,7 +321,7 @@ class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            return dependencyState.withTarget(details.getTarget(), details.getSelectionDescription());
+            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
         }
         return dependencyState;
     }
@@ -361,6 +373,10 @@ class NodeState implements DependencyGraphNode {
 
     public boolean isSelected() {
         return !incomingEdges.isEmpty();
+    }
+
+    public boolean shouldIncludedInGraphResult() {
+        return isSelected() && !component.getModule().isVirtualPlatform();
     }
 
     private ModuleExclusion getModuleResolutionFilter(List<EdgeState> incomingEdges) {

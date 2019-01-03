@@ -15,6 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Collections;
@@ -55,5 +59,16 @@ public abstract class AbstractRenderableDependency implements RenderableDependen
     @Override
     public List<Section> getExtraDetails() {
         return Collections.emptyList();
+    }
+
+    protected boolean exactMatch(ComponentSelector requested, ComponentIdentifier selected) {
+        if (requested instanceof ModuleComponentSelector) {
+            VersionConstraint versionConstraint = ((ModuleComponentSelector) requested).getVersionConstraint();
+            if (!(versionConstraint.getRequiredVersion().isEmpty()
+                    || versionConstraint.getDisplayName().equals(versionConstraint.getRequiredVersion()))) {
+                return false;
+            }
+        }
+        return requested.matchesStrictly(selected);
     }
 }

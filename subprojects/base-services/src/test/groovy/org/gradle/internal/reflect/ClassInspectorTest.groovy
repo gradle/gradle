@@ -24,7 +24,7 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(SomeClass)
 
-        details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly'] as Set
+        details.propertyNames == ['class', 'metaClass', 'prop', 'readOnly', 'writeOnly'] as Set
 
         def prop = details.getProperty('prop')
         prop.getters.size() == 1
@@ -43,7 +43,7 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(PropNames)
 
-        details.propertyNames == ['metaClass', 'a', 'b', 'URL', 'url', '_A'] as Set
+        details.propertyNames == ['class', 'metaClass', 'a', 'b', 'URL', 'url', '_A'] as Set
     }
 
     def "extracts properties of a Groovy interface"() {
@@ -69,7 +69,7 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(BooleanProps)
 
-        details.propertyNames == ['metaClass', 'prop', 'someProp', 'readOnly'] as Set
+        details.propertyNames == ['class', 'metaClass', 'prop', 'someProp', 'readOnly'] as Set
 
         def prop = details.getProperty('prop')
         prop.getters.size() == 2
@@ -97,7 +97,7 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(SubClass)
 
-        details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
+        details.propertyNames == ['class', 'metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
 
         def prop = details.getProperty('prop')
         prop.getters.size() == 1
@@ -143,7 +143,7 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(AbstractSubClass)
 
-        details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
+        details.propertyNames == ['class', 'metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
 
         def prop = details.getProperty('prop')
         prop.getters.size() == 1
@@ -166,10 +166,10 @@ class ClassInspectorTest extends Specification {
         expect:
         def details = ClassInspector.inspect(SpecializingType)
 
-        details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly'] as Set
+        details.propertyNames == ['class', 'metaClass', 'prop', 'readOnly', 'writeOnly'] as Set
 
         def prop = details.getProperty('prop')
-        prop.getters.size() == 1
+        prop.getters.size() == 2
         prop.setters.size() == 2
 
         def readOnly = details.getProperty('readOnly')
@@ -371,7 +371,7 @@ class ClassInspectorTest extends Specification {
 
     def "super types ordered by their distance"() {
         expect:
-        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
+        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, Object, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
     }
 
     @Issue("GRADLE-3317")

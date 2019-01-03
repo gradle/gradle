@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import spock.lang.Specification
 
 import javax.annotation.processing.Processor
@@ -45,8 +47,14 @@ class AggregatingProcessorTest extends Specification {
     }
 
     AnnotationProcessingResult result = new AnnotationProcessingResult()
+    AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, "")
     Processor delegate = Stub(Processor)
-    AggregatingProcessor processor = new AggregatingProcessor(delegate, result)
+    AggregatingProcessor processor = new AggregatingProcessor(delegate, processorResult)
+
+    def "sets processor type"() {
+        expect:
+        processorResult.type == IncrementalAnnotationProcessorType.AGGREGATING
+    }
 
     def "when delegate reacts to any class, all root elements are aggregated"() {
         given:

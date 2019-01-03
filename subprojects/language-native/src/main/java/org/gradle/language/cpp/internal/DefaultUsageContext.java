@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Collections;
@@ -60,7 +61,7 @@ public class DefaultUsageContext implements UsageContext, Named {
         if (configuration != null) {
             this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
             this.dependencyConstraints = configuration.getAllDependencyConstraints();
-            this.globalExcludes = configuration.getExcludeRules();
+            this.globalExcludes = ((ConfigurationInternal) configuration).getAllExcludeRules();
         } else {
             this.dependencies = null;
             this.dependencyConstraints = null;

@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
@@ -35,7 +36,7 @@ plugins {
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
     com.gradle.`build-scan`
-    id("org.gradle.ci.tag-single-build")
+    id("org.gradle.ci.tag-single-build") version("0.48")
 }
 
 defaultTasks("assemble")
@@ -52,7 +53,7 @@ buildTypes {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll",
-            "architectureTest:test")
+            "architectureTest:test", "toolingApi:toolingApiShadedJar")
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -60,7 +61,7 @@ buildTypes {
         tasks("test", "integTest", "crossVersionTest")
     }
 
-    // Used for builds to run all tests, but not necessarily on all platforms
+    // Used for builds to run all tests
     create("fullTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
         projectProperties("testAllVersions" to true)
@@ -69,10 +70,7 @@ buildTypes {
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties(
-            "testAllVersions" to true,
-            "testAllPlatforms" to true
-        )
+        projectProperties("testPartialVersions" to true)
     }
 
     // Tests not using the daemon mode
@@ -112,7 +110,8 @@ buildTypes {
 
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests")
+        tasks("allVersionsCrossVersionTests", "integMultiVersionTest")
+        projectProperties("testAllVersions" to true)
     }
 
     create("quickFeedbackCrossVersionTest") {
@@ -153,12 +152,12 @@ allprojects {
             url = uri("https://repo.gradle.org/gradle/libs")
         }
         maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            name = "kotlinx"
+            url = uri("https://kotlin.bintray.com/kotlinx/")
         }
         maven {
-            name = "kotlin-dev"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
     }
 
@@ -184,13 +183,15 @@ apply(plugin = "gradlebuild.update-versions")
 apply(plugin = "gradlebuild.dependency-vulnerabilities")
 apply(plugin = "gradlebuild.add-verify-production-environment-task")
 
+allprojects {
+    apply(plugin = "gradlebuild.dependencies-metadata-rules")
+}
 
 subprojects {
     version = rootProject.version
 
     if (project in javaProjects) {
         apply(plugin = "gradlebuild.java-projects")
-        apply(plugin = "gradlebuild.dependencies-metadata-rules")
     }
 
     if (project in publishedProjects) {
@@ -202,15 +203,17 @@ subprojects {
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
+val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
+
 val coreRuntime by configurations.creating {
-    usage(Usage.JAVA_RUNTIME)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     isCanBeResolved = true
     isCanBeConsumed = false
     isVisible = false
 }
 
 val coreRuntimeExtensions by configurations.creating {
-    usage(Usage.JAVA_RUNTIME)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     isCanBeResolved = true
     isCanBeConsumed = false
     isVisible = false
@@ -246,9 +249,76 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+// TODO: These should probably be all collapsed into a single variant
+configurations {
+    create("gradleApiMetadataElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(runtime)
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
+    }
+}
+configurations {
+    create("gradleApiRuntimeElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(externalModules)
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+    }
+}
+configurations {
+    create("gradleApiCoreElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(runtime)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core")
+    }
+}
+configurations {
+    create("gradleApiCoreExtensionsElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(coreRuntime)
+        extendsFrom(coreRuntimeExtensions)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
+    }
+}
+configurations {
+    create("gradleApiPluginElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
+    }
+}
+configurations {
+    create("gradleApiReceiptElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "build-receipt")
+
+        // TODO: Update BuildReceipt to retain dependency information by using Provider
+        val createBuildReceipt = tasks.named("createBuildReceipt", BuildReceipt::class.java)
+        val receiptFile = createBuildReceipt.map {
+            it.receiptFile
+        }
+        outgoing.artifact(receiptFile) {
+            builtBy(createBuildReceipt)
+        }
+    }
+}
+
 configurations {
     all {
-        usage(Usage.JAVA_RUNTIME)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     }
 }
 
@@ -273,6 +343,7 @@ dependencies {
 
     pluginProjects.forEach { gradlePlugins(it) }
     implementationPluginProjects.forEach { gradlePlugins(it) }
+
     gradlePlugins(project(":workers"))
     gradlePlugins(project(":dependencyManagement"))
     gradlePlugins(project(":testKit"))
@@ -313,7 +384,10 @@ tasks.register<Install>("installAll") {
     installDirPropertyName = ::gradle_installPath.name
 }
 
-val allIncubationReports by tasks.registering(IncubatingApiAggregateReportTask::class) {
+fun distributionImage(named: String) =
+        project(":distributions").property(named) as CopySpec
+
+val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
     reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
@@ -324,11 +398,5 @@ tasks.register<Zip>("allIncubationReportsZip") {
     from(allIncubationReports.get().htmlReportFile)
     from(collectAllIncubationReports().map { it.htmlReportFile })
 }
-
-fun distributionImage(named: String) =
-    project(":distributions").property(named) as CopySpec
-
-fun Configuration.usage(named: String) =
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
 
 fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }

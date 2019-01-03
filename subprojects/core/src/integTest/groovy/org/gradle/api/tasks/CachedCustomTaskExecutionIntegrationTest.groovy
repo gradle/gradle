@@ -592,7 +592,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().run "customTask"
         then:
         def expectedMessage = message.replace("PATH", file("build/output").path)
-        output.contains "Could not pack property 'output': $expectedMessage"
+        output.contains "Could not pack tree 'output': $expectedMessage"
 
         where:
         expected | actual | message
@@ -626,7 +626,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Caching disabled for task ':customTask': Task class was loaded with an unknown classloader (class 'CustomTask_Decorated')."
+        output.contains "Caching disabled for task ':customTask': Task class was loaded with an unknown classloader (class 'CustomTask\$Dsl')."
     }
 
     def "task with custom action loaded with custom classloader is not cached"() {

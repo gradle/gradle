@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
@@ -27,7 +28,7 @@ class ProjectStateInternalSpec extends Specification {
         stateString { toBeforeEvaluate(); toEvaluate() } == "EXECUTING"
         stateString { toBeforeEvaluate(); toEvaluate(); toAfterEvaluate() } == "EXECUTING"
         stateString { configured() } == "EXECUTED"
-        stateString { failed(new Error("bang")); configured() } == "FAILED (bang)"
+        stateString { failed(new ProjectConfigurationException("bang", [])); configured() } == "FAILED (bang)"
     }
 
     String stateString(@DelegatesTo(ProjectStateInternal) Closure closure) {

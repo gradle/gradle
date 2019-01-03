@@ -17,13 +17,10 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
@@ -33,9 +30,9 @@ import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
-    @Shared Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    @Shared Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    private project = new ProjectBuilder().build()
+    private project = ProjectBuilder.builder().build()
     Test testTask = TestUtil.createTask(Test, project)
 
     void setup() {

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 
 import java.util.Collection;
@@ -54,7 +53,7 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
      *
      * @param unmatchedVersions a collection of unmatched versions
      */
-    void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions);
+    void unmatched(Collection<String> unmatchedVersions);
 
     /**
      * Registers the list of rejections that happened during resolution for this module.

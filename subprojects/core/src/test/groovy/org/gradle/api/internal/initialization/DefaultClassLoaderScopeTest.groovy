@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.FileClasspathHasher
 import org.gradle.internal.classloader.CachingClassLoader
@@ -34,7 +34,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope scope
 
     def classpathHasher = new FileClasspathHasher()
-    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(classpathHasher), classpathHasher)
+    DefaultClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(classpathHasher), classpathHasher)
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()

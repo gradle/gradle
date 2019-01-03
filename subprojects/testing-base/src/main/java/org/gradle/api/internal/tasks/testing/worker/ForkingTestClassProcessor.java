@@ -159,7 +159,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             if (!stoppedNow) {
                 throw new ExecException(e.getMessage()
                     + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\nPlease refer to the test execution section in the user guide at "
+                    + "\nPlease refer to the test execution section in the User Manual at "
                     + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
             }
         } finally {

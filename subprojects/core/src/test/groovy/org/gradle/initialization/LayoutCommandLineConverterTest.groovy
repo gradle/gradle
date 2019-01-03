@@ -46,6 +46,16 @@ class LayoutCommandLineConverterTest extends Specification {
         convert("-g", "bar").gradleUserHomeDir.name == "bar"
     }
 
+    def "doesn't search upwards when building buildSrc"() {
+        expect:
+        !convert("-p", "buildSrc").searchUpwards
+    }
+
+    def "doesn't search upwards when running init task"() {
+        expect:
+        !convert("init").searchUpwards
+    }
+
     def "converts relatively to the target dir"() {
         given:
         def root = temp.createDir('root')

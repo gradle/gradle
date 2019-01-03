@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.internal.collections.BroadcastingCollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -30,9 +30,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -48,8 +46,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final ElementSource<T> store;
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
-        this(type, store, new BroadcastingCollectionEventRegister<T>(type));
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
+        this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
@@ -109,7 +107,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
-        return new FlushingEventRegister<S>(filter, getEventRegister());
+        return eventRegister.filtered(filter);
     }
 
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
@@ -138,7 +136,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void all(Action<? super T> action) {
         assertMutable("all(Action)");
-        action = addEagerAction(action);
+        Action<? super T> decoratedAction = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
             return;
@@ -157,7 +155,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
         if (copied != null) {
             for (T t : copied) {
-                action.execute(t);
+                decoratedAction.execute(t);
             }
         }
     }
@@ -166,7 +164,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public void configureEach(Action<? super T> action) {
         assertMutable("configureEach(Action)");
         Action<? super T> wrappedAction = withMutationDisabled(action);
-        eventRegister.registerLazyAddAction(wrappedAction);
+        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
         Collection<T> copied = null;
@@ -181,7 +179,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         if (copied != null) {
             for (T next : copied) {
-                wrappedAction.execute(next);
+                registerLazyAddActionDecorated.execute(next);
             }
         }
     }
@@ -216,8 +214,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private Action<? super T> addEagerAction(Action<? super T> action) {
         store.realizePending(type);
-        eventRegister.registerEagerAddAction(type, action);
-        return action;
+        return eventRegister.registerEagerAddAction(type, action);
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
@@ -244,7 +241,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return doAdd(toAdd, notification);
     }
 
-    private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
+    protected <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
@@ -430,6 +427,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     /**
      * Subclasses may override this method to prevent add/remove methods.
+     *
      * @see DefaultDomainObjectSet
      */
     protected void assertMutableCollectionContents() {
@@ -468,48 +466,5 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private class FlushingEventRegister<S extends T> implements CollectionEventRegister<S> {
-        private final CollectionFilter<S> filter;
-        private final CollectionEventRegister<S> delegate;
 
-        FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
-            this.filter = filter;
-            this.delegate = Cast.uncheckedCast(delegate);
-        }
-
-        @Override
-        public ImmutableActionSet<S> getAddActions() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void fireObjectAdded(S element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void fireObjectRemoved(S element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isSubscribed(Class<?> type) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
-        }
-
-        @Override
-        public void registerLazyAddAction(Action<? super S> addAction) {
-            delegate.registerLazyAddAction(Actions.filter(addAction, filter));
-        }
-
-        @Override
-        public void registerRemoveAction(Class<? extends S> type, Action<? super S> removeAction) {
-            delegate.registerRemoveAction(filter.getType(), Actions.filter(removeAction, filter));
-        }
-    }
 }

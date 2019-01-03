@@ -52,7 +52,10 @@ import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
+import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
+
+import java.util.List;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
@@ -85,8 +88,10 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, PluginInspector pluginInspector,
                                                           DocumentationRegistry documentationRegistry,
                                                           InjectedClasspathPluginResolver injectedClasspathPluginResolver,
-                                                          PluginDependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-            return new PluginResolverFactory(pluginRegistry, pluginInspector, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, versionSelectorScheme);
+                                                          PluginDependencyResolutionServices dependencyResolutionServices,
+                                                          List<PluginResolverContributor> pluginResolverContributors,
+                                                          VersionSelectorScheme versionSelectorScheme) {
+            return new PluginResolverFactory(pluginRegistry, pluginInspector, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, versionSelectorScheme);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,

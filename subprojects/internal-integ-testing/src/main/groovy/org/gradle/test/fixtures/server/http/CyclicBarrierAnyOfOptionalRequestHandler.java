@@ -22,24 +22,14 @@ import java.util.concurrent.locks.Lock;
 /**
  * A cyclic barrier for {@link BlockingHttpServer} where expectations are optional.
  */
-public class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
-    private final Lock lock;
-
+class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
     CyclicBarrierAnyOfOptionalRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         super(lock, testId, timeoutMs, maxConcurrent, previous, expectedRequests);
-        this.lock = lock;
     }
 
     @Override
-    public void assertComplete() {
-        lock.lock();
-        try {
-            if (failure != null) {
-                throw failure;
-            }
-        } finally {
-            lock.unlock();
-        }
+    public void assertComplete(Collection<Throwable> failures) throws AssertionError {
+        // Don't care
     }
 
     @Override

@@ -18,40 +18,47 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.scan.NotUsedByScanPlugin;
 
 public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
 
-    private final TaskInternal task;
+    private final LocalTaskNode taskNode;
 
-    public ExecuteTaskBuildOperationDetails(TaskInternal task) {
-        this.task = task;
+    public ExecuteTaskBuildOperationDetails(LocalTaskNode taskNode) {
+        this.taskNode = taskNode;
     }
 
     // TODO: do not reference mutable state
-    // Note: internal, not used by scans plugin
+    @NotUsedByScanPlugin
     public TaskInternal getTask() {
-        return task;
+        return taskNode.getTask();
+    }
+
+    @NotUsedByScanPlugin
+    public LocalTaskNode getTaskNode() {
+        return taskNode;
     }
 
     @Override
     public String getBuildPath() {
-        return task.getTaskIdentity().buildPath.toString();
+        return getTask().getTaskIdentity().buildPath.toString();
     }
 
     @Override
     public String getTaskPath() {
-        return task.getTaskIdentity().projectPath.toString();
+        return getTask().getTaskIdentity().projectPath.toString();
     }
 
     @Override
     public long getTaskId() {
-        return task.getTaskIdentity().uniqueId;
+        return getTask().getTaskIdentity().uniqueId;
     }
 
     @Override
     public Class<?> getTaskClass() {
-        return task.getTaskIdentity().type;
+        return getTask().getTaskIdentity().type;
     }
 
     @Override
@@ -62,6 +69,5 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
         builder.put("taskClass", getTaskClass().getName());
         builder.put("taskId", getTaskId());
         return builder.build();
-
     }
 }

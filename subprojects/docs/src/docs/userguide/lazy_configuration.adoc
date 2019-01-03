@@ -189,10 +189,10 @@ In the example above, the task outputs and inputs are connected before any locat
 
 Another important thing to note in this example is the absence of any explicit task dependency. Task outputs represented using `Providers` keep track of which task produces their value, and using them as task inputs will implicitly add the correct task dependencies.
 
-[[sec:working_with_collection]]
+[[sec:working_with_collections]]
 == Working with collections
 
-In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like file providers, they have additional modeling around them. There are two provider interfaces available, one for `List` values and another for `Set` values:
+Gradle provides two lazy property types to help configure `Collection` properties. These work exactly like any other `Provider` and, just like file providers, they have additional modeling around them:
 
 * For `List` values the interface is called link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty]. You can create a new `ListProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)] and specifying the element type.
 * For `Set` values the interface is called link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty]. You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)] and specifying the element type.
@@ -222,6 +222,57 @@ include::{samplesPath}/providers/listProperty/listPropertyGroovy.out[]
 ----
 > gradle consumer
 include::{samplesPath}/providers/listProperty/listPropertyKotlin.out[]
+----
+
+[[sec:working_with_maps]]
+== Working with maps
+
+Gradle provides a lazy link:{javadocPath}/org/gradle/api/provider/MapProperty.html[MapProperty] type to allow `Map` values to be configured.
+You can create a `MapProperty` instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#mapProperty-java.lang.Class-java.lang.Class-[ObjectFactory.mapProperty(Class, Class)].
+
+Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gradle/api/provider/MapProperty.html#set-java.util.Map-[set()] method that you can use to specify the value for the property. There are some additional methods to allow entries with lazy values to be added to the map.
+
+.Map property
+====
+include::sample[dir="providers/mapProperty/groovy",files="build.gradle[]"]
+include::sample[dir="providers/mapProperty/kotlin",files="build.gradle.kts[]"]
+====
+
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-groovy]
+----
+> gradle generate
+include::{samplesPath}/providers/mapProperty/mapProperty.out[]
+----
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-kotlin]
+----
+> gradle generate
+include::{samplesPath}/providers/mapProperty/mapProperty.out[]
+----
+
+[[sec:applying_conventions]]
+== Applying a convention to a property
+
+Often you want to apply some _convention_, or default value, to a property to be used if no value has been configured for the property. You can use the `convention()` method for this. This method accepts either a value or a `Provider` and this will be used as the value until some other value is configured.
+
+.Property conventions
+====
+include::sample[dir="providers/propertyConvention/groovy",files="build.gradle[]"]
+include::sample[dir="providers/propertyConvention/kotlin",files="build.gradle.kts[]"]
+====
+
+.Output of **`gradle show`**
+[.multi-language-text.lang-groovy]
+----
+> gradle show
+include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
+----
+.Output of **`gradle show`**
+[.multi-language-text.lang-kotlin]
+----
+> gradle show
+include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
 ----
 
 [[sec:unmodifiable_property]]

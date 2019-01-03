@@ -1529,16 +1529,16 @@ div.screenshot {
       Pushes the section headings to just below the top nav bar when a user
       navigates directly to section anchors.
      */
-    #content h2[id], #content h3[id], #content h4[id] {
+    #content h2[id], #content h3[id], #content h4[id], #content h5[id] {
         padding-top: 60px;
     }
 
     #content h2[id] {
         /* Little extra room above h2s */
-        margin-top: -44px;
+        margin-top: -1em;
     }
 
-    #content h3[id], #content h4[id] {
+    #content h3[id], #content h4[id], #content h5[id] {
         margin-top: -60px;
     }
 
@@ -1812,7 +1812,7 @@ div.screenshot {
 .docs-navigation .pdf-link-container {
     display: inline-block;
     position: absolute;
-    top: 0.1em;
+    top: -1.25em;
     right: 0;
 }
 

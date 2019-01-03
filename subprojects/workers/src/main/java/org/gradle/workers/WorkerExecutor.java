@@ -27,7 +27,7 @@ import org.gradle.api.Action;
  *     <li>Safe execution of multiple tasks in parallel</li>
  * </ul>
  *
- * Work should be submitted with a {@link Runnable} class representing the implementation of the unit of work
+ * <p>Work should be submitted with a {@link Runnable} class representing the implementation of the unit of work
  * and an action to configure the unit of work (via {@link WorkerConfiguration}).
  *
  * <pre>
@@ -39,6 +39,9 @@ import org.gradle.api.Action;
  *          conf.params = [ "foo", file('bar') ]
  *      }
  * </pre>
+ *
+ * <p>
+ * An instance of the executor can be injected into a task by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
  *
  * @since 3.5
  */

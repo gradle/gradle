@@ -47,59 +47,6 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         output =~ /> Outer\s+< Outer\s+Inner/
     }
 
-    def "if two exceptions occur, prints an info about both without stacktrace"() {
-        given:
-        buildFile << """
-            afterEvaluate { throw new RuntimeException("after evaluate failure") }
-            throw new RuntimeException("configure failure")
-        """
-        executer.withStacktraceDisabled()
-
-        when:
-        fails 'help'
-
-        then:
-        failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}. Run with --stacktrace for details of the afterEvaluate {} error.")
-        failure.assertNotOutput("after evaluate failure")
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("configure failure")
-        failure.assertHasNoCause("after evaluate failure")
-    }
-
-    def "if two exceptions occur with --stacktrace, prints both with stacktrace"() {
-        given:
-        buildFile << """
-            afterEvaluate { throw new RuntimeException("after evaluate failure") }
-            throw new RuntimeException("configure failure")
-        """
-        executer.withStackTraceChecksDisabled()
-
-        when:
-        fails 'help'
-
-        then:
-        failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}.\njava.lang.RuntimeException: after evaluate failure")
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("configure failure")
-        failure.assertHasNoCause("after evaluate failure")
-    }
-
-    def "if only one exception occurs in afterEvaluate, prints it as primary"() {
-        given:
-        buildFile << """
-            afterEvaluate { throw new RuntimeException("after evaluate failure") }
-        """
-        executer.withStacktraceDisabled()
-
-        when:
-        fails 'help'
-
-        then:
-        failure.assertNotOutput("Project evaluation failed including an error in afterEvaluate {}.")
-        failure.assertHasDescription("A problem occurred configuring root project 'root'.")
-        failure.assertHasCause("after evaluate failure")
-    }
-
     def "captures lifecycle operations"() {
         given:
         file('buildSrc/buildSrcWhenReady.gradle') << ""

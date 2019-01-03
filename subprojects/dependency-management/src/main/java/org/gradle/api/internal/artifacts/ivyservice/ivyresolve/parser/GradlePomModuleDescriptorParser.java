@@ -184,7 +184,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             if (isDependencyImportScoped(currentDependencyMgt)) {
                 ModuleComponentSelector importedId = DefaultModuleComponentSelector.newSelector(
                     DefaultModuleIdentifier.newId(currentDependencyMgt.getGroupId(), currentDependencyMgt.getArtifactId()),
-                    new DefaultMutableVersionConstraint(currentDependencyMgt.getVersion()));
+                    new DefaultImmutableVersionConstraint(currentDependencyMgt.getVersion()));
                 PomReader importedPom = parsePomForSelector(parseContext, importedId, Maps.<String, String>newHashMap());
                 for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importedPom.getDependencyMgt().entrySet()) {
                     if (!importedDependencyMgts.containsKey(entry.getKey())) {

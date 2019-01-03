@@ -19,23 +19,24 @@ package org.gradle.api.internal
 import org.gradle.api.Namer
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.specs.Spec
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final Namer<Bean> namer = new Namer<Bean>() {
         String determineName(Bean bean) {
             return bean.name
         }
     };
-    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer)
+    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator)
     final Bean a = new BeanSub1("a")
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
     final boolean externalProviderAllowed = true
+    final boolean supportsBuildOperations = true
 
     @Override
     List<Bean> iterationOrder(Bean... elements) {

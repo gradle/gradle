@@ -22,8 +22,8 @@ import spock.lang.Unroll
 class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class"() {
-        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -53,9 +53,40 @@ class TestSelectionMatcherTest extends Specification {
         ["*.foo.*"]              | "foo"                     | "aaaa"                | false
     }
 
+    def "knows if excluded test matches class"() {
+        expect: new TestSelectionMatcher([], input, []).matchesTest(className, methodName) == match
+
+        where:
+        input                    | className                 | methodName            | match
+        ["FooTest"]              | "FooTest"                 | "whatever"            | false
+        ["FooTest"]              | "fooTest"                 | "whatever"            | true
+
+        ["com.foo.FooTest"]      | "com.foo.FooTest"         | "x"                   | false
+        ["com.foo.FooTest"]      | "FooTest"                 | "x"                   | true
+        ["com.foo.FooTest"]      | "com_foo_FooTest"         | "x"                   | true
+
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "aaa"                 | false
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "bbb"                 | false
+        ["com.foo.FooTest.*"]    | "com.foo.FooTestx"        | "bbb"                 | true
+
+        ["*.FooTest.*"]          | "com.foo.FooTest"         | "aaa"                 | false
+        ["*.FooTest.*"]          | "com.bar.FooTest"         | "aaa"                 | false
+        ["*.FooTest.*"]          | "FooTest"                 | "aaa"                 | true
+
+        ["com*FooTest"]          | "com.foo.FooTest"         | "aaa"                 | false
+        ["com*FooTest"]          | "com.FooTest"             | "bbb"                 | false
+        ["com*FooTest"]          | "FooTest"                 | "bbb"                 | true
+
+        ["*.foo.*"]              | "com.foo.FooTest"         | "aaaa"                | false
+        ["*.foo.*"]              | "com.foo.bar.BarTest"     | "aaaa"                | false
+        ["*.foo.*"]              | "foo.Test"                | "aaaa"                | true
+        ["*.foo.*"]              | "fooTest"                 | "aaaa"                | true
+        ["*.foo.*"]              | "foo"                     | "aaaa"                | true
+    }
+
     def "knows if test matches"() {
-        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -80,8 +111,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "matches any of input"() {
-        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -107,8 +138,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "regexp chars are handled"() {
-        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -119,8 +150,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "handles null test method"() {
-        expect: new TestSelectionMatcher(input, []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
+                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -134,7 +165,7 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "script includes and command line includes both have to match"() {
-        expect: new TestSelectionMatcher(input, inputCommandLine).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input, [], inputCommandLine).matchesTest(className, methodName) == match
 
         where:
         input               | inputCommandLine | className  | methodName | match
@@ -145,8 +176,8 @@ class TestSelectionMatcherTest extends Specification {
     @Unroll
     def 'can exclude as many classes as possible'() {
         expect:
-        new TestSelectionMatcher(input, []).mayIncludeClass(fullQualifiedName) == maybeMatch
-        new TestSelectionMatcher([], input).mayIncludeClass(fullQualifiedName) == maybeMatch
+        new TestSelectionMatcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
+        new TestSelectionMatcher([], [], input).mayIncludeClass(fullQualifiedName) == maybeMatch
 
         where:
         input                             | fullQualifiedName    | maybeMatch
@@ -208,7 +239,7 @@ class TestSelectionMatcherTest extends Specification {
     @Unroll
     def 'can use multiple patterns'() {
         expect:
-        new TestSelectionMatcher(pattern1, pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
+        new TestSelectionMatcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
 
         where:
         pattern1                | pattern2                 | fullQualifiedName    | maybeMatch

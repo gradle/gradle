@@ -21,6 +21,7 @@ dependencies {
     compile(project(":core"))
     compile(project(":dependencyManagement"))
     compile(project(":launcher"))
+    compile(project(":pluginUse"))
 
     integTestRuntime(project(":toolingApiBuilders"))
     integTestRuntime(project(":ide"))

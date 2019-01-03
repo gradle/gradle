@@ -17,7 +17,10 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
@@ -62,7 +65,6 @@ import java.io.IOException;
  * It, importantly, is not the parent of build session scope services.
  */
 public class CrossBuildSessionScopeServices implements Closeable {
-
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
@@ -99,7 +101,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
     }
 
     ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
-        return services.get(DefaultListenerBuildOperationDecorator.class);
+        return services.get(ListenerBuildOperationDecorator.class);
     }
 
     UserCodeApplicationContext createUserCodeApplicationContext() {
@@ -112,6 +114,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     BuildOperationNotificationValve createBuildOperationNotificationValve() {
         return buildOperationNotificationBridge.getValve();
+    }
+
+    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+        return services.get(CollectionCallbackActionDecorator.class);
     }
 
     @Override
@@ -160,12 +166,16 @@ public class CrossBuildSessionScopeServices implements Closeable {
             );
         }
 
-        UserCodeApplicationContext createUserCodeApplicationContext(DefaultListenerBuildOperationDecorator operationDecorator) {
-            return operationDecorator.getUserCodeApplicationContext();
+        UserCodeApplicationContext createUserCodeApplicationContext() {
+            return new DefaultUserCodeApplicationContext();
         }
 
-        DefaultListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
+        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
+        }
+
+        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
         }
     }
 }

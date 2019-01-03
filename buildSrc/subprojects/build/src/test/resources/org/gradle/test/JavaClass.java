@@ -3,7 +3,7 @@ package org.gradle.test;
 /**
  * This is a java class.
  */
-public class JavaClass extends A implements GroovyInterface, JavaInterface {
+public class JavaClass extends A implements CombinedInterface, JavaInterface {
     /**
      * A read-only property.
      */

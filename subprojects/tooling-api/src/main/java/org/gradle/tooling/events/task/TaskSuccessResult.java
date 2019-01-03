@@ -23,7 +23,7 @@ import org.gradle.tooling.events.SuccessResult;
  *
  * @since 2.5
  */
-public interface TaskSuccessResult extends TaskOperationResult, SuccessResult {
+public interface TaskSuccessResult extends TaskExecutionResult, SuccessResult {
     /**
      * Returns whether this task was up-to-date.
      *

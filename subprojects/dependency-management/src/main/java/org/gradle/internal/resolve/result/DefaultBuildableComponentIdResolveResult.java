@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 
 import java.util.Collection;
@@ -33,7 +32,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean rejected;
-    private ImmutableSet.Builder<RejectedBySelectorVersion> unmatchedVersions;
+    private ImmutableSet.Builder<String> unmatchedVersions;
     private ImmutableSet.Builder<RejectedVersion> rejections;
     private Object mark;
 
@@ -88,12 +87,12 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
+    public void unmatched(Collection<String> unmatchedVersions) {
         if (unmatchedVersions.isEmpty()) {
             return;
         }
         if (this.unmatchedVersions == null) {
-            this.unmatchedVersions = new ImmutableSet.Builder<RejectedBySelectorVersion>();
+            this.unmatchedVersions = new ImmutableSet.Builder<String>();
         }
         this.unmatchedVersions.addAll(unmatchedVersions);
     }
@@ -110,7 +109,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public Collection<RejectedBySelectorVersion> getUnmatchedVersions() {
+    public Collection<String> getUnmatchedVersions() {
         return safeBuild(unmatchedVersions);
     }
 

@@ -24,8 +24,6 @@ import javax.annotation.Nullable;
 
 public interface ClassLoaderCache {
 
-    int size();
-
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
      *

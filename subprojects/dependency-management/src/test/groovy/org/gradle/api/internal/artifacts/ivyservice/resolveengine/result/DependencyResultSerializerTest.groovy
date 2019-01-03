@@ -42,7 +42,7 @@ class DependencyResultSerializerTest extends Specification {
             }
             getFailure() >> null
             getSelected() >> 12L
-            getReason() >> VersionSelectionReasons.requested()
+            getReason() >> ComponentSelectionReasons.requested()
         }
 
         when:
@@ -70,7 +70,7 @@ class DependencyResultSerializerTest extends Specification {
             }
             getFailure() >> failure
             getSelected() >> null
-            getReason() >> VersionSelectionReasons.of([VersionSelectionReasons.CONFLICT_RESOLUTION])
+            getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.CONFLICT_RESOLUTION)
         }
 
         when:
@@ -80,7 +80,6 @@ class DependencyResultSerializerTest extends Specification {
         encoder.flush()
         Map<ModuleComponentSelector, ModuleVersionResolveException> map = new HashMap<>()
         map.put(requested, failure)
-        serializer.reset()
         def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4L: requested], map)
 
         then:

@@ -5,12 +5,16 @@
 /buildSrc/build
 /buildSrc/subprojects/*/build
 /subprojects/*/build
-/subprojects/docs/src/samples/*/*/build
+/subprojects/docs/src/samples/**/build
 /subprojects/internal-android-performance-testing/build-android-libs
 
 # IDEA
 # ----
-.idea
+!/.idea
+/.idea/*
+!/.idea/codeStyles
+!/.idea/inspectionProfiles
+*/**/.idea
 .shelf
 /*.iml
 /*.ipr
@@ -28,6 +32,7 @@
 /subprojects/*/out
 /.teamcity/*.iml
 /.teamcity/target
+!/.teamcity/Gradle_Check_dsl.iml
 
 # Eclipse
 # -------
@@ -46,7 +51,7 @@ atlassian-ide-plugin.xml
 
 # Vim
 # ---
-*.sw[op]
+*.sw[nop]
 
 # Emacs
 # -----

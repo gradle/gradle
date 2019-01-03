@@ -59,7 +59,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -80,7 +81,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "block", "foo", "--continue"
         result.assertTaskExecuted(":foo")
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -88,10 +90,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('src/main/java/Block.java') << """ 
             import java.util.concurrent.CountDownLatch;
+            import java.util.concurrent.TimeUnit;
 
             public class Block {
                 public static void main(String[] args) throws InterruptedException {
-                    new CountDownLatch(1).await();
+                    new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                 }
             }
         """
@@ -106,7 +109,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -115,12 +119,13 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         (1..100).each { i ->
             file("src/test/java/Block${i}.java") << """ 
                 import java.util.concurrent.CountDownLatch;
+                import java.util.concurrent.TimeUnit;
                 import org.junit.Test;
     
                 public class Block${i} {
                     @Test
                     public void test() throws InterruptedException {
-                        new CountDownLatch(1).await();
+                        new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                     }
                 }
             """
@@ -138,7 +143,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "test"
-        failure.assertHasDescription("task ':test' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @LeaksFileHandles // TODO https://github.com/gradle/gradle-private/issues/1532
@@ -148,6 +154,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import java.util.concurrent.CountDownLatch;
+            import java.util.concurrent.TimeUnit;
             import javax.inject.Inject;
             
             task block(type: WorkerTask) {
@@ -177,14 +184,15 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public void run() {
-                    new CountDownLatch(1).await();
+                    new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                 }
             }
             """
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
 
         where:
         isolationMode << IsolationMode.values()

@@ -17,7 +17,7 @@
 
 A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds. Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
 
-You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a plugin, as the Gradle API has been designed to work well with these languages. In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
+You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a plugin, as the Gradle API has been designed to work well with these languages. In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
 
 
 [[sec:packaging_a_plugin]]
@@ -30,7 +30,7 @@ You can include the source for the plugin directly in the build script. This has
 
 `buildSrc` project::
 You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory
-(or `__rootProjectDir__/buildSrc/src/main/kotlin` if you prefer using Kotlin) . Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
+(or `__rootProjectDir__/buildSrc/src/main/java` or `__rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer). Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
@@ -80,7 +80,7 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/custom
 
 In this example, `GreetingPluginExtension` is a plain old Groovy/Kotlin object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
 
-Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block block for each extension object, so you can group settings together. The following example shows you how this works.
+Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block for each extension object, so you can group settings together. The following example shows you how this works.
 
 .A custom plugin with configuration block
 ====
@@ -123,25 +123,9 @@ In this example, we configure the `greet` task `destination` property as a closu
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties
 
-Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
+Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is a useful pattern. The build script author interacts only with the DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<build_lifecycle.adoc#sec:build_phases,the section on build phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>> for more information.
-
-The following demonstrates the usage of the type for mapping an extension property to a task property:
-
-.Mapping extension properties to task properties
-====
-include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/kotlin",files="build.gradle.kts[]"]
-====
-
-NOTE: The code for this example can be found at **`samples/userguide/tasks/mapExtensionPropertiesToTaskProperties`** in the ‘-all’ distribution of Gradle.
-
-.Output of `gradle -q hello`
-----
-> gradle -q hello
-include::{samplesPath}/userguide/tasks/mapExtensionPropertiesToTaskProperties/mapExtensionPropertiesToTaskProperties.out[]
-----
+Gradle provides some types that you can use in task implementations and extensions to help you with this. Refer to <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>> for more information.
 
 [[sec:custom_plugins_standalone_project]]
 == A standalone project
@@ -252,7 +236,7 @@ Gradle provides several conveniences to help create a well-behaved DSL for your 
 [[sec:nested_dsl_elements]]
 === Nested DSL elements
 
-When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
+When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support and extensibility. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
 
 .Nested DSL elements
 ====
@@ -266,12 +250,16 @@ include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",f
 include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/nestedDslElement.out[]
 ----
 
-In this example, the plugin passes the project's `ObjectFactory` to the extension object through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
+In this example, the extension object receives an `ObjectFactory` instance through its constructor. The constructor uses this to create a nested object and makes this object available to the DSL through the `greeter` property.
+
+There are several services, such as `ObjectFactory`, that are available for injection into project extensions. These are also available to the objects created using `ObjectFactory`, so these can also provide their own nested elements. The service injection works the same way as <<custom_tasks.adoc#service_injection,service injection for tasks>>.
 
 [[sec:maintaining_multiple_domain_objects]]
 === Configuring a collection of objects
 
-Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
+Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL. One such type is link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] which manages a set of objects. Gradle uses this type extensively throughout the API. For example, the `tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer`.
+
+You can create a container instance using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method. Services are available for injection into the elements of the container. See <<custom_tasks.adoc#service_injection,service injection for tasks>>. for details.
 
 .Managing a collection of objects
 ====
@@ -292,3 +280,8 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectConta
 ----
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:container(java.lang.Class)[Project.container(java.lang.Class)] methods create instances of link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html[NamedDomainObjectContainer], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.
+
+[[service_injection]]
+== Service injection
+
+Certain services are available for injection into plugins and the extensions that the plugin creates. This works the same way as <<custom_tasks.adoc#service_injection,service injection for tasks>>.

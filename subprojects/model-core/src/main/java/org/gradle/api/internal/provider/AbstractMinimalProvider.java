@@ -22,6 +22,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> {
     @Override
@@ -56,7 +57,16 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (!maybeVisitBuildDependencies(context)) {
-            context.maybeAdd(get());
+            T value = get();
+            // TODO - should add methods to the context that take care of this
+            if (value instanceof Collection) {
+                Collection<?> items = (Collection<?>) value;
+                for (Object item : items) {
+                    context.maybeAdd(item);
+                }
+            } else {
+                context.maybeAdd(value);
+            }
         }
     }
 

@@ -20,6 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -31,7 +32,9 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.time.Time;
+import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeScopeBuildActionExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -60,6 +63,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
                                           List<SubscribableBuildActionRunnerRegistration> registrations,
+                                          ListenerManager listenerManager,
                                           BuildOperationListenerManager buildOperationListenerManager,
                                           TaskInputsListener inputsListener,
                                           StyledTextOutputFactory styledTextOutputFactory,
@@ -74,22 +78,24 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new StartParamsValidatingActionExecuter(
                         new ParallelismConfigurationBuildActionExecuter(
                             new GradleThreadBuildActionExecuter(
-                                new ServicesSetupBuildActionExecuter(
-                                    new ContinuousBuildActionExecuter(
-                                        new BuildTreeScopeBuildActionExecuter(
-                                            new InProcessBuildActionExecuter(
-                                                new SubscribableBuildActionRunner(
+                                new SessionScopeBuildActionExecuter(
+                                    new SubscribableBuildActionExecuter(
+                                        new ContinuousBuildActionExecuter(
+                                            new BuildTreeScopeBuildActionExecuter(
+                                                new InProcessBuildActionExecuter(
                                                     new RunAsBuildOperationBuildActionRunner(
-                                                        new ValidatingBuildActionRunner(
-                                                            new ChainingBuildActionRunner(buildActionRunners))),
-                                                    buildOperationListenerManager,
-                                                    registrations)
-                                            )
-                                        ),
+                                                        new BuildCompletionNotifyingBuildActionRunner(
+                                                            new ValidatingBuildActionRunner(
+                                                                new BuildOutcomeReportingBuildActionRunner(
+                                                                    new ChainingBuildActionRunner(buildActionRunners),
+                                                                    styledTextOutputFactory)))))),
                                         fileSystemChangeWaiterFactory,
                                         inputsListener,
                                         styledTextOutputFactory,
                                         executorFactory),
+                                            listenerManager,
+                                            buildOperationListenerManager,
+                                            registrations),
                                     userHomeServiceRegistry)),
                             parallelismConfigurationManager)),
                     styledTextOutputFactory,

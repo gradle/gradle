@@ -21,12 +21,14 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionResult;
 
 public class RunBuildAction implements Runnable {
     private final BuildActionExecuter<BuildActionParameters> executer;
@@ -50,11 +52,15 @@ public class RunBuildAction implements Runnable {
 
     public void run() {
         try {
-            executer.execute(
+            BuildActionResult result = executer.execute(
                     new ExecuteBuildAction(startParameter),
                     new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime, ConsoleStateUtil.isInteractive()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
                     buildActionParameters,
                     sharedServices);
+            if (result.hasFailure()) {
+                // Don't need to unpack the serialized failure. It will already have been reported and is not used by anything downstream of this action.
+                throw new ReportedException();
+            }
         } finally {
             if (stoppable != null) {
                 stoppable.stop();

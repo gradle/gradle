@@ -18,6 +18,9 @@ package org.gradle.internal.serialize;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +31,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 class ExceptionPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -36,13 +42,15 @@ class ExceptionPlaceholder implements Serializable {
     private byte[] serializedException;
     private String message;
     private String toString;
-    private ExceptionPlaceholder cause;
+    private final boolean contextual;
+    private final List<ExceptionPlaceholder> causes;
     private StackTraceElement[] stackTrace;
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(final Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
+    public ExceptionPlaceholder(final Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
         type = throwable.getClass().getName();
+        contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
 
         try {
             stackTrace = throwable.getStackTrace() == null ? new StackTraceElement[0] : throwable.getStackTrace();
@@ -64,15 +72,7 @@ class ExceptionPlaceholder implements Serializable {
             toStringRuntimeExec = failure;
         }
 
-        Throwable causeTmp;
-        try {
-            causeTmp = throwable.getCause();
-        } catch (Throwable ignored) {
-// TODO:ADAM - switch the logging back on.
-//                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
-            causeTmp = null;
-        }
-        final Throwable causeFinal = causeTmp;
+        final List<? extends Throwable> causes = extractCauses(throwable);
 
         StreamByteBuffer buffer = new StreamByteBuffer();
         ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
@@ -85,9 +85,10 @@ class ExceptionPlaceholder implements Serializable {
                     seenFirst = true;
                     return obj;
                 }
-                // Don't serialize the cause - we'll serialize it separately later
-                if (obj == causeFinal) {
-                    return new CausePlaceholder();
+                // Don't serialize the causes - we'll serialize them separately later
+                int causeIndex = causes.indexOf(obj);
+                if (causeIndex >= 0) {
+                    return new CausePlaceholder(causeIndex);
                 }
                 return obj;
             }
@@ -102,13 +103,21 @@ class ExceptionPlaceholder implements Serializable {
 //                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
         }
 
-        if (causeFinal != null) {
-            cause = new ExceptionPlaceholder(causeFinal, objectOutputStreamCreator);
+        if (causes.isEmpty()) {
+            this.causes = Collections.emptyList();
+        } else if (causes.size() == 1) {
+            this.causes = Collections.singletonList(new ExceptionPlaceholder(causes.get(0), objectOutputStreamCreator));
+        } else {
+            List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(causes.size());
+            for (Throwable cause : causes) {
+                placeholders.add(new ExceptionPlaceholder(cause, objectOutputStreamCreator));
+            }
+            this.causes = placeholders;
         }
     }
 
     public Throwable read(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        final Throwable causeThrowable = getCause(classNameTransformer, objectInputStreamCreator);
+        final List<Throwable> causes = recreateCauses(classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
@@ -117,7 +126,8 @@ class ExceptionPlaceholder implements Serializable {
                 @Override
                 public Object transform(Object obj) {
                     if (obj instanceof CausePlaceholder) {
-                        return causeThrowable;
+                        CausePlaceholder placeholder = (CausePlaceholder) obj;
+                        return causes.get(placeholder.getCauseIndex());
                     }
                     return obj;
                 }
@@ -135,10 +145,12 @@ class ExceptionPlaceholder implements Serializable {
         try {
             // try to reconstruct the exception
             Class<?> clazz = classNameTransformer.transform(type);
-            if (clazz != null) {
+            if (clazz != null && causes.size() <= 1) {
                 Constructor<?> constructor = clazz.getConstructor(String.class);
                 Throwable reconstructed = (Throwable) constructor.newInstance(message);
-                reconstructed.initCause(causeThrowable);
+                if (!causes.isEmpty()) {
+                    reconstructed.initCause(causes.get(0));
+                }
                 reconstructed.setStackTrace(stackTrace);
                 return reconstructed;
             }
@@ -150,7 +162,16 @@ class ExceptionPlaceholder implements Serializable {
             LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
         }
 
-        Throwable placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causeThrowable);
+        Throwable placeholder;
+        if (causes.size() <= 1) {
+            if (contextual) {
+                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+            } else {
+                placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+            }
+        } else {
+            placeholder = new DefaultMultiCauseException(message, causes);
+        }
         try {
             placeholder.setStackTrace(stackTrace);
         } catch (NullPointerException e) {
@@ -169,7 +190,32 @@ class ExceptionPlaceholder implements Serializable {
         LOGGER.error(sb.toString(), e);
     }
 
-    private Throwable getCause(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        return cause != null ? cause.read(classNameTransformer, objectInputStreamCreator) : null;
+    private List<? extends Throwable> extractCauses(Throwable throwable) {
+        if (throwable instanceof MultiCauseException) {
+            return ((MultiCauseException) throwable).getCauses();
+        } else {
+            Throwable causeTmp;
+            try {
+                causeTmp = throwable.getCause();
+            } catch (Throwable ignored) {
+                // TODO:ADAM - switch the logging back on.
+                //                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
+                causeTmp = null;
+            }
+            return causeTmp == null ? Collections.<Throwable>emptyList() : Collections.singletonList(causeTmp);
+        }
+    }
+
+    private List<Throwable> recreateCauses(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        if (causes.isEmpty()) {
+            return Collections.emptyList();
+        } else if (causes.size() == 1) {
+            return Collections.singletonList(causes.get(0).read(classNameTransformer, objectInputStreamCreator));
+        }
+        List<Throwable> result = new ArrayList<Throwable>();
+        for (ExceptionPlaceholder placeholder : causes) {
+            result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
+        }
+        return result;
     }
 }

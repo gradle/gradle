@@ -74,11 +74,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
         List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
-        def stdout = new ByteArrayOutputStream()
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                def build = connection.newBuild()
+                build.forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
                     void statusChanged(ProgressEvent event) {
                         resultsOfFirstListener << (event as TestProgressEvent)
@@ -93,7 +93,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         resultsOfLastListener << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(OperationType.TEST)).setStandardOutput(stdout).run()
+                }, EnumSet.of(OperationType.TEST))
+                collectOutputs(build)
+                build.run()
         }
 
         then: "listener exception is wrapped"
@@ -106,7 +108,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         resultsOfLastListener.size() == 1
 
         and: "build execution is successful"
-        stdout.toString().contains("BUILD SUCCESSFUL")
+        assertHasBuildSuccessfulLogging()
     }
 
     def "receive test progress events for successful test run"() {
@@ -359,9 +361,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
-        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
-            toolingApi.requireDaemons()
-        }
         projectDir.createFile('settings.gradle') << """
             include ':sub1'
             include ':sub2'

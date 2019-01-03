@@ -17,10 +17,9 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-
-import java.util.Map;
 
 /**
  * A developer of a Maven publication.
@@ -75,6 +74,6 @@ public interface MavenPomDeveloper {
     /**
      * The properties of this developer.
      */
-    Property<Map<String, String>> getProperties();
+    MapProperty<String, String> getProperties();
 
 }

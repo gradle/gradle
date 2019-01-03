@@ -96,7 +96,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     @CompileStatic
-    protected TestFile getBuildFile() {
+    TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
     }
 
@@ -173,6 +173,22 @@ class AbstractIntegrationSpec extends Specification {
 
     TestFile classFile(String language, String sourceSet, String fqcn) {
         file("build/classes/", language, sourceSet, fqcn)
+    }
+
+    TestFile javaGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("java", "main", fqcn)
+    }
+
+    TestFile groovyGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("groovy", "main", fqcn)
+    }
+
+    TestFile scalaGeneratedSourceFile(String fqcn) {
+        generatedSourceFile("scala", "main", fqcn)
+    }
+
+    TestFile generatedSourceFile(String language, String sourceSet, String fqcn) {
+        file("build/generated/sources/annotationProcessor/", language, sourceSet, fqcn)
     }
 
     protected GradleExecuter sample(Sample sample) {

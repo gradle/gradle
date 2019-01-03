@@ -42,7 +42,7 @@ dependencies {
     "compile"("org.example:project1:1.0")
 }
 
-task("showJarFiles") {
+tasks.register("showJarFiles") {
     doLast {
         configurations["compile"].forEach { println(it.path.removePrefix(rootDir.path)) }
     }

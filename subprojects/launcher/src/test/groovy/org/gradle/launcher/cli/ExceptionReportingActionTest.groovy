@@ -16,10 +16,10 @@
 package org.gradle.launcher.cli
 
 import org.gradle.api.Action
-import org.gradle.internal.logging.LoggingOutputInternal
-import spock.lang.Specification
-import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.initialization.ReportedException
+import org.gradle.internal.logging.LoggingOutputInternal
+import org.gradle.launcher.bootstrap.ExecutionListener
+import spock.lang.Specification
 
 class ExceptionReportingActionTest extends Specification {
     final Action<ExecutionListener> target = Mock()
@@ -62,7 +62,7 @@ class ExceptionReportingActionTest extends Specification {
         then:
         1 * target.execute(listener) >> { throw failure }
         1 * loggingOutput.flush()
-        1 * listener.onFailure(cause)
+        1 * listener.onFailure(failure)
         0 * _._
     }
 }

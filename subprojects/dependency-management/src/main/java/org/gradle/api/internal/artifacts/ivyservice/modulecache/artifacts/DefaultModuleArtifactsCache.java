@@ -32,44 +32,35 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.math.BigInteger;
 import java.util.Set;
 
-public class DefaultModuleArtifactsCache extends InMemoryModuleArtifactsCache {
+public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> cache;
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> cache;
 
     public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager) {
         super(timeProvider);
         this.artifactCacheLockingManager = artifactCacheLockingManager;
     }
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> getCache() {
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> initCache() {
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> initCache() {
         return artifactCacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
     @Override
-    protected void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry) {
-        super.store(key, entry);
+    protected void store(ArtifactsAtRepositoryKey key, AbstractArtifactsCache.ModuleArtifactsCacheEntry entry) {
         getCache().put(key, entry);
     }
 
     @Override
     protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
-        ModuleArtifactsCacheEntry entry = super.get(key);
-        if (entry == null) {
-            entry = getCache().get(key);
-
-            if (entry != null) {
-                super.store(key, entry);
-            }
-        }
-        return entry;
+        return getCache().get(key);
     }
 
     private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ArtifactsAtRepositoryKey> {

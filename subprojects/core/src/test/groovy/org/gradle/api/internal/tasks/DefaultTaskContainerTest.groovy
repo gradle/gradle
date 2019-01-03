@@ -20,12 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
@@ -38,12 +37,11 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
@@ -65,9 +63,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getServices() >> Mock(ServiceRegistry)
         getObjects() >> Stub(ObjectFactory)
     }
-    private taskCount = 1;
+    private taskCount = 1
     private accessListener = Mock(ProjectAccessListener)
-    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private container = new DefaultTaskContainerFactory(
         modelRegistry,
         DirectInstantiator.INSTANCE,
@@ -76,11 +73,14 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         accessListener,
         new TaskStatistics(),
         buildOperationExecutor,
-        new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
+        new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
+        callbackActionDecorator
     ).create()
 
+    final boolean supportsBuildOperations = true
+
     @Override
-    final NamedDomainObjectCollection<Task> getContainer() {
+    final PolymorphicDomainObjectContainer<Task> getContainer() {
         return container
     }
 
@@ -1493,13 +1493,14 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         thrown(UnsupportedOperationException)
     }
 
-    def factory = new TaskInstantiator(new TaskFactory(new AsmBackedClassGenerator()).createChild(project, DirectInstantiator.INSTANCE), project)
+    def factory = new TaskInstantiator(new TaskFactory().createChild(project, TestUtil.instantiatorFactory().decorateLenient()), project)
     final SomeTask a = factory.create("a", SomeTask)
     final SomeTask b = factory.create("b", SomeTask)
     final SomeTask c = factory.create("c", SomeTask)
     final SomeOtherTask d = factory.create("d", SomeOtherTask)
 
     static class SomeTask extends DefaultTask {}
+
     static class SomeOtherTask extends DefaultTask {}
 
     final Class<SomeTask> type = SomeTask

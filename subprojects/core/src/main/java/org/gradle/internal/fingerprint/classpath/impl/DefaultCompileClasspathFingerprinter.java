@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
-import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
@@ -30,22 +29,25 @@ import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DefaultCompileClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements CompileClasspathFingerprinter {
-    private final ResourceHasher classpathResourceHasher;
-    private final ResourceSnapshotterCacheService cacheService;
-    private final StringInterner stringInterner;
+    private final ClasspathFingerprintingStrategy fingerprintingStrategy;
 
     public DefaultCompileClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, fileSystemSnapshotter);
-        this.cacheService = cacheService;
-        this.classpathResourceHasher = new CachingResourceHasher(new AbiExtractingClasspathResourceHasher(), cacheService);
-        this.stringInterner = stringInterner;
+        this.fingerprintingStrategy = ClasspathFingerprintingStrategy.compileClasspath(
+            new CachingResourceHasher(new AbiExtractingClasspathResourceHasher(), cacheService),
+            cacheService,
+            stringInterner
+        );
     }
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        return super.fingerprint(
-            files,
-            ClasspathFingerprintingStrategy.compileClasspath(classpathResourceHasher, cacheService, stringInterner));
+        return super.fingerprint(files, fingerprintingStrategy);
+    }
+
+    @Override
+    public CurrentFileCollectionFingerprint empty() {
+        return fingerprintingStrategy.getEmptyFingerprint();
     }
 
     @Override

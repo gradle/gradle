@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.internal.Try;
 
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
@@ -26,15 +27,19 @@ import org.gradle.api.Describable;
  */
 public interface Transformation extends Describable {
 
+    boolean endsWith(Transformation otherTransform);
+
+    int stepsCount();
+
     /**
      * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
      */
-    TransformationSubject transform(TransformationSubject subject);
+    Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver);
 
     /**
-     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject)} will be fast.
+     * Whether the transformation requires dependencies of the transformed artifact to be injected.
      */
-    boolean hasCachedResult(TransformationSubject subject);
+    boolean requiresDependencies();
 
     /**
      * Extract the transformation steps from this transformation.

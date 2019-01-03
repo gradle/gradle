@@ -23,6 +23,7 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.hamcrest.Matchers.containsString
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE })
 class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
@@ -42,15 +43,21 @@ class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegration
         }"""
 
         when:
-        run('check')
+        fails('test')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test')
-        result.testClass('org.gradle.Junit3Test')
-                .assertTestCount(1, 0, 0)
-                .assertTestsExecuted('testRenamesItself')
-                .assertTestPassed('testRenamesItself')
+        def junit3TestClass = result.testClass('org.gradle.Junit3Test')
+            .assertTestCount(2, 1, 0)
+            .assertTestFailed('a test that renames itself', containsString("epic"))
+        // The original test is never reported as finished.
+        // Thus, reporting it as skipped actually makes more sense.
+        if (isJUnitPlatform()) {
+            junit3TestClass.assertTestsSkipped('testRenamesItself')
+        } else {
+            junit3TestClass.assertTestPassed('testRenamesItself')
+        }
         result.testClass('org.gradle.Junit4Test')
                 .assertTestCount(2, 0, 0)
                 .assertTestsExecuted('ok')

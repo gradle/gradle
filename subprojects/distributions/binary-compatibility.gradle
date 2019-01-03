@@ -26,6 +26,8 @@ import org.gradle.binarycompatibility.transforms.*
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
         ivy {
@@ -97,6 +99,20 @@ projects.each { projectName ->
     }
 }
 
+configurations {
+    currentClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+        description = "Classpath to check binary compatibility against"
+        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
+    }
+}
+
+dependencies {
+    // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
+    currentClasspath ProjectGroups.INSTANCE.getPublicProjects(project)
+}
+
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
@@ -106,7 +122,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
+    newClasspath = configurations.currentClasspath
     oldArchives = files(baselineConfigurations)
     newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 

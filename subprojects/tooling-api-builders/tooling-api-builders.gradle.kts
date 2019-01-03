@@ -11,6 +11,7 @@ dependencies {
     compile(project(":launcher"))
     compile(project(":toolingApi"))
     compile(project(":compositeBuilds"))
+    compile(project(":workers"))
 }
 
 gradlebuildJava {

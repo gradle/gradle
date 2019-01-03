@@ -17,8 +17,9 @@
 package org.gradle.internal.operations.notify
 
 import com.google.common.base.Predicate
+import com.google.common.collect.Sets
 import groovy.json.JsonSlurper
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildOperationNotificationFixture {
@@ -55,10 +56,8 @@ class BuildOperationNotificationFixture {
 
     private static Predicate<? super Map<String, ?>> payloadEquals(Map<String, ?> expectedPayload) {
         { actualPayload ->
-            if (actualPayload.keySet() != expectedPayload.keySet()) {
-                return false
-            }
-            for (String key : actualPayload.keySet()) {
+            def present = Sets.intersection(actualPayload.keySet(), expectedPayload.keySet())
+            for (String key : present) {
                 if (!testValue(expectedPayload[key], actualPayload[key])) {
                     return false
                 }
@@ -81,13 +80,20 @@ class BuildOperationNotificationFixture {
         def typedOps = recordedOps.findAll { op ->
             return started ? op.detailsType == type.name : op.resultType == type.name
         }
-        assert typedOps.size() > 0
+
+        assert typedOps.size() > 0: "no operations of type $type"
 
         if (payloadTest != null) {
+            def tested = []
             def matchingOps = typedOps.findAll { matchingOp ->
-                started ? payloadTest.apply(matchingOp.details) : payloadTest.apply(matchingOp.result)
+                def toTest = started ? matchingOp.details : matchingOp.result
+                tested << toTest
+                payloadTest.apply(toTest)
             }
-            assert matchingOps.size()
+
+            if (matchingOps.empty) {
+                throw new AssertionError("Did not find match among:\n\n ${tested.join("\n")}")
+            }
         }
     }
 
@@ -109,17 +115,12 @@ class BuildOperationNotificationFixture {
         """
             def listener = new ${BuildOperationNotificationListener.name}() {
 
-                LinkedHashMap<Object,BuildOpsEntry> ops = new LinkedHashMap().asSynchronized()
+                def ops = [:]
             
                 @Override
-                void started(${BuildOperationStartedNotification.name} startedNotification) {
+                synchronized void started(${BuildOperationStartedNotification.name} startedNotification) {
             
-                    def details = startedNotification.notificationOperationDetails
-                    if (details instanceof org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType.Details) {
-                        details = [taskPath: details.taskPath, buildPath: details.buildPath, taskClass: details.taskClass.name]
-                    } else  if (details instanceof org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details) {
-                        details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
-                    }
+                    def details = ${BuildOperationTrace.name}.toSerializableModel(startedNotification.notificationOperationDetails)
 
                     ops.put(startedNotification.notificationOperationId, new BuildOpsEntry(id: startedNotification.notificationOperationId?.id,
                             parentId: startedNotification.notificationOperationParentId?.id,
@@ -129,25 +130,22 @@ class BuildOperationNotificationFixture {
                 }
                 
                 @Override
-                void progress(${BuildOperationProgressNotification.name} progressNotification){
+                synchronized void progress(${BuildOperationProgressNotification.name} progressNotification){
                     // Do nothing
                 }
             
                 @Override
-                void finished(${BuildOperationFinishedNotification.name} finishedNotification) {
-                    def result = finishedNotification.getNotificationOperationResult()
-                    if (result instanceof ${ResolveConfigurationDependenciesBuildOperationType.Result.name}) {
-                        result = []
-                    }
+                synchronized void finished(${BuildOperationFinishedNotification.name} finishedNotification) {
+                    def result = ${BuildOperationTrace.name}.toSerializableModel(finishedNotification.getNotificationOperationResult())
                     def op = ops.get(finishedNotification.notificationOperationId)
                     op.resultType = finishedNotification.getNotificationOperationResult().getClass().getInterfaces()[0].getName()
                     op.result = result
                     op.finished = finishedNotification.getNotificationOperationFinishedTimestamp()
                 }
             
-                void store(File target){
+                synchronized void store(File target){
                     target.withPrintWriter { pw ->
-                        String json = groovy.json.JsonOutput.toJson(ops.values());
+                        String json = groovy.json.JsonOutput.toJson(ops.values())
                         pw.append(json)
                     }
                 }

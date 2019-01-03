@@ -29,17 +29,19 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     @Override
     public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
         if (node instanceof LocalTaskNode) {
-            TaskInternal task = ((LocalTaskNode) node).getTask();
+            LocalTaskNode localTaskNode = (LocalTaskNode) node;
+            TaskInternal task = localTaskNode.getTask();
             TaskStateInternal state = task.getState();
             if (state.getExecuted()) {
                 // Task has already been run. This can happen when the owning build is used both at configuration time and execution time
-                // This should move earlier in task scheduling, so that a worker thread does not even bother trying run this task
+                // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
-            TaskExecutionContext ctx = new DefaultTaskExecutionContext();
+            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode);
             TaskExecuter taskExecuter = services.getProjectService((ProjectInternal) task.getProject(), TaskExecuter.class);
             assert taskExecuter != null;
             taskExecuter.execute(task, state, ctx);
+            localTaskNode.getPostAction().execute(task);
             return true;
         } else {
             return false;

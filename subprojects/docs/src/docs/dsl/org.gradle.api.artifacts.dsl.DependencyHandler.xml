@@ -8,6 +8,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>constraints</td>
+            </tr>
+            <tr>
                 <td>components</td>
             </tr>
             <tr>
@@ -45,10 +48,19 @@
                 <td>localGroovy</td>
             </tr>
             <tr>
+                <td>constraints</td>
+            </tr>
+            <tr>
                 <td>components</td>
             </tr>
             <tr>
                 <td>modules</td>
+            </tr>
+            <tr>
+                <td>platform</td>
+            </tr>
+            <tr>
+                <td>enforcedPlatform</td>
             </tr>
             <tr>
                 <td>createArtifactResolutionQuery</td>

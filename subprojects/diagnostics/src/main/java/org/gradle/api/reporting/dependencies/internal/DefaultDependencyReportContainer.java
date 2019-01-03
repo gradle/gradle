@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.dependencies.DependencyReportContainer;
@@ -26,9 +27,10 @@ import org.gradle.api.reporting.internal.TaskReportContainer;
 import javax.inject.Inject;
 
 public class DefaultDependencyReportContainer extends TaskReportContainer<Report> implements DependencyReportContainer {
+
     @Inject
-    public DefaultDependencyReportContainer(Task task) {
-        super(Report.class, task);
+    public DefaultDependencyReportContainer(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(Report.class, task, callbackActionDecorator);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
     }
 

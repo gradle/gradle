@@ -16,37 +16,39 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.events.OperationType;
+
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Provides information about what events the build client is interested in.
  */
 public class BuildClientSubscriptions implements Serializable {
 
-    private final boolean sendTestProgressEvents;
-    private final boolean sendTaskProgressEvents;
-    private final boolean sendBuildProgressEvents;
+    private final Set<OperationType> operationTypes;
 
-    public BuildClientSubscriptions(boolean sendTestProgressEvents, boolean sendTaskProgressEvents, boolean sendBuildProgressEvents) {
-        this.sendTestProgressEvents = sendTestProgressEvents;
-        this.sendTaskProgressEvents = sendTaskProgressEvents;
-        this.sendBuildProgressEvents = sendBuildProgressEvents;
+    public BuildClientSubscriptions(Set<OperationType> operationTypes) {
+        this.operationTypes = EnumSet.copyOf(operationTypes);
     }
 
-    public boolean isSendTestProgressEvents() {
-        return sendTestProgressEvents;
+    public boolean isRequested(OperationType workItem) {
+        return operationTypes.contains(workItem);
     }
 
-    public boolean isSendTaskProgressEvents() {
-        return sendTaskProgressEvents;
+    public boolean isAnyOperationTypeRequested() {
+        return !operationTypes.isEmpty();
     }
 
-    public boolean isSendBuildProgressEvents() {
-        return sendBuildProgressEvents;
+    public boolean isAnyRequested(OperationType... types) {
+        return !isNoneRequested(types);
     }
 
-    public boolean isSendAnyProgressEvents() {
-        return sendTestProgressEvents || sendTaskProgressEvents || sendBuildProgressEvents;
+    private boolean isNoneRequested(OperationType... types) {
+        return Collections.disjoint(operationTypes, Arrays.asList(types));
     }
 
 }

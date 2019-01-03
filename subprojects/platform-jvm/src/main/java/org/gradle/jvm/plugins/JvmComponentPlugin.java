@@ -275,8 +275,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     jar.setDescription("Creates the binary file for " + binary + ".");
                     jar.from(assembly.getClassDirectories());
                     jar.from(assembly.getResourceDirectories());
-                    jar.setDestinationDir(runtimeJarDestDir);
-                    jar.setArchiveName(runtimeJarArchiveName);
+                    jar.getDestinationDirectory().set(runtimeJarDestDir);
+                    jar.getArchiveFileName().set(runtimeJarArchiveName);
                     jar.dependsOn(assembly);
                     runtimeJarFile.setBuildTask(jar);
                 }

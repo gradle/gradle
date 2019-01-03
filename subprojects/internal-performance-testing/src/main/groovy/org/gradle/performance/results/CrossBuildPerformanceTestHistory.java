@@ -42,11 +42,6 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         return newestFirst;
     }
 
-    @Override
-    public String getId() {
-        return name.replaceAll("\\s+", "-");
-    }
-
     public String getDisplayName() {
         return name;
     }
@@ -131,6 +126,11 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         @Override
         public String getExecutionId() {
             return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+        }
+
+        @Override
+        public String getTeamCityBuildId() {
+            return results.getTeamCityBuildId();
         }
 
         @Override

@@ -18,16 +18,17 @@ package org.gradle.internal.operations;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * A BuildOperationExecutor for tests.
@@ -67,6 +68,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+        return log.start(descriptor);
+    }
+
+    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
         generator.execute(new TestBuildOperationQueue<O>(log));
     }
@@ -79,23 +85,24 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     private static class TestBuildOperationContext implements BuildOperationContext {
 
-        private Object result;
-        private String status;
-        private Throwable failure;
+        private final Log.Record record;
+
+        public TestBuildOperationContext(Log.Record record) {
+            this.record = record;
+        }
 
         @Override
         public void failed(@Nullable Throwable failure) {
-            this.failure = failure;
+            this.record.failure = failure;
         }
 
         @Override
         public void setResult(@Nullable Object result) {
-            this.result = result;
+            this.record.result = result;
         }
 
         @Override
         public void setStatus(String status) {
-            this.status = status;
         }
     }
 
@@ -133,54 +140,55 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     public static class Log {
-        public final List<Record> records = Collections.synchronizedList(new ArrayList<Record>());
+        public final Deque<Record> records = new LinkedBlockingDeque<Record>();
 
         public List<BuildOperationDescriptor> getDescriptors() {
             return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
                 @Override
-                public BuildOperationDescriptor apply(@javax.annotation.Nullable Record input) {
+                public BuildOperationDescriptor apply(Record input) {
                     return input.descriptor;
                 }
             });
         }
 
-        private <D, R, T extends BuildOperationType<D, R>> Record mostRecent(Class<T> type) {
+        private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> mostRecent(Class<T> type) {
             Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            ImmutableList<Record> copy = ImmutableList.copyOf(this.records).reverse();
-            for (Record record : copy) {
+            Iterator<Record> iterator = records.descendingIterator();
+            while (iterator.hasNext()) {
+                Record record = iterator.next();
                 Object details = record.descriptor.getDetails();
                 if (detailsType.isInstance(details)) {
-                    return record;
+                    return record.asTyped(type);
                 }
             }
 
             throw new AssertionError("Did not find operation with details of type: " + detailsType.getName());
         }
 
-        public <D, R, T extends BuildOperationType<D, R>> List<Record> all(Class<T> type) {
+        public <D, R, T extends BuildOperationType<D, R>> List<TypedRecord<D, R>> all(final Class<T> type) {
             final Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            return ImmutableList.copyOf(Iterables.filter(records, new Predicate<Record>() {
-                @Override
-                public boolean apply(Record input) {
-                    return detailsType.isInstance(input.descriptor.getDetails());
-                }
-            }));
+            return FluentIterable.from(records)
+                .filter(new Predicate<Record>() {
+                    @Override
+                    public boolean apply(Record input) {
+                        return detailsType.isInstance(input.descriptor.getDetails());
+                    }
+                })
+                .transform(new Function<Record, TypedRecord<D, R>>() {
+                    @Override
+                    public TypedRecord<D, R> apply(Record input) {
+                        return input.asTyped(type);
+                    }
+                })
+                .toList();
         }
 
         public <R, D, T extends BuildOperationType<D, R>> D mostRecentDetails(Class<T> type) {
-            Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            return detailsType.cast(mostRecent(type).descriptor.getDetails());
+            return mostRecent(type).details;
         }
 
         public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {
-            Record record = mostRecent(type);
-            Object result = record.result;
-            Class<R> resultType = BuildOperationTypes.resultType(type);
-            if (resultType.isInstance(result)) {
-                return resultType.cast(result);
-            } else {
-                throw new AssertionError("Expected result type " + resultType.getName() + ", got " + result.getClass().getName());
-            }
+            return mostRecent(type).result;
         }
 
         public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
@@ -202,33 +210,61 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public String toString() {
                 return descriptor.getDisplayName();
             }
+
+            private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
+                if (descriptor.getDetails() == null) {
+                    throw new IllegalStateException("operation has null details");
+                }
+
+                return new TypedRecord<D, R>(
+                    descriptor,
+                    BuildOperationTypes.detailsType(buildOperationType).cast(descriptor.getDetails()),
+                    BuildOperationTypes.resultType(buildOperationType).cast(result),
+                    failure
+                );
+            }
+
         }
+
+        public static class TypedRecord<D, R> {
+
+            public final BuildOperationDescriptor descriptor;
+            public final D details;
+            public final R result;
+            public final Throwable failure;
+
+            private TypedRecord(BuildOperationDescriptor descriptor, D details, R result, Throwable failure) {
+                this.descriptor = descriptor;
+                this.details = details;
+                this.result = result;
+                this.failure = failure;
+            }
+
+            @Override
+            public String toString() {
+                return descriptor.getDisplayName();
+            }
+        }
+
 
         private void run(RunnableBuildOperation buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
-            TestBuildOperationContext context = new TestBuildOperationContext();
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
             try {
                 buildOperation.run(context);
             } catch (Throwable failure) {
-                if (record.result == null) {
-                    record.result = context.result;
-                }
                 if (record.failure == null) {
                     record.failure = failure;
                 }
                 throw UncheckedException.throwAsUncheckedException(failure);
-            }
-            record.result = context.result;
-            if (context.failure != null) {
-                record.failure = context.failure;
             }
         }
 
         private <T> T call(CallableBuildOperation<T> buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
-            TestBuildOperationContext context = new TestBuildOperationContext();
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
             T t;
             try {
                 t = buildOperation.call(context);
@@ -238,8 +274,34 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 }
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
-            record.result = context.result;
             return t;
+        }
+
+        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+            Record record = new Record(descriptor.build());
+            records.add(record);
+            final TestBuildOperationContext context = new TestBuildOperationContext(record);
+            return new ExecutingBuildOperation() {
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return descriptor;
+                }
+
+                @Override
+                public void failed(@Nullable Throwable failure) {
+                    context.failed(failure);
+                }
+
+                @Override
+                public void setResult(Object result) {
+                    context.setResult(result);
+                }
+
+                @Override
+                public void setStatus(String status) {
+                    context.setStatus(status);
+                }
+            };
         }
     }
 

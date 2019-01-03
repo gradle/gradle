@@ -20,13 +20,13 @@ import org.gradle.model.internal.core.NamedEntityInstantiator
 
 class DefaultPolymorphicDomainObjectContainerBaseTest extends AbstractNamedDomainObjectContainerTest {
     def setup() {
-        container = instantiator.newInstance(PolymorphicTestContainer.class, instantiator)
+        container = instantiator.newInstance(PolymorphicTestContainer.class, instantiator, collectionCallbackActionDecorator)
     }
 }
 
 class PolymorphicTestContainer extends AbstractPolymorphicDomainObjectContainer<TestObject> {
-    PolymorphicTestContainer(Instantiator instantiator) {
-        super(TestObject, instantiator, new DynamicPropertyNamer())
+    PolymorphicTestContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(TestObject, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator)
     }
 
     @Override

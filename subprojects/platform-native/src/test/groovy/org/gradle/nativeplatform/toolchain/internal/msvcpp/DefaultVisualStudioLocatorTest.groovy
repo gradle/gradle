@@ -17,17 +17,17 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.SystemInfo
-import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.logging.text.DiagnosticsVisitor
+import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
-import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
@@ -147,7 +147,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "visual studio not available when nothing in registry or command line and executable not found in path"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -331,7 +331,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "visual studio not found when specified directory does not look like an install"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
         def providedDir = tmpDir.createDir("vs")
         def ignored = vsDir("vs-2")
 
@@ -379,7 +379,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "visual studio not found when version cannot be determined for specified directory"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
         def providedDir = vsDir("vs")
         def ignored = vsDir("vs-2")
 

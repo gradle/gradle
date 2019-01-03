@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Describables;
@@ -92,9 +92,9 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
             if (replacement != null) {
                 String reason = replacement.getReason();
-                ComponentSelectionDescriptorInternal moduleReplacement = VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(identifier, "replaced with", replacement.getTarget()));
+                ComponentSelectionDescriptorInternal moduleReplacement = ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(identifier, "replaced with", replacement.getTarget()));
                 if (reason != null) {
-                    moduleReplacement = moduleReplacement.withReason(Describables.of(reason));
+                    moduleReplacement = moduleReplacement.withDescription(Describables.of(reason));
                 }
                 selected.addCause(moduleReplacement);
             }

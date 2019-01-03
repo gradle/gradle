@@ -23,13 +23,15 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 public class AbstractDependencyResult implements DependencyResult {
     private final ComponentSelector requested;
     private final ResolvedComponentResult from;
+    private boolean constraint;
 
-    public AbstractDependencyResult(ComponentSelector requested, ResolvedComponentResult from) {
+    public AbstractDependencyResult(ComponentSelector requested, ResolvedComponentResult from, boolean constraint) {
         assert requested != null;
         assert from != null;
 
         this.from = from;
         this.requested = requested;
+        this.constraint = constraint;
     }
 
     public ComponentSelector getRequested() {
@@ -39,4 +41,10 @@ public class AbstractDependencyResult implements DependencyResult {
     public ResolvedComponentResult getFrom() {
         return from;
     }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
+    }
+
 }

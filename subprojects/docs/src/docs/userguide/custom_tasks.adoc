@@ -21,7 +21,7 @@ The other type of task is the enhanced task, where the behaviour is built into t
 
 The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
 
-Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
+Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
 
 
 [[sec:packaging_a_task_class]]
@@ -33,7 +33,7 @@ Build script::
 You can include the task class directly in the build script. This has the benefit that the task class is automatically compiled and included in the classpath of the build script without you having to do anything. However, the task class is not visible outside the build script, and so you cannot reuse the task class outside the build script it is defined in.
 
 `buildSrc` project::
-You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
+You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory (or `__rootProjectDir__/buildSrc/src/main/java` or __rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer). Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
@@ -289,7 +289,7 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 
 Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
 
-Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option].
+Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option].
 
 === Example: Declaring a command line option
 
@@ -329,17 +329,17 @@ include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/taskComman
 
 Gradle limits the set of data types that can be used for declaring command line options. The use on the command line differ per type.
 
-`boolean`, `Boolean`::
-Describes an option with the value `true` or `false`. Passing the option on the command line does not require assigning a value. For example `--enabled` equates to `true`. The absence of the option uses the default values assign to the property; that is `false` for `boolean` and `null` for the complex data type.
+`boolean`, `Boolean`, `Property<Boolean>`::
+Describes an option with the value `true` or `false`. Passing the option on the command line treats the value as `true`. For example `--enabled` equates to `true`. The absence of the option uses the default value of the property.
 
-`String`::
-Describes an option with an arbitrary String value. Passing the option on the command line requires a key-value pair of option and value separated by an equals sign e.g. `--containerId=2x94held`.
+`String`, `Property<String>`::
+Describes an option with an arbitrary String value. Passing the option on the command line also requires a value e.g. `--container-id=2x94held` or `--container-id 2x94held`.
 
-`enum`::
-Describes an option as enum. The enum has to be passed on the command line as key-value pair similar to the String type e.g. `--log-level=DEBUG`. The provided value is not case sensitive.
+`enum`, `Property<enum>`::
+Describes an option as an enumerated type. Passing the option on the command line also requires a value e.g. `--log-level=DEBUG` or `--log-level debug`. The value is not case sensitive.
 
 `List<String>`, `List<enum>`::
-Describes an option that can takes multiple values of a given type. The values for the option have to be provided as distinct declarations e.g. `--imageId=123 --imageId=456`. Other notations like comma-separated lists or multiple values separated by a space character are currently not supported.
+Describes an option that can takes multiple values of a given type. The values for the option have to be provided as multiple declarations e.g. `--image-id=123 --image-id=456`. Other notations such as comma-separated lists or multiple values separated by a space character are currently not supported.
 
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option
@@ -382,9 +382,35 @@ Support for declaring command line options currently comes with a few limitation
 - Options cannot be declared globally e.g. on a project-level or as part of a plugin.
 - When assigning an option on the command line then the task exposing the option needs to be spelled out explicitly e.g. `gradle check --tests abc` does not work even though the `check` task depends on the `test` task.
 
+[[service_injection]]
+== Service injection
+
+Gradle provides a number of services that can be used in a task implementation. For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as we'll see in the following section.
+
+There are 2 ways that a task can receive the services that it needs. The first option is to add the service as a parameter of the task class constructor. The constructor must be annotated with the `javax.inject.Inject` annotation. Gradle uses the declared type of each parameter to determine the services that the task requires. The order of the constructor parameters and their names are ignored.
+
+Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the task class. This can be useful, for example, when you cannot change the constructor of the task class due to backwards compatibility constraints. This pattern also allows Gradle to defer creation of the service until it is required, rather than when the task instance is created, which helps with performance. Gradle uses the declared return type of the getter methods to determine the services that the task requires. The name of the property is ignored.
+
+Here is an example that shows these two approaches:
+
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/tasks/serviceInjection/groovy/buildSrc/src/main/java/UrlProcess.java[]
+----
+
+[[services_for_injection]]
+=== Available services
+
+The following services are available for injection:
+
+- link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created. See <<custom_plugins.adoc#sec:nested_dsl_elements,custom plugins>>.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout] - Provides access to key project locations. See <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy configuration>>.
+- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
+- link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<worker_api>>, below.
+
 [[worker_api]]
 == The Worker API
-
 
 [NOTE]
 ====

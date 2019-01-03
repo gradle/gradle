@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-@IntegrationTestTimeout(300)
+@IntegrationTestTimeout(600)
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")

@@ -24,11 +24,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-class DefaultTaskOutputCachingState implements TaskOutputCachingState {
-    static TaskOutputCachingState enabled() {
+public class DefaultTaskOutputCachingState implements TaskOutputCachingState {
+    public static TaskOutputCachingState enabled() {
         return new DefaultTaskOutputCachingState(null, null);
     }
-    static TaskOutputCachingState disabled(TaskOutputCachingDisabledReasonCategory disabledReasonCategory, String disabledReason) {
+    public static TaskOutputCachingState disabled(TaskOutputCachingDisabledReasonCategory disabledReasonCategory, String disabledReason) {
         checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
         checkNotNull(disabledReasonCategory, "disabledReasonCategory must be set if task output caching is disabled");
         return new DefaultTaskOutputCachingState(disabledReasonCategory, disabledReason);

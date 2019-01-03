@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import spock.lang.Specification
 
 import javax.annotation.processing.Filer
@@ -32,10 +33,10 @@ abstract class IncrementalFilerTest extends Specification {
     Filer filer
 
     def setup() {
-        filer = new IncrementalFiler(delegate, getStrategy(result))
+        filer = new IncrementalFiler(delegate, getStrategy(new AnnotationProcessorResult(result, "TestProcessor")))
     }
 
-    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result)
+    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessorResult result)
 
     def "does a full rebuild  when trying to write resources"() {
         when:

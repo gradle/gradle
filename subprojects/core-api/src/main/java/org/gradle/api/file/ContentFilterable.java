@@ -70,6 +70,7 @@ public interface ContentFilterable {
      */
     ContentFilterable filter(Closure closure);
 
+    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
     /**
      * Adds a content filter based on the provided transformer.  The Closure will be called with each line (stripped of line
      * endings) and should return a String to replace the line or {@code null} to remove the line.  If every line is
@@ -78,7 +79,6 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
-    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
     ContentFilterable filter(Transformer<String, String> transformer);
 
     /**

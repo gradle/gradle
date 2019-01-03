@@ -16,8 +16,8 @@
 
 package org.gradle.internal.fingerprint.classpath.impl;
 
-import org.gradle.internal.changes.FileChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -40,7 +40,7 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     }
 
     @Override
-    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
         Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries = currentSnapshots.entrySet().iterator();
         Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries = previousSnapshots.entrySet().iterator();
         while (true) {

@@ -26,7 +26,7 @@ import org.gradle.testing.internal.util.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver))
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -35,16 +35,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         getArtifactFile() >> artifactFile
     }
 
-    def "runs transforms in parallel if no cached result is available"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject) >> false
-
-        when:
-        listener.artifactAvailable(artifact)
-
-        then:
-        1 * operationQueue.add(_ as BuildOperation)
-
+    def "adds file transformations to the build operation queue"() {
         when:
         listener.fileAvailable(file)
 
@@ -52,20 +43,11 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         1 * operationQueue.add(_ as BuildOperation)
     }
 
-    def "runs transforms immediately if the result is already cached"() {
-        given:
-        transformation.hasCachedResult(_ as TransformationSubject) >> true
-
+    def "runs artifact transformations immediately"() {
         when:
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformation.transform({ it.files == [artifactFile] })
-
-        when:
-        listener.fileAvailable(file)
-
-        then:
-        1 * transformation.transform({ it.files == [file] })
+        1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver)
     }
 }
