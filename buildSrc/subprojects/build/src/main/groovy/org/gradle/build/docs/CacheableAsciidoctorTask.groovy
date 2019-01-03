@@ -43,7 +43,6 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
         Map attributes = super.getAttributes()
         String sampleDir = attributes['samples-dir']
         if (sampleDir == null) {
-            println("attributes: ${attributes.toString()}")
             return attributes
         }
 
