@@ -32,12 +32,12 @@ public class Swapper<T> {
     }
 
     public <Y extends T, N> N swap(Y value, Callable<N> whileSwapped) throws Exception {
-        T orginalValue = getter.call();
+        T originalValue = getter.call();
         setter.execute(value);
         try {
             return whileSwapped.call();
         } finally {
-            setter.execute(orginalValue);
+            setter.execute(originalValue);
         }
     }
 }
