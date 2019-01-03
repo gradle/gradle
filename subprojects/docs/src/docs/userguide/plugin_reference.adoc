@@ -25,6 +25,9 @@ Provides support for building any type of Java project.
 <<java_library_plugin.adoc#,Java Library>>::
 Provides support for building a Java library.
 
+<<java_platform_plugin.adoc#,Java Platform>>::
+Provides support for building a Java platform.
+
 <<groovy_plugin.adoc#,Groovy>>::
 Provides support for building any type of http://groovy-lang.org/[Groovy] project.
 
