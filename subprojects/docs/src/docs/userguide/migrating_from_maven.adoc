@@ -431,7 +431,7 @@ You can then conditionally apply one of those profile scripts based on a <<build
 
 The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
 
-.Mimicing the behavior of Maven profiles in Gradle
+.Mimicking the behavior of Maven profiles in Gradle
 ====
 include::sample[dir="userguide/mavenMigration/profiles/groovy",files="build.gradle;profile-default.gradle;profile-test.gradle;profile-prod.gradle"]
 include::sample[dir="userguide/mavenMigration/profiles/kotlin",files="build.gradle.kts;profile-default.gradle.kts;profile-test.gradle.kts;profile-prod.gradle.kts"]
