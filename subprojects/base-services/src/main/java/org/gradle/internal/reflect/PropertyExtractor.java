@@ -35,7 +35,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -53,26 +52,22 @@ public class PropertyExtractor {
     private final ImmutableSet<Class<?>> ignoredSuperclasses;
     private final ImmutableSet<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodFromClasses) {
+    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodsFromClasses) {
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
         this.ignoredSuperclasses = ignoredSuperclasses;
-        Iterable<Method> ignoredMethods = Iterables.concat(Iterables.transform(ignoreMethodFromClasses, new Function<Class<?>, Iterable<Method>>() {
-            @Override
-            public Iterable<Method> apply(Class<?> input) {
-                return Arrays.asList(input.getMethods());
+        this.ignoredMethods = allMethodsOf(ignoreMethodsFromClasses);
+    }
+
+    private static ImmutableSet<Equivalence.Wrapper<Method>> allMethodsOf(Iterable<Class<?>> classes) {
+        List<Equivalence.Wrapper<Method>> methods = Lists.newArrayList();
+        for (Class<?> clazz : classes) {
+            for (Method method : clazz.getMethods()) {
+                methods.add(SIGNATURE_EQUIVALENCE.wrap(method));
             }
-        }));
-        this.ignoredMethods = ImmutableSet.copyOf(
-            Iterables.transform(
-                ignoredMethods, new Function<Method, Equivalence.Wrapper<Method>>() {
-                    public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
-                        return SIGNATURE_EQUIVALENCE.wrap(input);
-                    }
-                }
-            )
-        );
+        }
+        return ImmutableSet.copyOf(methods);
     }
 
     public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
