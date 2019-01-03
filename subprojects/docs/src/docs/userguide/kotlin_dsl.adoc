@@ -41,7 +41,7 @@ If you are interested in migrating an existing Gradle build to the Kotlin DSL, p
 [[sec:ide_support]]
 == IDE support
 
-The Kotlin DSL is fully supported by Intellij IDEA and Android Studio. Other IDEs do not yet provide helpful tools for editing Kotlin DSL files, but you can still import Kotlin-DSL-based builds and work with them as usual.
+The Kotlin DSL is fully supported by IntelliJ IDEA and Android Studio. Other IDEs do not yet provide helpful tools for editing Kotlin DSL files, but you can still import Kotlin-DSL-based builds and work with them as usual.
 
 .IDE support matrix
 [cols=">.^,^.^,^.^,^.^",frame=none,grid=rows,options="header"]
