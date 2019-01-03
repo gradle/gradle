@@ -49,7 +49,6 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
 
         Map copy = new HashMap(attributes)
         copy.put('samples-dir', relativize(sampleDir))
-        println("attributes: ${copy.toString()}")
         return Collections.unmodifiableMap(copy)
     }
 
@@ -58,7 +57,7 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
         Path projectPath = project.getProjectDir().toPath()
 
         if (targetPath.startsWith(projectPath)) {
-            return projectPath.relativize(targetPath).toString()
+            return projectPath.relativize(targetPath).toString().replace('\\', '/')
         } else {
             return targetPath
         }
