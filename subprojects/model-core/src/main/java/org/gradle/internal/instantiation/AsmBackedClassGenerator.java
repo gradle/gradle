@@ -293,8 +293,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE);
-        private static final String RETURN_EXTENSTION_CONTAINER = Type.getMethodDescriptor(Type.getType(ExtensionContainer.class));
         private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE);
+        private static final String RETURN_EXTENSION_CONTAINER = Type.getMethodDescriptor(Type.getType(ExtensionContainer.class));
         private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -450,7 +450,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addExtensionsProperty() {
             // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
 
-            addGetter("getExtensions", RETURN_EXTENSTION_CONTAINER, null, new MethodCodeBody() {
+            addGetter("getExtensions", RETURN_EXTENSION_CONTAINER, null, new MethodCodeBody() {
                 public void add(MethodVisitor visitor) {
 
                     // GENERATE getConvention()
