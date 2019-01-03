@@ -77,4 +77,25 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
             assert succeeds("myTask")
         }
     }
+
+    def "named object instantiator should not prevent classloader from being collected"() {
+        given:
+        buildFile << """
+            interface Foo0 extends Named {
+            }
+            task myTask() {
+                doLast {
+                    def instance = project.objects.named(Foo0, new String(new byte[10 * 1024 * 1024], "UTF-8"))
+                    println "\${instance.class.name}"
+                }
+            }
+        """
+
+        expect:
+        for(int i = 0; i < 35; i++) {
+            buildFile.text = buildFile.text.replace("Foo$i", "Foo${i + 1}")
+            executer.withBuildJvmOpts("-Xmx64m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:MaxMetaspaceSize=64m")
+            assert succeeds("myTask")
+        }
+    }
 }
