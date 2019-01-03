@@ -23,9 +23,9 @@ import spock.lang.Unroll
 
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "hello.cpp"
-    public static final String SAMPLE_APP_HEADER = "hello.h"
-    public static final String SAMPLE_APP_TEST_CLASS = "hello_test.cpp"
+    public static final String SAMPLE_LIB_CLASS = "hello.cpp"
+    public static final String SAMPLE_LIB_HEADER = "hello.h"
+    public static final String SAMPLE_LIB_TEST_CLASS = "hello_test.cpp"
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -33,9 +33,9 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_APP_HEADER)
-        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
+        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
+        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -56,15 +56,18 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'cpp-library', '--project-name', 'hello', '--package', 'my::lib', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_APP_HEADER)
-        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
+        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
+        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
 
         and:
-        targetDir.file("src/main/public/${SAMPLE_APP_HEADER}").text.contains("namespace my::lib")
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace my {")
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace lib {")
+        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("my::lib::")
+        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("my::lib::")
 
         and:
         succeeds("build")
@@ -112,9 +115,9 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
-        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").assertDoesNotExist()
-        targetDir.file("src/main/public/${SAMPLE_APP_HEADER}").assertDoesNotExist()
-        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").assertDoesNotExist()
+        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").assertDoesNotExist()
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").assertDoesNotExist()
+        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").assertDoesNotExist()
 
         when:
         run("build")

@@ -4,6 +4,6 @@
 
 #include <string>
 
-${namespaceDecl.groovyString}
-extern std::string greeting();
-${namespaceDecl != '' ? '}' : ''}
+${namespaceOpen.statement}
+${namespaceIndent.groovyString}extern std::string greeting();
+${namespaceClose.statement}

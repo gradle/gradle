@@ -65,7 +65,10 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         commonFilesGenerated(scriptDsl)
 
         and:
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace my::app")
+        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace my {")
+        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace app {")
+        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("my::app::")
+        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("my::app::")
 
         and:
         succeeds("build")
