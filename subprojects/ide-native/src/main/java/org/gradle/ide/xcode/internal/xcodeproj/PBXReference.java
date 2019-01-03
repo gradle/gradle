@@ -144,7 +144,7 @@ public class PBXReference extends PBXContainerItem implements Named {
                 return Optional.of(BUILT_PRODUCTS_DIR);
             } else if (data.equals("SDKROOT")) {
                 return Optional.of(SDKROOT);
-            } else if (data.equals("SOSURCE_ROOT")) {
+            } else if (data.equals("SOURCE_ROOT")) {
                 return Optional.of(SOURCE_ROOT);
             } else if (data.equals("DEVELOPER_DIR")) {
                 return Optional.of(DEVELOPER_DIR);
