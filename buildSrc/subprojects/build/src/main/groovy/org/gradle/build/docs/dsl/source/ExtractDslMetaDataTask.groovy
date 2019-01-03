@@ -65,7 +65,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         }
 
         //updating/modifying the metadata and making sure every type reference across the metadata is fully qualified
-        //so, the superClassName, interafaces and types needed by declared properties and declared methods will have fully qualified name
+        //so, the superClassName, interfaces and types needed by declared properties and declared methods will have fully qualified name
         TypeNameResolver resolver = new TypeNameResolver(repository)
         repository.each { name, metaData ->
             fullyQualifyAllTypeNames(metaData, resolver)
