@@ -160,15 +160,17 @@ Root project 'webinar-parent'
     private void assertContainsPublishingConfig(TestFile buildScript, String indent = "", List<String> additionalArchiveTasks = []) {
         def text = buildScript.text
         assert text.contains("id 'maven-publish'") || text.contains("apply plugin: 'maven-publish'")
-        def publishingBlock = """
+        def configLines = ["from(components.java)"]
+        configLines += additionalArchiveTasks.collect { "artifact($it)" }
+        def publishingBlock = TextUtil.indent("""
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        ${additionalArchiveTasks.collect{ "artifact($it)" }.join("\n")}from(components.java)
+${TextUtil.indent(configLines.join("\n"), "                        ")}
                     }
                 }
             }
-        """.stripIndent().trim().split("\n").collect { "$indent$it" }.join("\n")
+        """.stripIndent().trim(), indent)
         assert text.contains(publishingBlock)
     }
 
@@ -218,6 +220,7 @@ Root project 'webinar-parent'
                 from(sourceSets.main.allJava)
             }
         """.stripIndent().trim())
+        assertContainsPublishingConfig(buildFile, "", ["sourcesJar"])
     }
 
     def "enforcerplugin"() {
