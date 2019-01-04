@@ -50,6 +50,8 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
                 "Apply the cpp-library plugin to add support for building CPP libraries",
                 "cpp-library")
             .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
-                "cpp-unit-test");
+                "cpp-unit-test")
+            .block("Set the target operating system and architecture for this library", "library")
+            .methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
     }
 }

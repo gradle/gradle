@@ -19,12 +19,14 @@ package org.gradle.buildinit.plugins.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
 
 public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+
     public CppProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
         super("cpp", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
     }
@@ -63,6 +65,33 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public boolean supportsPackage() {
         return false;
+    }
+
+    protected String getHostTargetMachineDefinition() {
+        DefaultNativePlatform host = DefaultNativePlatform.host();
+        String definition = "machines.";
+
+        if (host.getOperatingSystem().isWindows()) {
+            definition += "windows";
+        } else if (host.getOperatingSystem().isMacOsX()) {
+            definition += "macOS";
+        } else if (host.getOperatingSystem().isLinux()) {
+            definition += "linux";
+        } else {
+            definition += "os('" + host.getOperatingSystem().toFamilyName() + "')";
+        }
+
+        definition += ".";
+
+        if (host.getArchitecture().isI386()) {
+            definition += "x86";
+        } else if (host.getArchitecture().isAmd64()) {
+            definition += "x86_64";
+        } else {
+            definition += "architecture('" + host.getArchitecture().getName() + "')";
+        }
+
+        return definition;
     }
 
     TemplateOperation fromCppTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {

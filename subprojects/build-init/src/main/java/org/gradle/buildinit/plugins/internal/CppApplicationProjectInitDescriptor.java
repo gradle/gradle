@@ -50,7 +50,8 @@ public class CppApplicationProjectInitDescriptor extends CppProjectInitDescripto
                 "Apply the cpp-application plugin to add support for building CPP executables",
                 "cpp-application")
             .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
-                "cpp-unit-test");
-
+                "cpp-unit-test")
+            .block("Set the target operating system and architecture for this application", "application")
+            .methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
     }
 }
