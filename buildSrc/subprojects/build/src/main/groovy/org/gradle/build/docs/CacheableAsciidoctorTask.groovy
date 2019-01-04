@@ -30,38 +30,8 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.util.PatternSet
 
-import java.nio.file.Path
-import java.nio.file.Paths
-
 @CacheableTask
 class CacheableAsciidoctorTask extends AsciidoctorTask {
-    @Input
-    @Override
-    Map getAttributes() {
-        // attribute "samples-dir" is absolute path and breaks cachability, see subprojects/docs/docs.gradle
-        // hacks to make the attribute relative
-        Map attributes = super.getAttributes()
-        String sampleDir = attributes['samples-dir']
-        if (sampleDir == null) {
-            return attributes
-        }
-
-        Map copy = new HashMap(attributes)
-        copy.put('samples-dir', relativize(sampleDir))
-        return Collections.unmodifiableMap(copy)
-    }
-
-    private String relativize(String absolutePath) {
-        Path targetPath = Paths.get(absolutePath)
-        Path projectPath = project.getProjectDir().toPath()
-
-        if (targetPath.startsWith(projectPath)) {
-            return projectPath.relativize(targetPath).toString().replace('\\', '/')
-        } else {
-            return targetPath
-        }
-    }
-
     @Internal
     @Override
     List<Object> getAsciidoctorExtensions() {

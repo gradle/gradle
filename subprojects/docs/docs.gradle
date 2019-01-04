@@ -373,8 +373,7 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        samplesPath         : "../../samples",
-        'samples-dir'       : "$projectDir/src/samples"
+        samplesPath         : "../../samples"
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
