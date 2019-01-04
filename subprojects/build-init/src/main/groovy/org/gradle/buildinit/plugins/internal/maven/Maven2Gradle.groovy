@@ -74,11 +74,11 @@ class Maven2Gradle {
             }
 
             def allprojectsBuilder = scriptBuilder.allprojects()
-            allprojectsBuilder.plugin(null, "maven")
             coordinatesForProject(rootProject, allprojectsBuilder)
 
             def subprojectsBuilder = scriptBuilder.subprojects()
             subprojectsBuilder.plugin(null, "java")
+            subprojectsBuilder.plugin(null, "maven-publish")
             compilerSettings(rootProject, subprojectsBuilder)
             packageSources(rootProject, subprojectsBuilder)
 
@@ -88,6 +88,7 @@ class Maven2Gradle {
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             declareDependencies(commonDeps, subprojectsBuilder)
             testNg(commonDeps, subprojectsBuilder)
+            configurePublishing(subprojectsBuilder)
 
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
@@ -122,11 +123,12 @@ class Maven2Gradle {
             generateSettings(this.effectivePom.artifactId, null);
 
             scriptBuilder.plugin(null, 'java')
-            scriptBuilder.plugin(null, 'maven')
+            scriptBuilder.plugin(null, 'maven-publish')
             coordinatesForProject(this.effectivePom, scriptBuilder)
             descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
+            configurePublishing(scriptBuilder)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
@@ -143,6 +145,13 @@ class Maven2Gradle {
         }
 
         scriptBuilder.create().generate()
+    }
+
+    def configurePublishing(builder) {
+        def publishing = builder.block(null, "publishing")
+        def publications = publishing.block(null, "publications")
+        def mavenPublication = publications.block(null, "maven(MavenPublication)")
+        mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
     }
 
     void declareDependencies(List<Dependency> dependencies, builder) {

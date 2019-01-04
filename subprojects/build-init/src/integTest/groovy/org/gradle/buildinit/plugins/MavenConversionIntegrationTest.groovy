@@ -65,6 +65,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         gradleFilesGenerated()
         file("build.gradle").text.contains("options.encoding = 'UTF-8'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
+        assertContainsPublishingConfig(file("build.gradle"), "    ")
 
         when:
         run 'clean', 'build'
@@ -144,6 +145,8 @@ Root project 'webinar-parent'
 
         then:
         gradleFilesGenerated()
+        file("settings.gradle").text.contains("rootProject.name = 'util'")
+        assertContainsPublishingConfig(file("build.gradle"))
 
         when:
         fails 'clean', 'build'
@@ -152,6 +155,21 @@ Root project 'webinar-parent'
         file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+    }
+
+    private void assertContainsPublishingConfig(TestFile buildScript, String indent = "") {
+        def text = buildScript.text
+        assert text.contains("id 'maven-publish'") || text.contains("apply plugin: 'maven-publish'")
+        def publishingBlock = """
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+        """.stripIndent().trim().split("\n").collect { "$indent$it" }.join("\n")
+        assert text.contains(publishingBlock)
     }
 
     def "singleModule with explicit project dir"() {
