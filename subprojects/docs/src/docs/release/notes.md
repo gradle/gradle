@@ -81,7 +81,9 @@ We would like to thank the following community members for making contributions 
  - [Ian Kerins](https://github.com/isker) - Fix links to CreateStartScripts DSL docs in Application Plugin user manual chapter (gradle/gradle#7938)
  - [Kim Brouer](https://github.com/brouer) - Fix issue with leading zero in version numbers (gradle/gradle#7806)
  - [Richard Newton](https://github.com/ricnewton) - Enable hiding of main symbols for Windows executables (gradle/gradle#8127)
-
+ - [Thomas Broyer](https://github.com/tbroyer) - Add annotation processor generated sources to SourceSetOutput (gradle/gradle#8134)
+ - [Thomas Broyer](https://github.com/tbroyer) - Silence unrecognized annotation processor option during incremental processing (gradle/gradle#8135)
+ 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
