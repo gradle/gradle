@@ -162,7 +162,7 @@ Root project 'webinar-parent'
         assert text.contains("id 'maven-publish'") || text.contains("apply plugin: 'maven-publish'")
         def configLines = ["from(components.java)"]
         configLines += additionalArchiveTasks.collect { "artifact($it)" }
-        def publishingBlock = TextUtil.indent("""
+        def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -170,7 +170,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                     }
                 }
             }
-        """.stripIndent().trim(), indent)
+        """.stripIndent().trim(), indent))
         assert text.contains(publishingBlock)
     }
 
@@ -214,12 +214,12 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         run 'init'
 
         then:
-        buildFile.text.contains("""
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""
             task sourcesJar(type: Jar) {
                 classifier = 'sources'
                 from(sourceSets.main.allJava)
             }
-        """.stripIndent().trim())
+        """.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile, "", ["sourcesJar"])
     }
 
