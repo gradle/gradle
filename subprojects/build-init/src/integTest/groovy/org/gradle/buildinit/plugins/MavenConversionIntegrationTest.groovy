@@ -157,14 +157,14 @@ Root project 'webinar-parent'
         failure.assertHasCause("There were failing tests.")
     }
 
-    private void assertContainsPublishingConfig(TestFile buildScript, String indent = "") {
+    private void assertContainsPublishingConfig(TestFile buildScript, String indent = "", List<String> additionalArchiveTasks = []) {
         def text = buildScript.text
         assert text.contains("id 'maven-publish'") || text.contains("apply plugin: 'maven-publish'")
         def publishingBlock = """
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from(components.java)
+                        ${additionalArchiveTasks.collect{ "artifact($it)" }.join("\n")}from(components.java)
                     }
                 }
             }
@@ -205,6 +205,19 @@ Root project 'webinar-parent'
         then:
         file("build/libs/testjar-2.5.jar").exists()
         file("build/libs/testjar-2.5-tests.jar").exists()
+    }
+
+    def "sourcesJar"() {
+        when:
+        run 'init'
+
+        then:
+        buildFile.text.contains("""
+            task sourcesJar(type: Jar) {
+                classifier = 'sources'
+                from(sourceSets.main.allJava)
+            }
+        """.stripIndent().trim())
     }
 
     def "enforcerplugin"() {

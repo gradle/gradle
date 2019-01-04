@@ -128,7 +128,8 @@ class Maven2Gradle {
             descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder)
+            def sourcesJarTaskGenerated = packageSources(this.effectivePom, scriptBuilder)
+            configurePublishing(scriptBuilder, sourcesJarTaskGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
@@ -147,11 +148,14 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(builder) {
+    def configurePublishing(builder, sourcesJarTaskGenerated = false) {
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
         mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
+        if(sourcesJarTaskGenerated) {
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
+        }
     }
 
     void declareDependencies(List<Dependency> dependencies, builder) {
@@ -370,7 +374,7 @@ class Maven2Gradle {
         }
     }
 
-    void packageSources(project, builder) {
+    boolean packageSources(project, builder) {
         def sourcePlugin = plugin('maven-source-plugin', project)
         def sourceSets = []
         if (sourcePlugin) {
@@ -381,13 +385,14 @@ class Maven2Gradle {
             }
         }
         if (!sourceSets.empty) {
-            def taskConfigBuilder = builder.taskRegistration(null, "packageSources", "Jar")
+            def taskConfigBuilder = builder.taskRegistration(null, "sourcesJar", "Jar")
             taskConfigBuilder.propertyAssignment(null, "classifier", "sources")
             sourceSets.each { sourceSet ->
-                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allSource"))
+                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allJava"))
             }
-            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageSources"))
+            return true
         }
+        return false
     }
 
     private boolean duplicateDependency(dependency, project, allProjects) {
