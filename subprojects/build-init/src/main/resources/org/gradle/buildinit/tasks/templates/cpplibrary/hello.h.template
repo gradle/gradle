@@ -5,9 +5,9 @@
 #define HELLO_H
 
 #ifdef _WIN32
-#define EXPORT_FUNC __declspec(dllexport)
+#define ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC __declspec(dllexport)
 #else
-#define EXPORT_FUNC
+#define ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC
 #endif
 
 #include <string>
@@ -15,7 +15,7 @@
 namespace ${namespace.groovyString} {
     class Greeter {
         public:
-        std::string EXPORT_FUNC greeting();
+        std::string ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC greeting();
     };
 }
 

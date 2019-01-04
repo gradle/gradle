@@ -39,6 +39,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace some_thing {")
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("#define SOME_THING_EXPORT_FUNC")
         targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("some_thing::")
         targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("some_thing::")
 
@@ -68,6 +69,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace hello {")
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("#define HELLO_EXPORT_FUNC")
         targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("hello::")
         targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("hello::")
 
