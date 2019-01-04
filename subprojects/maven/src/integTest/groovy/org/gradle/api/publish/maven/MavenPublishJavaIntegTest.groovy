@@ -956,7 +956,7 @@ $append
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components.javaLibraryPlatform
+                        from components.java
                     }
                 }
             }
@@ -969,8 +969,8 @@ $append
         def mavenModule = javaLibrary.mavenModule
 
         mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
-        mavenModule.parsedPom.scopes['import'].assertDependencyManagement([] as String[])
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom", "publishTest-1.9.jar")
+        mavenModule.parsedPom.scopes['import'] == null
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -983,6 +983,55 @@ $append
             noMoreDependencies()
         }
 
+    }
+
+    def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:bar:1.0"
+                api platform("org.test:platform:1.0")
+                components.withModule('org.test:bar', VirtualPlatform)
+            }
+            
+            class VirtualPlatform implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        belongsTo("org.test:platform:\${id.version}")
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        pom.withXml {
+                            asNode().dependencyManagement.dependencies.dependency.findAll { node ->
+                                node.groupId[0].text().equals('org.test') &&
+                                node.artifactId[0].text().equals('platform') &&
+                                node.scope[0].text().equals('import')
+                            }.each { node -> node.replaceNode {} }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = javaLibrary.mavenModule
+
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom", "publishTest-1.9.jar")
+        mavenModule.parsedPom.scopes['import'] == null
+
+        // Sadly this does not take care of the Gradle metadata
     }
 
     @Unroll
