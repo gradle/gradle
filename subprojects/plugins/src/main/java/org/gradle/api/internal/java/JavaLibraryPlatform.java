@@ -21,6 +21,12 @@ import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
 
+/**
+ * Represents an attempt at providing a Java platform definition.
+ *
+ * @deprecated Replaced by the {@code java-platform} plugin
+ */
+@Deprecated
 public class JavaLibraryPlatform extends JavaLibrary {
     @Inject
     public JavaLibraryPlatform(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory) {

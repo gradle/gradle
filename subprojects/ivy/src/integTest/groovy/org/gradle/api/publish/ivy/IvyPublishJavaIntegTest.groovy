@@ -86,6 +86,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             $dependencies            
 """)
+        executer.expectDeprecationWarning()
 
         when:
         run "publish"

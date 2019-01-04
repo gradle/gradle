@@ -506,6 +506,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
 """)
+        executer.expectDeprecationWarning()
 
         when:
         run "publish"
