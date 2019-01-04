@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Optional;
@@ -45,12 +45,12 @@ import java.lang.reflect.Method;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypePropertyMetadata typeMetadata) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
     public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
-        TypePropertyMetadata typeMetadata = getTypePropertyMetadata();
+        TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
@@ -70,13 +70,13 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         private final String propertyName;
         private final PropertyMetadata propertyMetadata;
         private final Object bean;
-        private final Method method;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
             public Object get() {
                 return DeprecationLogger.whileDisabled(new Factory<Object>() {
                     public Object create() {
+                        Method method = propertyMetadata.getGetterMethod();
                         try {
                             return method.invoke(bean);
                         } catch (InvocationTargetException e) {
@@ -93,8 +93,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             this.propertyName = propertyName;
             this.propertyMetadata = propertyMetadata;
             this.bean = bean;
-            this.method = propertyMetadata.getGetterMethod();
-            method.setAccessible(true);
+            propertyMetadata.getGetterMethod().setAccessible(true);
         }
 
         @Override
@@ -120,7 +119,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public void attachProducer(Task producer) {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
                 if (value instanceof ProducerAwareProperty) {
                     ((ProducerAwareProperty) value).attachProducer(producer);
@@ -130,12 +129,16 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public void maybeFinalizeValue() {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
                 if (value instanceof PropertyInternal) {
                     ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
                 }
             }
+        }
+
+        private boolean isProvider() {
+            return Provider.class.isAssignableFrom(propertyMetadata.getDeclaredType());
         }
 
         @Nullable

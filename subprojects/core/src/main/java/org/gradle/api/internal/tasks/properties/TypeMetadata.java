@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface TypePropertyMetadataStore {
-    <T> TypePropertyMetadata getTypePropertyMetadata(Class<T> type);
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.reflect.PropertyMetadata;
+
+import javax.annotation.Nullable;
+import java.util.Set;
+
+public interface TypeMetadata {
+    Set<PropertyMetadata> getPropertiesMetadata();
+    boolean hasAnnotatedProperties();
+    @Nullable
+    PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
 }
