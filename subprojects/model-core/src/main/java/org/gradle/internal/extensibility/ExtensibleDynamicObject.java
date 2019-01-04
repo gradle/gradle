@@ -53,11 +53,11 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     private DynamicObject extraPropertiesDynamicObject;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, Instantiator instantiator) {
-        this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instantiator));
+        this(delegate, createDynamicObject(delegate, publicType), new org.gradle.api.internal.plugins.DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
-        this(delegate, dynamicDelegate, new DefaultConvention(instantiator));
+        this(delegate, dynamicDelegate, new org.gradle.api.internal.plugins.DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
