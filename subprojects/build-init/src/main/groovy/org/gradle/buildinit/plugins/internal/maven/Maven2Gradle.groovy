@@ -80,7 +80,7 @@ class Maven2Gradle {
             subprojectsBuilder.plugin(null, "java")
             subprojectsBuilder.plugin(null, "maven-publish")
             compilerSettings(rootProject, subprojectsBuilder)
-            packageSources(rootProject, subprojectsBuilder)
+            def sourcesJarTaskGenerated = packageSources(rootProject, subprojectsBuilder)
 
             repositoriesForProjects(allProjects, subprojectsBuilder)
             globalExclusions(rootProject, subprojectsBuilder)
@@ -88,7 +88,7 @@ class Maven2Gradle {
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             declareDependencies(commonDeps, subprojectsBuilder)
             testNg(commonDeps, subprojectsBuilder)
-            configurePublishing(subprojectsBuilder)
+            configurePublishing(subprojectsBuilder, sourcesJarTaskGenerated)
 
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
@@ -148,12 +148,12 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(builder, sourcesJarTaskGenerated = false) {
+    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false) {
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
         mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
-        if(sourcesJarTaskGenerated) {
+        if (sourcesJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
         }
     }
