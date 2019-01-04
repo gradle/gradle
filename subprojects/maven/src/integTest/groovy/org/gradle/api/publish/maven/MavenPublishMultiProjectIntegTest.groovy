@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -387,8 +386,7 @@ project(":project2") {
         }
     }
 
-    @Ignore("TODO: CC, there's currently no support for platform() on a local project. We must think about the concept of Gradle platform first")
-    def "publish and resolve java-library with dependency on java-library-platform"() {
+    def "publish and resolve java-library with dependency on java-platform"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
@@ -400,13 +398,18 @@ include "platform", "library"
         buildFile << """
 allprojects {
     apply plugin: 'maven-publish'
-    apply plugin: 'java-library'
 
     group = "org.test"
     version = "1.0"
 }
 
 project(":platform") {
+    apply plugin: 'java-platform'
+
+    javaPlatform {
+        allowDependencies()
+    }
+
     dependencies {
         api "org.test:foo:1.0"
         constraints {
@@ -418,14 +421,16 @@ project(":platform") {
             maven { url "${mavenRepo.uri}" }
         }
         publications {
-            maven(MavenPublication) { from components.javaLibraryPlatform }
+            maven(MavenPublication) { from components.javaPlatform }
         }
     }
 }
 
 project(":library") {
+    apply plugin: 'java-library'
+
     dependencies {
-        api project(":platform")
+        api platform(project(":platform"))
         api "org.test:bar"
     }
     publishing {
@@ -455,8 +460,9 @@ project(":library") {
         }
 
         libraryModule.parsedPom.packaging == null
-        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:", "org.test:platform:1.0")
+        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:")
         libraryModule.parsedPom.scopes.compile.assertDependencyManagement()
+        libraryModule.parsedPom.scopes['import'].expectDependencyManagement("org.test:platform:1.0").hasType('pom')
         libraryModule.parsedModuleMetadata.variant('api') {
             dependency("org.test:bar:").exists()
             dependency("org.test:platform:1.0").exists()
@@ -466,7 +472,14 @@ project(":library") {
         and:
         resolveArtifacts(platformModule) { expectFiles 'foo-1.0.jar' }
         resolveArtifacts(libraryModule) {
-            expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
+            withModuleMetadata {
+                expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
+            }
+            withoutModuleMetadata {
+                // This is caused by the dependency on the platform appearing as a dependencyManagement entry with scope=import, type=pom
+                // and thus its dependencies are ignored.
+                expectFiles 'bar-1.1.jar', 'library-1.0.jar'
+            }
         }
     }
 

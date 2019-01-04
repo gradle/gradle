@@ -1058,17 +1058,10 @@ include(':platform')
             }
             project(':platform') {
                 apply plugin: 'java-platform'
-                apply plugin: 'maven-publish'
 
                 group = 'org.gradle.test'
                 version = '1.9'
 
-                publishing {
-                    repositories {
-                        maven { url "${mavenRepo.uri}" }
-                    }
-                }
-                
                 dependencies {
                     constraints {
                         api 'org.test:bar:1.0'
