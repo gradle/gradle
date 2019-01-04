@@ -66,6 +66,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle").text.contains("options.encoding = 'UTF-8'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
         assertContainsPublishingConfig(file("build.gradle"), "    ", ["sourcesJar"])
+        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testJar)")
 
         when:
         run 'clean', 'build'
@@ -200,9 +201,10 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
 
         then:
         gradleFilesGenerated()
+        assertContainsPublishingConfig(buildFile, "", ["testJar"])
 
         when:
-        run 'clean', 'build'
+        run 'clean', 'build', 'testJar'
 
         then:
         file("build/libs/testjar-2.5.jar").exists()

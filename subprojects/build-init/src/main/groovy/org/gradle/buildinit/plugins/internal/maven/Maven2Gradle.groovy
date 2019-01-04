@@ -114,7 +114,9 @@ class Maven2Gradle {
                 declareDependencies(moduleDependencies, moduleScriptBuilder)
                 testNg(moduleDependencies, moduleScriptBuilder)
 
-                packageTests(module, moduleScriptBuilder);
+                if (packageTests(module, moduleScriptBuilder)) {
+                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testJar"))
+                }
 
                 moduleScriptBuilder.create().generate()
             }
@@ -129,7 +131,8 @@ class Maven2Gradle {
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
             def sourcesJarTaskGenerated = packageSources(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder, sourcesJarTaskGenerated)
+            def testJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
+            configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testJarTaskGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
@@ -142,19 +145,21 @@ class Maven2Gradle {
             declareDependencies(dependencies, scriptBuilder)
             testNg(dependencies, scriptBuilder)
 
-            packageTests(this.effectivePom, scriptBuilder)
         }
 
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false) {
+    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false, boolean testJarTaskGenerated = false) {
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
         mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
         if (sourcesJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
+        }
+        if (testJarTaskGenerated) {
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testJar"))
         }
     }
 
@@ -364,14 +369,15 @@ class Maven2Gradle {
         }
     }
 
-    void packageTests(project, builder) {
+    boolean packageTests(project, builder) {
         def jarPlugin = plugin('maven-jar-plugin', project)
         if (pluginGoal('test-jar', jarPlugin)) {
-            def taskConfigBuilder = builder.taskRegistration(null, "packageTests", "Jar")
+            def taskConfigBuilder = builder.taskRegistration(null, "testJar", "Jar")
             taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
             taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
-            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageTests"))
+            return true
         }
+        return false
     }
 
     boolean packageSources(project, builder) {
