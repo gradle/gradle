@@ -24,7 +24,6 @@ import spock.lang.Unroll
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"
-    public static final String SAMPLE_LIB_HEADER = "hello.h"
     public static final String SAMPLE_LIB_TEST_CLASS = "hello_test.cpp"
 
     @Unroll
@@ -34,12 +33,12 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
-        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
+        targetDir.file("src/main/public").assertHasDescendants("some-thing.h")
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
 
         and:
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace some_thing {")
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("#define SOME_THING_EXPORT_FUNC")
+        targetDir.file("src/main/public/some-thing.h").text.contains("namespace some_thing {")
+        targetDir.file("src/main/public/some-thing.h").text.contains("#define SOME_THING_EXPORT_FUNC")
         targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("some_thing::")
         targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("some_thing::")
 
@@ -60,18 +59,18 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'greeting', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
-        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
+        targetDir.file("src/main/public").assertHasDescendants("greeting.h")
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
 
         and:
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace hello {")
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("#define HELLO_EXPORT_FUNC")
-        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("hello::")
-        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("hello::")
+        targetDir.file("src/main/public/greeting.h").text.contains("namespace greeting {")
+        targetDir.file("src/main/public/greeting.h").text.contains("#define GREETING_EXPORT_FUNC")
+        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("greeting::")
+        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("greeting::")
 
 
         and:
@@ -81,7 +80,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        library("build/lib/main/debug/hello").assertExists()
+        library("build/lib/main/debug/greeting").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -121,7 +120,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
             }
         """
         when:
-        run('init', '--type', 'cpp-library', '--project-name', 'hola', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants("hola.cpp")
@@ -131,7 +130,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").assertDoesNotExist()
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").assertDoesNotExist()
+        targetDir.file("src/main/public/hello.h").assertDoesNotExist()
         targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").assertDoesNotExist()
 
         when:
@@ -141,7 +140,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":test")
 
         and:
-        library("build/lib/main/debug/hola").assertExists()
+        library("build/lib/main/debug/hello").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

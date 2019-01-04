@@ -96,13 +96,20 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
     TemplateOperation fromCppTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
         String targetFileName = template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
-        String namespace = "";
-        if (settings != null && !settings.getProjectName().isEmpty()) {
-            namespace = toNamespace(settings.getProjectName());
+        return fromCppTemplate(template, targetFileName, settings, sourceSetName, sourceDir);
+    }
+
+    TemplateOperation fromCppTemplate(String template, String targetFileName, InitSettings settings, String sourceSetName, String sourceDir) {
+        if (settings == null || settings.getProjectName().isEmpty()) {
+            throw new IllegalArgumentException("Project name cannot be empty for a C++ project");
         }
+
+        String namespace = toNamespace(settings.getProjectName());
+
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
             .withTarget("src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName)
+            .withBinding("projectName", settings.getProjectName())
             .withBinding("namespace", namespace)
             .create();
     }

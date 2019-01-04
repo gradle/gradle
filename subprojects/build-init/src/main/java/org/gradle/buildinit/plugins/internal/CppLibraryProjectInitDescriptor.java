@@ -35,7 +35,7 @@ public class CppLibraryProjectInitDescriptor extends CppProjectInitDescriptor {
 
     @Override
     protected TemplateOperation headerTemplateOperation(InitSettings settings) {
-        return fromCppTemplate("cpplibrary/hello.h.template", settings, "main", "public");
+        return fromCppTemplate("cpplibrary/hello.h.template", settings.getProjectName() + ".h", settings, "main", "public");
     }
 
     @Override
