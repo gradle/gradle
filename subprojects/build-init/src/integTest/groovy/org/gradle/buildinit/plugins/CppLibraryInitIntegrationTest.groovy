@@ -30,6 +30,35 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
+        run('init', '--type', 'cpp-library', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
+        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
+        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
+
+        and:
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace some_thing {")
+        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("some_thing::")
+        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("some_thing::")
+
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        and:
+        succeeds("build")
+
+        and:
+        library("build/lib/main/debug/some-thing").assertExists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates sample source if project name is specified with #scriptDsl build scripts"() {
+        when:
         run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
 
         then:
@@ -38,6 +67,12 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
 
         and:
+        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace hello {")
+        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("hello::")
+        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("hello::")
+
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         and:
@@ -50,34 +85,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
-    def "creates sample source with namespace and #scriptDsl build scripts"() {
-        when:
-        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--package', 'my::lib', '--dsl', scriptDsl.id)
-
-        then:
-        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_LIB_CLASS)
-        targetDir.file("src/main/public").assertHasDescendants(SAMPLE_LIB_HEADER)
-        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_LIB_TEST_CLASS)
-
-        and:
-        commonFilesGenerated(scriptDsl)
-
-        and:
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace my {")
-        targetDir.file("src/main/public/${SAMPLE_LIB_HEADER}").text.contains("namespace lib {")
-        targetDir.file("src/main/cpp/${SAMPLE_LIB_CLASS}").text.contains("my::lib::")
-        targetDir.file("src/test/cpp/${SAMPLE_LIB_TEST_CLASS}").text.contains("my::lib::")
-
-        and:
-        succeeds("build")
-
-        and:
-        library("build/lib/main/debug/hello").assertExists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
 
     @Unroll
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {

@@ -10,9 +10,9 @@
 
 #include <string>
 
-${namespaceOpen.statement}
-${namespaceIndent.groovyString}class Greeter {
-${namespaceIndent.groovyString}    public:
-${namespaceIndent.groovyString}    std::string EXPORT_FUNC greeting();
-${namespaceIndent.groovyString}};
-${namespaceClose.statement}
+namespace ${namespace.groovyString} {
+    class Greeter {
+        public:
+        std::string EXPORT_FUNC greeting();
+    };
+}

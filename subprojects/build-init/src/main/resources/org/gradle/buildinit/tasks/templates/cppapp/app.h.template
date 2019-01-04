@@ -3,9 +3,9 @@
  */
 #include <string>
 
-${namespaceOpen.statement}
-${namespaceIndent.groovyString}class Greeter {
-${namespaceIndent.groovyString}    public:
-${namespaceIndent.groovyString}    std::string greeting();
-${namespaceIndent.groovyString}};
-${namespaceClose.statement}
+namespace ${namespace.groovyString} {
+    class Greeter {
+        public:
+        std::string greeting();
+    };
+}

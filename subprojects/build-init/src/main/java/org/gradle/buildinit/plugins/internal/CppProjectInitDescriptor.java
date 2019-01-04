@@ -22,6 +22,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
+import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
+
 public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     public CppProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
         super("cpp", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
@@ -58,55 +60,21 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
     }
 
+    @Override
+    public boolean supportsPackage() {
+        return false;
+    }
+
     TemplateOperation fromCppTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
         String targetFileName = template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
-        String namespacePrefix = "";
-        NamespaceDeclaration namespace = NamespaceDeclaration.empty();
-        if (settings != null && !settings.getPackageName().isEmpty()) {
-            namespace = NamespaceDeclaration.from(settings.getPackageName());
-            namespacePrefix = settings.getPackageName() + "::";
+        String namespace = "";
+        if (settings != null && !settings.getProjectName().isEmpty()) {
+            namespace = toNamespace(settings.getProjectName());
         }
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
             .withTarget("src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName)
-            .withBinding("namespaceOpen", namespace.opening)
-            .withBinding("namespaceClose", namespace.closing)
-            .withBinding("namespaceIndent", namespace.indent)
-            .withBinding("namespacePrefix", namespacePrefix)
+            .withBinding("namespace", namespace)
             .create();
-    }
-
-    static class NamespaceDeclaration {
-        static String tab = "    ";
-        final String opening;
-        final String closing;
-        final String indent;
-
-        private NamespaceDeclaration(String opening, String closing, String indent) {
-            this.opening = opening;
-            this.closing = closing;
-            this.indent = indent;
-        }
-
-        static NamespaceDeclaration from(String namespace) {
-            String opening = "";
-            String closing = "";
-            String indent = "";
-
-            String[] components = namespace.split("::");
-            for (String component : components) {
-                opening += "\n" + indent + "namespace " + component + " {";
-                indent += tab;
-            }
-            for (int i=components.length; i>0; i--) {
-                closing += "\n" + indent.substring(0, (i-1)* tab.length()) + "}";
-            }
-
-            return new NamespaceDeclaration(opening, closing, indent);
-        }
-
-        static NamespaceDeclaration empty() {
-            return new NamespaceDeclaration("", "", "");
-        }
     }
 }

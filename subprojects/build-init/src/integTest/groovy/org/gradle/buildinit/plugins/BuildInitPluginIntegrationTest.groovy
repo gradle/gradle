@@ -267,7 +267,7 @@ include("child")
                     groovy
                     kotlin
 
-     --package     Set the package for source files when generating JVM projects or the namespace for source files when generating C++ projects.
+     --package     Set the package for source files.
 
      --project-name     Set the project name.
 

@@ -30,12 +30,17 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-application', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
         targetDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace some_thing {")
+        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("some_thing::")
+        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("some_thing::")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -44,16 +49,16 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
+        executable("build/exe/main/debug/some-thing").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "creates sample source with namespace and #scriptDsl build scripts"() {
+    def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--package', 'my::app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -61,13 +66,12 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace app {")
+        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("app::")
+        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("app::")
 
         and:
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace my {")
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace app {")
-        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("my::app::")
-        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("my::app::")
+        commonFilesGenerated(scriptDsl)
 
         and:
         succeeds("build")
