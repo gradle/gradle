@@ -62,8 +62,12 @@ public class DefaultSslContextFactory implements SslContextFactory {
         for (String prop : SSL_SYSTEM_PROPERTIES) {
             currentProperties.put(prop, System.getProperty(prop));
         }
-        currentProperties.put("java.home", SystemProperties.getInstance().getJavaHomeDir().getPath());
+        currentProperties.put("java.home", getJavaHomeDir());
         return currentProperties;
+    }
+
+    private String getJavaHomeDir() {
+        return SystemProperties.getInstance().withSystemProperties(() -> SystemProperties.getInstance().getJavaHomeDir().getPath());
     }
 
     private static class SslContextCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
