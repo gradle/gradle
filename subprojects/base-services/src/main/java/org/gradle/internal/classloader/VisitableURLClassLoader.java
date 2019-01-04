@@ -16,12 +16,15 @@
 
 package org.gradle.internal.classloader;
 
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
@@ -31,6 +34,28 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
         }
+    }
+
+    private final EnumMap<UserData, Object> userData = new EnumMap<UserData, Object>(UserData.class);
+
+    public enum UserData {
+        NAMED_OBJECT_INSTANTIATOR
+    }
+
+    /**
+     * This method can be used to store user data that should live among with this classloader
+     * @param user the consumer
+     * @param onMiss called to create the initial data, when not found
+     * @param <T> the type of data
+     * @return user data
+     */
+    public synchronized <T> T getUserData(UserData user, Factory<T> onMiss) {
+        if (userData.containsKey(user)) {
+            return Cast.uncheckedCast(userData.get(user));
+        }
+        T value = onMiss.create();
+        userData.put(user, value);
+        return value;
     }
 
     // TODO:lptr When we drop Java 8 support we can switch to using ClassLoader.getName() instead of storing our own
