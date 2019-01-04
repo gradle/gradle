@@ -27,6 +27,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.provider.MapProperty
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
@@ -108,6 +109,21 @@ class ObjectFactoryExtensionsTest {
 
         inOrder(objectFactory) {
             verify(objectFactory).listProperty(String::class.java)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun mapProperty() {
+
+        val objectFactory = mock<ObjectFactory> {
+            on { mapProperty(any<Class<*>>(), any<Class<*>>()) } doReturn mock<MapProperty<String, Int>>()
+        }
+
+        objectFactory.mapProperty<String, Int>()
+
+        inOrder(objectFactory) {
+            verify(objectFactory).mapProperty(String::class.java, Int::class.javaObjectType)
             verifyNoMoreInteractions()
         }
     }
