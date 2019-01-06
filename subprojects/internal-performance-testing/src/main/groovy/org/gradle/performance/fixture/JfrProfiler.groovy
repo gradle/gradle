@@ -16,13 +16,14 @@
 
 package org.gradle.performance.fixture
 
+
 import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.gradle.api.JavaVersion
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.performance.util.JCmd
-import org.gradle.util.CollectionUtils
 
 /**
  * Profiles performance test scenarios using the Java Flight Recorder.
@@ -49,7 +50,7 @@ class JfrProfiler extends Profiler implements Stoppable {
     }
 
     private static File createConfig() {
-        URL jfcResource = JfrProfiler.getResource("gradle.jfc")
+        URL jfcResource = JfrProfiler.getResource(JavaVersion.current().isJava9Compatible() ? "gradle-java9.jfc" : "gradle.jfc")
         File jfcFile = File.createTempFile("gradle", ".jfc")
         Resources.asByteSource(jfcResource).copyTo(Files.asByteSink(jfcFile))
         jfcFile.deleteOnExit()
@@ -64,7 +65,12 @@ class JfrProfiler extends Profiler implements Stoppable {
         if (!useDaemon(spec)) {
             flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=$config"
         }
-        CollectionUtils.stringize(["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"])
+        def opts = []
+        if (!JavaVersion.current().isJava11Compatible()) {
+            opts << "-XX:+UnlockCommercialFeatures"
+        }
+        opts += ["-XX:+FlightRecorder", "-XX:FlightRecorderOptions=" + flightRecordOptions, "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"]
+        opts
     }
 
     @Override

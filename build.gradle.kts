@@ -159,6 +159,13 @@ allprojects {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
+        maven {
+            name = "sonatype-snapshots"
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+            content {
+                includeGroup("org.openjdk.jmc")
+            }
+        }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
