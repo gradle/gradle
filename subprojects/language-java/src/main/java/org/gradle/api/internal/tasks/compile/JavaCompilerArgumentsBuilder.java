@@ -91,13 +91,21 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void validateCompilerArgs(List<String> compilerArgs) {
-        if (compilerArgs.contains("-sourcepath") || compilerArgs.contains("--source-path")) {
-            throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
-                "Use the `CompileOptions.sourcepath` property instead.");
-        }
-        if (compilerArgs.contains("-processorpath") || compilerArgs.contains("--processor-path")) {
-            throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
-                "Use the `CompileOptions.annotationProcessorPath` property instead.");
+        for (String arg : compilerArgs) {
+            if ("-sourcepath".equals(arg) || "--source-path".equals(arg)) {
+                throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.sourcepath` property instead.");
+            }
+
+            if ("-processorpath".equals(arg) || "--processor-path".equals(arg)) {
+                throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.annotationProcessorPath` property instead.");
+            }
+
+            if (arg != null && arg.startsWith("-J")) {
+                throw new InvalidUserDataException("Cannot specify -J flags via `CompileOptions.compilerArgs`. " +
+                    "Use the `CompileOptions.forkOptions.jvmArgs` property instead.");
+            }
         }
     }
 
