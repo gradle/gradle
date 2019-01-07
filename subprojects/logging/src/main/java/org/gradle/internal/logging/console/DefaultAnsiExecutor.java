@@ -26,21 +26,12 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import java.io.IOException;
 
 public class DefaultAnsiExecutor implements AnsiExecutor {
-    private static final NewLineListener NO_OP_LISTENER = new NoOpListener();
     private final Appendable target;
     private final ColorMap colorMap;
     private final AnsiFactory factory;
     private final ConsoleMetaData consoleMetaData;
     private final NewLineListener listener;
     private final Cursor writeCursor;
-
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData) {
-        this(target, colorMap, factory, consoleMetaData, new Cursor());
-    }
-
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor) {
-        this(target, colorMap, factory, consoleMetaData, writeCursor, NO_OP_LISTENER);
-    }
 
     public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor, NewLineListener listener) {
         this.target = target;
