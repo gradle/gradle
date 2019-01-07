@@ -21,7 +21,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -42,7 +41,7 @@ public class ClasspathUtil {
             for (URL url : classLoader.getURLs()) {
                 original.add(toURI(url));
             }
-            JavaMethod<URLClassLoader, Object> method = JavaReflectionUtil.method(URLClassLoader.class, Object.class, "addURL", URL.class);
+            JavaMethod<URLClassLoader, Object> method = JavaMethod.method(URLClassLoader.class, Object.class, "addURL", URL.class);
             for (URL classpathElement : classpathElements) {
                 if (original.add(toURI(classpathElement))) {
                     method.invoke(classLoader, classpathElement);

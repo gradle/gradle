@@ -24,7 +24,7 @@ import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
@@ -108,7 +108,7 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
 
     private String getViolations(GroovyObjectSupport antBuilder) {
         Object project = antBuilder.getProperty("project");
-        Hashtable<String, Object> properties = JavaReflectionUtil.method(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
+        Hashtable<String, Object> properties = JavaMethod.method(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
         return (String) properties.get(VIOLATIONS_ANT_PROPERTY);
     }
 }

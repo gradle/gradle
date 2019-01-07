@@ -179,36 +179,6 @@ public class JavaReflectionUtil {
         throw new IllegalArgumentException(String.format("Don't know the wrapper type for primitive type %s.", type));
     }
 
-    /**
-     * Locates the given method. Searches all methods, including private methods.
-     */
-    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
-        return new JavaMethod<T, R>(target, returnType, name, paramTypes);
-    }
-
-    /**
-     * Locates the given static method. Searches all methods, including private methods.
-     */
-    public static <T, R> JavaMethod<T, R> staticMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
-        return new JavaMethod<T, R>(target, returnType, name, true, paramTypes);
-    }
-
-    /**
-     * Locates the given method. Searches all methods, including private methods.
-     */
-    public static <T, R> JavaMethod<T, R> method(T target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
-        @SuppressWarnings("unchecked")
-        Class<T> targetClass = (Class<T>) target.getClass();
-        return method(targetClass, returnType, name, paramTypes);
-    }
-
-    /**
-     * Locates the given method. Searches all methods, including private methods.
-     */
-    public static <T, R> JavaMethod<T, R> method(Class<R> returnType, Method method) throws NoSuchMethodException {
-        return new JavaMethod<T, R>(returnType, method);
-    }
-
     public static Method findMethod(Class<?> target, Spec<Method> predicate) {
         List<Method> methods = findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
         return methods.isEmpty() ? null : methods.get(0);

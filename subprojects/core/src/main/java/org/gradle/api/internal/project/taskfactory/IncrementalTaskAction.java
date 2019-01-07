@@ -28,7 +28,7 @@ import org.gradle.internal.change.Change;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 
 import java.lang.reflect.Method;
 import java.util.function.Function;
@@ -70,7 +70,7 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
             });
 
         context.setTaskExecutedIncrementally(incrementalInputs.isIncremental());
-        JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
+        JavaMethod.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
     }
 
     private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
