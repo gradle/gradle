@@ -116,23 +116,6 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         void afterLineWrap(AnsiContext ansi, Cursor writeCursor);
     }
 
-    private static class NoOpListener implements NewLineListener {
-        @Override
-        public void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor) {
-
-        }
-
-        @Override
-        public void beforeLineWrap(AnsiContext ansi, Cursor writeCursor) {
-
-        }
-
-        @Override
-        public void afterLineWrap(AnsiContext ansi, Cursor writeCursor) {
-
-        }
-    }
-
     private class AnsiContextImpl implements AnsiContext {
         private final Ansi delegate;
         private final ColorMap colorMap;

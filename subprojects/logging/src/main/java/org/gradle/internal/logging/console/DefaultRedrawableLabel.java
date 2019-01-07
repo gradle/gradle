@@ -100,9 +100,11 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
     private void redrawText(AnsiContext ansi, int writtenTextLength) {
         int textLength = 0;
         for (StyledTextOutputEvent.Span span : spans) {
-            ansi.withStyle(span.getStyle(), writeText(span.getText()));
-
-            textLength += span.getText().length();
+            int length = span.getText().length();
+            if (length > 0) {
+                ansi.withStyle(span.getStyle(), writeText(span.getText()));
+                textLength += length;
+            }
         }
 
         if (previousWriteRow == absolutePositionRow && textLength < writtenTextLength) {
