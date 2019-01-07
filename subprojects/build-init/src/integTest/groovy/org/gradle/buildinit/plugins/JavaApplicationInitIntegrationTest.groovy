@@ -36,7 +36,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -65,7 +65,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_SPOCK_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -87,7 +87,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -109,7 +109,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants("my/app/AppTest.java")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -137,7 +137,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants("my/app/AppTest.groovy")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")

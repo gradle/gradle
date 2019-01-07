@@ -201,6 +201,30 @@ It has the following features:
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
 
+[[sec:cppapplication_]]
+=== `cpp-application` build init type
+
+The “`cpp-application`” build init type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`cpp-application`” plugin
+* Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
+* Has directories in the conventional locations for source code
+* Contains a sample C++ class, a private header file and an associated test class, if there are no existing source or test files
+
+[[sec:cpplibrary_]]
+=== `cpp-library` build init type
+
+The “`cpp-library`” build init type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`cpp-library`” plugin
+* Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
+* Has directories in the conventional locations for source code
+* Contains a sample C++ class, a public header file and an associated test class, if there are no existing source or test files
+
 [[sec:basic]]
 === `basic` build init type
 

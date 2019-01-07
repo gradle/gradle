@@ -28,6 +28,7 @@ dependencies {
     implementation(library("groovy"))
 
     implementation(project(":core"))
+    implementation(project(":platformNative"))
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
@@ -45,6 +46,7 @@ gradlebuildJava {
 
 testFixtures {
     from(":core")
+    from(":platformNative")
 }
 
 tasks {
