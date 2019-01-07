@@ -13,10 +13,10 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 
         val implementationDependency =
-            withFile("implementation.jar")
+            withJar("implementation.jar")
 
         val classpathDependency =
-            withFile("classpath.jar")
+            withJar("classpath.jar")
 
         withDefaultSettings()
 

@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.concurrent.future
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.customInstallation
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.withTestDaemon
@@ -170,6 +171,10 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     protected
     fun canonicalClassPath() =
         canonicalClassPathFor(projectRoot)
+
+    protected
+    fun withJar(named: String): File =
+        withClassJar(named, DeepThought::class.java)
 }
 
 

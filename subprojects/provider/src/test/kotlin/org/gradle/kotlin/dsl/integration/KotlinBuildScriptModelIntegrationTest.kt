@@ -283,10 +283,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     private
-    fun withJar(named: String): File =
-        withClassJar(named, DeepThought::class.java)
-
-    private
     fun String.withBuildscriptDependencyOn(file: File) =
         withFile(this, """
             buildscript {
