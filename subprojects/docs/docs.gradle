@@ -88,8 +88,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor("org.gradle:docs-asciidoctor-extensions:0.4.0")
-    asciidoctor("org.jruby:jruby-complete:9.2.5.0")
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
