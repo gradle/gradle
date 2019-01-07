@@ -269,7 +269,7 @@ Remember to run a full build regularly or at least when you're done, though.
 
 == Declare properties in `gradle.properties` file
 
-In Gradle, properties can be define in the build script, in a `gradle.properties` file or as parameters on the command line.
+In Gradle, properties can be defined in the build script, in a `gradle.properties` file or as parameters on the command line.
 
 It's common to declare properties on the command line for ad-hoc scenarios.
 For example you may want to pass in a specific property value to control runtime behavior just for this one invocation of the build.
