@@ -94,7 +94,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             .buildModel()
 
     private
-    fun scriptModelBuilderFor(modelRequestProject: ProjectInternal, parameter: KotlinBuildScriptModelParameter): KotlinScriptTargetModelBuilder {
+    fun scriptModelBuilderFor(
+        modelRequestProject: ProjectInternal,
+        parameter: KotlinBuildScriptModelParameter
+    ): KotlinScriptTargetModelBuilder {
 
         val scriptFile = parameter.scriptFile
             ?: return projectScriptModelBuilder(null, modelRequestProject)
@@ -125,7 +128,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String)
+            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String
+        )
 }
 
 
@@ -185,7 +189,9 @@ fun projectScriptModelBuilder(
     scriptFile = scriptFile,
     project = project,
     scriptClassPath = project.scriptCompilationClassPath,
-    accessorsClassPath = { classPath -> projectAccessorsClassPath(project, classPath) + pluginAccessorsClassPath(project) },
+    accessorsClassPath = { classPath ->
+        projectAccessorsClassPath(project, classPath) + pluginAccessorsClassPath(project)
+    },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
 )
@@ -207,7 +213,8 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler))
+        sourceLookupScriptHandlers = listOf(scriptHandler)
+    )
 }
 
 
@@ -240,7 +247,8 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler, settings.buildscript))
+        sourceLookupScriptHandlers = listOf(scriptHandler, settings.buildscript)
+    )
 }
 
 
@@ -279,15 +287,15 @@ fun compilationClassPathForScriptPluginOf(
     val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}")
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
-    kotlinScriptFactoryOf(project)
-        .evaluate(
-            target = target,
-            scriptSource = scriptSource,
-            scriptHandler = scriptHandler,
-            targetScope = scriptScope,
-            baseScope = baseScope,
-            topLevelScript = false,
-            options = EnumSet.of(EvalOption.IgnoreErrors, EvalOption.SkipBody))
+    kotlinScriptFactoryOf(project).evaluate(
+        target = target,
+        scriptSource = scriptSource,
+        scriptHandler = scriptHandler,
+        targetScope = scriptScope,
+        baseScope = baseScope,
+        topLevelScript = false,
+        options = EnumSet.of(EvalOption.IgnoreErrors, EvalOption.SkipBody)
+    )
 
     return scriptHandler to project.compilationClassPathOf(scriptScope)
 }
