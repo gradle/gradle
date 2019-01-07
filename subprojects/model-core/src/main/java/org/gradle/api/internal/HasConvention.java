@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.Internal;
 
 /**
  * Demarcates objects that expose a convention.
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Internal;
  */
 public interface HasConvention {
 
-    @Internal
     Convention getConvention();
 
 }

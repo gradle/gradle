@@ -485,6 +485,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return extensibleDynamicObject.getConvention();
     }
 
+    @Internal
     @Override
     public ExtensionContainer getExtensions() {
         return getConvention();
