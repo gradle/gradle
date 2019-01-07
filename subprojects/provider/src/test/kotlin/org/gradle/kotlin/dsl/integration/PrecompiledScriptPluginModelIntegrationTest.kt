@@ -12,37 +12,41 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
     @Test
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 
-        val implementationDependency =
-            withFile("implementation.jar")
+        withProjectRoot(newDir("single-project-build")) {
 
-        val classpathDependency =
-            withFile("classpath.jar")
+            val implementationDependency =
+                withFile("implementation.jar")
 
-        withDefaultSettings()
+            val classpathDependency =
+                withFile("classpath.jar")
 
-        withBuildScript("""
-            plugins {
-                `kotlin-dsl`
-            }
+            withDefaultSettings()
 
-            buildscript {
-                dependencies {
-                    classpath(files("${classpathDependency.name}"))
+            withBuildScript("""
+                plugins {
+                    `kotlin-dsl`
                 }
-            }
 
-            dependencies {
-                implementation(files("${implementationDependency.name}"))
-            }
-        """)
+                buildscript {
+                    dependencies {
+                        classpath(files("${classpathDependency.name}"))
+                    }
+                }
 
-        val precompiledScriptPlugin =
-            withFile("src/main/kotlin/my-plugin.gradle.kts")
+                dependencies {
+                    implementation(files("${implementationDependency.name}"))
+                }
+            """)
 
-        assertClassPathFor(
-            precompiledScriptPlugin,
-            includes = setOf(implementationDependency),
-            excludes = setOf(classpathDependency))
+            val precompiledScriptPlugin =
+                withFile("src/main/kotlin/my-plugin.gradle.kts")
+
+            assertClassPathFor(
+                precompiledScriptPlugin,
+                includes = setOf(implementationDependency),
+                excludes = setOf(classpathDependency)
+            )
+        }
     }
 
     @Test
