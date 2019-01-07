@@ -31,6 +31,7 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
+import org.gradle.internal.logging.console.FlushConsoleListener;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
@@ -268,8 +269,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
         } else if (stderrAttachedToConsole) {
             OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener));
-            OutputEventListener consoleListener = new ErrorOutputDispatchingListener(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), stdoutChain, false);
-            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
+            OutputEventListener stderrChain = new FlushConsoleListener(console, new StyledTextOutputBackedRenderer(console.getBuildOutputArea()));
+            consoleChain = getPlainConsoleChain(stdoutChain, stderrChain, false, verbose);
         } else {
             consoleChain = getPlainConsoleChain(outputListener, errorListener, false, verbose);
         }
@@ -295,21 +296,20 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addPlainConsole(boolean redirectStderr) {
-        return addConsoleChain(getPlainConsoleChain(redirectStderr));
+        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable) originalStdErr), redirectStderr);
     }
 
     private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr) {
         return addConsoleChain(getPlainConsoleChain(outputListener, errorListener, redirectStderr, true));
     }
 
-    private OutputEventListener getPlainConsoleChain(boolean redirectStderr) {
-        return getPlainConsoleChain(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable) originalStdErr), redirectStderr, true);
-    }
-
     private OutputEventListener getPlainConsoleChain(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr, boolean verbose) {
         final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)));
         final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
+        return getPlainConsoleChain(stdoutChain, stderrChain, redirectStderr, verbose);
+    }
 
+    private OutputEventListener getPlainConsoleChain(OutputEventListener stdoutChain, OutputEventListener stderrChain, boolean redirectStderr, boolean verbose) {
         return throttled(
             new BuildLogLevelFilterRenderer(
                 new GroupingProgressLogEventGenerator(
