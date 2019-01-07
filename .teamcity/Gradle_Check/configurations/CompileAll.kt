@@ -23,7 +23,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     applyDefaults(
         model,
         this,
-        ":createBuildReceipt -PignoreIncomingBuildReceipt=true compileAll",
+        "compileAllBuild -PignoreIncomingBuildReceipt=true",
         extraParameters = buildScanTag("CompileAll")
     )
 
