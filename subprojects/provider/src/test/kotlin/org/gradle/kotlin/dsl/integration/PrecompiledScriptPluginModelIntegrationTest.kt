@@ -12,41 +12,37 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
     @Test
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 
-        withProjectRoot(newDir("single-project-build")) {
+        val implementationDependency =
+            withFile("implementation.jar")
 
-            val implementationDependency =
-                withFile("implementation.jar")
+        val classpathDependency =
+            withFile("classpath.jar")
 
-            val classpathDependency =
-                withFile("classpath.jar")
+        withDefaultSettings()
 
-            withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `kotlin-dsl`
+            }
 
-            withBuildScript("""
-                plugins {
-                    `kotlin-dsl`
-                }
-
-                buildscript {
-                    dependencies {
-                        classpath(files("${classpathDependency.name}"))
-                    }
-                }
-
+            buildscript {
                 dependencies {
-                    implementation(files("${implementationDependency.name}"))
+                    classpath(files("${classpathDependency.name}"))
                 }
-            """)
+            }
 
-            val precompiledScriptPlugin =
-                withFile("src/main/kotlin/my-plugin.gradle.kts")
+            dependencies {
+                implementation(files("${implementationDependency.name}"))
+            }
+        """)
 
-            assertClassPathFor(
-                precompiledScriptPlugin,
-                includes = setOf(implementationDependency),
-                excludes = setOf(classpathDependency)
-            )
-        }
+        val precompiledScriptPlugin =
+            withFile("src/main/kotlin/my-plugin.gradle.kts")
+
+        assertClassPathFor(
+            precompiledScriptPlugin,
+            includes = setOf(implementationDependency),
+            excludes = setOf(classpathDependency))
     }
 
     @Test
