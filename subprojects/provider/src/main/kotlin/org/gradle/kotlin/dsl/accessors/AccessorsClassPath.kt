@@ -24,6 +24,10 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.Hashing
+
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 
@@ -464,26 +468,37 @@ val accessorsCacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl-accesso
 private
 fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
     (accessorsCacheKeyPrefix
-        + projectSchema.toCacheKeyString()
+        + hashCodeFor(projectSchema)
         + classPath)
 
 
 internal
-fun TypedProjectSchema.toCacheKeyString(): String =
-    (cacheKeyPartsFor(extensions)
-        + cacheKeyPartsFor(conventions)
-        // + cacheKeyPartsFor(tasks) // TODO:accessors - add missing test case
-        // + cacheKeyPartsFor(containerElements) // TODO:accessors - add missing test case
-        + Pair("configuration", configurations.sorted().joinToString(",")))
-        .map { "${it.first}=${it.second}" }
-        .sorted()
-        .joinToString(separator = ":")
+fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
+    putAll(schema.extensions)
+    putAll(schema.conventions)
+    putAll(schema.tasks)
+    putAll(schema.containerElements)
+    putAllSorted(schema.configurations)
+    hash()
+}
 
 
 private
-fun cacheKeyPartsFor(schemaEntries: List<ProjectSchemaEntry<SchemaType>>) =
-    schemaEntries.asSequence()
-        .map { "${it.target.kotlinString}.${it.name}" to it.type.kotlinString }
+fun Hasher.putAllSorted(strings: List<String>) {
+    putInt(strings.size)
+    strings.sorted().forEach(::putString)
+}
+
+
+private
+fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
+    putInt(entries.size)
+    entries.forEach { entry ->
+        putString(entry.target.kotlinString)
+        putString(entry.name)
+        putString(entry.type.kotlinString)
+    }
+}
 
 
 private
