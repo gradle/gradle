@@ -93,7 +93,7 @@ public class ModuleLibrary implements Dependency {
     }
 
     /**
-     * The scope of this library. If <code>null</code>, the scope attribute is not added.
+     * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
      */
     public String getScope() {
         return scope;

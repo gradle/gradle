@@ -195,17 +195,17 @@ public class IdeaModule {
      * <p>
      * <b>since</b> 1.0-milestone-2
      * <p>
-     * If your project has problems with unique names it is recommended to always run <code>gradle idea</code> from the
+     * If your project has problems with unique names it is recommended to always run <tt>gradle idea</tt> from the
      * root, i.e. for all subprojects.
      * If you run the generation of the IDEA module only for a single subproject then you may have different results
      * because the unique names are calculated based on IDEA modules that are involved in the specific build run.
      * <p>
-     * If you update the module names then make sure you run <code>gradle idea</code> from the root, e.g. for all
+     * If you update the module names then make sure you run <tt>gradle idea</tt> from the root, e.g. for all
      * subprojects, including generation of IDEA project.
      * The reason is that there may be subprojects that depend on the subproject with amended module name.
      * So you want them to be generated as well because the module dependencies need to refer to the amended project
      * name.
-     * Basically, for non-trivial projects it is recommended to always run <code>gradle idea</code> from the root.
+     * Basically, for non-trivial projects it is recommended to always run <tt>gradle idea</tt> from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
