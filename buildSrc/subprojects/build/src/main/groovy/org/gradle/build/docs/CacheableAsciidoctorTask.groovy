@@ -32,12 +32,6 @@ import org.gradle.api.tasks.util.PatternSet
 
 @CacheableTask
 class CacheableAsciidoctorTask extends AsciidoctorTask {
-    @Optional
-    @Input
-    Map getAttributes() {
-        println("attrs: " + super.getAttributes())
-        super.getAttributes()
-    }
 
     @Internal
     @Override
