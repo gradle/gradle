@@ -51,11 +51,11 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
-        1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
-        1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
+        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, _)
+        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, _)
         1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == NestedBean })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
-        1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
+        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _)
 
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'outputFile' && it.value.call().path == 'output' })
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'bean.outputDir' && it.value.call().path == 'outputDir' })
@@ -193,7 +193,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == "nested" })
         1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
-        1 * visitor.visitInputFileProperty({ it.propertyName == "nested.inputDir" })
+        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _)
         1 * visitor.visitOutputFileProperty({ it.propertyName == "nested.outputDir" })
 
         0 * _
@@ -227,6 +227,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task, TestFiles.resolver())
     }
 }

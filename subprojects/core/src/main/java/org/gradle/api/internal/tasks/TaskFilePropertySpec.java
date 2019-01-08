@@ -22,4 +22,5 @@ import org.gradle.api.tasks.FileNormalizer;
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
     Class<? extends FileNormalizer> getNormalizer();
+    boolean isOptional();
 }

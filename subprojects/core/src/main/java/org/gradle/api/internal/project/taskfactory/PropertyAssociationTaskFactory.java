@@ -20,13 +20,15 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.reflect.Instantiator;
 
 public class PropertyAssociationTaskFactory implements ITaskFactory {
@@ -63,7 +65,7 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
             throw new UnsupportedOperationException();
         }
 

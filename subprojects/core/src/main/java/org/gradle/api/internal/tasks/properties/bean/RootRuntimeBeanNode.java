@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -28,7 +29,7 @@ public class RootRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
-        visitProperties(visitor, specFactory, queue, nodeFactory);
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, FileResolver resolver) {
+        visitProperties(visitor, specFactory, queue, nodeFactory, resolver);
     }
 }

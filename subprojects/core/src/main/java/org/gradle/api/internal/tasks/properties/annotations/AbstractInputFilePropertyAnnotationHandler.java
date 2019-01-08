@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.PathSensitive;
@@ -38,7 +40,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, FileResolver fileResolver, BeanPropertyContext context) {
         PathSensitive pathSensitive = propertyMetadata.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
@@ -48,16 +50,14 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         } else {
             pathSensitivity = pathSensitive.value();
         }
-        DeclaredTaskInputFileProperty fileSpec = createFileSpec(value, specFactory);
-        fileSpec
-            .withPropertyName(propertyName)
-            .withPathSensitivity(pathSensitivity)
-            .skipWhenEmpty(propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class))
-            .optional(isOptional(propertyMetadata));
-        visitor.visitInputFileProperty(fileSpec);
+        visitor.visitInputFileProperty(propertyName, isOptional(propertyMetadata), propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class), AbstractInputFilePropertySpec.determineNormalizerForPathSensitivity(pathSensitivity), wrapValue(value, fileResolver), getValidationAction());
     }
 
-    protected abstract DeclaredTaskInputFileProperty createFileSpec(ValidatingValue propertyValue, PropertySpecFactory specFactory);
+    protected ValidatingValue wrapValue(ValidatingValue value, FileResolver fileResolver) {
+        return value;
+    }
+
+    protected abstract ValidationAction getValidationAction();
 
     protected static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);

@@ -15,11 +15,16 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.Task;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.tasks.InputDirectory;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
@@ -28,7 +33,44 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
     }
 
     @Override
-    protected DeclaredTaskInputFileProperty createFileSpec(ValidatingValue value, PropertySpecFactory specFactory) {
-        return specFactory.createInputDirSpec(value);
+    protected ValidatingValue wrapValue(ValidatingValue value, FileResolver fileResolver) {
+        FileTreeInternal fileTree = fileResolver.resolveFilesAsTree(value);
+        return new FileTreeValue(value, fileTree);
+    }
+
+    @Override
+    protected ValidationAction getValidationAction() {
+        return ValidationActions.INPUT_DIRECTORY_VALIDATOR;
+    }
+
+    private static class FileTreeValue implements ValidatingValue {
+        private final ValidatingValue delegate;
+        private final FileTreeInternal fileTree;
+
+        public FileTreeValue(ValidatingValue delegate, FileTreeInternal fileTree) {
+            this.delegate = delegate;
+            this.fileTree = fileTree;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return fileTree;
+        }
+
+        @Override
+        public void attachProducer(Task producer) {
+            delegate.attachProducer(producer);
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            delegate.maybeFinalizeValue();
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            delegate.validate(propertyName, optional, valueValidator, context);
+        }
     }
 }

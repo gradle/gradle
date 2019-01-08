@@ -17,41 +17,27 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertySpec;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
 @NonNullApi
-public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFileProperty {
+public class DefaultDeclaredTaskInputFileProperty extends AbstractInputFilePropertySpec implements DeclaredTaskInputFileProperty {
 
-    private final ValidatingValue value;
-    private final ValidationAction validationAction;
-    private final TaskPropertyFileCollection files;
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
-    private LifecycleAwareTaskProperty lifecycleAware;
 
-    public DefaultTaskInputFilePropertySpec(String taskDisplayName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
-        this.value = value;
-        this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskDisplayName, "input", this, resolver, value);
+    public DefaultDeclaredTaskInputFileProperty(String taskDisplayName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
+        super(taskDisplayName, resolver, value, validationAction);
     }
 
     @Override
     public String getPropertyName() {
         return propertyName;
-    }
-
-    @Override
-    public FileCollection getPropertyFiles() {
-        return files;
     }
 
     @Override
@@ -105,53 +91,5 @@ public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFilePr
     @Override
     public Class<? extends FileNormalizer> getNormalizer() {
         return normalizer;
-    }
-
-    @Override
-    public void validate(TaskValidationContext context) {
-        value.validate(getPropertyName(), optional, validationAction, context);
-    }
-
-    @Override
-    public String toString() {
-        return getPropertyName() + " (" + normalizer.getSimpleName().replace("Normalizer", "") + ")";
-    }
-
-    @Override
-    public int compareTo(TaskPropertySpec o) {
-        return getPropertyName().compareTo(o.getPropertyName());
-    }
-
-    @Override
-    public void prepareValue() {
-        value.maybeFinalizeValue();
-        Object obj = value.call();
-        // TODO - move this to ValidatingValue instead
-        if (obj instanceof LifecycleAwareTaskProperty) {
-            lifecycleAware = (LifecycleAwareTaskProperty) obj;
-            lifecycleAware.prepareValue();
-        }
-    }
-
-    @Override
-    public void cleanupValue() {
-        if (lifecycleAware != null) {
-            lifecycleAware.cleanupValue();
-        }
-    }
-
-    private Class<? extends FileNormalizer> determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
-        switch (pathSensitivity) {
-            case NONE:
-                return IgnoredPathInputNormalizer.class;
-            case NAME_ONLY:
-                return NameOnlyInputNormalizer.class;
-            case RELATIVE:
-                return RelativePathInputNormalizer.class;
-            case ABSOLUTE:
-                return AbsolutePathInputNormalizer.class;
-            default:
-                throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
-        }
     }
 }

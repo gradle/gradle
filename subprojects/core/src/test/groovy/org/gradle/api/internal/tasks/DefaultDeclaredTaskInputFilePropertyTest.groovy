@@ -20,11 +20,11 @@ import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
 
-class DefaultTaskInputFilePropertySpecTest extends Specification {
+class DefaultDeclaredTaskInputFilePropertyTest extends Specification {
     def "notifies property value of start and end of task execution when it implements lifecycle interface"() {
         def value = Mock(LifecycleAwareTaskProperty)
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultTaskInputFilePropertySpec("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
+        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
 
         given:
         valueWrapper.call() >> value
@@ -46,7 +46,7 @@ class DefaultTaskInputFilePropertySpecTest extends Specification {
 
     def "does not notify null property value"() {
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultTaskInputFilePropertySpec("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
+        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
 
         given:
         valueWrapper.call() >> null
@@ -61,7 +61,7 @@ class DefaultTaskInputFilePropertySpecTest extends Specification {
 
     def "does not notify property value that does not implement lifecycle interface"() {
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultTaskInputFilePropertySpec("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
+        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, Stub(ValidationAction))
 
         given:
         valueWrapper.call() >> "thing"

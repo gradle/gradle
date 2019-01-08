@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
@@ -35,12 +36,15 @@ import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -66,7 +70,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
-        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor();
+        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(resolver, task.toString());
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
@@ -262,8 +266,43 @@ public class DefaultTaskProperties implements TaskProperties {
         private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
 
         @Override
-        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-            taskPropertySpecs.add((ValidatingTaskPropertySpec) inputFileProperty);
+        public void visitInputFileProperty(final String propertyName, final boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, final ValidatingValue value, final ValidationAction validationAction) {
+            taskPropertySpecs.add(new ValidatingTaskPropertySpec() {
+                private LifecycleAwareTaskProperty lifecycleAware;
+
+                @Override
+                public void prepareValue() {
+                    value.maybeFinalizeValue();
+                    Object obj = value.call();
+                    // TODO - move this to ValidatingValue instead
+                    if (obj instanceof LifecycleAwareTaskProperty) {
+                        lifecycleAware = (LifecycleAwareTaskProperty) obj;
+                        lifecycleAware.prepareValue();
+                    }
+                }
+
+                @Override
+                public void cleanupValue() {
+                    if (lifecycleAware != null) {
+                        lifecycleAware.cleanupValue();
+                    }
+                }
+
+                @Override
+                public int compareTo(TaskPropertySpec o) {
+                    return getPropertyName().compareTo(o.getPropertyName());
+                }
+
+                @Override
+                public String getPropertyName() {
+                    return propertyName;
+                }
+
+                @Override
+                public void validate(TaskValidationContext context) {
+                    value.validate(propertyName, optional, validationAction, context);
+                }
+            });
         }
 
         @Override

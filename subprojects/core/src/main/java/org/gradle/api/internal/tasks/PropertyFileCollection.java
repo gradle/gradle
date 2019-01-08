@@ -20,16 +20,16 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.internal.file.PathToFileResolver;
 
-public class TaskPropertyFileCollection extends CompositeFileCollection {
-    private final String taskDisplayName;
+public class PropertyFileCollection extends CompositeFileCollection {
+    private final String ownerDisplayName;
     private final String type;
     private final TaskFilePropertySpec property;
     private final PathToFileResolver resolver;
     private final Object paths;
     private String displayName;
 
-    public TaskPropertyFileCollection(String taskDisplayName, String type, TaskFilePropertySpec property, PathToFileResolver resolver, Object paths) {
-        this.taskDisplayName = taskDisplayName;
+    public PropertyFileCollection(String ownerDisplayName, String type, TaskFilePropertySpec property, PathToFileResolver resolver, Object paths) {
+        this.ownerDisplayName = ownerDisplayName;
         this.type = type;
         this.property = property;
         this.resolver = resolver;
@@ -43,7 +43,7 @@ public class TaskPropertyFileCollection extends CompositeFileCollection {
     @Override
     public String getDisplayName() {
         if (displayName == null) {
-            displayName = type + " files for " + taskDisplayName + " property '" + property.getPropertyName() + "'";
+            displayName = type + " files for " + ownerDisplayName + " property '" + property.getPropertyName() + "'";
         }
         return displayName;
     }

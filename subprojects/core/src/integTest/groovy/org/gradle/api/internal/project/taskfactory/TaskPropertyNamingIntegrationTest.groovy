@@ -78,11 +78,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
                 doLast {
                     def outputFiles = []
-                    def inputFiles = []
+                    def inputFiles = [:]
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            inputFiles << inputFileProperty
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+                            inputFiles[propertyName] = project.files(value)
                         }
 
                         @Override
@@ -90,8 +90,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                             outputFiles << outputFileProperty
                         }
                     })
-                    inputFiles.each { property ->
-                        println "Input: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
+                    inputFiles.each { propertyName, value ->
+                        println "Input: \${propertyName} \${value.files*.name.sort()}"
                     }
                     outputs.fileProperties.each { property ->
                         println "Output: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
@@ -398,8 +398,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            println "Input file property '\${inputFileProperty.propertyName}'"
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+                            println "Input file property '\${propertyName}'"
                         }
 
                         @Override

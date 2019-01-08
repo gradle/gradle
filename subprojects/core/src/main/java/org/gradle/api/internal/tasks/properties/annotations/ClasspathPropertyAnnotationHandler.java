@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -54,12 +56,14 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(value);
-        fileSpec
-            .withPropertyName(propertyName)
-            .withNormalizer(ClasspathNormalizer.class)
-            .optional(isOptional(propertyMetadata));
-        visitor.visitInputFileProperty(fileSpec);
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, FileResolver fileResolver, BeanPropertyContext context) {
+        visitor.visitInputFileProperty(
+            propertyName,
+            isOptional(propertyMetadata),
+            propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            ClasspathNormalizer.class,
+            value,
+            ValidationActions.NO_OP
+        );
     }
 }

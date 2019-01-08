@@ -71,7 +71,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * outputs.setPreviousOutputFiles(_)
         1 * task.getProject() >> project
         1 * project.getFileResolver() >> resolver
-        1 * propertyWalker.visitProperties(_, _, task)
+        1 * propertyWalker.visitProperties(_, _, task, _)
         1 * inputs.visitRegisteredProperties(_)
         1 * outputs.visitRegisteredProperties(_)
 

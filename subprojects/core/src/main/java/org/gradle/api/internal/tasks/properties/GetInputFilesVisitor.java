@@ -20,22 +20,30 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<TaskInputFilePropertySpec> specs = Lists.newArrayList();
+    private final PathToFileResolver resolver;
+    private final String ownerDisplayName;
     private boolean hasSourceFiles;
 
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor() {
+    public GetInputFilesVisitor(PathToFileResolver fileResolver, String ownerDisplayName) {
+        this.resolver = fileResolver;
+        this.ownerDisplayName = ownerDisplayName;
     }
 
     @Override
-    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-        specs.add(inputFileProperty);
-        if (inputFileProperty.isSkipWhenEmpty()) {
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+        specs.add(new DefaultTaskInputFilePropertySpec(ownerDisplayName, propertyName, resolver, value, validationAction, skipWhenEmpty, optional, fileNormalizer));
+        if (skipWhenEmpty) {
             hasSourceFiles = true;
         }
     }

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.tasks.FileNormalizer;
 
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
@@ -37,7 +39,7 @@ public interface PropertyVisitor {
      */
     boolean visitOutputFilePropertiesOnly();
 
-    void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty);
+    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction);
 
     void visitInputProperty(TaskInputPropertySpec inputProperty);
 
@@ -54,7 +56,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
         }
 
         @Override

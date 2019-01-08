@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -35,8 +36,9 @@ public class TaskPropertyUtils {
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
-        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
-        propertyWalker.visitProperties(specFactory, visitor, task);
+        FileResolver fileResolver = ((ProjectInternal) task.getProject()).getFileResolver();
+        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, fileResolver);
+        propertyWalker.visitProperties(specFactory, visitor, task, fileResolver);
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);
         }

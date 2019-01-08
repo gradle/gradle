@@ -51,7 +51,7 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.toString(), resolver, paths, validationAction);
+        return new DefaultDeclaredTaskInputFileProperty(task.toString(), resolver, paths, validationAction);
     }
 
     @Override

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.tasks.FileNormalizer;
 
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;
@@ -40,9 +42,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputFileProperty(inputFileProperty);
+            visitor.visitInputFileProperty(propertyName, optional, skipWhenEmpty, fileNormalizer, value, validationAction);
         }
     }
 

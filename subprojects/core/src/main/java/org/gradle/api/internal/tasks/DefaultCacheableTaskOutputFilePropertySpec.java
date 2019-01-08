@@ -27,7 +27,7 @@ import java.io.File;
 
 @NonNullApi
 public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec, DeclaredTaskOutputFileProperty {
-    private final TaskPropertyFileCollection files;
+    private final PropertyFileCollection files;
     private final TreeType outputType;
     private final PathToFileResolver resolver;
     private final ValidatingValue value;
@@ -38,7 +38,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
         this.outputType = outputType;
         this.value = value;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
+        this.files = new PropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 
     @Override

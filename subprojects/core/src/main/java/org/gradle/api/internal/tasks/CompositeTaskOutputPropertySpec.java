@@ -144,6 +144,6 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
+        return new PropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 }

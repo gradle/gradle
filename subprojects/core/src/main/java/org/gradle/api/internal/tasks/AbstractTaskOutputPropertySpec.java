@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
 @NonNullApi
-abstract class AbstractTaskOutputPropertySpec implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
+abstract class AbstractTaskOutputPropertySpec implements TaskOutputFilePropertySpec, TaskOutputFilePropertyBuilder {
 
     private String propertyName;
     private boolean optional;
@@ -38,7 +38,8 @@ abstract class AbstractTaskOutputPropertySpec implements TaskPropertySpec, TaskO
         return propertyName;
     }
 
-    protected boolean isOptional() {
+    @Override
+    public boolean isOptional() {
         return optional;
     }
 

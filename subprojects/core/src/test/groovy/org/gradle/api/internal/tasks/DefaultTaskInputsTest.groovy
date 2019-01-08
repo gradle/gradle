@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.tasks.FileNormalizer
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.util.UsesNativeServices
 import spock.lang.Issue
@@ -65,7 +66,7 @@ class DefaultTaskInputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver), resolver)
 
     def "default values"() {
         expect:
@@ -299,8 +300,8 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(TaskInputFilePropertySpec property) {
-                names += property.propertyName
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+                names += propertyName
             }
         })
         then:
@@ -317,7 +318,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def inputFileProperties() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor()
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(resolver, task.toString())
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return visitor.getFileProperties()
     }
