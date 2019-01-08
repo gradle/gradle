@@ -457,7 +457,7 @@ It depends on how they have been published and, specifically, whether they have 
 
 For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and — at least up to version 3.2.0 of the plugin — the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
 
-If your build is a multi-project build and you don't need to apply such a plugin to your _root_ project, then you can get round this issue using the technique described <<kotlin_dsl#sec:multi_project_builds_applying_plugins,described above>>.
+If your build is a multi-project build and you don't need to apply such a plugin to your _root_ project, then you can get round this issue using the technique <<kotlin_dsl#sec:multi_project_builds_applying_plugins,described above>>.
 For any other situation, keep reading.
 
 [TIP]
