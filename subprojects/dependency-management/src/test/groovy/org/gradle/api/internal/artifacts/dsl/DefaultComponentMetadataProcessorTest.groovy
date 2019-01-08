@@ -76,7 +76,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
 
     MetadataResolutionContext context = Mock()
     def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())

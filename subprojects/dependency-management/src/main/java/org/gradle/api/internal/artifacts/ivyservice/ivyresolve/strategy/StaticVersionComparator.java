@@ -66,7 +66,11 @@ class StaticVersionComparator implements Comparator<Version> {
                 return -1;
             }
             if (is1Number && is2Number) {
-                return numericPart1.compareTo(numericPart2);
+                int result = numericPart1.compareTo(numericPart2);
+                if (result == 0) {
+                    continue;
+                }
+                return result;
             }
             // both are strings, we compare them taking into account special meaning
             Integer sm1 = SPECIAL_MEANINGS.get(part1.toLowerCase(Locale.US));

@@ -40,7 +40,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def displayName = Describables.of("<config>")
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts
-    }, parentAttributes, TestUtil.instantiatorFactory().decorate(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, CollectionCallbackActionDecorator.NOOP)
+    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

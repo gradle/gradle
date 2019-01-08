@@ -24,7 +24,7 @@ import spock.lang.Subject
 
 class DefaultAuthenticationContainerTest extends Specification {
     @Subject
-    def container = new DefaultAuthenticationContainer(TestUtil.instantiatorFactory().decorate(), CollectionCallbackActionDecorator.NOOP)
+    def container = new DefaultAuthenticationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         container.registerBinding(TestAuthentication, DefaultTestAuthentication)

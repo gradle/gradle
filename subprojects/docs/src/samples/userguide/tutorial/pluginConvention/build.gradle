@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 sourceSets.main.java.outputDir = file("$buildDir/output/classes")
 
-tasks.register("show") {
+task show {
     doLast {
         println relativePath(compileJava.destinationDir)
     }

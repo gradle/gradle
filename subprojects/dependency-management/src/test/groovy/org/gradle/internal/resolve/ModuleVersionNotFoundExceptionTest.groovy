@@ -155,8 +155,10 @@ Versions that do not match:
   - 0.9
   - 0.10
 Versions rejected by attribute matching:
-  - 1.1: Attribute 'color' didn't match. Requested 'red', was: 'blue'
-  - 1.0: Attribute 'color' didn't match. Requested 'red', was: 'green'
+  - 1.1:
+      - Attribute 'color' didn't match. Requested 'red', was: 'blue'
+  - 1.0:
+      - Attribute 'color' didn't match. Requested 'red', was: 'green'
 Searched in the following locations:
   - http://somewhere
   - file:/somewhere""")

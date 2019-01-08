@@ -23,6 +23,6 @@ dependencies {
 
 mainClassName = 'org.gradle.samples.app.Main'
 
-tasks.named("run") {
+run {
     standardInput = System.in
 }

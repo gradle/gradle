@@ -16,14 +16,14 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import net.rubygrapefruit.platform.Terminal;
+import net.rubygrapefruit.platform.terminal.TerminalOutput;
 
 public class NativePlatformConsoleMetaData implements ConsoleMetaData {
     private final boolean stdout;
     private final boolean stderr;
-    private final Terminal terminal;
+    private final TerminalOutput terminal;
 
-    public NativePlatformConsoleMetaData(boolean stdout, boolean stderr, Terminal terminal) {
+    public NativePlatformConsoleMetaData(boolean stdout, boolean stderr, TerminalOutput terminal) {
         this.stdout = stdout;
         this.stderr = stderr;
         this.terminal = terminal;

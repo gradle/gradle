@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Set;
 

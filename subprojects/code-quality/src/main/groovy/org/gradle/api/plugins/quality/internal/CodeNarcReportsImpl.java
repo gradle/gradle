@@ -34,7 +34,7 @@ public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> i
     @Deprecated
     public CodeNarcReportsImpl(Task task) {
         this(task, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor CodeNarcReportsImpl(Task)", "Don't ex");
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor CodeNarcReportsImpl(Task)");
     }
 
     @Inject

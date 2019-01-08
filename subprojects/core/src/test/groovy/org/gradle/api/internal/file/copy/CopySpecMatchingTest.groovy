@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorate())
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorateLenient())
 
     FileTree fileTree = Mock()
 
@@ -140,7 +140,7 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorate())
+        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), TestUtil.instantiatorFactory().decorateLenient())
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
 
         when:

@@ -18,6 +18,7 @@ package org.gradle.play.internal.toolchain;
 
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -34,7 +35,6 @@ import org.gradle.play.internal.twirl.TwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.TreeVisitor;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -104,6 +104,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
     }
 }

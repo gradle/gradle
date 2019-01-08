@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -36,7 +37,6 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppComp
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
-import org.gradle.util.TreeVisitor;
 
 import static org.gradle.internal.FileUtils.withExtension;
 
@@ -55,7 +55,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
     }
 
     @Override

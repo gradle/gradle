@@ -24,7 +24,6 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
@@ -63,8 +62,8 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -101,7 +100,6 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
@@ -146,6 +144,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -153,7 +152,6 @@ import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -248,12 +246,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
-        return new DefaultPropertyWalker(propertyMetadataStore);
+    protected PropertyWalker createPropertyWalker(TypeMetadataStore typeMetadataStore) {
+        return new DefaultPropertyWalker(typeMetadataStore);
     }
 
-    protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker) {
+    protected ITaskFactory createITaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker) {
         return new AnnotationProcessingTaskFactory(
+            instantiator,
             taskClassInfoStore,
             new PropertyAssociationTaskFactory(
                 new TaskFactory(),
@@ -263,13 +262,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,
                                                                FileCacheBackedScriptClassCompiler scriptCompiler,
-                                                               CrossBuildInMemoryCachingScriptClassCache cache) {
+                                                               CrossBuildInMemoryCachingScriptClassCache cache,
+                                                               InstantiatorFactory instantiatorFactory) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
             new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
             new DefaultScriptRunnerFactory(
                 scriptExecutionListener,
-                DirectInstantiator.INSTANCE
+                instantiatorFactory.inject()
             )
         );
     }
@@ -277,14 +277,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
-        ScriptSourceHasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         BuildOperationExecutor buildOperationExecutor) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(
                 new DefaultScriptCompilationHandler(classLoaderCache, importsReader), buildOperationExecutor),
             progressLoggerFactory,
-            hasher,
             classLoaderCache,
             classLoaderHierarchyHasher);
     }
@@ -349,7 +348,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
-                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
+                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor, TextResourceLoader textResourceLoader) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
                 new SettingsEvaluatedCallbackFiringSettingsProcessor(
@@ -361,8 +360,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                 serviceRegistryFactory,
                                 scriptHandlerFactory
                             ),
-                            propertiesLoader
-                        ),
+                            propertiesLoader,
+                            textResourceLoader),
                         propertiesLoader
                     )
                 )

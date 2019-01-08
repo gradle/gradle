@@ -322,7 +322,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine CustomTask argument #2: missing parameter value of type int, or no service of type int")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of int, or no service of type int")
 
         where:
         description   | script
@@ -342,7 +342,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine CustomTask argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -410,6 +410,30 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'direct call' | 1        | "tasks.create('myTask', CustomTask, null, 1)"
         'Map'         | 2        | "task myTask(type: CustomTask, constructorArgs: ['abc', null])"
         'direct call' | 2        | "tasks.create('myTask', CustomTask, 'abc', null)"
+    }
+
+    def "reports failure when non-static inner class used"() {
+        given:
+        buildFile << """
+            class MyPlugin implements Plugin<Project> {
+                class MyTask extends DefaultTask {
+                }
+                
+                void apply(Project p) {
+                    p.tasks.register("myTask", MyTask)
+                }
+            }
+            
+            apply plugin: MyPlugin
+        """
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'MyTask'.")
+        failure.assertHasCause("Class MyPlugin\$MyTask is a non-static inner class.")
     }
 
     @Requires(KOTLIN_SCRIPT)

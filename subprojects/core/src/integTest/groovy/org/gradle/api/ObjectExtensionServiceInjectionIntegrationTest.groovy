@@ -48,7 +48,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
-    def "fails when extension constructor does not accept provided configuration"() {
+    def "fails when too few construction parameters provided"() {
         buildFile << """
             class Thing {
                 Thing(String a, String b) {
@@ -61,7 +61,104 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Unable to determine Thing argument #2: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of class java.lang.String, or no service of type class java.lang.String")
+    }
+
+    def "fails when interface provided"() {
+        buildFile << """
+            interface Thing {
+            }
+            
+            extensions.create("one", Thing, "a")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Interface Thing is not a class.")
+    }
+
+    def "fails when non-static inner class provided"() {
+        buildFile << """
+            class Things {
+                class Thing { }
+            }
+            
+            extensions.create("one", Things.Thing, "a")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Things\$Thing.")
+        failure.assertHasCause("Class Things\$Thing is a non-static inner class.")
+    }
+
+    def "fails when mismatched construction parameters provided"() {
+        buildFile << """
+            class Thing {
+                Thing(String a, String b) {
+                }
+            }
+            
+            extensions.create("one", Thing, "a", 12)
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Unable to determine constructor argument #2: value 12 not assignable to class java.lang.String")
+    }
+
+    def "fails when mismatched construction parameters provided when there are multiple constructors"() {
+        buildFile << """
+            class Thing {
+                Thing(String a, String b) {
+                }
+                Thing(String a, boolean b) {
+                }
+            }
+            
+            extensions.create("one", Thing, "a", 12)
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("No constructors of class Thing match parameters: ['a', 12]")
+    }
+
+    def "fails when constructor is ambiguous"() {
+        buildFile << """
+            class Thing {
+                Thing(String a, String b, ObjectFactory f) {
+                }
+                Thing(String a, String b, ProjectLayout p) {
+                }
+            }
+            
+            extensions.create("one", Thing, "a", "b")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Multiple constructors of class Thing match parameters: ['a', 'b']")
+    }
+
+    def "fails when too many construction parameters provided"() {
+        buildFile << """
+            class Thing {
+                Thing(String a, String b) {
+                }
+            }
+            
+            extensions.create("one", Thing, "a", "b", "c")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Too many parameters provided for constructor for class Thing. Expected 2, received 3.")
     }
 
     // Document current behaviour
@@ -102,8 +199,27 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
-    // Document current behaviour
-    def "fails when service injected using getter from constructor"() {
+    def "can inject service using abstract getter"() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class Thing {
+                Thing(String a) {
+                }
+
+                @Inject
+                abstract ObjectFactory getObjects()
+            }
+            
+            def e = extensions.create("one", Thing, "a")
+            assert e.objects != null
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can use getter injected services from constructor"() {
         buildFile << """
             import ${Inject.name}
 
@@ -116,11 +232,11 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 ObjectFactory getObjects() { }
             }
             
-            extensions.create("one", Thing, "a")
+            def e = extensions.create("one", Thing, "a")
+            assert e.objects != null
         """
 
         expect:
-        fails()
-        failure.assertHasCause("Could not create an instance of type Thing.")
+        succeeds()
     }
 }

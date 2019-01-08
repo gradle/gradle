@@ -3,7 +3,7 @@ plugins {
 }
 
 // tag::archive-artifact[]
-tasks.register("myJar", Jar)
+task myJar(type: Jar)
 
 artifacts {
     archives myJar
@@ -19,7 +19,7 @@ artifacts {
 // end::file-artifact[]
 
 // tag::customized-file-artifact[]
-tasks.register("myTask", MyTaskType) {
+task myTask(type:  MyTaskType) {
     destFile = file("$buildDir/somefile.txt")
 }
 
@@ -33,7 +33,7 @@ artifacts {
 // end::customized-file-artifact[]
 
 // tag::map-file-artifact[]
-tasks.register("generate", MyTaskType) {
+task generate(type:  MyTaskType) {
     destFile = file("$buildDir/somefile.txt")
 }
 
@@ -54,7 +54,7 @@ repositories {
     }
 }
 
-tasks.named("uploadArchives") {
+uploadArchives {
     repositories {
         add project.repositories.fileRepo
         ivy {

@@ -39,7 +39,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
@@ -250,7 +250,7 @@ class DefaultProjectTest extends Specification {
     }
 
     private DefaultProject defaultProject(String name, def parent, File rootDir, ClassLoaderScope scope) {
-        TestUtil.instantiatorFactory().decorate().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+        TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
     }
 
     Type getProjectRegistryType() {

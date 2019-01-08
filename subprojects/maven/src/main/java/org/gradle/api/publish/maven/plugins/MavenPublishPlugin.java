@@ -29,7 +29,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.JavaPlatformPlugin;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
@@ -121,7 +122,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorate(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorateLenient(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
                 realizePublishingTasksLater(project, extension);
             }
         });
@@ -291,6 +292,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 versionMappingStrategy.usage(Usage.JAVA_RUNTIME, strategy -> {
                     DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
                     mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()));
+                });
+            });
+            plugins.withPlugin("org.gradle.java-platform", plugin -> {
+                versionMappingStrategy.allVariants(strategy -> {
+                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
+                    mapping.setTargetConfiguration(configurations.getByName(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME));
                 });
             });
         }

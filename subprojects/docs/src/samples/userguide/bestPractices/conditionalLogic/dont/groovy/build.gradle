@@ -1,5 +1,5 @@
 if (project.findProperty('releaseEngineer') != null) {
-    tasks.register("release") {
+    task release {
         doLast {
             logger.quiet 'Releasing to production...'
 

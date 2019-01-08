@@ -41,7 +41,7 @@ val m2CleanScriptUnixLike = """
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        return 1
+        exit 1
     else
         echo "${'$'}REPO does not exist"
     fi
@@ -114,14 +114,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
     buildType.steps {
-        gradleWrapper {
-            name = "CLEAN_BUILD_SRC"
-            tasks = "clean"
-            gradleParams = gradleParameterString
-            workingDir = "buildSrc"
-            gradleWrapperPath = ".."
-            buildFile = "build.gradle.kts"
-        }
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"

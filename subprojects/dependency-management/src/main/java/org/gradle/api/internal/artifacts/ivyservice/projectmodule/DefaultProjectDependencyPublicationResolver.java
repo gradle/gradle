@@ -22,7 +22,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
 import java.util.HashSet;

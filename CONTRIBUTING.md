@@ -39,7 +39,7 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 In order to make changes to Gradle, you'll need:
 
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).
-* A [Java Development Kit](http://jdk.java.net/) (JDK) version 9 or 10.
+* A [Java Development Kit](http://jdk.java.net/) (JDK) version 11.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
 Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with
@@ -49,11 +49,14 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 ### IntelliJ
 
-You can generate the IntelliJ projects by running
+You can generate the IntelliJ projects by importing it using the import wizard. You must use IntelliJ 2018.3 or newer.
+
+
+Alternatively, you may also generated IDEA metadata files with:
 
     ./gradlew idea
 
-then open the generated `gradle.ipr` file.
+then open the generated `gradle.ipr` file.  This is unsupported and will be removed at some point.
 
 ### Eclipse
 
@@ -81,7 +84,7 @@ All code contributions should contain the following:
 
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
-* Avoid using features introduced in Java 1.7 or later. Several parts of Gradle still need to run on Java 6.
+* Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
 * Normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful functions for this purpose.
 
 ### Development Workflow

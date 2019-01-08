@@ -17,15 +17,9 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nonnull;
-
-@NonNullApi
-public interface TaskActionFactory extends Factory<Action<? super Task>> {
-    @Override
-    @Nonnull
-    Action<? super Task> create();
+public interface TaskActionFactory  {
+    Action<? super Task> create(Instantiator instantiator);
 }

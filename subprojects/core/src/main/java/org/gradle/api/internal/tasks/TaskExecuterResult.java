@@ -18,9 +18,18 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.caching.internal.origin.OriginMetadata;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public interface TaskExecuterResult {
-    @Nullable
-    OriginMetadata getOriginMetadata();
+    /**
+     * If the execution resulted in some previous output being reused, this returns its origin metadata.
+     */
+    Optional<OriginMetadata> getReusedOutputOriginMetadata();
+
+    TaskExecuterResult NO_REUSED_OUTPUT = new TaskExecuterResult() {
+        @Override
+        public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+            return Optional.empty();
+        }
+    };
 }

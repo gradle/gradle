@@ -36,7 +36,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private Configuration configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 
-    private DefaultArtifactHandler artifactHandler = TestUtil.instantiatorFactory().decorate().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
+    private DefaultArtifactHandler artifactHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
 
     void setup() {
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock

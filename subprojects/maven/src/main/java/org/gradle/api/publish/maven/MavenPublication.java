@@ -128,7 +128,9 @@ public interface MavenPublication extends Publication {
      *     <li>The dependencies declared by the component will be included in the published meta-data.</li>
      * </ul>
      *
-     * Currently 2 types of component are supported: 'components.java' (added by the JavaPlugin) and 'components.web' (added by the WarPlugin).
+     * Currently 3 types of component are supported: 'components.java' (added by the JavaPlugin), 'components.web' (added by the WarPlugin)
+     * and `components.javaPlatform` (added by the JavaPlatformPlugin).
+     * 
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
@@ -285,7 +287,27 @@ public interface MavenPublication extends Publication {
     void setVersion(String version);
 
     /**
-     * Configures the version mapping strategy
+     * Configures the version mapping strategy.
+     *
+     * For example, to use resolved versions for runtime dependencies:
+     * <pre class='autoTested'>
+     * apply plugin: "java"
+     * apply plugin: "maven-publish"
+     *
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       from components.java
+     *       versionMapping {
+     *         usage('java-runtime'){
+     *           fromResolutionResult()
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
      * @param configureAction the configuration
      *
      * @since 5.2

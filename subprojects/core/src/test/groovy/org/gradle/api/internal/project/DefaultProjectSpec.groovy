@@ -23,7 +23,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileLookup
@@ -149,7 +149,7 @@ class DefaultProjectSpec extends Specification {
     }
 
     def project(String name, ProjectInternal parent, GradleInternal build) {
-        def instantiator = TestUtil.instantiatorFactory().decorate()
+        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 

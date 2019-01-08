@@ -54,7 +54,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {

@@ -25,7 +25,8 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
 import org.gradle.play.internal.routes.RoutesCompilerFactory;
@@ -34,7 +35,6 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.TreeVisitor;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -121,7 +121,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             visitor.node("Cannot provide Play tool provider");
             visitor.startChildren();
             visitor.node(exception.getCause().getMessage());

@@ -34,7 +34,7 @@ books {
     }
 }
 
-tasks.register("books") {
+task books {
     doLast {
         books.each { book ->
             println "$book.name -> $book.sourceFile"

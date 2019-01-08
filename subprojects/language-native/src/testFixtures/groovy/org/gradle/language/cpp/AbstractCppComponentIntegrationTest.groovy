@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
-import org.junit.Assume
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "can build on current operating system family and architecture when explicitly specified"() {
@@ -33,7 +32,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -67,10 +66,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
         failure.assertHasCause("A target machine needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
     }
-    
-    def "can build for current machine when multiple target machines are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
 
+    def "can build for current machine when multiple target machines are specified"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -114,14 +111,12 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     def "can build current architecture when other, non-buildable architectures are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -129,27 +124,16 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     def "ignores duplicate target machines"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}, machines.${currentHostOperatingSystemFamilyDsl}")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
-    }
-
-    @Override
-    protected String getDefaultArchitecture() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? "x86" : super.defaultArchitecture
-    }
-
-    protected String getCurrentHostArchitectureDsl() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86" : ""
     }
 
     protected String getCurrentHostOperatingSystemFamilyDsl() {

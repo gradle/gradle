@@ -18,7 +18,7 @@ dependencies {
     libs "com.restlet.client:commons:2.0.0"
 }
 
-tasks.register("copyLibs", Copy) {
+task copyLibs(type: Copy) {
     from configurations.libs
     into "$buildDir/libs"
 }

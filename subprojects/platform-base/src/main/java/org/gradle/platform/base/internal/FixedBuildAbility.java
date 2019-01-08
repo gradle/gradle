@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 public class FixedBuildAbility implements BinaryBuildAbility {
     private final boolean buildable;
@@ -31,7 +31,7 @@ public class FixedBuildAbility implements BinaryBuildAbility {
     }
 
     @Override
-    public void explain(TreeVisitor<? super String> visitor) {
+    public void explain(DiagnosticsVisitor visitor) {
         if (!buildable) {
             visitor.node("Disabled by user");
         }

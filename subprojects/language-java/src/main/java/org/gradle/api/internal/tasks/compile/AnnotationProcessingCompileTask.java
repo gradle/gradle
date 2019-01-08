@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
+import org.gradle.api.internal.tasks.compile.processing.SupportedOptionsCollectingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -97,15 +98,20 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private void setupProcessors() {
         processorClassloader = createProcessorClassLoader();
         List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
-        for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {
-            AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, declaredProcessor.getClassName());
-            result.getAnnotationProcessorResults().add(processorResult);
+        if (!processorDeclarations.isEmpty()) {
+            SupportedOptionsCollectingProcessor supportedOptionsCollectingProcessor = new SupportedOptionsCollectingProcessor();
+            for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {
+                AnnotationProcessorResult processorResult = new AnnotationProcessorResult(result, declaredProcessor.getClassName());
+                result.getAnnotationProcessorResults().add(processorResult);
 
-            Class<?> processorClass = loadProcessor(declaredProcessor);
-            Processor processor = instantiateProcessor(processorClass);
-            processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType(), processorResult);
-            processor = decorateForTimeTracking(processor, processorResult);
-            processors.add(processor);
+                Class<?> processorClass = loadProcessor(declaredProcessor);
+                Processor processor = instantiateProcessor(processorClass);
+                supportedOptionsCollectingProcessor.addProcessor(processor);
+                processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType(), processorResult);
+                processor = decorateForTimeTracking(processor, processorResult);
+                processors.add(processor);
+            }
+            processors.add(supportedOptionsCollectingProcessor);
         }
         delegate.setProcessors(processors);
     }

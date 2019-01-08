@@ -26,6 +26,7 @@ class VariantMetadataSpec {
     List<DependencyConstraintSpec> dependencyConstraints = []
     List<FileSpec> artifacts = []
     List<CapabilitySpec> capabilities = []
+    boolean useDefaultArtifacts = true
 
     VariantMetadataSpec(String name, Map<String, String> attributes = [:]) {
         this.name = name

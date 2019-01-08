@@ -251,8 +251,10 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         then:
         failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).
 Versions rejected by attribute matching:
-  - 1.1: Attribute 'color' didn't match. Requested 'green', was: 'blue'
-  - 1.0: Attribute 'color' didn't match. Requested 'green', was: 'red'
+  - 1.1:
+      - Attribute 'color' didn't match. Requested 'green', was: 'blue'
+  - 1.0:
+      - Attribute 'color' didn't match. Requested 'green', was: 'red'
 """)
     }
 

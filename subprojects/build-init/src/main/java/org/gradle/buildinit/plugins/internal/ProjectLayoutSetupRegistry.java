@@ -16,7 +16,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;

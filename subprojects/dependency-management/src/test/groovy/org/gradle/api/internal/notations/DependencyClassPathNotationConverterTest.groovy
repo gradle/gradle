@@ -45,7 +45,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileResolver = TestFiles.resolver()
     def cache = Mock(GeneratedGradleJarCache)

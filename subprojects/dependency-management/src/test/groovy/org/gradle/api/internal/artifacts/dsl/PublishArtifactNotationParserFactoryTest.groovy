@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
@@ -34,6 +33,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -42,7 +42,7 @@ import java.awt.*
 class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final TaskResolver taskResolver = Mock()
-    final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver)
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.util.GUtil;
 
@@ -38,10 +39,14 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final TargetMachine targetMachine;
     private final UsageContext linkUsage;
     private final UsageContext runtimeUsage;
+    private final Linkage linkage;
     private final Set<UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine,
-        UsageContext linkUsage, UsageContext runtimeUsage) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage) {
+        this(name, baseName, group, version, debuggable, optimized, targetMachine, linkUsage, runtimeUsage, null);
+    }
+
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage, Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
@@ -51,6 +56,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.targetMachine = targetMachine;
         this.linkUsage = linkUsage;
         this.runtimeUsage = runtimeUsage;
+        this.linkage = linkage;
         this.usageContexts = Sets.newLinkedHashSet();
         if (linkUsage!=null) {
             usageContexts.add(linkUsage);
@@ -70,6 +76,10 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
 
     public TargetMachine getTargetMachine() {
         return targetMachine;
+    }
+
+    public Linkage getLinkage() {
+        return linkage;
     }
 
     @Override

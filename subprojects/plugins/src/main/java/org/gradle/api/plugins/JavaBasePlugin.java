@@ -22,6 +22,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -49,6 +50,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
@@ -155,17 +157,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 defineConfigurationsForSourceSet(sourceSet, configurations);
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
-                createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
+
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
+                    @Override
+                    public CompileOptions transform(JavaCompile javaCompile) {
+                        return javaCompile.getOptions();
+                    }
+                }));
             }
         });
     }
 
-    private void createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
+    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+        return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
                 compileTask.setDescription("Compiles " + sourceDirectorySet + ".");

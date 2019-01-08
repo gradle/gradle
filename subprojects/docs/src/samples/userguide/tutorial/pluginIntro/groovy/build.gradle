@@ -1,7 +1,7 @@
 // tag::apply-by-id[]
 apply plugin: 'java'
 
-tasks.register("show") {
+task show {
     doLast {
         println relativePath(compileJava.destinationDir)
         println relativePath(processResources.destinationDir)

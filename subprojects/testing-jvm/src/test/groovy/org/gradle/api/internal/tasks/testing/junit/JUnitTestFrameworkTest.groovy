@@ -24,7 +24,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JUnitTestFrameworkTest extends Specification {
-    private project = new ProjectBuilder().build()
+    private project = ProjectBuilder.builder().build()
     Test testTask = TestUtil.createTask(Test, project)
 
     def "can configure JUnit with an Action"() {

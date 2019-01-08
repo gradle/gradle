@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class DefaultRealizableTaskCollectionTest extends Specification {
 
-    def instantiator = TestUtil.instantiatorFactory().decorate()
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     
     def "realizes a nodes link of a given type when task dependencies visited"() {
         given:

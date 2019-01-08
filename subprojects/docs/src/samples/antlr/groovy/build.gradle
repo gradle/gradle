@@ -19,7 +19,7 @@ dependencies {
 // end::declare-dependency[]
 
 // tag::generate-grammar-settings[]
-tasks.named("generateGrammarSource") {
+generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages"]
 }

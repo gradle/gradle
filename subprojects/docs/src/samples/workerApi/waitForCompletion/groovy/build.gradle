@@ -68,7 +68,7 @@ class ReverseFiles extends SourceTask {
     }
 }
 
-tasks.register("reverseFiles", ReverseFiles) {
+task reverseFiles(type: ReverseFiles) {
     outputDir = file("$buildDir/reversed")
     source("sources")
 }

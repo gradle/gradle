@@ -18,7 +18,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.attributes.DisambiguationRuleChain;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -29,8 +29,8 @@ public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStr
     private final DisambiguationRuleChain<T> disambiguationRules;
 
     public DefaultAttributeMatchingStrategy(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-        compatibilityRules = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
-        disambiguationRules = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
+        compatibilityRules = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
+        disambiguationRules = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
     }
 
     @Override

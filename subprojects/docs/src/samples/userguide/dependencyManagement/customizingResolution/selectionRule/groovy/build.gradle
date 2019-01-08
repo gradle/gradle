@@ -43,7 +43,7 @@ dependencies {
 }
 // end::reject-version-1-1[]
 
-tasks.register("printRejectConfig") {
+task printRejectConfig {
     doLast {
         configurations.rejectConfig.each { println "Resolved: ${it.name}" }
     }
@@ -77,7 +77,7 @@ dependencies {
     metadataRulesConfig "org.sample:lib:+"
 }
 
-tasks.register("printMetadataRulesConfig") {
+task printMetadataRulesConfig {
     doLast {
         configurations.metadataRulesConfig.each { println "Resolved: ${it.name}" }
     }
@@ -103,7 +103,7 @@ dependencies {
     targetConfig "org.sample:api:1.+"
 }
 
-tasks.register("printTargetConfig") {
+task printTargetConfig {
     doLast {
         configurations.targetConfig.each { println "Resolved: ${it.name}" }
     }
@@ -134,7 +134,7 @@ dependencies {
     ruleSourceConfig "org.sample:api:1.+"
 }
 
-tasks.register("printRuleSourceConfig") {
+task printRuleSourceConfig {
     doLast {
         configurations.ruleSourceConfig.each { println "Resolved: ${it.name}" }
     }
@@ -162,7 +162,7 @@ dependencies {
     sampleConfig group: 'org.sample', name: 'api', version: '1+'
 }
 
-tasks.register("resolveConfiguration") {
+task resolveConfiguration {
     doLast {
         configurations.sampleConfig.each { println it }
     }

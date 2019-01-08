@@ -68,6 +68,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+        return log.start(descriptor);
+    }
+
+    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
         generator.execute(new TestBuildOperationQueue<O>(log));
     }
@@ -80,23 +85,24 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     private static class TestBuildOperationContext implements BuildOperationContext {
 
-        private Object result;
-        private String status;
-        private Throwable failure;
+        private final Log.Record record;
+
+        public TestBuildOperationContext(Log.Record record) {
+            this.record = record;
+        }
 
         @Override
         public void failed(@Nullable Throwable failure) {
-            this.failure = failure;
+            this.record.failure = failure;
         }
 
         @Override
         public void setResult(@Nullable Object result) {
-            this.result = result;
+            this.record.result = result;
         }
 
         @Override
         public void setStatus(String status) {
-            this.status = status;
         }
     }
 
@@ -139,7 +145,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         public List<BuildOperationDescriptor> getDescriptors() {
             return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
                 @Override
-                public BuildOperationDescriptor apply(@javax.annotation.Nullable Record input) {
+                public BuildOperationDescriptor apply(Record input) {
                     return input.descriptor;
                 }
             });
@@ -244,45 +250,58 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         private void run(RunnableBuildOperation buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
-            TestBuildOperationContext context = new TestBuildOperationContext();
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
             try {
                 buildOperation.run(context);
             } catch (Throwable failure) {
-                if (record.result == null) {
-                    record.result = context.result;
-                }
                 if (record.failure == null) {
                     record.failure = failure;
                 }
                 throw UncheckedException.throwAsUncheckedException(failure);
-            }
-            record.result = context.result;
-            if (context.failure != null) {
-                record.failure = context.failure;
             }
         }
 
         private <T> T call(CallableBuildOperation<T> buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
-            TestBuildOperationContext context = new TestBuildOperationContext();
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
             T t;
             try {
                 t = buildOperation.call(context);
             } catch (Throwable failure) {
-                if (record.result == null) {
-                    record.result = context.result;
-                }
                 if (record.failure == null) {
                     record.failure = failure;
                 }
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
-            record.result = context.result;
-            if (context.failure != null) {
-                record.failure = context.failure;
-            }
             return t;
+        }
+
+        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+            Record record = new Record(descriptor.build());
+            records.add(record);
+            final TestBuildOperationContext context = new TestBuildOperationContext(record);
+            return new ExecutingBuildOperation() {
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return descriptor;
+                }
+
+                @Override
+                public void failed(@Nullable Throwable failure) {
+                    context.failed(failure);
+                }
+
+                @Override
+                public void setResult(Object result) {
+                    context.setResult(result);
+                }
+
+                @Override
+                public void setStatus(String status) {
+                    context.setStatus(status);
+                }
+            };
         }
     }
 

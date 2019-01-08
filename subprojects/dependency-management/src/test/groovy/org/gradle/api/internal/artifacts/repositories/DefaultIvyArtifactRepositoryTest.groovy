@@ -47,7 +47,7 @@ import org.gradle.util.TestUtil
 import javax.inject.Inject
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
-    final instantiator = TestUtil.instantiatorFactory().decorate()
+    final instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()

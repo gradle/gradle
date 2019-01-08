@@ -40,7 +40,7 @@ dependencies {
    compile "org.example:project1:1.0"
 }
 
-tasks.register("showJarFiles") {
+task showJarFiles {
     doLast {
         configurations.compile.each { println it.path - rootDir.path }
     }

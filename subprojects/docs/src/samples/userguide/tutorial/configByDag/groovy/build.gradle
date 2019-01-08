@@ -1,10 +1,10 @@
-tasks.register("distribution") {
+task distribution {
     doLast {
         println "We build the zip with version=$version"
     }
 }
 
-tasks.register("release") {
+task release {
     dependsOn 'distribution'
     doLast {
         println 'We release now'

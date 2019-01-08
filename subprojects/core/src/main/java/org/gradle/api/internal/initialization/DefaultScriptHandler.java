@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -107,6 +109,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
+            classpathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
         }
     }
 

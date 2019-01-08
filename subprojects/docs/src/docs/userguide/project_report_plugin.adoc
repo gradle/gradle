@@ -39,7 +39,7 @@ The project report plugin defines the following tasks:
 `dependencyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]::
 Generates the project dependency report.
 
-`dependencyReport` — link:{groovyDslPath}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]::
+`htmlDependencyReport` — link:{groovyDslPath}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]::
 Generates an HTML dependency and dependency insight report for the project or a set of projects.
 
 `propertyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]::

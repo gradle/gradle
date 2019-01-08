@@ -18,10 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import static junit.framework.TestCase.fail
+
 /**
  * Tests that different types of copy tasks correctly expose DSL enhanced objects.
  */
@@ -39,7 +41,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         task.into project.buildDir
         task.eachFile(new Action<FileCopyDetails>() {
             void execute(FileCopyDetails fcd) {
-                assert fcd.class.name.endsWith("_Decorated")
+                assert fcd instanceof DynamicObjectAware
             }
         })
 

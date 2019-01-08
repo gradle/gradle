@@ -60,6 +60,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             p().text("Tasks: " + getTasks(testHistory)).end();
             p().text("Clean tasks: " + getCleanTasks(testHistory)).end();
 
+            div().id("tooltip").end();
+
             addPerformanceGraphs();
 
             h3().text("Test details").end();
@@ -187,10 +189,10 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             }
 
             private void addPerformanceGraphs() {
-                List<Chart> charts = Lists.newArrayList(new Chart("totalTime", "total time", "s", "totalTimeChart"));
+                List<Chart> charts = Lists.newArrayList(new Chart("totalTime", "total time", "s", "totalTimeChart", false));
                 if(testHistory instanceof CrossVersionPerformanceTestHistory) {
-                    charts.add(new Chart("confidence", "confidence", "%", "confidenceChart"));
-                    charts.add(new Chart("difference", "difference", "%", "differenceChart"));
+                    charts.add(new Chart("confidence", "confidence", "%", "confidenceChart", false));
+                    charts.add(new Chart("difference", "difference", "%", "differenceChart", true));
                 }
 
                 charts.forEach(chart -> {
@@ -214,12 +216,14 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         private String label;
         private String unit;
         private String chartId;
+        private boolean renderBackground;
 
-        private Chart(String field, String label, String unit, String chartId) {
+        private Chart(String field, String label, String unit, String chartId, boolean renderBackground) {
             this.field = field;
             this.label = label;
             this.unit = unit;
             this.chartId = chartId;
+            this.renderBackground = renderBackground;
         }
 
         public String getField() {
@@ -236,6 +240,10 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
         public String getChartId() {
             return chartId;
+        }
+
+        public boolean isRenderBackground() {
+            return renderBackground;
         }
     }
 

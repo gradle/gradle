@@ -26,7 +26,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -84,7 +83,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator));
         try {
             try {
-                return DirectInstantiator.INSTANCE.newInstance(implementationType);
+                return instantiator.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
                 throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
             }

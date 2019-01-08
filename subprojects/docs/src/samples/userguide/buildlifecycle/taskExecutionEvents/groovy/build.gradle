@@ -1,7 +1,6 @@
-tasks.register("ok")
+task ok
 
-tasks.register("broken") {
-    dependsOn ok
+task broken(dependsOn: ok) {
     doLast {
         throw new RuntimeException('broken')
     }

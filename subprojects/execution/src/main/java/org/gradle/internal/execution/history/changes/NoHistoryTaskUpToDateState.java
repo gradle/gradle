@@ -29,7 +29,7 @@ public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
 
     @Override
     public Iterable<Change> getInputFilesChanges() {
-        throw new UnsupportedOperationException("Input file changes can only be queried when task history is available.");
+        throw new UnsupportedOperationException("Input file changes can only be queried when history is available.");
     }
 
     @Override

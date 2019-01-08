@@ -44,7 +44,7 @@ import spock.lang.Specification
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
-    private instantiator = TestUtil.instantiatorFactory().decorate()
+    private instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()

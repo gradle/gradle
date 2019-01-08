@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -128,7 +128,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;

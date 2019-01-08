@@ -16,15 +16,22 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.OverlappingOutputs;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskExecutionContext {
 
@@ -35,9 +42,17 @@ public interface TaskExecutionContext {
 
     void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
-    TaskArtifactState getTaskArtifactState();
+    TaskExecutionMode getTaskExecutionMode();
 
-    void setTaskArtifactState(TaskArtifactState taskArtifactState);
+    Optional<BeforeExecutionState> getBeforeExecutionState();
+
+    void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
+
+    void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
+
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
+
+    void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
 
     TaskOutputCachingBuildCacheKey getBuildCacheKey();
 
@@ -87,4 +102,28 @@ public interface TaskExecutionContext {
     boolean isTaskExecutedIncrementally();
 
     void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
+
+    boolean isOutputRemovedBeforeExecution();
+
+    void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
+
+    Optional<ExecutionStateChanges> getExecutionStateChanges();
+
+    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
+
+    Optional<OverlappingOutputs> getOverlappingOutputs();
+
+    void setOverlappingOutputs(OverlappingOutputs overlappingOutputs);
+
+    /**
+     * Gets and clears the build operation designed to measure the time taken
+     * by capturing input snapshotting and cache key calculation.
+     */
+    Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation();
+
+    /**
+     * Sets the build operation designed to measure the time taken
+     * by capturing input snapshotting and cache key calculation.
+     */
+    void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation  operation);
 }

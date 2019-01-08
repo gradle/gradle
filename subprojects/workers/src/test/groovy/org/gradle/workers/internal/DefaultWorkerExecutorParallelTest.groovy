@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.file.PathToFileResolver

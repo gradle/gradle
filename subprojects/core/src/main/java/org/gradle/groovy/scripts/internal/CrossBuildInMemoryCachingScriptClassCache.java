@@ -27,10 +27,8 @@ import org.gradle.internal.hash.HashCode;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final CrossBuildInMemoryCache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts;
-    private final ScriptSourceHasher hasher;
 
-    public CrossBuildInMemoryCachingScriptClassCache(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
-        this.hasher = hasher;
+    public CrossBuildInMemoryCachingScriptClassCache(CrossBuildInMemoryCacheFactory cacheFactory) {
         cachedCompiledScripts = cacheFactory.newCache();
     }
 
@@ -42,7 +40,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                                                                    ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.get(key);
-        HashCode hash = hasher.hash(source);
+        HashCode hash = source.getResource().getContentHash();
         if (cached != null) {
             if (hash.equals(cached.hash)) {
                 return Cast.uncheckedCast(cached.compiledScript);

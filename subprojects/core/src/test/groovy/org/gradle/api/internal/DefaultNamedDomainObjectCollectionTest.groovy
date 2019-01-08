@@ -29,7 +29,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         String determineName(Bean bean) { return bean.name }
     };
 
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     Set<Bean> store
 
     final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer, callbackActionDecorator)

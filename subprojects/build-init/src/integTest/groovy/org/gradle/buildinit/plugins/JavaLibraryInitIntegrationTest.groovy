@@ -38,7 +38,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture)
 
@@ -63,7 +63,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_SPOCK_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
 
@@ -87,7 +87,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
 
@@ -111,7 +111,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/java").assertHasDescendants("my/lib/LibraryTest.java")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -133,7 +133,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")

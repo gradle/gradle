@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CommandLineTaskConfigurerSpec extends Specification {
 
-    Project project = new ProjectBuilder().build()
+    Project project = ProjectBuilder.builder().build()
     CommandLineTaskConfigurer configurer = new CommandLineTaskConfigurer(new OptionReader());
 
     TaskSelector selector = Mock()

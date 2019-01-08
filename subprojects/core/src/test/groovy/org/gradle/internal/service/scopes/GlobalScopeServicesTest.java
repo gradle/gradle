@@ -16,12 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -138,14 +136,9 @@ public class GlobalScopeServicesTest {
     }
 
     @Test
-    public void providesAClassGenerator() {
-        assertThat(registry().get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
-    }
-
-    @Test
     public void providesAnInstantiator() {
         ServiceRegistry registry = registry();
-        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), is(registry.get(InstantiatorFactory.class).decorate()));
+        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), is(registry.get(InstantiatorFactory.class).decorateLenient()));
     }
 
     @Test

@@ -1,4 +1,4 @@
-tasks.register("configure") {
+task configure {
     doLast {
         def pos = new java.text.FieldPosition(10)
         // Apply the script

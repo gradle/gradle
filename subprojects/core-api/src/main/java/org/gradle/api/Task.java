@@ -577,6 +577,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.3
      */
+    @Internal
     TaskLocalState getLocalState();
 
     /**

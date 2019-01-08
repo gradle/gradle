@@ -15,15 +15,16 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -95,6 +96,11 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
 
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.get(serviceType);
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return serviceRegistry.get(serviceType, annotatedWith);
         }
 
         public Object find(Type serviceType) throws ServiceLookupException {

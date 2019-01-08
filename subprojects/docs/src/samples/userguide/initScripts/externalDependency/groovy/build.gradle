@@ -1,1 +1,1 @@
-tasks.register("doNothing")
+task doNothing

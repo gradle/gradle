@@ -30,9 +30,9 @@ import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
-    @Shared Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
+    @Shared Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    private project = new ProjectBuilder().build()
+    private project = ProjectBuilder.builder().build()
     Test testTask = TestUtil.createTask(Test, project)
 
     void setup() {

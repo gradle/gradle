@@ -62,6 +62,12 @@ trait ArtifactResolutionExpectationSpec<T extends Module> {
         }
     }
 
+    void noFiles() {
+        always {
+            noFiles()
+        }
+    }
+
     /**
      * Short-hand notation for expecting a list of files independently of the fact module metadata is used or not
      * @param fileNames

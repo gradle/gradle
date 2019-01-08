@@ -14,7 +14,7 @@ class Generator extends DefaultTask {
 def b = 0
 def c = 0
 
-tasks.register("generate", Generator) {
+task generate(type: Generator) {
     properties.put("a", 1)
     // Values have not been configured yet
     properties.put("b", providers.provider { b })

@@ -521,7 +521,7 @@ org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
    Failures:
-      - Could not resolve org:foo:{strictly 1.0}.:
+      - Could not resolve org:foo:{strictly 1.0}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
@@ -1469,7 +1469,8 @@ org:middle:2.0+ (selected by rule) FAILED
    Failures:
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
-        Searched in the following locations: ${mavenRepoURL}/org/middle/maven-metadata.xml
+        Searched in the following locations:
+          - ${mavenRepoURL}/org/middle/maven-metadata.xml
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1575,7 +1576,8 @@ org:leaf:1.6+ FAILED
 org:leaf:[1.5,2.0] FAILED
    Failures:
       - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
-        Searched in the following locations: ${ivyRepoURL}/org/leaf/
+        Searched in the following locations:
+          - ${ivyRepoURL}/org/leaf/
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -1607,7 +1609,7 @@ org:leaf:[1.5,2.0] FAILED
         outputContains """
 project :A FAILED
    Failures:
-      - Could not resolve project :A.:
+      - Could not resolve project :A.
           - Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
 
 project :A FAILED
@@ -1621,7 +1623,7 @@ project :A FAILED
         outputContains """
 project :C FAILED
    Failures:
-      - Could not resolve project :C.:
+      - Could not resolve project :C.
           - Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
 
 project :C FAILED
@@ -2604,7 +2606,7 @@ org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
    Failures:
-      - Could not resolve org:bar:{reject all versions}.:
+      - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
                Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
                Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
@@ -2621,7 +2623,7 @@ org:bar:[1.0,) FAILED
 
 org:foo: (by constraint) FAILED
    Failures:
-      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.:
+      - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
                Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'

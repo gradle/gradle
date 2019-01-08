@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  * but it is guaranteed not to retain any references to mutable state from the original instance.
  * <p>
  * The primary reason to need such an isolated instance of an object is to ensure that work can be done in parallel using the instance without
- * fear that it's internal state is changing while the work is being carried out.
+ * fear that its internal state is changing while the work is being carried out.
  */
 public interface Isolatable<T> extends Hashable {
     /**

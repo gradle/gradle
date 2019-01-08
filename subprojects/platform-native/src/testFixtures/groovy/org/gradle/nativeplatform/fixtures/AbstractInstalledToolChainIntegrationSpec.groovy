@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
-import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
@@ -53,15 +52,6 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
                 }
             }
         """
-        if (toolChain.meets(ToolChainRequirement.WINDOWS_GCC)) {
-            initScript << """
-                allprojects { p ->
-                    components.withType(CppComponent) { component ->
-                        component.targetMachines.set([machines.host().x86])        
-                    }            
-                }
-            """
-        }
         executer.beforeExecute({
             usingInitScript(initScript)
         })
@@ -191,6 +181,6 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     protected String getCurrentArchitecture() {
-        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? Architectures.X86.canonicalName : DefaultNativePlatform.currentArchitecture.name
+        return DefaultNativePlatform.currentArchitecture.name
     }
 }

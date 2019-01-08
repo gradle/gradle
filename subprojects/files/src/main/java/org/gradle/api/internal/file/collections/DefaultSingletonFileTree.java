@@ -15,19 +15,26 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 
-public class DefaultSingletonFileTree implements SingletonFileTree {
+public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
     private final File file;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
     public DefaultSingletonFileTree(File file) {
+        this(file, new PatternSet());
+    }
+
+    public DefaultSingletonFileTree(File file, PatternSet patternSet) {
+        super(patternSet);
         this.file = file;
     }
 
@@ -35,8 +42,9 @@ public class DefaultSingletonFileTree implements SingletonFileTree {
         return String.format("file '%s'", file);
     }
 
-    public void visit(FileVisitor visitor) {
-        visitor.visitFile(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+    @Override
+    protected FileVisitDetails createFileVisitDetails() {
+        return new DefaultFileVisitDetails(file, fileSystem, fileSystem);
     }
 
     @Override
@@ -45,12 +53,11 @@ public class DefaultSingletonFileTree implements SingletonFileTree {
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
-    @Override
     public File getFile() {
         return file;
+    }
+
+    public MinimalFileTree filter(PatternFilterable patterns) {
+        return new DefaultSingletonFileTree(file, filterPatternSet(patterns));
     }
 }

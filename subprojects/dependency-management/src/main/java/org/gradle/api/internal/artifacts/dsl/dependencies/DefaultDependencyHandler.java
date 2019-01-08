@@ -234,6 +234,8 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
             externalModuleDependency.setForce(true);
             PlatformSupport.addPlatformAttribute(externalModuleDependency, PlatformSupport.ENFORCED_PLATFORM);
+        } else if (platformDependency instanceof HasConfigurableAttributes) {
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, PlatformSupport.ENFORCED_PLATFORM);
         }
         return platformDependency;
     }

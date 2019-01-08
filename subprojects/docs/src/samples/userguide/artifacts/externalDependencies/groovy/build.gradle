@@ -14,7 +14,7 @@ dependencies {
 // end::define-dependency[]
 
 // tag::use-configuration[]
-tasks.register("listJars") {
+task listJars {
     doLast {
         configurations.compile.each { File file -> println file.name }
     }

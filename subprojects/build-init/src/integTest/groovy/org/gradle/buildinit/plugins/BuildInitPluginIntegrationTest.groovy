@@ -200,6 +200,8 @@ include("child")
         then:
         failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
   - 'basic'
+  - 'cpp-application'
+  - 'cpp-library'
   - 'groovy-application'
   - 'groovy-library'
   - 'java-application'
@@ -225,7 +227,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when test framework is not supported by specific type"() {
@@ -233,7 +236,8 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+        failure.assertHasCause("""The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'""")
     }
 
     def "gives decent error message when project name option is not supported by specific type"() {
@@ -278,6 +282,8 @@ include("child")
      --type     Set the type of project to generate.
                 Available values are:
                      basic
+                     cpp-application
+                     cpp-library
                      groovy-application
                      groovy-library
                      java-application

@@ -17,7 +17,7 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.util.List;

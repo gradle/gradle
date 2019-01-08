@@ -110,6 +110,23 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-sources/TestAppHelper.java").assertDoesNotExist()
     }
 
+    def "generated sources directories track task dependency"() {
+        given:
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            task sourcesJar(type: Jar) {
+                from sourceSets.main.output.generatedSourcesDirs
+            }
+        """
+
+        expect:
+        succeeds "sourcesJar"
+        ":compileJava" in executedTasks
+    }
+
     def "can model annotation processor arguments"() {
         buildFile << """                                                       
             class HelperAnnotationProcessor implements CommandLineArgumentProvider {

@@ -21,5 +21,5 @@ class CustomTask extends DefaultTask {
 // end::inject-task-constructor[]
 
 // tag::on-task-container[]
-tasks.register('myTask', CustomTask, 'hello', 42)
+tasks.create('myTask', CustomTask, 'hello', 42)
 // end::on-task-container[]

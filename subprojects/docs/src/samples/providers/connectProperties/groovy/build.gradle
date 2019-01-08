@@ -26,10 +26,10 @@ class Greeting extends DefaultTask {
 }
 
 // Create the project extension
-project.extensions.create('messages', MessageExtension, project.objects)
+project.extensions.create('messages', MessageExtension)
 
 // Create the greeting task
-tasks.register("greeting", Greeting) {
+task greeting(type: Greeting) {
     // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
     greeting.set(project.messages.greeting)

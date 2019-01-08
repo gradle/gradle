@@ -334,6 +334,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         and:
         projectDependency.excludeRules >> []
+        projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
@@ -480,7 +481,7 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def instantiator = TestUtil.instantiatorFactory().decorate()
+        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def objectFactory = TestUtil.objectFactory()
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
             featurePreviews, AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal))

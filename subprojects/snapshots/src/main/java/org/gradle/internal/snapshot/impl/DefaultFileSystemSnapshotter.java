@@ -25,7 +25,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
@@ -180,10 +179,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * then we cache the result as unfiltered tree.
      */
     @VisibleForTesting
-    FileSystemSnapshot snapshotDirectoryTree(final DirectoryFileTree dirTree) {
+    FileSystemSnapshot snapshotDirectoryTree(File root, PatternSet patterns) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
-        final String path = dirTree.getDir().getAbsolutePath();
-        final PatternSet patterns = dirTree.getPatterns();
+        String path = root.getAbsolutePath();
 
         FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
         if (snapshot != null) {
@@ -194,8 +192,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public FileSystemSnapshot create() {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
-                    snapshot = snapshotAndCache(dirTree.getDir(), patterns);
-                    return filterSnapshot(snapshot, EMPTY_PATTERN_SET);
+                    snapshot = snapshotAndCache(root, patterns);
+                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, patterns) : filterSnapshot(snapshot, EMPTY_PATTERN_SET);
                 } else {
                     return filterSnapshot(snapshot, patterns);
                 }
@@ -250,8 +248,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            roots.add(snapshotDirectoryTree(directoryTree));
+        public void visitFileTree(File root, PatternSet patterns) {
+            roots.add(snapshotDirectoryTree(root, patterns));
         }
 
         public List<FileSystemSnapshot> getRoots() {

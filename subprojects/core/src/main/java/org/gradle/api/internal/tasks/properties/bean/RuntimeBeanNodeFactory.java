@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 
 import java.util.Map;
 
 public class RuntimeBeanNodeFactory {
 
-    private final PropertyMetadataStore metadataStore;
+    private final TypeMetadataStore metadataStore;
 
-    public RuntimeBeanNodeFactory(PropertyMetadataStore metadataStore) {
+    public RuntimeBeanNodeFactory(TypeMetadataStore metadataStore) {
         this.metadataStore = metadataStore;
     }
 

@@ -18,7 +18,7 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.initialization.GradleApiSpecProvider.Spec;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceLocator;
 
 import java.util.List;
@@ -27,9 +27,11 @@ import java.util.Set;
 class GradleApiSpecAggregator {
 
     private final ClassLoader classLoader;
+    private final Instantiator instantiator;
 
-    public GradleApiSpecAggregator(ClassLoader classLoader) {
+    public GradleApiSpecAggregator(ClassLoader classLoader, Instantiator instantiator) {
         this.classLoader = classLoader;
+        this.instantiator = instantiator;
     }
 
     public Spec aggregate() {
@@ -73,7 +75,7 @@ class GradleApiSpecAggregator {
     }
 
     private GradleApiSpecProvider instantiate(Class<? extends GradleApiSpecProvider> providerClass) {
-        return DirectInstantiator.INSTANCE.newInstance(providerClass);
+        return instantiator.newInstance(providerClass);
     }
 
     static class DefaultSpec implements Spec {

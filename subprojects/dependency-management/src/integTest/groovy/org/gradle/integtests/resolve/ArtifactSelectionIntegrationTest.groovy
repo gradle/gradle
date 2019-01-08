@@ -885,14 +885,16 @@ task show {
       - Found buildType 'release' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.""")
 
-        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration default:
-  - Required artifactType 'dll' and found incompatible value 'jar'.
-  - Found org.gradle.status 'integration' but wasn't required.
-  - Required usage 'api' but no value provided.""")
+        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
+  - test:test:1.2 configuration default:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Found org.gradle.status 'integration' but wasn't required.
+      - Required usage 'api' but no value provided.""")
 
-        failure.assertHasCause("""No variants of thing.jar match the consumer attributes: thing.jar:
-  - Required artifactType 'dll' and found incompatible value 'jar'.
-  - Required usage 'api' but no value provided.""")
+        failure.assertHasCause("""No variants of thing.jar match the consumer attributes:
+  - thing.jar:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Required usage 'api' but no value provided.""")
 
     }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import net.rubygrapefruit.platform.file.PosixFiles;
 
 public interface UnavailablePosixFiles extends PosixFiles {
 }

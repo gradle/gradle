@@ -28,9 +28,9 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
@@ -39,10 +39,9 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final Map<String, AfterPreviousExecutionState> executionHistory = new HashMap<>();
 
-    @Nullable
     @Override
-    public AfterPreviousExecutionState load(String key) {
-        return executionHistory.get(key);
+    public Optional<AfterPreviousExecutionState> load(String key) {
+        return Optional.ofNullable(executionHistory.get(key));
     }
 
     @Override
@@ -56,6 +55,11 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             prepareForSerialization(outputFileProperties),
             successful
         ));
+    }
+
+    @Override
+    public void remove(String key) {
+        executionHistory.remove(key);
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {

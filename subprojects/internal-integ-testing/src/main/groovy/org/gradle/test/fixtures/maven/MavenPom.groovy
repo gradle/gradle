@@ -150,4 +150,19 @@ class MavenPom {
         }
         scope
     }
+
+    void scope(String scopeName, @DelegatesTo(value=MavenScope, strategy=Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def scope = scopes[scopeName]
+        if (scope) {
+            spec.delegate = scope
+            spec.resolveStrategy = Closure.DELEGATE_FIRST
+            spec()
+        } else {
+            throw new AssertionError("Expected scope $scopeName but only found ${scopes.keySet()}")
+        }
+    }
+
+    void hasNoScope(String scopeName) {
+        assert scopes[scopeName] == null : "Didn't expect to find scope $scopeName"
+    }
 }

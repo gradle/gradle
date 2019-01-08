@@ -46,7 +46,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         executer.expectDeprecationWarning()
@@ -69,7 +69,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/kotlin").assertHasDescendants("my/lib/LibraryTest.kt")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         executer.expectDeprecationWarning()

@@ -21,8 +21,8 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
@@ -64,7 +64,7 @@ class DefaultTaskInputsTest extends Specification {
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
-    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
+    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {

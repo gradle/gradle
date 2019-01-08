@@ -21,7 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -84,7 +84,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
         _ * serviceRegistry.get(MutablePublicBuildPath) >> Mock(MutablePublicBuildPath)
 
-        gradle = TestUtil.instantiatorFactory().decorate().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
+        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
 
     def "uses gradle version"() {
@@ -405,11 +405,11 @@ class DefaultGradleSpec extends Specification {
 
     def "has identity path"() {
         given:
-        def child1 = TestUtil.instantiatorFactory().decorate().newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
+        def child1 = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
         child1.settings = settings('child1')
 
         and:
-        def child2 = TestUtil.instantiatorFactory().decorate().newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
+        def child2 = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
         child2.settings = settings('child2')
 
         expect:

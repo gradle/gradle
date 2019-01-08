@@ -18,11 +18,11 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
@@ -38,7 +38,7 @@ import java.util.Arrays;
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree implements SingletonFileTree {
+public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
@@ -46,6 +46,11 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
     private final Action<OutputStream> contentWriter;
 
     public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<OutputStream> contentWriter) {
+        this(tmpDirSource, fileName, new PatternSet(), contentWriter);
+    }
+
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, Action<OutputStream> contentWriter) {
+        super(patternSet);
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
         this.contentWriter = contentWriter;
@@ -59,8 +64,9 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
         return "file tree";
     }
 
-    public void visit(FileVisitor visitor) {
-        visitor.visitFile(new FileVisitDetailsImpl(fileName, contentWriter, fileSystem));
+    @Override
+    protected FileVisitDetails createFileVisitDetails() {
+        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
     }
 
     public File getFileWithoutCreating() {
@@ -69,32 +75,16 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
 
     @Override
     public File getFile() {
-        FileCollectingVisitor fileExtractVisitor = new FileCollectingVisitor();
-        visit(fileExtractVisitor);
-        return fileExtractVisitor.getFile();
+        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem).getFile();
     }
 
     private File createFileInstance(String fileName) {
         return new File(getTmpDir(), fileName);
     }
 
-    private class FileCollectingVisitor implements FileVisitor {
-
-        private File file = null;
-
-        @Override
-        public void visitDir(FileVisitDetails dirDetails) {
-            throw new UnsupportedOperationException("Visiting directories is not supported");
-        }
-
-        @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            this.file = fileDetails.getFile();
-        }
-
-        public File getFile() {
-            return file;
-        }
+    @Override
+    public MinimalFileTree filter(PatternFilterable patterns) {
+        return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), contentWriter);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
@@ -198,10 +188,5 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-    }
-
-    @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visitor.visitFile(new DefaultFileVisitDetails(getFile(), fileSystem, fileSystem));
     }
 }

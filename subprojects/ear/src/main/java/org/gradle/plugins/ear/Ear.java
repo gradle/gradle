@@ -169,7 +169,7 @@ public class Ear extends Jar {
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getObjectFactory());
+            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class);
         }
         return deploymentDescriptor;
     }

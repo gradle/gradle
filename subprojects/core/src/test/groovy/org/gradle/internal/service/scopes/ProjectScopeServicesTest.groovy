@@ -20,10 +20,10 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -107,9 +107,8 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
+        parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorateLenient()
         parent.get(FileSystem) >> Stub(FileSystem)
-        parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
@@ -169,7 +168,7 @@ class ProjectScopeServicesTest extends Specification {
         service.is(testDslService)
 
         and:
-        1 * dependencyManagementServices.addDslServices(_) >> { ServiceRegistration registration ->
+        1 * dependencyManagementServices.addDslServices(_, _) >> { ServiceRegistration registration, DomainObjectContext context ->
             registration.add(Runnable, testDslService)
         }
     }

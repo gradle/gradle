@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */

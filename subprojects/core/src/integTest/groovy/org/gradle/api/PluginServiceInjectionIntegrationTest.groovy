@@ -16,6 +16,8 @@
 
 package org.gradle.api
 
+import org.gradle.api.internal.GeneratedSubclass
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import javax.inject.Inject
@@ -40,6 +42,9 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                 
                 void apply(Project p) {
                     println(executor != null ? "got it" : "NOT IT")
+
+                    // is not generated
+                    assert getClass() == CustomPlugin
                 }
             }
             
@@ -91,18 +96,22 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
-        failure.assertHasCause("Unable to determine CustomPlugin argument #1: missing parameter value of type interface Unknown, or no service of type interface Unknown")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface Unknown, or no service of type interface Unknown")
     }
 
-    // Document current behaviour
-    def "fails when service injected using getter"() {
+    def "can inject service using getter method"() {
         buildFile << """
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 WorkerExecutor getExecutor() { }
                 
                 void apply(Project p) {
-                    assert executor == null
+                    println(executor != null ? "got it" : "NOT IT")
+
+                    // is generated but not extensible
+                    assert getClass() != CustomPlugin
+                    assert (this instanceof ${GeneratedSubclass.name}) 
+                    assert !(this instanceof ${ExtensionAware.name}) 
                 }
             }
             
@@ -111,5 +120,30 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds()
+        outputContains("got it")
+    }
+
+    def "can inject service using abstract getter method"() {
+        buildFile << """
+            abstract class CustomPlugin implements Plugin<Project> {
+                @Inject
+                abstract WorkerExecutor getExecutor()
+                
+                void apply(Project p) {
+                    println(executor != null ? "got it" : "NOT IT")
+
+                    // is generated but not extensible
+                    assert getClass() != CustomPlugin
+                    assert (this instanceof ${GeneratedSubclass.name}) 
+                    assert !(this instanceof ${ExtensionAware.name}) 
+                }
+            }
+            
+            apply plugin: CustomPlugin
+        """
+
+        expect:
+        succeeds()
+        outputContains("got it")
     }
 }

@@ -39,6 +39,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
+    @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (!task.hasTaskActions()) {
             LOGGER.info("Skipping {} as it has no actions.", task);
@@ -51,7 +52,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
             }
             state.setActionable(false);
             state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
-            return null;
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         }
         return executer.execute(task, state, context);
     }

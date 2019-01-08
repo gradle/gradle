@@ -1,5 +1,5 @@
 allprojects {
-    tasks.register("hello") {
+    task hello {
         doLast { task ->
             println "I'm $task.project.name"
         }

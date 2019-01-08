@@ -22,9 +22,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 /**
- * A registry of services.
+ * A read-only registry of services. May or may not be immutable.
  */
-public interface ServiceRegistry {
+public interface ServiceRegistry extends ServiceLookup {
     /**
      * Locates the service of the given type.
      *
@@ -54,6 +54,7 @@ public interface ServiceRegistry {
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
+    @Override
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
@@ -63,6 +64,7 @@ public interface ServiceRegistry {
      * @return The service instance. Returns {@code null} if no such service exists.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
+    @Override
     Object find(Type serviceType) throws ServiceLookupException;
 
     /**

@@ -31,11 +31,12 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
@@ -98,6 +99,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter;
+import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
@@ -160,12 +162,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         services.add(ProjectFinder.class, projectFinder);
         services.add(DomainObjectContext.class, domainObjectContext);
         services.addProvider(new ArtifactTransformResolutionGradleUserHomeServices());
-        services.addProvider(new DependencyResolutionScopeServices());
+        services.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
         return services.get(DependencyResolutionServices.class);
     }
 
-    public void addDslServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyResolutionScopeServices());
+    public void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext) {
+        registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
     }
 
     private static class ArtifactTransformResolutionGradleUserHomeServices {
@@ -229,8 +231,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class DependencyResolutionScopeServices {
 
+        private final DomainObjectContext domainObjectContext;
+
+        public DependencyResolutionScopeServices(DomainObjectContext domainObjectContext) {
+            this.domainObjectContext = domainObjectContext;
+        }
+
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-            return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
+            return instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
         }
 
         MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
@@ -455,7 +463,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
-            return new DefaultDependencyResolutionServices(services);
+            return new DefaultDependencyResolutionServices(services, domainObjectContext);
         }
 
         ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
@@ -470,9 +478,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
 
         private final ServiceRegistry services;
+        private final DomainObjectContext domainObjectContext;
 
-        private DefaultDependencyResolutionServices(ServiceRegistry services) {
+        private DefaultDependencyResolutionServices(ServiceRegistry services, DomainObjectContext domainObjectContext) {
             this.services = services;
+            this.domainObjectContext = domainObjectContext;
         }
 
         public RepositoryHandler getResolveRepositoryHandler() {
@@ -484,7 +494,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         public DependencyHandler getDependencyHandler() {
-            return services.get(DependencyHandler.class);
+            DependencyHandler dependencyHandler = services.get(DependencyHandler.class);
+            if (domainObjectContext.isScript()) {
+                ((ComponentMetadataHandlerInternal) dependencyHandler.getComponents()).setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
+            }
+            return dependencyHandler;
         }
 
         @Override
