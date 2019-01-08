@@ -24,8 +24,9 @@ import org.gradle.kotlin.dsl.cache.ScriptBuildCacheKey
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 import java.io.InputStream
@@ -46,13 +47,15 @@ class LoadDirectoryTest : TestWithTempFiles() {
         )
 
         // then:
-        assertTrue(
-            subject.load(packProducedBy(currentBuildInvocation))!!.metadata.isProducedByCurrentBuild
+        assertThat(
+            subject.load(packProducedBy(currentBuildInvocation))!!.metadata.buildInvocationId,
+            equalTo(currentBuildInvocation)
         )
 
         // and:
-        assertFalse(
-            subject.load(packProducedBy(previousBuildInvocation))!!.metadata.isProducedByCurrentBuild
+        assertThat(
+            subject.load(packProducedBy(previousBuildInvocation))!!.metadata.buildInvocationId,
+            not(equalTo(currentBuildInvocation))
         )
     }
 
