@@ -103,14 +103,14 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * Tells if empty target directories will be included in the copy.
      *
-     * @return <code>true</code> if empty target directories will be included in the copy, <code>false</code> otherwise
+     * @return <tt>true</tt> if empty target directories will be included in the copy, <tt>false</tt> otherwise
      */
     boolean getIncludeEmptyDirs();
 
     /**
      * Controls if empty target directories should be included in the copy.
      *
-     * @param includeEmptyDirs <code>true</code> if empty target directories should be included in the copy, <code>false</code> otherwise
+     * @param includeEmptyDirs <tt>true</tt> if empty target directories should be included in the copy, <tt>false</tt> otherwise
      */
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
