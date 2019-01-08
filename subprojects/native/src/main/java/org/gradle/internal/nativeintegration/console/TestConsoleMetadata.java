@@ -44,12 +44,12 @@ public enum TestConsoleMetadata implements ConsoleMetaData {
 
     @Override
     public int getCols() {
-        return 0;
+        return 130;
     }
 
     @Override
     public int getRows() {
-        return 0;
+        return 40;
     }
 
     public String getCommandLineArgument() {

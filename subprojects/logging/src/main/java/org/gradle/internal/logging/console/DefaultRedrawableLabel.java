@@ -19,14 +19,13 @@ package org.gradle.internal.logging.console;
 import org.gradle.api.Action;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultRedrawableLabel implements RedrawableLabel {
     private final Cursor writePos;  // Relative coordinate system
-    private List<StyledTextOutputEvent.Span> spans = Collections.EMPTY_LIST;
-    private List<StyledTextOutputEvent.Span> writtenSpans = Collections.EMPTY_LIST;
+    private List<StyledTextOutputEvent.Span> spans = Collections.emptyList();
+    private List<StyledTextOutputEvent.Span> writtenSpans = Collections.emptyList();
     private int absolutePositionRow;  // Absolute coordinate system
     private int previousWriteRow = absolutePositionRow;
     private boolean isVisible = true;
@@ -38,17 +37,17 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
 
     @Override
     public void setText(String text) {
-        setText(new StyledTextOutputEvent.Span(text));
+        this.spans = Collections.singletonList(new StyledTextOutputEvent.Span(text));
+    }
+
+    @Override
+    public void setText(StyledTextOutputEvent.Span span) {
+        this.spans = Collections.singletonList(span);
     }
 
     @Override
     public void setText(List<StyledTextOutputEvent.Span> spans) {
         this.spans = spans;
-    }
-
-    @Override
-    public void setText(StyledTextOutputEvent.Span... spans) {
-        setText(Arrays.asList(spans));
     }
 
     public Cursor getWritePosition() {
@@ -71,7 +70,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
         }
 
         if (!isVisible && previousVisibility) {
-            if (previousWriteRow == absolutePositionRow && writtenSpans.equals(Collections.EMPTY_LIST)) {
+            if (previousWriteRow == absolutePositionRow && writtenSpans.isEmpty()) {
                 // Does not need to be redrawn
                 return;
             }
@@ -79,7 +78,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
             writePos.col = 0;
             ansi.cursorAt(writePos).eraseAll();
 
-            writtenSpans = Collections.EMPTY_LIST;
+            writtenSpans = Collections.emptyList();
         }
 
         if (isVisible) {

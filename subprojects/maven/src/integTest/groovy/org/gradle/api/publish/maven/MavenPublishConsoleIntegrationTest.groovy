@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -69,7 +70,9 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         server.expect(server.put(m1.rootMetaData.path + ".sha1"))
         server.expect(server.put(m1.rootMetaData.path + ".md5"))
 
-        def build = executer.withTasks("publish").withArguments("--max-workers=2", "--console=rich").start()
+        executer.withTestConsoleAttached()
+        executer.withConsole(ConsoleOutput.Rich)
+        def build = executer.withTasks("publish").withArguments("--max-workers=2").start()
         putJar.waitForAllPendingCalls()
 
         then:
