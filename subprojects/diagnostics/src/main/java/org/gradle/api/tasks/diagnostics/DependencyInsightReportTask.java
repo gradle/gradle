@@ -167,6 +167,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Tells if the report should only display a single path to each dependency, which
      * can be useful when the graph is large. This is false by default, meaning that for
      * each dependency, the report will display all paths leading to it.
+     *
      * @since 4.9
      */
     @Option(option = "singlepath", description = "Show at most one path to each dependency")
@@ -244,12 +245,12 @@ public class DependencyInsightReportTask extends DefaultTask {
     private void assertValidTaskConfiguration(Configuration configuration) {
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
-                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
+                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
 
         if (dependencySpec == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
-                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
+                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
     }
 
@@ -365,8 +366,8 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
-            ResolvedVariantResult resolvedVariant = dependency.getResolvedVariant();
-            if (resolvedVariant != null) {
+            List<ResolvedVariantResult> resolvedVariants = dependency.getResolvedVariants();
+            for (ResolvedVariantResult resolvedVariant : resolvedVariants) {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
@@ -387,8 +388,8 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         private AttributeContainer concat(AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
             return attributesFactory.concat(
-                ((AttributeContainerInternal) configAttributes).asImmutable(),
-                ((AttributeContainerInternal) dependencyAttributes).asImmutable());
+                    ((AttributeContainerInternal) configAttributes).asImmutable(),
+                    ((AttributeContainerInternal) dependencyAttributes).asImmutable());
         }
 
         private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested) {
