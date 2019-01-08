@@ -5,7 +5,7 @@ repo='kotlin-dsl-snapshots-local'
 # .children[-2] selects the one before the last which is the all distro
 latestSnapshotPath=`
     http get https://repo.gradle.org/gradle/api/storage/$repo/ \
-        | jq -r '[ .children[] | select(.uri | startswith("/gradle-kotlin-dsl-5.1-")) ][-2].uri'`
+        | jq -r '[ .children[] | select(.uri | startswith("/gradle-kotlin-dsl-5.1.1-")) ][-2].uri'`
 
 find . -name gradle-wrapper.properties \
     | xargs perl -p -i -e "s|^(distributionUrl=.*$repo).*|\$1$latestSnapshotPath|"
