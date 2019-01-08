@@ -80,14 +80,31 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
         List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream().filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId())).collect(toList());
         if (currentBuildExecutions.isEmpty()) {
-            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
+            scenario.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
         } else {
-            scenario.setCurrentBuildExecutions(currentBuildExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
+            scenario.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
         }
 
         scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 
         return scenario;
+    }
+
+    private List<ScenarioBuildResultData.ExecutionData> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
+        return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());
+    }
+
+    private List<ScenarioBuildResultData.ExecutionData> determineRecentExecutions(List<ScenarioBuildResultData.ExecutionData> executions) {
+        List<ScenarioBuildResultData.ExecutionData> executionsOfSameCommit = executions.stream().filter(this::sameCommit).collect(toList());
+        if (executionsOfSameCommit.isEmpty()) {
+            return executions;
+        } else {
+            return executionsOfSameCommit;
+        }
+    }
+
+    private boolean sameCommit(ScenarioBuildResultData.ExecutionData execution) {
+        return commitId.equals(execution.getCommitId());
     }
 
     private ScenarioBuildResultData.ExecutionData extractExecutionData(PerformanceTestExecution performanceTestExecution) {
@@ -108,8 +125,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         if (execution.getVcsCommits().isEmpty()) {
             return "";
         } else {
-            String commit = execution.getVcsCommits().get(0);
-            return commit.substring(0, Math.min(7, commit.length()));
+            return execution.getVcsCommits().get(0);
         }
     }
 
@@ -295,7 +311,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
                             td().text(FormatSupport.timestamp(execution.getTime())).end();
-                            td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getCommitId()).text(execution.getCommitId()).end().end();
+                            td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getShortCommitId()).text(execution.getShortCommitId()).end().end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
@@ -351,7 +367,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             if (scenario.isFromCache()) {
                 result.add(FROM_CACHE);
             }
-            if(scenario.isUnknown()) {
+            if (scenario.isUnknown()) {
                 result.add(UNKNOWN);
             } else if (scenario.isBuildFailed()) {
                 result.add(FAILED);
