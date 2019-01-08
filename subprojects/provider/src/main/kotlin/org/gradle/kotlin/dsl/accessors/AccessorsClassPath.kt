@@ -478,8 +478,15 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
-    schema.configurations.sorted().forEach(::putString)
+    putAllSorted(schema.configurations)
     hash()
+}
+
+
+private
+fun Hasher.putAllSorted(strings: List<String>) {
+    putInt(strings.size)
+    strings.sorted().forEach(::putString)
 }
 
 
