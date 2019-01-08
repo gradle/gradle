@@ -1704,7 +1704,10 @@ org:leaf2:1.0
         then:
         outputContains """
 project :
-   variant "compile+runtimeElements"
+   variant "compile"
+   variant "runtimeElements" [
+      org.gradle.usage = java-runtime-jars (not requested)
+   ]
 
 project :
 \\--- project :impl

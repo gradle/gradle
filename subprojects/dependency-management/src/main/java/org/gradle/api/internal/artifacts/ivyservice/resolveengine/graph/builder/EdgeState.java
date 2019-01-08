@@ -164,7 +164,7 @@ class EdgeState implements DependencyGraphEdge {
 
     public ImmutableAttributes getAttributes() {
         ModuleResolveState module = selector.getTargetModule();
-        return module.getMergedSelectorAttributes();
+        return module.mergedConstraintsAttributes(dependencyState.getRequested().getAttributes());
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {

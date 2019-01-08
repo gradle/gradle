@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class ResolvedDependencyEdge implements DependencyEdge {
@@ -48,8 +49,8 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
-    public ResolvedVariantResult getSelectedVariant() {
-        return dependency.getSelected().getVariant();
+    public List<ResolvedVariantResult> getSelectedVariants() {
+        return dependency.getSelected().getVariants();
     }
 
     @Override

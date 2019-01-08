@@ -29,13 +29,13 @@ import java.util.List;
 public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
     private final DependencyEdge dependency;
     private final String description;
-    private final ResolvedVariantResult selectedVariant;
+    private final List<ResolvedVariantResult> selectedVariants;
     private final List<Section> extraDetails;
 
-    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult resolvedVariantResult, List<Section> extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, String description, List<ResolvedVariantResult> resolvedVariants, List<Section> extraDetails) {
         this.dependency = dependency;
         this.description = description;
-        this.selectedVariant = resolvedVariantResult;
+        this.selectedVariants = resolvedVariants;
         this.extraDetails = extraDetails;
     }
 
@@ -60,8 +60,8 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
     }
 
     @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return selectedVariant;
+    public List<ResolvedVariantResult> getResolvedVariants() {
+        return selectedVariants;
     }
 
     @Override

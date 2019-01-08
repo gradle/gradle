@@ -42,8 +42,8 @@ public abstract class AbstractRenderableDependency implements RenderableDependen
     }
 
     @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return null;
+    public List<ResolvedVariantResult> getResolvedVariants() {
+        return Collections.emptyList();
     }
 
     @Override

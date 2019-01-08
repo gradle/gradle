@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -30,17 +31,19 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +53,7 @@ public class DefaultResolutionResultBuilder {
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
+        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, Collections.emptyList(), null));
         return builder.complete(0L);
     }
 
@@ -62,8 +65,13 @@ public class DefaultResolutionResultBuilder {
         create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component), component.getRepositoryName());
     }
 
-    private static ResolvedVariantResult variantDetails(ResolvedGraphComponent component) {
-        return new DefaultResolvedVariantResult(component.getVariantName(), component.getVariantAttributes());
+    private static List<ResolvedVariantResult> variantDetails(ResolvedGraphComponent component) {
+        List<ResolvedVariantDetails> resolvedVariants = component.getResolvedVariants();
+        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(resolvedVariants.size());
+        for (ResolvedVariantDetails resolvedVariant : resolvedVariants) {
+            builder.add(new DefaultResolvedVariantResult(resolvedVariant.getVariantName(), resolvedVariant.getVariantAttributes()));
+        }
+        return builder.build();
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
@@ -81,9 +89,9 @@ public class DefaultResolutionResultBuilder {
         }
     }
 
-    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repoName) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> variants, String repoName) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variant, repoName));
+            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variants, repoName));
         }
     }
 
