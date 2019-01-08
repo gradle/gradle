@@ -75,7 +75,7 @@ public class DirectInstantiator implements Instantiator {
             }
             Class<?> pType = param.getClass();
             if (pType.isPrimitive()) {
-                pType = getWrapperTypeForPrimitiveType(pType);
+                pType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(pType);
             }
             result[i] = pType;
         }
@@ -127,7 +127,7 @@ public class DirectInstantiator implements Instantiator {
                     if (argumentType == null) {
                         return false;
                     }
-                    parameterType = getWrapperTypeForPrimitiveType(parameterType);
+                    parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
                 }
                 if (argumentType != null && !parameterType.isAssignableFrom(argumentType)) {
                     return false;
@@ -135,27 +135,6 @@ public class DirectInstantiator implements Instantiator {
             }
             return true;
         }
-    }
-
-    private static Class<?> getWrapperTypeForPrimitiveType(Class<?> type) {
-        if (type == Character.TYPE) {
-            return Character.class;
-        } else if (type == Boolean.TYPE) {
-            return Boolean.class;
-        } else if (type == Long.TYPE) {
-            return Long.class;
-        } else if (type == Integer.TYPE) {
-            return Integer.class;
-        } else if (type == Short.TYPE) {
-            return Short.class;
-        } else if (type == Byte.TYPE) {
-            return Byte.class;
-        } else if (type == Float.TYPE) {
-            return Float.class;
-        } else if (type == Double.TYPE) {
-            return Double.class;
-        }
-        throw new IllegalArgumentException(String.format("Don't know the wrapper type for primitive type %s.", type));
     }
 
     public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {

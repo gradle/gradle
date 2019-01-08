@@ -24,6 +24,7 @@ import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
@@ -162,7 +163,7 @@ public class AntlrExecuter implements AntlrWorker {
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.v4.Tool", toArray(arguments));
             if (inputDirectory != null) {
-                JavaReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
+                JavaPropertyReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
             }
             JavaMethod.method(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
             return JavaMethod.method(backedObject, Integer.class, "getNumErrors").invoke(backedObject);

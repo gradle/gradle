@@ -19,8 +19,8 @@ package org.gradle.internal.instantiation;
 import org.gradle.api.Transformer;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.util.List;
 

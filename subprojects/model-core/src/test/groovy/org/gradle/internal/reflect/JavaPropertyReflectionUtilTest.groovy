@@ -16,23 +16,22 @@
 
 package org.gradle.internal.reflect
 
-import org.gradle.api.specs.Spec
+
 import spock.lang.Specification
 
 import java.lang.annotation.Inherited
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.findMethod
-import static org.gradle.internal.reflect.JavaReflectionUtil.getAnnotation
-import static org.gradle.internal.reflect.JavaReflectionUtil.hasDefaultToString
-import static org.gradle.internal.reflect.JavaReflectionUtil.propertyNames
-import static org.gradle.internal.reflect.JavaReflectionUtil.readableField
-import static org.gradle.internal.reflect.JavaReflectionUtil.readableProperty
-import static org.gradle.internal.reflect.JavaReflectionUtil.writeableField
-import static org.gradle.internal.reflect.JavaReflectionUtil.writeableProperty
+import static JavaPropertyReflectionUtil.getAnnotation
+import static JavaPropertyReflectionUtil.hasDefaultToString
+import static JavaPropertyReflectionUtil.propertyNames
+import static JavaPropertyReflectionUtil.readableField
+import static JavaPropertyReflectionUtil.readableProperty
+import static JavaPropertyReflectionUtil.writeableField
+import static JavaPropertyReflectionUtil.writeableProperty
 
-class JavaReflectionUtilTest extends Specification {
+class JavaPropertyReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
     def "property names"() {
@@ -244,12 +243,6 @@ class JavaReflectionUtilTest extends Specification {
         property            | _
         "privateProperty"   | _
         "protectedProperty" | _
-    }
-
-    def "find method"() {
-        expect:
-        findMethod(String, { it.name == "toString" } as Spec) == String.declaredMethods.find { it.name == "toString" }
-        findMethod(String, { it.name == "getClass" } as Spec) == Object.declaredMethods.find { it.name == "getClass" }
     }
 
     def "get annotation"() {

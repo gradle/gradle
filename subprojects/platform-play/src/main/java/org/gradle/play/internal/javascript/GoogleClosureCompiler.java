@@ -24,7 +24,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.plugins.javascript.base.SourceTransformationException;
@@ -98,7 +98,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
         // Get any errors from the compiler result
-        PropertyAccessor<Object, Object[]> jsErrorsField = JavaReflectionUtil.readableField(result, Object[].class, "errors");
+        PropertyAccessor<Object, Object[]> jsErrorsField = JavaPropertyReflectionUtil.readableField(result, Object[].class, "errors");
         Object[] jsErrors = jsErrorsField.getValue(result);
 
         if (jsErrors.length == 0) {
