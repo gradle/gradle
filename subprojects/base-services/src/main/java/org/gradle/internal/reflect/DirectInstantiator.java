@@ -75,7 +75,7 @@ public class DirectInstantiator implements Instantiator {
             }
             Class<?> pType = param.getClass();
             if (pType.isPrimitive()) {
-                pType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(pType);
+                pType = getWrapperTypeForPrimitiveType(pType);
             }
             result[i] = pType;
         }
@@ -83,10 +83,10 @@ public class DirectInstantiator implements Instantiator {
     }
 
     @VisibleForTesting
-    public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor> {
+    public static class ConstructorCache extends ReflectionCache<CachedConstructor> {
 
         @Override
-        protected JavaReflectionUtil.CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
+        protected CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
             Constructor<?>[] constructors = receiver.getConstructors();
             Constructor<?> match = null;
             for (Constructor<?> constructor : constructors) {
@@ -103,7 +103,7 @@ public class DirectInstantiator implements Instantiator {
             if (match == null) {
                 throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters [%s].", receiver, prettify(argumentTypes)));
             }
-            return new JavaReflectionUtil.CachedConstructor(match);
+            return new CachedConstructor(match);
         }
 
         private String prettify(Class<?>[] argumentTypes) {
@@ -127,7 +127,7 @@ public class DirectInstantiator implements Instantiator {
                     if (argumentType == null) {
                         return false;
                     }
-                    parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                    parameterType = getWrapperTypeForPrimitiveType(parameterType);
                 }
                 if (argumentType != null && !parameterType.isAssignableFrom(argumentType)) {
                     return false;
@@ -136,4 +136,32 @@ public class DirectInstantiator implements Instantiator {
             return true;
         }
     }
+
+    private static Class<?> getWrapperTypeForPrimitiveType(Class<?> type) {
+        if (type == Character.TYPE) {
+            return Character.class;
+        } else if (type == Boolean.TYPE) {
+            return Boolean.class;
+        } else if (type == Long.TYPE) {
+            return Long.class;
+        } else if (type == Integer.TYPE) {
+            return Integer.class;
+        } else if (type == Short.TYPE) {
+            return Short.class;
+        } else if (type == Byte.TYPE) {
+            return Byte.class;
+        } else if (type == Float.TYPE) {
+            return Float.class;
+        } else if (type == Double.TYPE) {
+            return Double.class;
+        }
+        throw new IllegalArgumentException(String.format("Don't know the wrapper type for primitive type %s.", type));
+    }
+
+    public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {
+        public CachedConstructor(Constructor<?> ctor) {
+            super(ctor);
+        }
+    }
+
 }

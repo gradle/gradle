@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@
 package org.gradle.internal.reflect;
 
 import org.apache.commons.lang.reflect.MethodUtils;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
@@ -197,26 +195,6 @@ public class JavaReflectionUtil {
                 PROPERTY_CACHE.put(targetType, cached);
             }
             return cached;
-        }
-    }
-
-    public static <T> T newInstanceOrFallback(String jdk7Type, ClassLoader loader, Class<? extends T> fallbackType) {
-        // Use java 7 APIs, if available
-        Class<?> handlerClass = null;
-        if (JavaVersion.current().isJava7Compatible()) {
-            try {
-                handlerClass = loader.loadClass(jdk7Type);
-            } catch (ClassNotFoundException e) {
-                // Ignore
-            }
-        }
-        if (handlerClass == null) {
-            handlerClass = fallbackType;
-        }
-        try {
-            return Cast.uncheckedCast(handlerClass.getConstructor().newInstance());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -439,12 +417,6 @@ public class JavaReflectionUtil {
             } catch (IllegalAccessException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        }
-    }
-
-    public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {
-        public CachedConstructor(Constructor<?> ctor) {
-            super(ctor);
         }
     }
 }

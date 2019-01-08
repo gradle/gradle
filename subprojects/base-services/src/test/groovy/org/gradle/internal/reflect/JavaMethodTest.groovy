@@ -24,7 +24,7 @@ import static org.gradle.internal.reflect.JavaMethod.staticMethod
 
 class JavaMethodTest extends Specification {
 
-    JavaTestSubject myProperties = new JavaTestSubject()
+    JavaMethodTestSubject myProperties = new JavaMethodTestSubject()
 
     def "call methods successfully reflectively"() {
         expect:
@@ -66,23 +66,23 @@ class JavaMethodTest extends Specification {
 
         then:
         UncheckedException checkedFailure = thrown()
-        checkedFailure.cause instanceof JavaTestSubject.TestCheckedException
+        checkedFailure.cause instanceof JavaMethodTestSubject.TestCheckedException
         checkedFailure.cause.cause == myProperties.failure
     }
 
     def "call declared method that may not be public"() {
         expect:
-        method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
-        method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
+        method(JavaMethodTestSubjectSubclass, String, "protectedMethod").invoke(new JavaMethodTestSubjectSubclass()) == "parent"
+        method(JavaMethodTestSubjectSubclass, String, "overridden").invoke(new JavaMethodTestSubjectSubclass()) == "subclass"
     }
 
     def "cannot call unknown method"() {
         when:
-        method(JavaTestSubjectSubclass, String, "unknown")
+        method(JavaMethodTestSubjectSubclass, String, "unknown")
 
         then:
         NoSuchMethodException e = thrown()
-        e.message == /Could not find method unknown() on JavaTestSubjectSubclass./
+        e.message == /Could not find method unknown() on JavaMethodTestSubjectSubclass./
     }
 
 }

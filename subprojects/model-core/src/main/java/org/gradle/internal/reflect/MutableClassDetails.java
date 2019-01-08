@@ -19,7 +19,13 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableSet;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 class MutableClassDetails implements ClassDetails {
     private final Class<?> type;
