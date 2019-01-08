@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.tasks.Internal;
-
 /**
  * <p>Allows default values for the properties of this object to be declared. Most implementations are generated at
  * run-time from existing classes, by a {@link org.gradle.api.internal.Instantiator} implementation.</p>
@@ -33,6 +31,5 @@ public interface IConventionAware {
      *
      * @return The mapping. Never returns null.
      */
-    @Internal
     ConventionMapping getConventionMapping();
 }
