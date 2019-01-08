@@ -33,6 +33,12 @@ For details, have a look at the [dedicated section](userguide/publishing_maven.h
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
 These toolchains are now officially supported by Gradle.  See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
 
+## Rich console improvements on Windows
+
+This release includes some improvements to Gradle's console integration on Windows. Gradle now detects when it is running from Mintty on Windows and enables the rich console. Mintty is a popular terminal emulator used by projects such as Cygwin and Git for Windows. 
+
+The implementation of the rich console has been improved to remove some distracting visual artifacts on Windows. 
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
