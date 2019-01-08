@@ -474,17 +474,17 @@ fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheK
 
 internal
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
-    putCacheKeyEntries(schema.extensions)
-    putCacheKeyEntries(schema.conventions)
-    putCacheKeyEntries(schema.tasks)
-    putCacheKeyEntries(schema.containerElements)
+    putAll(schema.extensions)
+    putAll(schema.conventions)
+    putAll(schema.tasks)
+    putAll(schema.containerElements)
     schema.configurations.sorted().forEach(::putString)
     hash()
 }
 
 
 private
-fun Hasher.putCacheKeyEntries(entries: List<ProjectSchemaEntry<SchemaType>>) {
+fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
     putInt(entries.size)
     entries.forEach { entry ->
         putString(entry.target.kotlinString)
