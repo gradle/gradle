@@ -28,7 +28,8 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             build().output.linesPrefixedBy("*").map(::normaliseFileSeparators).toSet(),
-            equalTo(expectedSourceDirs))
+            equalTo(expectedSourceDirs)
+        )
     }
 
     private
@@ -41,17 +42,16 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "antlr/src/main/java", "antlr/src/main/resources",
         "base-services/src/main/java", "base-services-groovy/src/main/java",
         "build-cache/src/main/java", "build-cache-http/src/main/java",
-        "build-cache-http/src/main/resources", "build-cache-packaging/src/main/java",
+        "build-cache-http/src/main/resources",
         "build-comparison/src/main/groovy", "build-comparison/src/main/java", "build-comparison/src/main/resources",
         "build-init/src/main/groovy", "build-init/src/main/java",
         "build-init/src/main/resources", "build-option/src/main/java",
-        "build-profile/src/main/java", "build-profile/src/main/resources",
         "cli/src/main/java", "code-quality/src/main/groovy", "code-quality/src/main/resources",
         "composite-builds/src/main/java", "composite-builds/src/main/resources",
         "core/src/main/java", "core/src/main/resources", "core-api/src/main/java",
         "dependency-management/src/main/java", "dependency-management/src/main/resources",
         "diagnostics/src/main/java", "diagnostics/src/main/resources",
-        "docs/src/main/resources", "execution/src/main/java",
+        "docs/src/main/resources",
         "ear/src/main/java", "ear/src/main/resources",
         "files/src/main/java",
         "ide/src/main/java", "ide/src/main/resources",
@@ -70,7 +70,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "language-scala/src/main/java", "language-scala/src/main/resources",
         "launcher/src/main/java", "launcher/src/main/resources",
         "logging/src/main/java", "maven/src/main/java", "maven/src/main/resources",
-        "messaging/src/main/java", "model-core/src/main/java", "model-core/src/main/resources",
+        "messaging/src/main/java", "model-core/src/main/java",
         "model-groovy/src/main/java", "native/src/main/java", "osgi/src/main/java", "osgi/src/main/resources",
         "persistent-cache/src/main/java", "platform-base/src/main/java", "platform-base/src/main/resources",
         "platform-jvm/src/main/java", "platform-jvm/src/main/resources",
