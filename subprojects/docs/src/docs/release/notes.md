@@ -123,7 +123,7 @@ The following are the features that have been promoted in this Gradle release.
 
 In this release, we now [recommend that you use this new API when working with tasks in your plugins](userguide/task_configuration_avoidance.html). We've updated our [Gradle Guide for implementing plugins](https://guides.gradle.org/implementing-gradle-plugins/) to use this new API.
 
-By default, the Kotlin DSL [uses the new APIs](current/userguide/kotlin_dsl.html#type-safe-accessors).
+By default, the Kotlin DSL [uses the new APIs](userguide/kotlin_dsl.html#type-safe-accessors).
 
 "Old style" task declarations in the Groovy DSL continue to be eager and force creation/configuration of any tasks created this way.
 ```
