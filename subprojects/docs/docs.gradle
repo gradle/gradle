@@ -305,8 +305,9 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
+    options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
+    if (BuildEnvironment.javaVersion.isJava11Compatible()) {
+        options.addBooleanOption('html4', true)
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
