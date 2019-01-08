@@ -108,8 +108,9 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Task.isExpectedAsciidoctorCacheMiss() =
     // Expected cache-miss for asciidoctor task:
-    // Gradle_Check_BuildDistributions is the seed build
-        isInBuild("Gradle_Check_BuildDistributions")
+    // 1. CompileAll is the seed build for docs:distDocs
+    // 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
+        isInBuild("Gradle_Check_CompileAll", "Gradle_Check_BuildDistributions")
 
     private
     fun Task.isExpectedCompileCacheMiss() =
