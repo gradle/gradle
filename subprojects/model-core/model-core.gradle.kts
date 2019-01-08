@@ -30,6 +30,7 @@ dependencies {
 
     api(project(":baseServices"))
     api(project(":coreApi"))
+    api(library("inject"))
     api(library("groovy"))
 
     implementation(project(":baseServicesGroovy"))
