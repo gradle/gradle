@@ -25,7 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -100,23 +99,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         configureCompile()
         configureJarTasks()
         configureTests()
-        configureLegacyConfigurations()
-    }
-
-    private
-    fun Project.configureLegacyConfigurations() {
-        // The legacy configurations should never be resolved or consumed directly.
-        // However for backwards compatibility, Gradle cannot disable this by default,
-        // but we do it for our own build, in order to catch errors early
-        listOf("compile", "runtime")
-                .map(configurations::getByName)
-                .forEach(::disableLegacyBehavior)
-    }
-
-    private
-    fun disableLegacyBehavior(c: Configuration) = c.run {
-        isCanBeConsumed = false
-        isCanBeResolved = false
     }
 
     private
