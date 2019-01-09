@@ -16,7 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
 /**
@@ -27,7 +26,7 @@ import java.util.WeakHashMap;
  *
  * @param <T> the type of the element stored in the cache.
  */
-public abstract class ReflectionCache<T extends ReflectionCache.CachedInvokable<?>> {
+public abstract class ReflectionCache<T extends CachedInvokable<?>> {
     private final Object lock = new Object();
 
     private final WeaklyClassReferencingCache cache = new WeaklyClassReferencingCache();
@@ -75,15 +74,4 @@ public abstract class ReflectionCache<T extends ReflectionCache.CachedInvokable<
         private T value;
     }
 
-    public static class CachedInvokable<T> {
-        private final WeakReference<T> invokable;
-
-        public CachedInvokable(T invokable) {
-            this.invokable = new WeakReference<T>(invokable);
-        }
-
-        public T getMethod() {
-            return invokable.get();
-        }
-    }
 }

@@ -137,7 +137,7 @@ public class DirectInstantiator implements Instantiator {
         }
     }
 
-    public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {
+    private static class CachedConstructor extends CachedInvokable<Constructor<?>> {
         public CachedConstructor(Constructor<?> ctor) {
             super(ctor);
         }

@@ -97,7 +97,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         ruleMethod.invoke(instance, args);
     }
 
-    public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
+    private static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
         return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(), false);
     }
 

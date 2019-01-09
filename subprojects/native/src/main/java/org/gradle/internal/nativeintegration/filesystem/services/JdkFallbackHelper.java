@@ -21,8 +21,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
 public class JdkFallbackHelper {
-    private JdkFallbackHelper() {
-    }
 
     public static <T> T newInstanceOrFallback(String jdk7Type, ClassLoader loader, Class<? extends T> fallbackType) {
         // Use java 7 APIs, if available
