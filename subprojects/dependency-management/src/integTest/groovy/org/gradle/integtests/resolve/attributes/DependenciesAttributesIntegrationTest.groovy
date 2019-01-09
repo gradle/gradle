@@ -1030,58 +1030,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
-    void "can select distinct variants of the same component by using different attributes"() {
-        given:
-        repository {
-            'org:test:1.0' {
-                variant('api') {
-                    attribute('custom', 'c1')
-                }
-                variant('runtime') {
-                    attribute('custom', 'c2')
-                }
-            }
-        }
-
-        buildFile << """
-            dependencies {
-                conf('org:test:1.0') {
-                    attributes {
-                        attribute(CUSTOM_ATTRIBUTE, 'c1')
-                    }
-                }
-                conf('org:test:1.0') {
-                    attributes {
-                        attribute(CUSTOM_ATTRIBUTE, 'c2')
-                    }
-                }
-            }
-        """
-
-        when:
-        repositoryInteractions {
-            'org:test:1.0' {
-                expectResolve()
-            }
-        }
-        succeeds 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:test:1.0') {
-                    variant('api', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1'])
-                }
-                module('org:test:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
-                }
-            }
-        }
-    }
-
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }
