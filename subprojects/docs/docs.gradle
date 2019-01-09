@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
@@ -279,7 +279,7 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
+def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
@@ -331,7 +331,7 @@ tasks.register("checkstyleApi", Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-def distDocs = tasks.register("distDocs", AsciidoctorTask) {
+def distDocs = tasks.register("distDocs", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     outputDir = distDocsDir
     sources { include 'getting-started.adoc' }
@@ -340,18 +340,17 @@ def distDocs = tasks.register("distDocs", AsciidoctorTask) {
 
 asciidoctorj {
     noDefaultRepositories = true
-    version = '1.5.7'
 }
 
-tasks.withType(AsciidoctorTask).configureEach {
+tasks.withType(CacheableAsciidoctorTask).configureEach {
     dependsOn css, samples, defaultImports
 
     separateOutputDirs = false
     options doctype: 'book'
 
-    inputs.file "$srcDocsDir/css/manual.css"
-    inputs.dir file("src/main/resources")
-    inputs.dir samplesSrcDir
+    inputs.file("$srcDocsDir/css/manual.css").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources")).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(samplesSrcDir).withPathSensitivity(PathSensitivity.RELATIVE)
 
     attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
@@ -374,10 +373,10 @@ tasks.withType(AsciidoctorTask).configureEach {
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
         samplesPath         : "../../samples",
-        'samples-dir'       : "$projectDir/src/samples"
+        'samples-dir'       : 'src/samples'
 }
 
-def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
 
     sources {
