@@ -145,7 +145,7 @@ public abstract class ClassLoaderUtils {
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
         private ReflectionClassDefiner() {
-            defineClassMethod = JavaMethod.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
+            defineClassMethod = JavaMethod.of(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
         }
 
         @Override
@@ -186,8 +186,8 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class ReflectionPackagesFetcher implements ClassLoaderPackagesFetcher {
-        private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaMethod.method(ClassLoader.class, Package[].class, "getPackages");
-        private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaMethod.method(ClassLoader.class, Package.class, "getPackage", String.class);
+        private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaMethod.of(ClassLoader.class, Package[].class, "getPackages");
+        private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaMethod.of(ClassLoader.class, Package.class, "getPackage", String.class);
 
         @Override
         public Package[] getPackages(ClassLoader classLoader) {

@@ -19,50 +19,47 @@ package org.gradle.internal.reflect
 import org.gradle.internal.UncheckedException
 import org.gradle.testing.internal.util.Specification
 
-import static org.gradle.internal.reflect.JavaMethod.method
-import static org.gradle.internal.reflect.JavaMethod.staticMethod
-
 class JavaMethodTest extends Specification {
 
     JavaMethodTestSubject myProperties = new JavaMethodTestSubject()
 
     def "call methods successfully reflectively"() {
         expect:
-        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
-        method(myProperties.class, String, "doSomeStuff", int.class, Integer.class).invoke(myProperties, 1, 2) == "1.2"
+        JavaMethod.of(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
+        JavaMethod.of(myProperties.class, String, "doSomeStuff", int.class, Integer.class).invoke(myProperties, 1, 2) == "1.2"
 
         when:
-        method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
+        JavaMethod.of(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
 
         then:
-        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
+        JavaMethod.of(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
     }
 
     def "call static methods successfully reflectively" () {
         when:
-        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
+        JavaMethod.ofStatic(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
 
         then:
-        staticMethod(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
+        JavaMethod.ofStatic(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
     }
 
     def "static methods are identifiable" () {
         expect:
-        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
-        staticMethod(myProperties.class, String, "getStaticProperty").isStatic()
-        !method(myProperties.class, String, "getMyProperty").isStatic()
+        JavaMethod.ofStatic(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
+        JavaMethod.ofStatic(myProperties.class, String, "getStaticProperty").isStatic()
+        !JavaMethod.of(myProperties.class, String, "getMyProperty").isStatic()
     }
 
     def "call failing methods reflectively"() {
         when:
-        method(myProperties.class, Void, "throwsException").invoke(myProperties)
+        JavaMethod.of(myProperties.class, Void, "throwsException").invoke(myProperties)
 
         then:
         IllegalStateException e = thrown()
         e == myProperties.failure
 
         when:
-        method(myProperties.class, Void, "throwsCheckedException").invoke(myProperties)
+        JavaMethod.of(myProperties.class, Void, "throwsCheckedException").invoke(myProperties)
 
         then:
         UncheckedException checkedFailure = thrown()
@@ -72,13 +69,13 @@ class JavaMethodTest extends Specification {
 
     def "call declared method that may not be public"() {
         expect:
-        method(JavaMethodTestSubjectSubclass, String, "protectedMethod").invoke(new JavaMethodTestSubjectSubclass()) == "parent"
-        method(JavaMethodTestSubjectSubclass, String, "overridden").invoke(new JavaMethodTestSubjectSubclass()) == "subclass"
+        JavaMethod.of(JavaMethodTestSubjectSubclass, String, "protectedMethod").invoke(new JavaMethodTestSubjectSubclass()) == "parent"
+        JavaMethod.of(JavaMethodTestSubjectSubclass, String, "overridden").invoke(new JavaMethodTestSubjectSubclass()) == "subclass"
     }
 
     def "cannot call unknown method"() {
         when:
-        method(JavaMethodTestSubjectSubclass, String, "unknown")
+        JavaMethod.of(JavaMethodTestSubjectSubclass, String, "unknown")
 
         then:
         NoSuchMethodException e = thrown()

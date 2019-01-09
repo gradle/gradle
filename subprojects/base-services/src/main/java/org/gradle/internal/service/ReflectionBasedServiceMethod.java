@@ -25,7 +25,7 @@ class ReflectionBasedServiceMethod extends AbstractServiceMethod {
 
     ReflectionBasedServiceMethod(Method target) {
         super(target);
-        javaMethod = JavaMethod.method(Object.class, target);
+        javaMethod = JavaMethod.of(Object.class, target);
     }
 
     @Override

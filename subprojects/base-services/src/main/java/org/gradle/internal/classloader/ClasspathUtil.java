@@ -41,7 +41,7 @@ public class ClasspathUtil {
             for (URL url : classLoader.getURLs()) {
                 original.add(toURI(url));
             }
-            JavaMethod<URLClassLoader, Object> method = JavaMethod.method(URLClassLoader.class, Object.class, "addURL", URL.class);
+            JavaMethod<URLClassLoader, Object> method = JavaMethod.of(URLClassLoader.class, Object.class, "addURL", URL.class);
             for (URL classpathElement : classpathElements) {
                 if (original.add(toURI(classpathElement))) {
                     method.invoke(classLoader, classpathElement);

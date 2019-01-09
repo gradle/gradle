@@ -30,7 +30,7 @@ class NativeServicesInitializationTest extends Specification {
         // that's guaranteed not to have been initialized before
         ClassLoader classLoader = new URLClassLoader(((URLClassLoader) getClass().getClassLoader()).getURLs(), (ClassLoader)null)
         Class nativeServicesClass = classLoader.loadClass("org.gradle.internal.nativeintegration.services.NativeServices")
-        JavaMethod nativeServicesGetInstance = JavaMethod.staticMethod(nativeServicesClass, nativeServicesClass, "getInstance")
+        JavaMethod nativeServicesGetInstance = JavaMethod.ofStatic(nativeServicesClass, nativeServicesClass, "getInstance")
 
         when:
         nativeServicesGetInstance.invokeStatic()

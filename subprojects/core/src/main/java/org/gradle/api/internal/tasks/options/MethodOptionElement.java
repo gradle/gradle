@@ -101,7 +101,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            JavaMethod.method(Object.class, method).invoke(target, value);
+            JavaMethod.of(Object.class, method).invoke(target, value);
         }
     }
 
@@ -131,7 +131,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property property = (Property) JavaMethod.method(Object.class, method).invoke(target);
+            Property property = (Property) JavaMethod.of(Object.class, method).invoke(target);
             property.set(value);
         }
     }
@@ -160,7 +160,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object object, Object value) {
-            JavaMethod.method(Object.class, method).invoke(object);
+            JavaMethod.of(Object.class, method).invoke(object);
         }
     }
 }

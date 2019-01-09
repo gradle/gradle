@@ -67,12 +67,12 @@ public class AntlrExecuter implements AntlrWorker {
             final Object backedObject = loadTool("org.antlr.Tool", null);
             String[] argArray = arguments.toArray(new String[0]);
             if (inputDirectory != null) {
-                JavaMethod.method(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
-                JavaMethod.method(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
+                JavaMethod.of(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
+                JavaMethod.of(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
             }
-            JavaMethod.method(backedObject, Void.class, "processArgs", String[].class).invoke(backedObject, new Object[]{argArray});
-            JavaMethod.method(backedObject, Void.class, "process").invoke(backedObject);
-            return JavaMethod.method(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
+            JavaMethod.of(backedObject, Void.class, "processArgs", String[].class).invoke(backedObject, new Object[]{argArray});
+            JavaMethod.of(backedObject, Void.class, "process").invoke(backedObject);
+            return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
 
         @Override
@@ -165,8 +165,8 @@ public class AntlrExecuter implements AntlrWorker {
             if (inputDirectory != null) {
                 JavaPropertyReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
             }
-            JavaMethod.method(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
-            return JavaMethod.method(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
+            JavaMethod.of(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
+            return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
 
         @Override
@@ -208,7 +208,7 @@ public class AntlrExecuter implements AntlrWorker {
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedAntlrTool = loadTool("antlr.Tool", null);
-            JavaMethod.method(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
+            JavaMethod.of(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
             return 0;
         }
 

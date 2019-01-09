@@ -70,7 +70,7 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
             });
 
         context.setTaskExecutedIncrementally(incrementalInputs.isIncremental());
-        JavaMethod.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
+        JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
     }
 
     private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {

@@ -169,7 +169,7 @@ public class OptionReader {
         if (Collection.class.isAssignableFrom(method.getReturnType())
             && method.getParameterTypes().length == 0
             && !Modifier.isStatic(method.getModifiers())) {
-            return JavaMethod.method(Collection.class, method);
+            return JavaMethod.of(Collection.class, method);
         } else {
             throw new OptionValidationException(
                 String.format("@OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non-static, return a Collection<String> and take no parameters.",

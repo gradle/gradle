@@ -45,7 +45,7 @@ class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
     }
 
     protected void doExecute(Task task, String methodName) {
-        JavaMethod.method(task, Object.class, methodName).invoke(task);
+        JavaMethod.of(task, Object.class, methodName).invoke(task);
     }
 
     @Override

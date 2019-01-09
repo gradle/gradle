@@ -143,7 +143,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {
         try {
-            JavaMethod.method(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
+            JavaMethod.of(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
         } catch (NoSuchMethodException e) {
             if (!value.equals(defaultValue)) {
                 // Should not reach this point as this is validated in the test framework implementation - just propagate the failure

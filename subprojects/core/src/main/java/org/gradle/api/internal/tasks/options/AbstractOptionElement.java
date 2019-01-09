@@ -64,7 +64,7 @@ abstract class AbstractOptionElement implements OptionElement {
     }
 
     protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
-        final JavaMethod<Object, Object> javaMethod = JavaMethod.method(Object.class, method);
+        final JavaMethod<Object, Object> javaMethod = JavaMethod.of(Object.class, method);
         return javaMethod.invoke(object, parameterValues);
     }
 

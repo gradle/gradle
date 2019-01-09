@@ -103,7 +103,7 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            JavaMethod.method(Object.class, setter).invoke(target, value);
+            JavaMethod.of(Object.class, setter).invoke(target, value);
         }
     }
 
@@ -135,7 +135,7 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property property = (Property) JavaMethod.method(Object.class, getter).invoke(target);
+            Property property = (Property) JavaMethod.of(Object.class, getter).invoke(target);
             property.set(value);
         }
     }
