@@ -306,9 +306,6 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
     options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
-    if (BuildEnvironment.javaVersion.isJava11Compatible()) {
-        options.addBooleanOption('html4', true)
-    }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
@@ -323,6 +320,16 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
+
+    if (BuildEnvironment.javaVersion.isJava11Compatible()) {
+        options.addBooleanOption('html4', true)
+        doLast {
+            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
+            // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
+            // Here we generate this file manually
+            new File(destinationDir, 'package-list').text = new File(destinationDir, 'element-list').text
+        }
+    }
 }
 
 tasks.register("checkstyleApi", Checkstyle) {
