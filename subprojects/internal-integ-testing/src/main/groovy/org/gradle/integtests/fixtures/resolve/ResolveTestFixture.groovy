@@ -513,6 +513,7 @@ allprojects {
         String classifier
         String type
         String name
+        boolean noType
 
         String getType() {
             return type ?: 'jar'
@@ -527,11 +528,11 @@ allprojects {
         }
 
         String getArtifactName() {
-            return "${getName()}${classifier ? '-' + classifier : ''}.${getType()}"
+            return "${getName()}${classifier ? '-' + classifier : ''}${noType ? '' : '.' + getType()}"
         }
 
         String getFileName() {
-            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}${noType ? '' : '.' + getType()}"
         }
     }
 
@@ -698,7 +699,7 @@ allprojects {
          * Specifies an artifact for this node. A default is assumed when none specified
          */
         NodeBuilder artifact(Map attributes) {
-            def artifact = new ExpectedArtifact(group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type)
+            def artifact = new ExpectedArtifact(group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type, noType: attributes.noType?:false)
             artifacts << artifact
             return this
         }
@@ -782,9 +783,6 @@ allprojects {
             checkVariant = true
             String variantName = name
             String variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
-            if (id.startsWith("project ")) {
-                configuration = variantName
-            }
             variants << new Variant(name: variantName, attributes: variantAttributes)
             this
         }
@@ -884,13 +882,13 @@ class GenerateGraphTask extends DefaultTask {
             }
 
             configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
-                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
             }
         }
     }
