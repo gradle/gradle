@@ -78,10 +78,12 @@ public class CompilationSourceDirs {
 
         @Override
         public void visitFileTree(File root, PatternSet patterns) {
-            if (root.isDirectory()) {
-                sourceRoots.add(root);
-            } else {
-                cannotInferSourceRoots("file '" + root + "'");
+            if (root.exists()) {
+                if (root.isDirectory()) {
+                    sourceRoots.add(root);
+                } else {
+                    cannotInferSourceRoots("file '" + root + "'");
+                }
             }
         }
 

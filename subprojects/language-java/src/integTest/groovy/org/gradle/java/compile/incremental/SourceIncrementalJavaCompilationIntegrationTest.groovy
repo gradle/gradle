@@ -569,6 +569,30 @@ sourceSets {
         output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
+    def "missing files are ignored as source roots"() {
+        buildFile << """
+            compileJava {
+                source([
+                    fileTree('missing-tree'),
+                    file('missing-file')
+                ])
+            }"""
+
+        java("class A extends B {}")
+        java("class B {}")
+        java("class C {}")
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java("class B { String change; }")
+        executer.withArgument "--info"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "B")
+    }
+
     def "handles duplicate class across source directories"() {
         //compiler does not allow this scenario, documenting it here
         buildFile << "sourceSets.main.java.srcDir 'java'"
