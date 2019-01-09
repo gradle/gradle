@@ -21,20 +21,19 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
-import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
@@ -98,8 +97,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
         // Get any errors from the compiler result
-        PropertyAccessor<Object, Object[]> jsErrorsField = JavaPropertyReflectionUtil.readableField(result, Object[].class, "errors");
-        Object[] jsErrors = jsErrorsField.getValue(result);
+        Object[] jsErrors = getFieldValue(result, "errors");
 
         if (jsErrors.length == 0) {
             // If no errors, get the compiled source and write it to the destination file
@@ -113,6 +111,17 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
 
         return errors;
+    }
+
+    private static <T> T getFieldValue(Object result, String fieldName) {
+        try {
+            Field field = result.getClass().getField(fieldName);
+            return Cast.uncheckedCast(field.get(result));
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private void loadCompilerClasses(ClassLoader cl) {
@@ -139,7 +148,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
     private PrintStream getDummyPrintStream() {
         OutputStream os = new OutputStream() {
             @Override
-            public void write(int b) throws IOException {
+            public void write(int b) {
                 // do nothing
             }
         };
