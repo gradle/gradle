@@ -35,7 +35,7 @@ public interface ArtifactSelector {
     /**
      * Creates a set that will resolve the given artifacts of the given component.
      */
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifact, ImmutableAttributes overriddenAttributess);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifact, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the artifacts of the file dependency.

@@ -50,7 +50,7 @@ task retrieve(type: Sync) {
         setup:
         buildFile << mavenAwsRepoDsl()
         when:
-        module.pom.expectDownloadAuthencicationError()
+        module.pom.expectDownloadAuthenticationError()
         then:
         fails 'retrieve'
         and:
