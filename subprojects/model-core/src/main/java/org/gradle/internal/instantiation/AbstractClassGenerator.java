@@ -36,7 +36,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
@@ -663,7 +663,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void startType(Class<?> type) {
             this.type = type;
-            extensible = JavaReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
+            extensible = JavaPropertyReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
 
             noMappingClass = Object.class;
             for (Class<?> c = type; c != null && noMappingClass == Object.class; c = c.getSuperclass()) {

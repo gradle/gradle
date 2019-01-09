@@ -43,7 +43,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.hasDefaultToString;
+import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.hasDefaultToString;
 
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 

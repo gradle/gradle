@@ -24,7 +24,6 @@ plugins {
 dependencies {
     api(project(":baseServices"))
     api(project(":baseServicesGroovy"))
-    api(project(":buildCache"))
     api(project(":logging"))
     api(project(":persistentCache"))
     api(project(":processServices"))

@@ -25,6 +25,7 @@ plugins {
 dependencies {
     api(project(":baseServices"))
     api(library("inject"))
+    api(project(":coreApi"))
 
     implementation(project(":messaging"))
     implementation(project(":native"))

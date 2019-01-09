@@ -23,6 +23,8 @@ import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
 import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
@@ -65,12 +67,12 @@ public class AntlrExecuter implements AntlrWorker {
             final Object backedObject = loadTool("org.antlr.Tool", null);
             String[] argArray = arguments.toArray(new String[0]);
             if (inputDirectory != null) {
-                JavaReflectionUtil.method(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
-                JavaReflectionUtil.method(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
+                JavaMethod.of(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
+                JavaMethod.of(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
             }
-            JavaReflectionUtil.method(backedObject, Void.class, "processArgs", String[].class).invoke(backedObject, new Object[]{argArray});
-            JavaReflectionUtil.method(backedObject, Void.class, "process").invoke(backedObject);
-            return JavaReflectionUtil.method(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
+            JavaMethod.of(backedObject, Void.class, "processArgs", String[].class).invoke(backedObject, new Object[]{argArray});
+            JavaMethod.of(backedObject, Void.class, "process").invoke(backedObject);
+            return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
 
         @Override
@@ -161,10 +163,10 @@ public class AntlrExecuter implements AntlrWorker {
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.v4.Tool", toArray(arguments));
             if (inputDirectory != null) {
-                JavaReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
+                JavaPropertyReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
             }
-            JavaReflectionUtil.method(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
-            return JavaReflectionUtil.method(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
+            JavaMethod.of(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
+            return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
         }
 
         @Override
@@ -206,7 +208,7 @@ public class AntlrExecuter implements AntlrWorker {
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedAntlrTool = loadTool("antlr.Tool", null);
-            JavaReflectionUtil.method(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
+            JavaMethod.of(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
             return 0;
         }
 
