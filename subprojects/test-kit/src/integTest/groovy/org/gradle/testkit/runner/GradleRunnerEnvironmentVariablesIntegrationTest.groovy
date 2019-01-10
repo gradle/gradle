@@ -16,14 +16,13 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
+import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
 
 class GradleRunnerEnvironmentVariablesIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-    @CustomDaemonDirectory //avoid the daemon to be reused to avoid leaking env variable
     @NoDebug //avoid in-process execution so that we can set the env variable
-    def "use can provide environment variables"() {
+    def "user can provide env vars"() {
         given:
         buildScript "file('env.txt') << System.getenv('dummyEnvVar')"
 
@@ -32,5 +31,17 @@ class GradleRunnerEnvironmentVariablesIntegrationTest extends BaseGradleRunnerIn
 
         then:
         file('env.txt').text == "env var OK"
+    }
+
+    @Debug
+    def "debug mode is not allowed with env vars"() {
+        when:
+        runner().withEnvironment(dummyEnvVar: "env var OK").build()
+
+        then:
+        def e = thrown(InvalidRunnerConfigurationException)
+        e.message == "Debug mode is not allowed when environment variables are specified. " +
+            "Debug mode runs 'in process' but we need to fork a separate process to pass environment variables. " +
+            "To run with debug mode, please remove environment variables."
     }
 }

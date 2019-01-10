@@ -283,6 +283,9 @@ public abstract class GradleRunner {
      * Debug support is off (i.e. {@code false}) by default.
      * It can be enabled by setting the system property {@code org.gradle.testkit.debug} to {@code true} for the test process,
      * or by using the {@link #withDebug(boolean)} method.
+     * <p>
+     * When {@link #withEnvironment(Map)} is specified, running with debug is not allowed.
+     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
      *
      * @return whether the build should be executed in the same process
      * @since 2.9
@@ -312,6 +315,8 @@ public abstract class GradleRunner {
     /**
      * Sets the environment variables for the build.
      * {@code null} is permitted and will make the build use system environment.
+     * When environment is specified, running with {@link #isDebug()} is not allowed.
+     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
      *
      * @param environmentVariables the variables to use, null ok.
      * @return this

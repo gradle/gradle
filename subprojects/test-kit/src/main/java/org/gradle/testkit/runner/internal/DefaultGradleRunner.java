@@ -290,6 +290,12 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
+        if (environment != null && debug) {
+            throw new InvalidRunnerConfigurationException("Debug mode is not allowed when environment variables are specified. " +
+                "Debug mode runs 'in process' but we need to fork a separate process to pass environment variables. " +
+                "To run with debug mode, please remove environment variables.");
+        }
+
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
