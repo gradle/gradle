@@ -16,6 +16,16 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX),
 and [Till Krullmann](https://github.com/tkrullmann).
 
+**NOTE**: Gradle 5.1 has had one patch release. You should use the latest patch release (5.1.1).  
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 5.1.1 by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=5.1.1`
+
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+
 ## Repository to dependency matching
 
 It is now possible to match repositories to dependencies, so that Gradle doesn't search for a dependency in a repository if it's never going to be found there.
@@ -192,14 +202,6 @@ We love getting contributions from the Gradle community. For information on cont
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Upgrade Instructions
-
-Switch your build to use Gradle 5.1 by updating your wrapper properties:
-
-`./gradlew wrapper --gradle-version=5.1`
-
-Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## Reporting Problems
 
