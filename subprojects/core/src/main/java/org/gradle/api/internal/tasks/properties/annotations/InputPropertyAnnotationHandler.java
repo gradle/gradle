@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -39,7 +38,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, FileResolver fileResolver, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskInputProperty declaration = specFactory.createInputPropertySpec(propertyName, value);
         declaration.optional(isOptional(propertyMetadata));
         visitor.visitInputProperty(declaration);

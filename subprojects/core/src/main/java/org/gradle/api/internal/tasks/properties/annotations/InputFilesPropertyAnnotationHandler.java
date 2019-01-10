@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.ValidationActions;
+import org.gradle.api.internal.tasks.properties.FilePropertyType;
 import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
@@ -27,7 +26,7 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputFileProper
     }
 
     @Override
-    protected ValidationAction getValidationAction() {
-        return ValidationActions.NO_OP;
+    protected FilePropertyType getFilePropertyType() {
+        return FilePropertyType.FILES;
     }
 }

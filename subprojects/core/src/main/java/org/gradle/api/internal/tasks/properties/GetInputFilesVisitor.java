@@ -18,31 +18,31 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<TaskInputFilePropertySpec> specs = Lists.newArrayList();
-    private final PathToFileResolver resolver;
+    private final FileResolver resolver;
     private final String ownerDisplayName;
     private boolean hasSourceFiles;
 
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor(PathToFileResolver fileResolver, String ownerDisplayName) {
+    public GetInputFilesVisitor(FileResolver fileResolver, String ownerDisplayName) {
         this.resolver = fileResolver;
         this.ownerDisplayName = ownerDisplayName;
     }
 
     @Override
-    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
-        specs.add(new DefaultTaskInputFilePropertySpec(ownerDisplayName, propertyName, resolver, value, validationAction, skipWhenEmpty, optional, fileNormalizer));
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
+        ValidatingValue actualValue = filePropertyType == FilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
+        specs.add(new DefaultTaskInputFilePropertySpec(ownerDisplayName, propertyName, resolver, actualValue, filePropertyType.getValidationAction(), skipWhenEmpty, optional, fileNormalizer));
         if (skipWhenEmpty) {
             hasSourceFiles = true;
         }

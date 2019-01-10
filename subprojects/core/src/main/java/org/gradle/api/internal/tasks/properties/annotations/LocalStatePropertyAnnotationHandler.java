@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -37,7 +36,7 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, FileResolver fileResolver, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec(propertyName, value));
     }
 }

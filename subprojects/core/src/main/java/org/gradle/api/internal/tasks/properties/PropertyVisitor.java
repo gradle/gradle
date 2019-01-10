@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
@@ -39,7 +38,7 @@ public interface PropertyVisitor {
      */
     boolean visitOutputFilePropertiesOnly();
 
-    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction);
+    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType);
 
     void visitInputProperty(TaskInputPropertySpec inputProperty);
 
@@ -56,7 +55,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
         }
 
         @Override

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
+import org.gradle.api.internal.tasks.properties.FilePropertyType
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
@@ -300,7 +301,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
                 names += propertyName
             }
         })

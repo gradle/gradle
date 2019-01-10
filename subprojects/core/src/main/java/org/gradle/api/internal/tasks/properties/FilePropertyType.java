@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.ValidationActions;
 
-public interface PropertyValueVisitor {
-    boolean shouldVisit(PropertyVisitor visitor);
+public enum FilePropertyType {
+    FILE(ValidationActions.INPUT_FILE_VALIDATOR), DIRECTORY(ValidationActions.INPUT_DIRECTORY_VALIDATOR), FILES(ValidationActions.NO_OP);
 
-    void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context);
+    private final ValidationAction validationAction;
+
+    FilePropertyType(ValidationAction validationAction) {
+        this.validationAction = validationAction;
+    }
+
+    public ValidationAction getValidationAction() {
+        return validationAction;
+    }
 }

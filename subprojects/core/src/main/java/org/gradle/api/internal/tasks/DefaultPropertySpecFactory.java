@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.tasks.properties.FilePropertyType;
 import org.gradle.internal.file.TreeType;
 
 import javax.annotation.Nullable;
@@ -36,22 +37,22 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
 
     @Override
     public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths) {
-        return createInputFilesSpec(paths, ValidationActions.INPUT_FILE_VALIDATOR);
+        return createInputFilesSpec(paths, FilePropertyType.FILE);
     }
 
     @Override
     public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths) {
-        return createInputFilesSpec(paths, ValidationActions.NO_OP);
+        return createInputFilesSpec(paths, FilePropertyType.FILES);
     }
 
     @Override
     public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath) {
         FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), ValidationActions.INPUT_DIRECTORY_VALIDATOR);
+        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), FilePropertyType.DIRECTORY);
     }
 
-    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultDeclaredTaskInputFileProperty(task.toString(), resolver, paths, validationAction);
+    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, FilePropertyType filePropertyType) {
+        return new DefaultDeclaredTaskInputFileProperty(task.toString(), resolver, paths, filePropertyType);
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.Named;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -36,7 +35,7 @@ class IterableRuntimeBeanNode extends RuntimeBeanNode<Iterable<?>> {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, FileResolver resolver) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
         int count = 0;
         for (Object input : getBean()) {
             String propertyName = determinePropertyName(input, count);

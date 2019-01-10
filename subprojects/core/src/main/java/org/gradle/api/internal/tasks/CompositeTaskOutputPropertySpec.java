@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @NonNullApi
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements DeclaredTaskOutputFileProperty {
@@ -144,6 +145,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new PropertyFileCollection(taskDisplayName, "output", this, resolver, value);
+        return new PropertyFileCollection(taskDisplayName, new Supplier<String>() {
+            @Override
+            public String get() {
+                return getPropertyName();
+            }
+        }, "output", resolver, value);
     }
 }

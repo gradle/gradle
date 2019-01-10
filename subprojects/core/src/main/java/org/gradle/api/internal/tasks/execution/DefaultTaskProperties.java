@@ -23,6 +23,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.FilePropertyType;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
@@ -68,7 +70,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingTaskPropertySpec> validatingPropertySpecs;
 
-    public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
+    public static TaskProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(resolver, task.toString());
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
@@ -266,8 +268,12 @@ public class DefaultTaskProperties implements TaskProperties {
         private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
 
         @Override
-        public void visitInputFileProperty(final String propertyName, final boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, final ValidatingValue value, final ValidationAction validationAction) {
-            taskPropertySpecs.add(new ValidatingTaskPropertySpec() {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
+            taskPropertySpecs.add(createFilePropertySpec(propertyName, optional, value, filePropertyType.getValidationAction()));
+        }
+
+        private ValidatingTaskPropertySpec createFilePropertySpec(final String propertyName, final boolean optional, final ValidatingValue value, final ValidationAction validationAction) {
+            return new ValidatingTaskPropertySpec() {
                 private LifecycleAwareTaskProperty lifecycleAware;
 
                 @Override
@@ -302,7 +308,7 @@ public class DefaultTaskProperties implements TaskProperties {
                 public void validate(TaskValidationContext context) {
                     value.validate(propertyName, optional, validationAction, context);
                 }
-            });
+            };
         }
 
         @Override

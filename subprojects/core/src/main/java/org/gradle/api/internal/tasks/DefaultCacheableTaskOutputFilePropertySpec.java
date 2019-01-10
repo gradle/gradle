@@ -24,6 +24,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec, DeclaredTaskOutputFileProperty {
@@ -38,7 +39,12 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
         this.outputType = outputType;
         this.value = value;
         this.validationAction = validationAction;
-        this.files = new PropertyFileCollection(taskDisplayName, "output", this, resolver, value);
+        this.files = new PropertyFileCollection(taskDisplayName, new Supplier<String>() {
+            @Override
+            public String get() {
+                return getPropertyName();
+            }
+        }, "output", resolver, value);
     }
 
     @Override

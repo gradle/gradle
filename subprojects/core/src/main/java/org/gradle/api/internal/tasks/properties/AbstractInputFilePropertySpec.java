@@ -33,6 +33,8 @@ import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
+import java.util.function.Supplier;
+
 public abstract class AbstractInputFilePropertySpec implements TaskInputFilePropertySpec, ValidatingTaskPropertySpec {
 
     private final ValidatingValue value;
@@ -47,7 +49,12 @@ public abstract class AbstractInputFilePropertySpec implements TaskInputFileProp
         ValidationAction validationAction) {
         this.value = value;
         this.validationAction = validationAction;
-        this.files = new PropertyFileCollection(ownerDisplayName, "input", this, resolver, value);
+        this.files = new PropertyFileCollection(ownerDisplayName, new Supplier<String>() {
+            @Override
+            public String get() {
+                return getPropertyName();
+            }
+        }, "input", resolver, value);
     }
 
     @Override

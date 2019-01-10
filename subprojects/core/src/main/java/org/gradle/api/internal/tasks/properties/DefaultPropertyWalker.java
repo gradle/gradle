@@ -39,7 +39,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
         queue.add(nodeFactory.createRoot(bean));
         while (!queue.isEmpty()) {
             RuntimeBeanNode<?> node = queue.remove();
-            node.visitNode(visitor, specFactory, queue, nodeFactory, resolver);
+            node.visitNode(visitor, specFactory, queue, nodeFactory);
         }
     }
 }

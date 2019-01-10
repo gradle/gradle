@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.Map;
 
@@ -37,7 +36,7 @@ import java.util.Map;
  *
  * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
  *
- * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, PathToFileResolver, TaskInternal)}.
+ * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, org.gradle.api.internal.file.FileResolver, TaskInternal)}.
  */
 @NonNullApi
 public interface TaskProperties {

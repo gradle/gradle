@@ -81,7 +81,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     def inputFiles = [:]
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
                             inputFiles[propertyName] = project.files(value)
                         }
 
@@ -102,7 +102,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "myTask"
         then:
-        output.contains "Input: inputDirectory [inputA.txt, inputB.txt]"
+        output.contains "Input: inputDirectory [inputs]"
         output.contains "Input: inputFile [input.txt]"
         output.contains "Input: inputFiles [input1.txt, input2.txt]"
         output.contains "Input: nested.inputFile [input-nested.txt]"
@@ -398,7 +398,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, ValidationAction validationAction) {
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
                             println "Input file property '\${propertyName}'"
                         }
 

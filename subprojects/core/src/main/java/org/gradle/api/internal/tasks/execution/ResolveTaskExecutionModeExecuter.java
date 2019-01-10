@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -31,7 +32,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -47,11 +47,11 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskExecutionModeExecuter.class);
 
     private final PropertyWalker propertyWalker;
-    private final PathToFileResolver fileResolver;
+    private final FileResolver fileResolver;
     private final TaskExecuter executer;
     private final TaskExecutionModeResolver executionModeResolver;
 
-    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, PathToFileResolver fileResolver, PropertyWalker propertyWalker, TaskExecuter executer) {
+    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, FileResolver fileResolver, PropertyWalker propertyWalker, TaskExecuter executer) {
         this.propertyWalker = propertyWalker;
         this.fileResolver = fileResolver;
         this.executer = executer;

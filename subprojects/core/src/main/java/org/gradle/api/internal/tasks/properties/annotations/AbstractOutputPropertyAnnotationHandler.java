@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -36,7 +35,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, FileResolver fileResolver, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskOutputFileProperty fileSpec = createFileSpec(value, specFactory);
         fileSpec
             .withPropertyName(propertyName)
