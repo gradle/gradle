@@ -23,7 +23,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
-import org.gradle.language.swift.SwiftPlatform
+import org.gradle.language.swift.SwiftTargetMachine
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.language.swift.internal.DefaultSwiftApplication
 import org.gradle.language.swift.internal.DefaultSwiftBinary
@@ -31,7 +31,6 @@ import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
@@ -62,7 +61,7 @@ class SwiftBasePluginTest extends Specification {
         binary.name >> name
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
-        binary.targetPlatform >> Stub(SwiftPlatformInternal)
+        binary.targetMachine >> Stub(SwiftTargetMachine)
         binary.sourceCompatibility >> project.objects.property(SwiftVersion)
 
         when:
@@ -90,7 +89,7 @@ class SwiftBasePluginTest extends Specification {
         executable.module >> Providers.of("TestApp")
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
-        executable.targetPlatform >> Stub(SwiftPlatformInternal)
+        executable.targetMachine >> Stub(SwiftTargetMachine)
         executable.sourceCompatibility >> project.objects.property(SwiftVersion)
         executable.platformToolProvider >> new TestPlatformToolProvider()
         executable.implementationDependencies >> Stub(ConfigurationInternal)
@@ -122,7 +121,7 @@ class SwiftBasePluginTest extends Specification {
         library.names >> Names.of(name)
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
-        library.targetPlatform >> Stub(SwiftPlatformInternal)
+        library.targetMachine >> Stub(SwiftTargetMachine)
         library.sourceCompatibility >> Stub(PropertyInternal) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.linkFile >> project.objects.fileProperty()
@@ -188,8 +187,6 @@ class SwiftBasePluginTest extends Specification {
         publications.size() == 1
         publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }
-
-    interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}
 
     class TestPlatformToolProvider extends AbstractPlatformToolProvider {
         TestPlatformToolProvider() {

@@ -40,12 +40,13 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.language.swift.SwiftTargetMachine;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -67,20 +68,19 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Configuration runtimeLibs;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
-    private final SwiftPlatform targetPlatform;
+    private final SwiftTargetMachine targetMachine;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, componentImplementation);
+    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftTargetMachine targetMachine) {
+        super(names, objectFactory, componentImplementation, targetPlatform);
         this.module = module;
         this.testable = testable;
         this.source = source;
         this.moduleFile = objectFactory.fileProperty();
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
-        this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
@@ -117,6 +117,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
         this.identity = identity;
+        this.targetMachine = targetMachine;
     }
 
     @Override
@@ -182,8 +183,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     }
 
     @Override
-    public SwiftPlatform getTargetPlatform() {
-        return targetPlatform;
+    public SwiftTargetMachine getTargetMachine() {
+        return targetMachine;
     }
 
     @Override

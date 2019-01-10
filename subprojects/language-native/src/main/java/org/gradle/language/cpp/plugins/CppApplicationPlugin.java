@@ -24,12 +24,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
-import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.CppTargetMachine;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
@@ -82,7 +83,7 @@ public class CppApplicationPlugin implements Plugin<Project> {
             return application.getBinaries().get().stream()
                     .filter(CppExecutable.class::isInstance)
                     .map(CppExecutable.class::cast)
-                    .filter(binary -> !binary.isOptimized() && binary.getTargetPlatform().getArchitecture().equals(DefaultNativePlatform.host().getArchitecture()))
+                    .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
                     .findFirst()
                     .orElse(application.getBinaries().get().stream()
                             .filter(CppExecutable.class::isInstance)
@@ -102,8 +103,8 @@ public class CppApplicationPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
-                            application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            ToolChainSelector.Result<CppTargetMachine> result = toolChainSelector.select(CppTargetMachine.class, variantIdentity.getTargetMachine());
+                            application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());
                         } else {
                             // Known, but not buildable
                             application.getMainPublication().addVariant(variantIdentity);

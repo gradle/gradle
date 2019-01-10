@@ -17,10 +17,10 @@
 package org.gradle.language.nativeplatform.internal.toolchains;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.language.cpp.CppPlatform;
-import org.gradle.language.cpp.internal.DefaultCppPlatform;
-import org.gradle.language.swift.SwiftPlatform;
-import org.gradle.language.swift.internal.DefaultSwiftPlatform;
+import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.internal.DefaultCppTargetMachine;
+import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -46,39 +46,41 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     }
 
     @Override
-    public <T extends NativePlatform> Result<T> select(Class<T> platformType, TargetMachine targetMachine) {
-        DefaultNativePlatform targetNativePlatform = host.withArchitecture(Architectures.forInput(targetMachine.getArchitecture().getName()));
+    public <T extends TargetMachine> Result<T> select(Class<T> platformType, TargetMachine requestedTargetMachine) {
+        DefaultNativePlatform targetPlatform = host.withArchitecture(Architectures.forInput(requestedTargetMachine.getArchitecture().getName()));
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
-        NativeLanguage sourceLanguage = platformType == SwiftPlatform.class ? NativeLanguage.SWIFT : NativeLanguage.CPP;
+        NativeLanguage sourceLanguage = platformType == SwiftTargetMachine.class ? NativeLanguage.SWIFT : NativeLanguage.CPP;
         NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
-        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetPlatform);
         // TODO - don't select again here, as the selection is already performed to select the toolchain
-        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
+        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetPlatform);
 
         // TODO - use a better name for the platforms, rather than "host"
 
-        final T targetPlatform;
-        if (CppPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultCppPlatform("host", targetMachine, targetNativePlatform));
-        } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultSwiftPlatform("host", targetMachine, targetNativePlatform));
+        final T targetMachine;
+        if (CppTargetMachine.class.isAssignableFrom(platformType)) {
+            targetMachine = platformType.cast(new DefaultCppTargetMachine(requestedTargetMachine));
+        } else if (SwiftTargetMachine.class.isAssignableFrom(platformType)) {
+            targetMachine = platformType.cast(new DefaultSwiftTargetMachine(requestedTargetMachine));
         } else {
             throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
-        return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
+        return new DefaultResult<T>(toolChain, toolProvider, targetPlatform, targetMachine);
     }
 
-    class DefaultResult<T extends NativePlatform> implements Result<T> {
+    class DefaultResult<T extends TargetMachine> implements Result<T> {
         private final NativeToolChainInternal toolChain;
         private final PlatformToolProvider platformToolProvider;
-        private final T targetPlatform;
+        private final NativePlatform targetPlatform;
+        private final T targetMachine;
 
-        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, T targetPlatform) {
+        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativePlatform targetPlatform, T targetMachine) {
             this.toolChain = toolChain;
             this.platformToolProvider = platformToolProvider;
             this.targetPlatform = targetPlatform;
+            this.targetMachine = targetMachine;
         }
 
         @Override
@@ -87,7 +89,12 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
 
         @Override
-        public T getTargetPlatform() {
+        public T getTargetMachine() {
+            return targetMachine;
+        }
+
+        @Override
+        public NativePlatform getTargetPlatform() {
             return targetPlatform;
         }
 

@@ -17,22 +17,13 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.TargetMachine;
 
 /**
- * A target platform for building C++ binaries.
+ * A target machine for building C++ binaries.
  *
- * @since 4.5
+ * @since 5.2
  */
 @Incubating
-public interface CppPlatform extends NativePlatform {
-    /**
-     * The operating system family being targeted.
-     *
-     * @since 4.8
-     */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
+public interface CppTargetMachine extends TargetMachine {
 }

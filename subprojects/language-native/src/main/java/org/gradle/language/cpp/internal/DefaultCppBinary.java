@@ -33,12 +33,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.CppTargetMachine;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -53,22 +54,22 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final FileCollection includePath;
     private final Configuration linkLibraries;
     private final FileCollection runtimeLibraries;
-    private final CppPlatform targetPlatform;
+    private final CppTargetMachine targetMachine;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objects, componentImplementation);
+    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, CppTargetMachine targetMachine) {
+        super(names, objects, componentImplementation, targetPlatform);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
-        this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
         this.identity = identity;
+        this.targetMachine = targetMachine;
 
         // TODO - reduce duplication with Swift binary
 
@@ -164,8 +165,8 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     }
 
     @Override
-    public CppPlatform getTargetPlatform() {
-        return targetPlatform;
+    public CppTargetMachine getTargetMachine() {
+        return targetMachine;
     }
 
     @Override

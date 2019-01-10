@@ -82,9 +82,9 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
     /**
      * {@inheritDoc}
      *
-     * @since 4.5
+     * @since 5.2
      */
-    SwiftPlatform getTargetPlatform();
+    SwiftTargetMachine getTargetMachine();
 
     /**
      * Returns the Swift language level to use to compile the source files.

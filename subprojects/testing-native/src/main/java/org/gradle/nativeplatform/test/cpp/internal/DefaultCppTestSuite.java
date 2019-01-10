@@ -25,11 +25,12 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.CppTargetMachine;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -52,9 +53,9 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
-    public CppTestExecutable addExecutable(String variantName, NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public CppTestExecutable addExecutable(String variantName, NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, CppTargetMachine targetMachine) {
         Names executableNames = Names.of(getName() + variantName + "Executable", getName() + variantName);
-        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, executableNames, getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity);
+        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, executableNames, getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         getBinaries().add(testBinary);
         return testBinary;
     }

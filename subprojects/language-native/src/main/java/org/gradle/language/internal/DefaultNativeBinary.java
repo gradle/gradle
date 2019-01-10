@@ -27,16 +27,19 @@ import org.gradle.language.ComponentWithDependencies;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final Names names;
     private final DirectoryProperty objectsDir;
+    private final NativePlatform targetPlatform;
     private final DefaultComponentDependencies dependencies;
 
-    public DefaultNativeBinary(Names names, ObjectFactory objectFactory, Configuration componentImplementation) {
+    public DefaultNativeBinary(Names names, ObjectFactory objectFactory, Configuration componentImplementation, NativePlatform targetPlatform) {
         this.names = names;
 
         this.objectsDir = objectFactory.directoryProperty();
+        this.targetPlatform = targetPlatform;
         dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, names.getName() + "Implementation");
         dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }
@@ -71,5 +74,9 @@ public abstract class DefaultNativeBinary implements ComponentWithNames, Compone
 
     public Configuration getImplementationDependencies() {
         return dependencies.getImplementationDependencies();
+    }
+
+    public NativePlatform getTargetPlatform() {
+        return targetPlatform;
     }
 }

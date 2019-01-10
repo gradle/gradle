@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language.swift.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.internal.DefaultTargetMachine;
 
-/**
- * A target platform for building Swift binaries.
- *
- * @since 4.5
- */
-@Incubating
-public interface SwiftPlatform extends NativePlatform {
-    /**
-     * The operating system family being targeted.
-     *
-     * @since 4.8
-     */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
+public class DefaultSwiftTargetMachine extends DefaultTargetMachine implements SwiftTargetMachine {
+    public DefaultSwiftTargetMachine(TargetMachine targetMachine) {
+        super(targetMachine.getOperatingSystemFamily(), targetMachine.getArchitecture());
+    }
 }

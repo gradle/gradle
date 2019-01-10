@@ -220,8 +220,8 @@ public class XcodePlugin extends IdePlugin {
 
                 String targetName = component.getModule().get();
                 final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
-                target.addBinary(DefaultXcodeProject.BUILD_DEBUG, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetPlatform().getArchitecture().getName());
-                target.addBinary(DefaultXcodeProject.BUILD_RELEASE, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetPlatform().getArchitecture().getName());
+                target.addBinary(DefaultXcodeProject.BUILD_DEBUG, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
+                target.addBinary(DefaultXcodeProject.BUILD_RELEASE, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
                 target.setProductType(PBXTarget.ProductType.UNIT_TEST);
                 target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
                 target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestBinary().get()).getImportPathConfiguration()).getBuildDependencies());
@@ -258,13 +258,13 @@ public class XcodePlugin extends IdePlugin {
                     @Override
                     public void execute(SwiftBinary swiftBinary) {
                         if (swiftBinary instanceof SwiftExecutable) {
-                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), swiftBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), swiftBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.TOOL);
                         } else if (swiftBinary instanceof SwiftSharedLibrary) {
-                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), swiftBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), swiftBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (swiftBinary instanceof SwiftStaticLibrary) {
-                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftStaticLibrary) swiftBinary).getLinkFile(), swiftBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftStaticLibrary) swiftBinary).getLinkFile(), swiftBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.STATIC_LIBRARY);
                         }
                         target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
@@ -329,13 +329,13 @@ public class XcodePlugin extends IdePlugin {
                     @Override
                     public void execute(CppBinary cppBinary) {
                         if (cppBinary instanceof CppExecutable) {
-                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppExecutable) cppBinary).getDebuggerExecutableFile(), cppBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppExecutable) cppBinary).getDebuggerExecutableFile(), cppBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.TOOL);
                         } else if (cppBinary instanceof CppSharedLibrary) {
-                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppSharedLibrary) cppBinary).getRuntimeFile(), cppBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppSharedLibrary) cppBinary).getRuntimeFile(), cppBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (cppBinary instanceof CppStaticLibrary) {
-                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppStaticLibrary) cppBinary).getLinkFile(), cppBinary.getTargetPlatform().getArchitecture().getName());
+                            target.addBinary(toBuildConfigurationName(component, cppBinary), ((CppStaticLibrary) cppBinary).getLinkFile(), cppBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.STATIC_LIBRARY);
                         }
 

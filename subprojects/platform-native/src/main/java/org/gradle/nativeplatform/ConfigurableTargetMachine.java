@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,26 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
 
 /**
- * Represents a combination of operating system and cpu architecture that a variant might be built for.
+ * Buildable
  *
- * @since 5.1
+ * @since 5.2
  */
 @Incubating
-public interface TargetMachine {
+public interface ConfigurableTargetMachine extends TargetMachine {
     /**
-     * Returns the target operating system
+     * Returns a {@link TargetMachine} for the operating system of this machine and the x86 32-bit architecture
      */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
+    TargetMachine getX86();
 
     /**
-     * Returns the target architecture
+     * Returns a {@link TargetMachine} for the operating system of this machine and the x86 64-bit architecture
      */
-    @Nested
-    MachineArchitecture getArchitecture();
+    TargetMachine getX86_64();
+
+    /**
+     * Returns a {@link TargetMachine} for the operating system of this machine and the specified architecture.
+     */
+    TargetMachine architecture(String architecture);
 }

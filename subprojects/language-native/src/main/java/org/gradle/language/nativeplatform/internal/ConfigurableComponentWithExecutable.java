@@ -25,6 +25,7 @@ import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -34,6 +35,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
  */
 public interface ConfigurableComponentWithExecutable extends ComponentWithExecutable, ComponentWithInstallation, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
     PlatformToolProvider getPlatformToolProvider();
+
+    NativePlatform getTargetPlatform();
 
     @Override
     Property<LinkExecutable> getLinkTask();

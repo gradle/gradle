@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
+import org.gradle.nativeplatform.TargetMachine;
 
 /**
- * Represents a combination of operating system and cpu architecture that a variant might be built for.
+ * A target machine for building Swift binaries.
  *
- * @since 5.1
+ * @since 5.2
  */
 @Incubating
-public interface TargetMachine {
-    /**
-     * Returns the target operating system
-     */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
-
-    /**
-     * Returns the target architecture
-     */
-    @Nested
-    MachineArchitecture getArchitecture();
+public interface SwiftTargetMachine extends TargetMachine {
 }

@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.xctest.internal
 
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.language.cpp.internal.NativeVariantIdentity
-import org.gradle.language.swift.SwiftPlatform
+import org.gradle.language.swift.SwiftTargetMachine
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
@@ -48,21 +48,21 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "can add a test executable"() {
-        def targetPlatform = Stub(SwiftPlatform)
+        def targetMachine = Stub(SwiftTargetMachine)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def exe = testSuite.addExecutable(identity, targetPlatform, toolChain, platformToolProvider)
+        def exe = testSuite.addExecutable(identity, targetMachine, toolChain, platformToolProvider)
         exe.name == 'testExecutable'
-        exe.targetPlatform == targetPlatform
+        exe.targetMachine == targetMachine
         exe.toolChain == toolChain
         exe.platformToolProvider == platformToolProvider
     }
 
     def "can add a test bundle"() {
         expect:
-        def exe = testSuite.addBundle(identity, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def exe = testSuite.addBundle(identity, Stub(SwiftTargetMachine), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExecutable'
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.language.cpp.CppPlatform
+import org.gradle.language.cpp.CppTargetMachine
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
@@ -52,7 +52,7 @@ class DefaultCppApplicationTest extends Specification {
 
     def "can add an executable"() {
         expect:
-        def exe = application.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def exe = application.addExecutable(identity, Stub(CppTargetMachine), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'mainDebug'
     }
 

@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform;
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
-import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
@@ -46,8 +46,10 @@ public interface ComponentWithNativeRuntime extends SoftwareComponent {
 
     /**
      * Returns the target platform for this component.
+     *
+     * @since 5.2
      */
-    NativePlatform getTargetPlatform();
+    TargetMachine getTargetMachine();
 
     /**
      * Returns the tool chain for this component.
