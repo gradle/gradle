@@ -38,6 +38,7 @@ public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport i
         return propertyName;
     }
 
+    @Override
     public boolean isOptional() {
         return optional;
     }
@@ -76,5 +77,10 @@ public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport i
     @Override
     public String toString() {
         return propertyName;
+    }
+
+    @Override
+    public ValidatingValue getValidatingValue() {
+        return value;
     }
 }

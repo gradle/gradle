@@ -393,8 +393,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 void printInputsAndOutputs() {
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputProperty(TaskInputPropertySpec inputProperty) {
-                            println "Input property '\${inputProperty.propertyName}'"
+                        void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+                            println "Input property '\${propertyName}'"
                         }
 
                         @Override

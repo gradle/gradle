@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertySpec;
@@ -39,6 +38,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
 import org.gradle.api.internal.tasks.properties.FilePropertyType;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
@@ -272,13 +272,13 @@ public class DefaultTaskProperties implements TaskProperties {
             taskPropertySpecs.add(createFilePropertySpec(propertyName, optional, value, filePropertyType.getValidationAction()));
         }
 
-        private ValidatingTaskPropertySpec createFilePropertySpec(final String propertyName, final boolean optional, final ValidatingValue value, final ValidationAction validationAction) {
-            return new ValidatingTaskPropertySpec() {
+        private ValidatingTaskPropertySpec createFilePropertySpec(String propertyName, boolean optional, final ValidatingValue value, ValidationAction validationAction) {
+            return new DefaultValidatingTaskPropertySpec(propertyName, value, optional, validationAction) {
                 private LifecycleAwareTaskProperty lifecycleAware;
 
                 @Override
                 public void prepareValue() {
-                    value.maybeFinalizeValue();
+                    super.prepareValue();
                     Object obj = value.call();
                     // TODO - move this to ValidatingValue instead
                     if (obj instanceof LifecycleAwareTaskProperty) {
@@ -293,27 +293,12 @@ public class DefaultTaskProperties implements TaskProperties {
                         lifecycleAware.cleanupValue();
                     }
                 }
-
-                @Override
-                public int compareTo(TaskPropertySpec o) {
-                    return getPropertyName().compareTo(o.getPropertyName());
-                }
-
-                @Override
-                public String getPropertyName() {
-                    return propertyName;
-                }
-
-                @Override
-                public void validate(TaskValidationContext context) {
-                    value.validate(propertyName, optional, validationAction, context);
-                }
             };
         }
 
         @Override
-        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
-            taskPropertySpecs.add((ValidatingTaskPropertySpec) inputProperty);
+        public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+            taskPropertySpecs.add(new DefaultValidatingTaskPropertySpec(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
         @Override
@@ -323,6 +308,48 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public List<ValidatingTaskPropertySpec> getTaskPropertySpecs() {
             return taskPropertySpecs;
+        }
+    }
+
+    private static class DefaultValidatingTaskPropertySpec implements ValidatingTaskPropertySpec {
+        private final String propertyName;
+        private final ValidatingValue value;
+        private final boolean optional;
+        private final ValidationAction validationAction;
+
+        public DefaultValidatingTaskPropertySpec(String propertyName, ValidatingValue value, boolean optional, ValidationAction validationAction) {
+            this.propertyName = propertyName;
+            this.value = value;
+            this.optional = optional;
+            this.validationAction = validationAction;
+        }
+
+        @Override
+        public String getPropertyName() {
+            return propertyName;
+        }
+
+        protected boolean isOptional() {
+            return optional;
+        }
+
+        @Override
+        public void validate(TaskValidationContext context) {
+            value.validate(getPropertyName(), optional, validationAction, context);
+        }
+
+        @Override
+        public int compareTo(TaskPropertySpec o) {
+            return getPropertyName().compareTo(o.getPropertyName());
+        }
+
+        @Override
+        public void prepareValue() {
+            value.maybeFinalizeValue();
+        }
+
+        @Override
+        public void cleanupValue() {
         }
     }
 }

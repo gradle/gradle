@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -48,9 +47,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+    public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputProperty(inputProperty);
+            visitor.visitInputProperty(propertyName, value, optional);
         }
     }
 

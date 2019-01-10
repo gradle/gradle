@@ -51,13 +51,13 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         try {
             nested = unpackProvider(value.call());
         } catch (Exception e) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidValue(e)));
+            visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
             return;
         }
         if (nested != null) {
             context.addNested(propertyName, nested);
         } else if (!isOptional(propertyMetadata)) {
-            visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentValue()));
+            visitor.visitInputProperty(propertyName, new AbsentValue(), false);
         }
     }
 

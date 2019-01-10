@@ -85,7 +85,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 fileProperty.getFilePropertyType());
         }
         for (DeclaredTaskInputProperty inputProperty : registeredProperties) {
-            visitor.visitInputProperty(inputProperty);
+            visitor.visitInputProperty(inputProperty.getPropertyName(), inputProperty.getValidatingValue(), inputProperty.isOptional());
         }
     }
 
@@ -242,7 +242,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+        public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
             hasInputs = true;
         }
     }

@@ -50,11 +50,11 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
-        1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
+        1 * visitor.visitInputProperty('myProperty', { it.call() == 'myValue' }, false)
         1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, FilePropertyType.FILE)
         1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, FilePropertyType.FILES)
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == NestedBean })
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
+        1 * visitor.visitInputProperty('bean', { it.call() == NestedBean }, false)
+        1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
         1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, FilePropertyType.DIRECTORY)
 
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'outputFile' && it.value.call().path == 'output' })
@@ -112,7 +112,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitNested() >> true
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == null })
+        1 * visitor.visitInputProperty('bean', { it.call() == null }, false)
     }
 
     def "cycle in nested inputs is detected"() {
@@ -178,8 +178,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitNested() >> true
-        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0'})
-        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1'})
+        1 * visitor.visitInputProperty('nested.name$0', _, false)
+        1 * visitor.visitInputProperty('nested.name$1', _, false)
     }
 
     def "providers are unpacked"() {
@@ -191,8 +191,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
-        1 * visitor.visitInputProperty({ it.propertyName == "nested" })
-        1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
+        1 * visitor.visitInputProperty("nested" , _, false)
+        1 * visitor.visitInputProperty("nested.nestedInput", _, false)
         1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, FilePropertyType.DIRECTORY)
         1 * visitor.visitOutputFileProperty({ it.propertyName == "nested.outputDir" })
 

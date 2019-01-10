@@ -80,11 +80,6 @@ public abstract class AbstractInputFilePropertySpec implements TaskInputFileProp
     }
 
     @Override
-    public ValidationAction getValidationAction() {
-        return validationAction;
-    }
-
-    @Override
     public void cleanupValue() {
         if (lifecycleAware != null) {
             lifecycleAware.cleanupValue();

@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.properties;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
@@ -40,8 +42,10 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputProperty(TaskInputPropertySpec inputProperty) {
-        inputProperties.add(inputProperty);
+    public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+        DefaultTaskInputPropertySpec spec = new DefaultTaskInputPropertySpec(propertyName, value);
+        spec.optional(optional);
+        inputProperties.add(spec);
     }
 
     public Factory<Map<String, Object>> getPropertyValuesFactory() {

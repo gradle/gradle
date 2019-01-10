@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -40,14 +39,12 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
     @Override
     public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
-        visitImplementation(visitor, specFactory);
+        visitImplementation(visitor);
         visitProperties(visitor, specFactory, queue, nodeFactory);
     }
 
-    private void visitImplementation(PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        DeclaredTaskInputProperty implementation = specFactory.createInputPropertySpec(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())));
-        implementation.optional(false);
-        visitor.visitInputProperty(implementation);
+    private void visitImplementation(PropertyVisitor visitor) {
+        visitor.visitInputProperty(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())), false);
     }
 
     @VisibleForTesting

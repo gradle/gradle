@@ -19,4 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 public interface DeclaredTaskInputProperty extends TaskInputPropertySpec, TaskInputPropertyBuilder, ValidatingTaskPropertySpec {
+    ValidatingValue getValidatingValue();
+    boolean isOptional();
 }

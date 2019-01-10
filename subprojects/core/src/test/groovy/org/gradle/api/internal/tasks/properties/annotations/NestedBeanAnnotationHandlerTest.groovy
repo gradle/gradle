@@ -20,8 +20,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.TaskValidationContext
-import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec
 import org.gradle.api.internal.tasks.ValidatingValue
+import org.gradle.api.internal.tasks.ValidationActions
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.Optional
@@ -39,7 +39,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def propertyMetadata = Mock(PropertyMetadata)
 
     def "absent nested property is reported as error"() {
-        ValidatingTaskPropertySpec taskInputPropertySpec = null
+        ValidatingValue validatingValue = null
         def validationContext = Mock(TaskValidationContext)
 
         when:
@@ -48,14 +48,14 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * value.call() >> null
         1 * propertyMetadata.isAnnotationPresent(Optional) >> false
-        1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
-            taskInputPropertySpec = arguments[0]
+        1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
+            validatingValue = arguments[1]
         }
         0 * _
-        taskInputPropertySpec.value == null
+        validatingValue.call() == null
 
         when:
-        taskInputPropertySpec.validate(validationContext)
+        validatingValue.validate("name", false, ValidationActions.NO_OP, validationContext)
 
         then:
         1 * validationContext.recordValidationMessage("No value has been specified for property 'name'.")
@@ -73,7 +73,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     }
 
     def "exception thrown by nested property is propagated"() {
-        ValidatingTaskPropertySpec taskInputPropertySpec = null
+        ValidatingValue validatingValue = null
         def validationContext = Mock(TaskValidationContext)
         def exception = new RuntimeException("BOOM!")
 
@@ -84,13 +84,13 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         1 * value.call() >> {
             throw exception
         }
-        1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
-            taskInputPropertySpec = arguments[0]
+        1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
+            validatingValue = arguments[1]
         }
         0 * _
 
         when:
-        taskInputPropertySpec.validate(validationContext)
+        validatingValue.validate("name", false, ValidationActions.NO_OP, validationContext)
 
         then:
         0 * _
