@@ -29,6 +29,6 @@ public class RootRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
     @Override
     public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
-        visitProperties(visitor, specFactory, queue, nodeFactory);
+        visitProperties(visitor, queue, nodeFactory);
     }
 }

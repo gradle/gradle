@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.TreeType;
@@ -67,11 +66,6 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     }
 
     @Override
-    public void attachProducer(Task producer) {
-        value.attachProducer(producer);
-    }
-
-    @Override
     public void prepareValue() {
         value.maybeFinalizeValue();
     }
@@ -83,5 +77,10 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), isOptional(), validationAction, context);
+    }
+
+    @Override
+    public ValidatingValue getValidatingValue() {
+        return value;
     }
 }

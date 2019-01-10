@@ -57,8 +57,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
         1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, FilePropertyType.DIRECTORY)
 
-        1 * visitor.visitOutputFileProperty({ it.propertyName == 'outputFile' && it.value.call().path == 'output' })
-        1 * visitor.visitOutputFileProperty({ it.propertyName == 'bean.outputDir' && it.value.call().path == 'outputDir' })
+        1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
+        1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
 
         1 * visitor.visitDestroyableProperty({ it.propertyName == 'destroyed' && it.value.call().path == 'destroyed' })
 
@@ -194,7 +194,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty("nested" , _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
         1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, FilePropertyType.DIRECTORY)
-        1 * visitor.visitOutputFileProperty({ it.propertyName == "nested.outputDir" })
+        1 * visitor.visitOutputFileProperty("nested.outputDir", false, _, OutputFilePropertyType.DIRECTORY)
 
         0 * _
     }

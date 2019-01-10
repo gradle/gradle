@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
@@ -26,13 +25,15 @@ import org.gradle.internal.fingerprint.OutputNormalizer;
 import java.io.File;
 
 class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTaskOutputFilePropertySpec {
-    private final CompositeTaskOutputPropertySpec parentProperty;
     private final String propertySuffix;
     private final FileCollection files;
     private final File file;
+    private final TreeType outputType;
+    private final String parentPropertyName;
 
-    public CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec parentProperty, String propertySuffix, File file) {
-        this.parentProperty = parentProperty;
+    public CacheableTaskOutputCompositeFilePropertyElementSpec(String parentPropertyName, String propertySuffix, File file, TreeType outputType) {
+        this.parentPropertyName = parentPropertyName;
+        this.outputType = outputType;
         this.propertySuffix = propertySuffix;
         this.files = ImmutableFileCollection.of(file);
         this.file = file;
@@ -40,7 +41,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
 
     @Override
     public String getPropertyName() {
-        return parentProperty.getPropertyName() + propertySuffix;
+        return parentPropertyName + propertySuffix;
     }
 
     @Override
@@ -55,7 +56,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
 
     @Override
     public TreeType getOutputType() {
-        return parentProperty.getOutputType();
+        return outputType;
     }
 
     @Override
@@ -66,11 +67,6 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     @Override
     public boolean isOptional() {
         return false;
-    }
-
-    @Override
-    public void attachProducer(Task producer) {
-        // Ignore, should not be called
     }
 
     @Override

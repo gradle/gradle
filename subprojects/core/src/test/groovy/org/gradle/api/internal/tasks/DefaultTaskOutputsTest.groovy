@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.util.DeferredUtil
@@ -85,7 +86,7 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), new DefaultPropertySpecFactory(task, resolver), resolver)
 
     void hasNoOutputsByDefault() {
         setup:
@@ -245,8 +246,8 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitOutputFileProperty(TaskOutputFilePropertySpec property) {
-                names += property.propertyName
+            void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+                names += propertyName
             }
         })
         then:

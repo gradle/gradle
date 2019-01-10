@@ -77,7 +77,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 namedOutputDirectories = [one: file("outputs-one"), two: file("outputs-two")]
 
                 doLast {
-                    def outputFiles = []
+                    def outputFiles = [:]
                     def inputFiles = [:]
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
@@ -86,8 +86,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-                            outputFiles << outputFileProperty
+                        void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+                            outputFiles[propertyName] = project.files(value)
                         }
                     })
                     inputFiles.each { propertyName, value ->
@@ -403,8 +403,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-                            println "Output file property '\${outputFileProperty.propertyName}'"
+                        void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+                            println "Output file property '\${propertyName}'"
                         }
 
                         @Override

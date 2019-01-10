@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
@@ -47,14 +46,14 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
-    public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
+    public void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
         TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
                 String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
                 ValidatingValue value = new PropertyValue(getBean(), propertyMetadata.getGetterMethod());
-                annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, specFactory, new BeanPropertyContext() {
+                annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
                     @Override
                     public void addNested(String propertyName, Object bean) {
                         queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));

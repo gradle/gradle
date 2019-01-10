@@ -26,14 +26,17 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.file.TreeType;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -47,6 +50,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final PropertySpecFactory specFactory;
+    private final FileResolver fileResolver;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -55,19 +59,29 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory, FileResolver fileResolver) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
         this.propertyWalker = propertyWalker;
         this.specFactory = specFactory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
         for (DeclaredTaskOutputFileProperty fileProperty : registeredFileProperties) {
-            visitor.visitOutputFileProperty(fileProperty);
+            OutputFilePropertyType filePropertyType = determineFilePropertyType(fileProperty);
+            visitor.visitOutputFileProperty(fileProperty.getPropertyName(), fileProperty.isOptional(), fileProperty.getValidatingValue(), filePropertyType);
         }
+    }
+
+    private static OutputFilePropertyType determineFilePropertyType(DeclaredTaskOutputFileProperty fileProperty) {
+        TreeType treeType = fileProperty.getOutputType();
+        if (fileProperty instanceof CompositeTaskOutputPropertySpec) {
+            return treeType == TreeType.FILE ? OutputFilePropertyType.FILES : OutputFilePropertyType.DIRECTORIES;
+        }
+        return treeType == TreeType.FILE ? OutputFilePropertyType.FILE : OutputFilePropertyType.DIRECTORY;
     }
 
     @Override
@@ -142,7 +156,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor();
+        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileResolver);
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.getFileProperties();
     }
@@ -223,7 +237,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
             hasDeclaredOutputs = true;
         }
 

@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.properties.FilePropertyType;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
@@ -73,7 +74,7 @@ public class DefaultTaskProperties implements TaskProperties {
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(resolver, task.toString());
-        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
+        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver);
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, resolver);
@@ -302,8 +303,8 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-            taskPropertySpecs.add((ValidatingTaskPropertySpec) outputFileProperty);
+        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+            taskPropertySpecs.add(new DefaultValidatingTaskPropertySpec(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 
         public List<ValidatingTaskPropertySpec> getTaskPropertySpecs() {

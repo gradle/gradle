@@ -16,14 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
 import org.gradle.internal.file.TreeType;
 
 public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
     TreeType getOutputType();
-
-    /**
-     * Associates this property with the task that produces it.
-     */
-    void attachProducer(Task producer);
 }

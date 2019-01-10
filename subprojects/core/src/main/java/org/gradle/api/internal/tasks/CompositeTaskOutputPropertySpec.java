@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
@@ -60,7 +59,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
         return outputType;
     }
 
-    public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
+    public static Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties(final String ownerDisplayName, final String propertyName, ValidatingValue value, final TreeType outputType, final FileResolver resolver, ValidationAction validationAction) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return Collections.emptyIterator();
@@ -73,11 +72,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                         Map.Entry<?, ?> entry = iterator.next();
                         Object key = entry.getKey();
                         if (key == null) {
-                            throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", getPropertyName()));
+                            throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
                         }
                         String id = key.toString();
                         File file = resolver.resolve(entry.getValue());
-                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "." + id, file);
+                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(propertyName, "." + id, file, outputType);
                     }
                     return endOfData();
                 }
@@ -106,7 +105,9 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             });
 
             if (nonFileRoot.get()) {
-                return Iterators.<TaskOutputFilePropertySpec>singletonIterator(CompositeTaskOutputPropertySpec.this);
+                CompositeTaskOutputPropertySpec taskOutputPropertySpec = new CompositeTaskOutputPropertySpec(ownerDisplayName, resolver, outputType, value, validationAction);
+                taskOutputPropertySpec.withPropertyName(propertyName);
+                return Iterators.<TaskOutputFilePropertySpec>singletonIterator(taskOutputPropertySpec);
             } else {
                 final Iterator<File> iterator = roots.iterator();
                 return new AbstractIterator<TaskOutputFilePropertySpec>() {
@@ -117,16 +118,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                         if (!iterator.hasNext()) {
                             return endOfData();
                         }
-                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "$" + (++index), iterator.next());
+                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(propertyName, "$" + (++index), iterator.next(), outputType);
                     }
                 };
             }
         }
-    }
-
-    @Override
-    public void attachProducer(Task producer) {
-        value.attachProducer(producer);
     }
 
     @Override
@@ -151,5 +147,10 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 return getPropertyName();
             }
         }, "output", resolver, value);
+    }
+
+    @Override
+    public ValidatingValue getValidatingValue() {
+        return value;
     }
 }

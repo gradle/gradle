@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.tasks.FileNormalizer;
 
@@ -41,7 +40,7 @@ public interface PropertyVisitor {
 
     void visitInputProperty(String propertyName, ValidatingValue value, boolean optional);
 
-    void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty);
+    void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType);
 
     void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty);
 
@@ -62,7 +61,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
         }
 
         @Override
