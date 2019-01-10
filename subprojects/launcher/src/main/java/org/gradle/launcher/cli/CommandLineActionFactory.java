@@ -269,7 +269,6 @@ public class CommandLineActionFactory {
     private static class ShowVersionAction implements Runnable {
         public void run() {
             GradleVersion currentVersion = GradleVersion.current();
-            KotlinDslVersion currentKotlinDslVersion = KotlinDslVersion.current();
 
             final StringBuilder sb = new StringBuilder();
             sb.append("%n------------------------------------------------------------%nGradle ");
@@ -278,10 +277,8 @@ public class CommandLineActionFactory {
             sb.append(currentVersion.getBuildTime());
             sb.append("%nRevision:     ");
             sb.append(currentVersion.getRevision());
-            sb.append("%n%nKotlin DSL:   ");
-            sb.append(currentKotlinDslVersion.getProviderVersion());
-            sb.append("%nKotlin:       ");
-            sb.append(currentKotlinDslVersion.getKotlinVersion());
+            sb.append("%n%nKotlin:       ");
+            sb.append(KotlinDslVersion.current().getKotlinVersion());
             sb.append("%nGroovy:       ");
             sb.append(ReleaseInfo.getVersion());
             sb.append("%nAnt:          ");
