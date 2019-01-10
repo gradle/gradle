@@ -90,6 +90,13 @@ public interface InstantiatorFactory {
     Instantiator injectAndDecorate(ServiceLookup services);
 
     /**
+     * Creates an {@link Instantiator} that can inject  user provided values into the instances it creates and also decorates the instances.
+     *
+     * <p>Use for any model types for which services or user provided constructor values need to injected.
+     */
+    Instantiator injectAndDecorate();
+
+    /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
      * The returned {@link Instantiator} is lenient when there is a missing {@link javax.inject.Inject} annotation or null constructor parameters,
      * for backwards compatibility.
