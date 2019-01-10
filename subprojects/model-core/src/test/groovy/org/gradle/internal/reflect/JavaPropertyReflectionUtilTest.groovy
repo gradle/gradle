@@ -26,9 +26,7 @@ import java.lang.annotation.RetentionPolicy
 import static JavaPropertyReflectionUtil.getAnnotation
 import static JavaPropertyReflectionUtil.hasDefaultToString
 import static JavaPropertyReflectionUtil.propertyNames
-import static JavaPropertyReflectionUtil.readableField
 import static JavaPropertyReflectionUtil.readableProperty
-import static JavaPropertyReflectionUtil.writeableField
 import static JavaPropertyReflectionUtil.writeableProperty
 
 class JavaPropertyReflectionUtilTest extends Specification {
@@ -53,16 +51,6 @@ class JavaPropertyReflectionUtilTest extends Specification {
     def "read property using instance"() {
         expect:
         readableProperty(myProperties, String, "myProperty").getValue(myProperties) == "myValue"
-    }
-
-    def "read field" () {
-        expect:
-        readableField(JavaTestSubject, String, "myField").getValue(myProperties) == "myFieldValue"
-    }
-
-    def "read field using instance" () {
-        expect:
-        readableField(myProperties, String, "myField").getValue(myProperties) == "myFieldValue"
     }
 
     def "write property"() {
@@ -152,27 +140,6 @@ class JavaPropertyReflectionUtilTest extends Specification {
     def "read boolean property"() {
         expect:
         readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == true
-    }
-
-    def "read boolean field" () {
-        expect:
-        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
-    }
-
-    def "set boolean field" () {
-        when:
-        writeableField(JavaTestSubject, "myBooleanField").setValue(myProperties, false)
-
-        then:
-        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == false
-    }
-
-    def "cannot set value on non public fields"(){
-        when:
-        writeableField(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
-
-        then:
-        thrown(NoSuchPropertyException);
     }
 
     def "write boolean property"() {
@@ -339,7 +306,7 @@ class InheritsInterface extends SuperWithInterface {}
 
 class ClassWithToString {
     @Override
-    public String toString() {
+    String toString() {
         return "ClassWithToString{}";
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.internal.UncheckedException;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -54,27 +53,6 @@ public class JavaPropertyReflectionUtil {
         @SuppressWarnings("unchecked")
         Class<T> targetClass = (Class<T>) target.getClass();
         return readableProperty(targetClass, returnType, property);
-    }
-
-    /**
-     * Locates the field with the given name as a readable property.  Searches only public fields.
-     */
-    public static <T, F> PropertyAccessor<T, F> readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
-        Field field = findField(target, fieldName);
-        if (field == null) {
-            throw new NoSuchPropertyException(String.format("Could not find field '%s' on class %s.", fieldName, target.getSimpleName()));
-        }
-
-        return new FieldBackedPropertyAccessor<T, F>(fieldName, fieldType, field);
-    }
-
-    /**
-     * Locates the field with the given name as a readable property.  Searches only public fields.
-     */
-    public static <T, F> PropertyAccessor<T, F> readableField(T target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
-        @SuppressWarnings("unchecked")
-        Class<T> targetClass = (Class<T>) target.getClass();
-        return readableField(targetClass, fieldType, fieldName);
     }
 
     private static Method findGetterMethod(Class<?> target, String property) {
@@ -117,29 +95,6 @@ public class JavaPropertyReflectionUtil {
         Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});
         if (method != null) {
             return new MethodBackedPropertyMutator(property, method);
-        }
-        return null;
-    }
-
-    /**
-     * Locates the field with the given name as a writable property. Searches only public properties.
-     *
-     * @throws NoSuchPropertyException when the given property does not exist.
-     */
-    public static PropertyMutator writeableField(Class<?> target, String fieldName) throws NoSuchPropertyException {
-        Field field = findField(target, fieldName);
-        if (field != null) {
-            return new FieldBackedPropertyMutator(fieldName, field);
-        }
-        throw new NoSuchPropertyException(String.format("Could not find writeable field '%s' on class %s.", fieldName, target.getSimpleName()));
-    }
-
-    private static Field findField(Class<?> target, String fieldName) {
-        Field[] fields = target.getFields();
-        for (Field field : fields) {
-            if (fieldName.equals(field.getName())) {
-                return field;
-            }
         }
         return null;
     }
@@ -232,37 +187,6 @@ public class JavaPropertyReflectionUtil {
         }
     }
 
-    private static class FieldBackedPropertyAccessor<T, F> implements PropertyAccessor<T, F> {
-        private final String property;
-        private final Field field;
-        private final Class<F> fieldType;
-
-        FieldBackedPropertyAccessor(String property, Class<F> fieldType, Field field) {
-            this.property = property;
-            this.field = field;
-            this.fieldType = fieldType;
-        }
-
-        @Override
-        public String getName() {
-            return property;
-        }
-
-        @Override
-        public Class<F> getType() {
-            return fieldType;
-        }
-
-        @Override
-        public F getValue(T target) {
-            try {
-                return fieldType.cast(field.get(target));
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    }
-
     private static class MethodBackedPropertyMutator implements PropertyMutator {
         private final String property;
         private final Method method;
@@ -291,37 +215,6 @@ public class JavaPropertyReflectionUtil {
             } catch (InvocationTargetException e) {
                 throw UncheckedException.unwrapAndRethrow(e);
             } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    }
-
-    private static class FieldBackedPropertyMutator implements PropertyMutator {
-        private final String name;
-        private final Field field;
-
-        FieldBackedPropertyMutator(String name, Field field) {
-            this.name = name;
-            this.field = field;
-        }
-
-        @Override
-        public String toString() {
-            return "field " + field.getDeclaringClass().getSimpleName() + "." + name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Class<?> getType() {
-            return field.getType();
-        }
-
-        public void setValue(Object target, Object value) {
-            try {
-                field.set(target, value);
-            } catch (IllegalAccessException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
