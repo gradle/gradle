@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.tasks.FileNormalizer;
@@ -60,9 +59,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
+    public void visitDestroyableProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitDestroyableProperty(destroyableProperty);
+            visitor.visitDestroyableProperty(value);
         }
     }
 

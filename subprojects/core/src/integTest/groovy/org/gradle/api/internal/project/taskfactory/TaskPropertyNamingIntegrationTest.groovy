@@ -408,8 +408,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
-                            println "Destroys: '\${destroyable.value.call()}'"
+                        void visitDestroyableProperty(Object path) {
+                            println "Destroys: '\${path.call()}'"
                         }
 
                         @Override

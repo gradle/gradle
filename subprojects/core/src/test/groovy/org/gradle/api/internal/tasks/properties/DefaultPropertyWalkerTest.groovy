@@ -60,7 +60,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
         1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
 
-        1 * visitor.visitDestroyableProperty({ it.propertyName == 'destroyed' && it.value.call().path == 'destroyed' })
+        1 * visitor.visitDestroyableProperty({ it.call().path == 'destroyed' })
 
         1 * visitor.visitLocalStateProperty({ it.propertyName == 'someLocalState' && it.value.call().path == 'localState' })
 

@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
-import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
@@ -256,8 +255,8 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
-            destroyables.add(destroyableProperty.getValue());
+        public void visitDestroyableProperty(Object value) {
+            destroyables.add(value);
         }
 
         public FileCollection getFiles() {

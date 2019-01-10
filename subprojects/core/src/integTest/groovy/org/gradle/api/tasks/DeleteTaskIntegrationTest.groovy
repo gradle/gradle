@@ -68,8 +68,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                     def resolver = project.services.get(PathToFileResolver)
                     def propertyWalker = project.services.get(PropertyWalker)
                     TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor.Adapter() {
-                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
-                            destroyablePaths << destroyable.value
+                        void visitDestroyableProperty(Object value) {
+                            destroyablePaths << value
                         }
                     })
                     def destroyableFiles = new DefaultConfigurableFileCollection(resolver, null, destroyablePaths).files 
