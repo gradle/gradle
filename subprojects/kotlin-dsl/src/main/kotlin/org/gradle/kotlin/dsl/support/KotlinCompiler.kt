@@ -117,6 +117,7 @@ object HasImplicitReceiverCompilerPlugin {
 internal
 fun compileToDirectory(
     outputDirectory: File,
+    moduleName: String,
     sourceFiles: Iterable<File>,
     logger: Logger,
     classPath: Iterable<File>
@@ -127,7 +128,7 @@ fun compileToDirectory(
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(outputDirectory.nameWithoutExtension)
+                setModuleName(moduleName)
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }

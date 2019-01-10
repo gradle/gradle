@@ -24,8 +24,12 @@ import kotlin.reflect.KClass
 open class TestWithClassPath : TestWithTempFiles() {
 
     protected
-    fun jarClassPathWith(vararg classes: KClass<*>): ClassPath = classPathOf(
-        file("cp.jar").also { jar ->
+    fun jarClassPathWith(vararg classes: KClass<*>): ClassPath =
+        jarClassPathWith("cp.jar", *classes)
+
+    protected
+    fun jarClassPathWith(path: String, vararg classes: KClass<*>): ClassPath = classPathOf(
+        file(path).also { jar ->
             zipTo(jar, classEntriesFor(classes))
         }
     )

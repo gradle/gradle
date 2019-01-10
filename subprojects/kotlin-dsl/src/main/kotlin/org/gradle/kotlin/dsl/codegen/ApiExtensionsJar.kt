@@ -112,6 +112,7 @@ fun compileKotlinApiExtensionsTo(
 
     val success = compileToDirectory(
         outputDirectory,
+        "gradle-api-extensions",
         sourceFiles,
         logger,
         classPath = classPath

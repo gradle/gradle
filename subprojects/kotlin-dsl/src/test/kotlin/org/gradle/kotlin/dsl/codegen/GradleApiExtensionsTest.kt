@@ -24,6 +24,8 @@ import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
 import org.gradle.api.specs.Specs
 
+import org.gradle.internal.hash.HashUtil
+
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
@@ -33,6 +35,7 @@ import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -40,12 +43,31 @@ import org.slf4j.Logger
 
 import java.io.File
 
+import java.util.Properties
 import java.util.function.Consumer
+import java.util.jar.Attributes
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 import kotlin.reflect.KClass
 
 
 class GradleApiExtensionsTest : TestWithClassPath() {
+
+    @Test
+    fun `gradle-api-extensions generated jar is reproducible`() {
+
+        apiKotlinExtensionsGenerationFor(
+            ClassToKClass::class,
+            ClassToKClassParameterizedType::class,
+            GroovyNamedArguments::class,
+            ClassAndGroovyNamedArguments::class
+        ) {
+
+            assertGeneratedJarHash("a493b132203c4ddc86ace08681d431cb")
+        }
+    }
 
     @Test
     fun `maps java-lang-Class to kotlin-reflect-KClass`() {
@@ -281,10 +303,10 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
     private
     fun apiKotlinExtensionsGenerationFor(vararg classes: KClass<*>, action: ApiKotlinExtensionsGeneration.() -> Unit) =
-        ApiKotlinExtensionsGeneration(jarClassPathWith(*classes).asFiles).apply(action)
+        ApiKotlinExtensionsGeneration(apiJarsWith(*classes), fixturesApiMetadataJar()).apply(action)
 
     private
-    data class ApiKotlinExtensionsGeneration(val apiJars: List<File>) {
+    data class ApiKotlinExtensionsGeneration(val apiJars: List<File>, val apiMetadataJar: File) {
         lateinit var generatedSourceFiles: List<File>
     }
 
@@ -340,6 +362,40 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         verify(logger, atMost(1)).isTraceEnabled
         verifyNoMoreInteractions(logger)
     }
+
+    private
+    fun GradleApiExtensionsTest.ApiKotlinExtensionsGeneration.assertGeneratedJarHash(hash: String) =
+        file("api-extensions.jar").let { generatedJar ->
+            generateApiExtensionsJar(generatedJar, apiJars, apiMetadataJar) {}
+            assertThat(
+                HashUtil.createHash(generatedJar, "MD5").asZeroPaddedHexString(32),
+                equalTo(hash)
+            )
+        }
+
+    private
+    fun apiJarsWith(vararg classes: KClass<*>): List<File> =
+        jarClassPathWith("gradle-api.jar", *classes).asFiles
+
+    private
+    fun fixturesApiMetadataJar(): File =
+        file("gradle-api-metadata.jar").also { file ->
+            JarOutputStream(
+                file.outputStream().buffered(),
+                Manifest().apply { mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0" }
+            ).use { output ->
+                output.putNextEntry(JarEntry("gradle-api-declaration.properties"))
+                Properties().apply {
+                    setProperty("includes", "org/gradle/kotlin/dsl/fixtures/codegen/**")
+                    setProperty("excludes", "**/internal/**")
+                    store(output, null)
+                }
+                output.putNextEntry(JarEntry("gradle-api-parameter-names.properties"))
+                Properties().apply {
+                    store(output, null)
+                }
+            }
+        }
 }
 
 

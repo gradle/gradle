@@ -59,9 +59,11 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
     fun `extract module metadata`() {
 
         val outputDir = newFolder("main")
+        val moduleName = outputDir.name
         require(
             compileToDirectory(
                 outputDir,
+                moduleName,
                 listOf(
                     newFile("ConfigurationAccessors.kt", """
                         package org.gradle.kotlin.dsl
@@ -77,7 +79,7 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
             )
         )
 
-        val bytes = outputDir.resolve("META-INF/main.kotlin_module").readBytes()
+        val bytes = outputDir.resolve("META-INF/$moduleName.kotlin_module").readBytes()
         val metadata = KotlinModuleMetadata.read(bytes)!!
         metadata.accept(KotlinMetadataPrintingVisitor.ForModule)
     }

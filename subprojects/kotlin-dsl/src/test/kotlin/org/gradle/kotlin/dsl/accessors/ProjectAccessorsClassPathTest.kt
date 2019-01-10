@@ -198,6 +198,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         require(
             compileToDirectory(
                 binDir,
+                "accessors",
                 kotlinFilesIn(srcDir),
                 loggerFor<ProjectAccessorsClassPathTest>(),
                 classPath.asFiles
