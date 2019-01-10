@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle 5.1.
 
-This release features [repository to dependency matching](#repository-to-dependency-matching), [production-ready configuration avoidance APIs](#configuration-avoidance-for-tasks), [Gradle Kotlin DSL 1.1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.1.0), and more.
+This release features [repository to dependency matching](#repository-to-dependency-matching), [production-ready configuration avoidance APIs](#configuration-avoidance-for-tasks), [Gradle Kotlin DSL 1.1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.1.1), and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
