@@ -119,14 +119,14 @@ public class CodeNarcExtension extends CodeQualityExtension {
     }
 
     /**
-     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
+     * The format type of the CodeNarc report. One of <tt>html</tt>, <tt>xml</tt>, <tt>text</tt>, <tt>console</tt>.
      */
     public String getReportFormat() {
         return reportFormat;
     }
 
     /**
-     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
+     * The format type of the CodeNarc report. One of <tt>html</tt>, <tt>xml</tt>, <tt>text</tt>, <tt>console</tt>.
      */
     public void setReportFormat(String reportFormat) {
         if (REPORT_FORMATS.contains(reportFormat)) {
