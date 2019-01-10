@@ -35,7 +35,7 @@ Provides support for building any type of http://groovy-lang.org/[Groovy] projec
 Provides support for building any type of https://www.scala-lang.org/[Scala] project.
 
 <<play_plugin.adoc#,Play>>::
-Proivdes support for building, testing and running https://www.playframework.com/[Play] applications.
+Provides support for building, testing and running https://www.playframework.com/[Play] applications.
 
 <<antlr_plugin.adoc#,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
