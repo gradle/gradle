@@ -5,6 +5,14 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community contributors to this release of Gradle:
 [Thomas Broyer](https://github.com/tbroyer).
 
+## Upgrade Instructions
+
+Switch your build to use Gradle 5.2 by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=5.2`
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
 ## Improvements for plugin authors 
 
 ### Service injection into project extensions
@@ -93,14 +101,6 @@ We would like to thank the following community members for making contributions 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Upgrade Instructions
-
-Switch your build to use Gradle 5.2 by updating your wrapper properties:
-
-`./gradlew wrapper --gradle-version=5.2`
-
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## Reporting Problems
 
