@@ -42,7 +42,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     @Before
     fun kotlinDslIntegrationTestSetup() {
         assumeNonEmbeddedGradleExecuter()
-        executer.requireIsolatedDaemons()
     }
 
     protected
