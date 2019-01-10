@@ -57,7 +57,6 @@ class ModuleResolveState implements CandidateModule {
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
     private final List<SelectorState> selectors = Lists.newArrayListWithExpectedSize(4);
-    private final VariantNameBuilder variantNameBuilder;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -74,7 +73,6 @@ class ModuleResolveState implements CandidateModule {
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
                        ComponentMetaDataResolver metaDataResolver,
-                       VariantNameBuilder variantNameBuilder,
                        ImmutableAttributesFactory attributesFactory,
                        Comparator<Version> versionComparator,
                        VersionParser versionParser,
@@ -83,7 +81,6 @@ class ModuleResolveState implements CandidateModule {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
-        this.variantNameBuilder = variantNameBuilder;
         this.attributesFactory = attributesFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
@@ -262,7 +259,7 @@ class ModuleResolveState implements CandidateModule {
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, variantNameBuilder);
+            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;
