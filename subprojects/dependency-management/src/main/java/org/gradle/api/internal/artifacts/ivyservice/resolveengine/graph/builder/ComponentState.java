@@ -53,12 +53,9 @@ import java.util.Set;
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
-    private static final DisplayName UNKNOWN_VARIANT = Describables.of("unknown");
-
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final VariantNameBuilder variantNameBuilder;
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
@@ -75,13 +72,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean rejected;
     private boolean root;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
+    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.variantNameBuilder = variantNameBuilder;
         this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
     }
 
