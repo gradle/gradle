@@ -775,14 +775,21 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.api.plugins.*
             import org.gradle.api.internal.*
-            import org.gradle.api.internal.plugins.*
+
+            import org.gradle.internal.reflect.*
+            import org.gradle.internal.extensibility.*
+
+            import org.gradle.kotlin.dsl.support.serviceOf
+
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
 
-                    val rootExtension = MyExtension("root")
-                    val rootExtensionNestedExtension = MyExtension("nested-in-extension")
-                    val rootExtensionNestedConvention = MyConvention("nested-in-extension")
+                    val instantiator = serviceOf<Instantiator>()
+
+                    val rootExtension = MyExtension("root", instantiator)
+                    val rootExtensionNestedExtension = MyExtension("nested-in-extension", instantiator)
+                    val rootExtensionNestedConvention = MyConvention("nested-in-extension", instantiator)
 
                     extensions.add("rootExtension", rootExtension)
 
@@ -791,9 +798,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
                     rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
 
-                    val rootConvention = MyConvention("root")
-                    val rootConventionNestedExtension = MyExtension("nested-in-convention")
-                    val rootConventionNestedConvention = MyConvention("nested-in-convention")
+                    val rootConvention = MyConvention("root", instantiator)
+                    val rootConventionNestedExtension = MyExtension("nested-in-convention", instantiator)
+                    val rootConventionNestedConvention = MyConvention("nested-in-convention", instantiator)
 
                     convention.plugins.put("rootConvention", rootConvention)
 
@@ -804,14 +811,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            class MyExtension(val value: String = "value") : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention()
+            class MyExtension(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
+                private val convention: DefaultConvention = DefaultConvention(instantiator)
                 override fun getExtensions(): ExtensionContainer = convention
                 override fun getConvention(): Convention = convention
             }
 
-            class MyConvention(val value: String = "value") : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention()
+            class MyConvention(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
+                private val convention: DefaultConvention = DefaultConvention(instantiator)
                 override fun getExtensions(): ExtensionContainer = convention
                 override fun getConvention(): Convention = convention
             }
