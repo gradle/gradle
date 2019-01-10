@@ -593,6 +593,28 @@ sourceSets {
         outputs.recompiledClasses("A", "B")
     }
 
+    def "can remove source root"() {
+        def toBeRemoved = file("to-be-removed")
+        buildFile << """
+            compileJava {
+                source([fileTree('to-be-removed')])
+            }"""
+
+        java("class A extends B {}")
+        java("class B {}")
+        toBeRemoved.file("C.java").text = "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        toBeRemoved.deleteDir()
+        executer.withArgument "--info"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses()
+    }
+
     def "handles duplicate class across source directories"() {
         //compiler does not allow this scenario, documenting it here
         buildFile << "sourceSets.main.java.srcDir 'java'"
