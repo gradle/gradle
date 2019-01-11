@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public interface ConflictResolverDetails<T extends ComponentResolutionState> {
+public interface ConflictResolverDetails<T> {
     Collection<? extends T> getCandidates();
 
     void select(T candidate);
@@ -27,8 +27,6 @@ public interface ConflictResolverDetails<T extends ComponentResolutionState> {
 
     @Nullable
     T getSelected();
-
-    boolean isRestart();
 
     @Nullable
     Throwable getFailure();
