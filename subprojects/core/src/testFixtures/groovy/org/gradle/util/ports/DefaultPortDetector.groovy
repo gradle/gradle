@@ -22,7 +22,7 @@ class DefaultPortDetector implements PortDetector {
      * Checks to see if a specific port is available.
      *
      * @param port the port to check for availability
-     * @return <code>true</code> if the port is available, <code>false</code> otherwise
+     * @return <tt>true</tt> if the port is available, <tt>false</tt> otherwise
      */
     public boolean isAvailable(int port) {
         try {

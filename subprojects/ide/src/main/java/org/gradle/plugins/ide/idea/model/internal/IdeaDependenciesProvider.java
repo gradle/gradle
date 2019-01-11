@@ -188,8 +188,8 @@ public class IdeaDependenciesProvider {
             }
             library.setSources(sourcePaths);
             Set<Path> javaDocPaths = Sets.newLinkedHashSet();
-            for (ResolvedArtifactResult javaDocArtifcat : javaDoc) {
-                javaDocPaths.add(toPath(ideaModule, javaDocArtifcat.getFile()));
+            for (ResolvedArtifactResult javaDocArtifact : javaDoc) {
+                javaDocPaths.add(toPath(ideaModule, javaDocArtifact.getFile()));
             }
             library.setJavadoc(javaDocPaths);
             moduleDependencies.add(library);

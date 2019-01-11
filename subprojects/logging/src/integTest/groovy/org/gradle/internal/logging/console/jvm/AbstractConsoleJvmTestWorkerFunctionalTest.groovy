@@ -17,8 +17,8 @@
 package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -39,6 +39,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        executer.withTestConsoleAttached()
         executer.withConsole(ConsoleOutput.Rich)
         executer.withArguments('--parallel', "--max-workers=$MAX_WORKERS")
         server.start()

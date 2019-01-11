@@ -55,7 +55,7 @@ public class MessageHub implements AsyncStoppable {
     private final ConnectionSet connections = new ConnectionSet(incomingQueue, outgoingQueue);
 
     /**
-     * @param errorHandler Notified when some asynch. activity fails. Must be thread-safe.
+     * @param errorHandler Notified when some async activity fails. Must be thread-safe.
      */
     public MessageHub(String displayName, ExecutorFactory executorFactory, Action<? super Throwable> errorHandler) {
         this.displayName = displayName;

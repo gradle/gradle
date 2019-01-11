@@ -65,6 +65,7 @@ public class ConsoleConfigureAction {
         configurePlainConsole(renderer, consoleMetaData);
     }
 
+    @Nullable
     private static ConsoleMetaData getConsoleMetaData() {
         String testConsole = System.getProperty(TestConsoleMetadata.TEST_CONSOLE_PROPERTY);
         if (testConsole != null) {

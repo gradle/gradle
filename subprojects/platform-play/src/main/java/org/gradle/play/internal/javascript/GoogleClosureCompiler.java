@@ -21,20 +21,19 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
@@ -75,11 +74,11 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         loadCompilerClasses(getClass().getClassLoader());
 
         // Create a SourceFile object to represent an "empty" extern
-        JavaMethod<?, Object> fromCodeJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
+        JavaMethod<?, Object> fromCodeJavaMethod = JavaMethod.ofStatic(sourceFileClass, Object.class, "fromCode", String.class, String.class);
         Object extern = fromCodeJavaMethod.invokeStatic("/dev/null", "");
 
         // Create a SourceFile object to represent the javascript file to compile
-        JavaMethod<?, Object> fromFileJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromFile", File.class);
+        JavaMethod<?, Object> fromFileJavaMethod = JavaMethod.ofStatic(sourceFileClass, Object.class, "fromFile", File.class);
         Object sourceFile = fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
 
         // Construct a new CompilerOptions class
@@ -87,23 +86,22 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
 
         // Get the CompilationLevel.SIMPLE_OPTIMIZATIONS class and set it on the CompilerOptions class
         @SuppressWarnings({ "rawtypes", "unchecked" }) Enum simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
-        @SuppressWarnings("rawtypes") JavaMethod<Enum, Void> setOptionsForCompilationLevelMethod = JavaReflectionUtil.method(compilationLevelClass, Void.class, "setOptionsForCompilationLevel", compilerOptionsClass);
+        @SuppressWarnings("rawtypes") JavaMethod<Enum, Void> setOptionsForCompilationLevelMethod = JavaMethod.of(compilationLevelClass, Void.class, "setOptionsForCompilationLevel", compilerOptionsClass);
         setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
 
         // Construct a new Compiler class
         Object compiler = DirectInstantiator.INSTANCE.newInstance(compilerClass, getDummyPrintStream());
 
         // Compile the javascript file with the options we've created
-        JavaMethod<Object, Object> compileMethod = JavaReflectionUtil.method(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
+        JavaMethod<Object, Object> compileMethod = JavaMethod.of(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
         Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
         // Get any errors from the compiler result
-        PropertyAccessor<Object, Object[]> jsErrorsField = JavaReflectionUtil.readableField(result, Object[].class, "errors");
-        Object[] jsErrors = jsErrorsField.getValue(result);
+        Object[] jsErrors = getFieldValue(result, "errors");
 
         if (jsErrors.length == 0) {
             // If no errors, get the compiled source and write it to the destination file
-            JavaMethod<Object, String> toSourceMethod = JavaReflectionUtil.method(compilerClass, String.class, "toSource");
+            JavaMethod<Object, String> toSourceMethod = JavaMethod.of(compilerClass, String.class, "toSource");
             String compiledSource = toSourceMethod.invoke(compiler);
             GFileUtils.writeFile(compiledSource, destinationCalculator.transform(javascriptFile));
         } else {
@@ -113,6 +111,17 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
 
         return errors;
+    }
+
+    private static <T> T getFieldValue(Object result, String fieldName) {
+        try {
+            Field field = result.getClass().getField(fieldName);
+            return Cast.uncheckedCast(field.get(result));
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private void loadCompilerClasses(ClassLoader cl) {
@@ -139,7 +148,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
     private PrintStream getDummyPrintStream() {
         OutputStream os = new OutputStream() {
             @Override
-            public void write(int b) throws IOException {
+            public void write(int b) {
                 // do nothing
             }
         };

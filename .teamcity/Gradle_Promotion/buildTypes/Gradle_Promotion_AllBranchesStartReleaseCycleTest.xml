@@ -18,7 +18,9 @@
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Promotion_GradlePromotionBranches" />
     </vcs-settings>
-    <requirements />
+    <requirements>
+      <contains id="RQ_11" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
     <build-triggers>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
         <parameters>

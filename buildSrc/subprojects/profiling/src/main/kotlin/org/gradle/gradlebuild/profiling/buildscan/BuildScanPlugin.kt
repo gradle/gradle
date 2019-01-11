@@ -24,7 +24,9 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.build.ClasspathManifest
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.apply
@@ -68,7 +70,7 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer && !isTravis) {
+        if (isCiServer && !isTravis && !isJenkins) {
             extractAllReportsFromCI()
             monitorUnexpectedCacheMisses()
         }
@@ -80,7 +82,7 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.monitorUnexpectedCacheMisses() {
         gradle.taskGraph.afterTask {
-            if (isCacheMiss() && !isExpectedCacheMiss() && isNotTaggedYet()) {
+            if (isCacheMiss() && isNotTaggedYet()) {
                 buildScan.tag("CACHE_MISS")
             }
         }
@@ -90,18 +92,37 @@ open class BuildScanPlugin : Plugin<Project> {
     fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
 
     private
-    fun Task.isCacheMiss() = !state.skipped && isMonitoredForCacheMiss()
+    fun Task.isCacheMiss() = !state.skipped && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
 
     private
-    fun Task.isMonitoredForCacheMiss() = this is AbstractCompile || this is ClasspathManifest
+    fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
     private
-    fun Project.isExpectedCacheMiss() =
+    fun Task.isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+
+    private
+    fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
+
+    private
+    fun Task.isMonitoredAsciidoctorTask() = this is CacheableAsciidoctorTask
+
+    private
+    fun Task.isExpectedAsciidoctorCacheMiss() =
+    // Expected cache-miss for asciidoctor task:
+    // 1. CompileAll is the seed build for docs:distDocs
+    // 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
+        isInBuild("Gradle_Check_CompileAll", "Gradle_Check_BuildDistributions")
+
+    private
+    fun Task.isExpectedCompileCacheMiss() =
     // Expected cache-miss:
-    // 1. compileAll is seed build
+    // 1. CompileAll is the seed build
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-        System.getenv("BUILD_TYPE_ID") in listOf("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+        isInBuild("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+
+    private
+    fun Task.isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
 
     private
     fun Project.extractCheckstyleAndCodenarcData() {
@@ -145,14 +166,22 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                if (isTravis) {
-                    link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
-                    value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
-                    setCommitId(System.getenv("TRAVIS_COMMIT"))
-                } else {
-                    link("TeamCity Build", System.getenv("BUILD_URL"))
-                    value("Build ID", System.getenv("BUILD_ID"))
-                    setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                when {
+                    isTravis -> {
+                        link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
+                        value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
+                        setCommitId(System.getenv("TRAVIS_COMMIT"))
+                    }
+                    isJenkins -> {
+                        link("Jenkins Build", System.getenv("BUILD_URL"))
+                        value("Build ID", System.getenv("BUILD_ID"))
+                        setCommitId(System.getenv("GIT_COMMIT"))
+                    }
+                    else -> {
+                        link("TeamCity Build", System.getenv("BUILD_URL"))
+                        value("Build ID", System.getenv("BUILD_ID"))
+                        setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                    }
                 }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)

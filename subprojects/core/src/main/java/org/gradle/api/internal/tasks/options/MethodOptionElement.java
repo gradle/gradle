@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.options;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -101,7 +101,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            JavaReflectionUtil.method(Object.class, method).invoke(target, value);
+            JavaMethod.of(Object.class, method).invoke(target, value);
         }
     }
 
@@ -131,7 +131,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property property = (Property) JavaReflectionUtil.method(Object.class, method).invoke(target);
+            Property property = (Property) JavaMethod.of(Object.class, method).invoke(target);
             property.set(value);
         }
     }
@@ -160,7 +160,7 @@ public class MethodOptionElement {
 
         @Override
         public void setValue(Object object, Object value) {
-            JavaReflectionUtil.method(Object.class, method).invoke(object);
+            JavaMethod.of(Object.class, method).invoke(object);
         }
     }
 }

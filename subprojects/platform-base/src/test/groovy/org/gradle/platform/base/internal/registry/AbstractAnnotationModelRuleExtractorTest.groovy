@@ -17,13 +17,24 @@
 package org.gradle.platform.base.internal.registry
 
 import org.gradle.internal.Factory
-import org.gradle.internal.reflect.MethodDescription
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelView
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import org.gradle.model.internal.inspect.*
+import org.gradle.model.internal.inspect.DefaultMethodModelRuleExtractionContext
+import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
+import org.gradle.model.internal.inspect.DefaultModelRuleInvoker
+import org.gradle.model.internal.inspect.ExtractedModelRule
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector
+import org.gradle.model.internal.inspect.MethodModelRuleApplicationContext
+import org.gradle.model.internal.inspect.MethodRuleAction
+import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType

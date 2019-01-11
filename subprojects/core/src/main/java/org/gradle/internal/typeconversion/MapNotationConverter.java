@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
@@ -153,7 +154,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     }
 
-    private static class ConvertMethod extends ReflectionCache.CachedInvokable<Method> {
+    private static class ConvertMethod extends CachedInvokable<Method> {
         private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
         public static final Class[] EMPTY = new Class[0];
 

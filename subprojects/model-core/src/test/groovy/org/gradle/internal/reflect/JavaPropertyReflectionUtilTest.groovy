@@ -16,17 +16,20 @@
 
 package org.gradle.internal.reflect
 
-import org.gradle.api.specs.Spec
-import org.gradle.internal.UncheckedException
+
 import spock.lang.Specification
 
 import java.lang.annotation.Inherited
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.*
+import static JavaPropertyReflectionUtil.getAnnotation
+import static JavaPropertyReflectionUtil.hasDefaultToString
+import static JavaPropertyReflectionUtil.propertyNames
+import static JavaPropertyReflectionUtil.readableProperty
+import static JavaPropertyReflectionUtil.writeableProperty
 
-class JavaReflectionUtilTest extends Specification {
+class JavaPropertyReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
     def "property names"() {
@@ -48,16 +51,6 @@ class JavaReflectionUtilTest extends Specification {
     def "read property using instance"() {
         expect:
         readableProperty(myProperties, String, "myProperty").getValue(myProperties) == "myValue"
-    }
-
-    def "read field" () {
-        expect:
-        readableField(JavaTestSubject, String, "myField").getValue(myProperties) == "myFieldValue"
-    }
-
-    def "read field using instance" () {
-        expect:
-        readableField(myProperties, String, "myField").getValue(myProperties) == "myFieldValue"
     }
 
     def "write property"() {
@@ -149,27 +142,6 @@ class JavaReflectionUtilTest extends Specification {
         readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == true
     }
 
-    def "read boolean field" () {
-        expect:
-        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
-    }
-
-    def "set boolean field" () {
-        when:
-        writeableField(JavaTestSubject, "myBooleanField").setValue(myProperties, false)
-
-        then:
-        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == false
-    }
-
-    def "cannot set value on non public fields"(){
-        when:
-        writeableField(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
-
-        then:
-        thrown(NoSuchPropertyException);
-    }
-
     def "write boolean property"() {
         when:
         writeableProperty(JavaTestSubject, "myBooleanProperty", Boolean.class).setValue(myProperties, false)
@@ -238,71 +210,6 @@ class JavaReflectionUtilTest extends Specification {
         property            | _
         "privateProperty"   | _
         "protectedProperty" | _
-    }
-
-    def "call methods successfully reflectively"() {
-        expect:
-        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
-        method(myProperties.class, String, "doSomeStuff", int.class, Integer.class).invoke(myProperties, 1, 2) == "1.2"
-
-        when:
-        method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
-
-        then:
-        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
-    }
-
-    def "call static methods successfully reflectively" () {
-        when:
-        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
-
-        then:
-        staticMethod(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
-    }
-
-    def "static methods are identifiable" () {
-        expect:
-        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
-        staticMethod(myProperties.class, String, "getStaticProperty").isStatic()
-        method(myProperties.class, String, "getMyProperty").isStatic() == false
-    }
-
-    def "call failing methods reflectively"() {
-        when:
-        method(myProperties.class, Void, "throwsException").invoke(myProperties)
-
-        then:
-        IllegalStateException e = thrown()
-        e == myProperties.failure
-
-        when:
-        method(myProperties.class, Void, "throwsCheckedException").invoke(myProperties)
-
-        then:
-        UncheckedException checkedFailure = thrown()
-        checkedFailure.cause instanceof JavaTestSubject.TestCheckedException
-        checkedFailure.cause.cause == myProperties.failure
-    }
-
-    def "call declared method that may not be public"() {
-        expect:
-        method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
-        method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
-    }
-
-    def "cannot call unknown method"() {
-        when:
-        method(JavaTestSubjectSubclass, String, "unknown")
-
-        then:
-        NoSuchMethodException e = thrown()
-        e.message == /Could not find method unknown() on JavaTestSubjectSubclass./
-    }
-
-    def "find method"() {
-        expect:
-        findMethod(String, { it.name == "toString" } as Spec) == String.declaredMethods.find { it.name == "toString" }
-        findMethod(String, { it.name == "getClass" } as Spec) == Object.declaredMethods.find { it.name == "getClass" }
     }
 
     def "get annotation"() {
@@ -399,7 +306,7 @@ class InheritsInterface extends SuperWithInterface {}
 
 class ClassWithToString {
     @Override
-    public String toString() {
+    String toString() {
         return "ClassWithToString{}";
     }
 }

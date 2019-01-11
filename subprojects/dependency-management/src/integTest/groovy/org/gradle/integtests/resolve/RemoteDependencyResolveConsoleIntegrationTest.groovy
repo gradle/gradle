@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -60,7 +61,9 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         def jars = server.expectConcurrentAndBlock(getM1Jar, getM2Jar)
 
         when:
-        def build = executer.withTasks("resolve").withArguments("--max-workers=2", "--console=rich").start()
+        executer.withTestConsoleAttached()
+        executer.withConsole(ConsoleOutput.Rich)
+        def build = executer.withTasks("resolve").withArguments("--max-workers=2").start()
         metaData.waitForAllPendingCalls()
 
         then:

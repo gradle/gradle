@@ -824,7 +824,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    def "virtual platform missing modules are cached accross builds"() {
+    def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
         executer.withArgument('--no-daemon')

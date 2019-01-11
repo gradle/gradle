@@ -5,6 +5,14 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community contributors to this release of Gradle:
 [Thomas Broyer](https://github.com/tbroyer).
 
+## Upgrade Instructions
+
+Switch your build to use Gradle 5.2 by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=5.2`
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
 ## Improvements for plugin authors 
 
 ### Service injection into project extensions
@@ -32,6 +40,12 @@ For details, have a look at the [dedicated section](userguide/publishing_maven.h
 
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
 These toolchains are now officially supported by Gradle.  See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
+
+## Rich console improvements on Windows
+
+This release includes some improvements to Gradle's console integration on Windows. Gradle now detects when it is running from Mintty on Windows and enables the rich console. Mintty is a popular terminal emulator used by projects such as Cygwin and Git for Windows. 
+
+The implementation of the rich console has been improved to remove some distracting visual artifacts on Windows. 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -87,14 +101,6 @@ We would like to thank the following community members for making contributions 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Upgrade Instructions
-
-Switch your build to use Gradle 5.2 by updating your wrapper properties:
-
-`./gradlew wrapper --gradle-version=5.2`
-
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## Reporting Problems
 

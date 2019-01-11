@@ -45,7 +45,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
 
         if (strict) {
             if (!rejectedVersions.isEmpty()) {
-                throw new IllegalArgumentException("Cannot combine 'strict' and'reject' in a single version constraint.");
+                throw new IllegalArgumentException("Cannot combine 'strict' and 'reject' in a single version constraint.");
             }
             this.rejectedVersionsSelector = getRejectionForStrict(version, scheme);
             rejectAll = false;

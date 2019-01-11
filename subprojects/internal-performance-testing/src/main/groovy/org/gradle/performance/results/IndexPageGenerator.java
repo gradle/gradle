@@ -146,7 +146,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();
-                        div().id("acoordion").classAttr("mx-auto");
+                        div().id("accordion").classAttr("mx-auto");
                         renderHeader();
                         renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", ScenarioBuildResultData::isCrossVersion);
                         renderTable("Cross build scenarios", "Compare the performance of different builds", ScenarioBuildResultData::isCrossBuild);

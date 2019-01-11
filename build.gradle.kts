@@ -46,7 +46,7 @@ base.archivesBaseName = "gradle"
 
 buildTypes {
     create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll")
+        tasks(":createBuildReceipt", "compileAll", ":docs:distDocs")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 

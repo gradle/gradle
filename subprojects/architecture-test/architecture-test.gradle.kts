@@ -15,6 +15,7 @@ dependencies {
     testImplementation("com.tngtech.archunit:archunit-junit4:0.9.1")
     testImplementation(library("jsr305"))
     testImplementation(project(":baseServices"))
+    testImplementation(project(":modelCore"))
     publicProjects.forEach {
         testRuntime(it)
     }
