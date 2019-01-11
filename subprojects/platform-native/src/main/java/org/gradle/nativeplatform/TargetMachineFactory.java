@@ -26,22 +26,22 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface TargetMachineFactory {
     /**
-     * Returns a {@link ConfigurableTargetMachine} for the Windows operating system family and the architecture of the current host.
+     * Returns a {@link TargetMachineBuilder} for the Windows operating system family and the architecture of the current host.
      */
-    ConfigurableTargetMachine getWindows();
+    TargetMachineBuilder getWindows();
 
     /**
-     * Returns a {@link ConfigurableTargetMachine} for the Linux operating system family and the architecture of the current host.
+     * Returns a {@link TargetMachineBuilder} for the Linux operating system family and the architecture of the current host.
      */
-    ConfigurableTargetMachine getLinux();
+    TargetMachineBuilder getLinux();
 
     /**
-     * Returns a {@link ConfigurableTargetMachine} for the macOS operating system family and the architecture of the current host.
+     * Returns a {@link TargetMachineBuilder} for the macOS operating system family and the architecture of the current host.
      */
-    ConfigurableTargetMachine getMacOS();
+    TargetMachineBuilder getMacOS();
 
     /**
-     * Returns a {@link ConfigurableTargetMachine} representing the specified operating system and the architecture of the current host.
+     * Returns a {@link TargetMachineBuilder} representing the specified operating system and the architecture of the current host.
      */
-    ConfigurableTargetMachine os(String operatingSystemFamily);
+    TargetMachineBuilder os(String operatingSystemFamily);
 }

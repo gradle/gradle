@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.nativeplatform.ConfigurableTargetMachine;
+import org.gradle.nativeplatform.TargetMachineBuilder;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
@@ -42,22 +42,22 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     @Override
-    public ConfigurableTargetMachine getWindows() {
+    public TargetMachineBuilder getWindows() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.WINDOWS), getDefaultArchitecture());
     }
 
     @Override
-    public ConfigurableTargetMachine getLinux() {
+    public TargetMachineBuilder getLinux() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.LINUX), getDefaultArchitecture());
     }
 
     @Override
-    public ConfigurableTargetMachine getMacOS() {
+    public TargetMachineBuilder getMacOS() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.MACOS), getDefaultArchitecture());
     }
 
     @Override
-    public ConfigurableTargetMachine os(String operatingSystemFamily) {
+    public TargetMachineBuilder os(String operatingSystemFamily) {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, operatingSystemFamily), getDefaultArchitecture());
     }
 
@@ -65,7 +65,7 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         return objectFactory.named(MachineArchitecture.class, DefaultNativePlatform.host().getArchitecture().getName());
     }
 
-    private class TargetMachineImpl extends DefaultTargetMachine implements ConfigurableTargetMachine {
+    private class TargetMachineImpl extends DefaultTargetMachine implements TargetMachineBuilder {
         public TargetMachineImpl(OperatingSystemFamily operatingSystemFamily, MachineArchitecture architecture) {
             super(operatingSystemFamily, architecture);
         }
