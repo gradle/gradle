@@ -52,7 +52,11 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
 
     protected
     fun withKotlinDslPlugin() =
-        withBuildScript(scriptWithKotlinDslPlugin())
+        withKotlinDslPluginIn(".")
+
+    protected
+    fun withKotlinDslPluginIn(baseDir: String) =
+        withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
 
     protected
     fun scriptWithKotlinDslPlugin(): String =
