@@ -47,13 +47,12 @@ open class GeneratePluginSpecBuilders : DefaultTask() {
     internal
     fun generate() =
         outputDirectory.asFile.get().let { outputDir ->
-            val classPath = DefaultClassPath.of(classPath.files)
             val packageDir = outputDir.resolve(packageName.split('.').joinToString("/")).apply {
                 mkdirs()
             }
-            val outputFile = packageDir.resolve("PluginAccessors.kt")
+            val outputFile = packageDir.resolve("PluginSpecBuildersFor$$classPathHash.kt")
             writeSourceCodeForPluginSpecBuildersFor(
-                classPath,
+                pluginDescriptorClassPath,
                 outputFile,
                 packageName = kotlinPackageName
             )
@@ -65,10 +64,15 @@ open class GeneratePluginSpecBuilders : DefaultTask() {
         kotlinPackageNameFor(packageName)
     }
 
+    // TODO: consider a package name derived from the classpath hash
+    // "gradle-kotlin-dsl.plugin-spec-builders.$$classPathHash"
     private
-    val packageName by lazy {
-        "gradle-kotlin-dsl.plugin-spec-builders.${'$'}${hashOf(pluginDescriptorClassPath)}"
-    }
+    val packageName
+        get() = "org.gradle.kotlin.dsl"
+
+    private
+    val classPathHash
+        get() = hashOf(pluginDescriptorClassPath)
 
     private
     val pluginDescriptorClassPath by lazy {
