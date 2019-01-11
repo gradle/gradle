@@ -20,6 +20,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.CppTargetMachine;
 import org.gradle.language.cpp.internal.DefaultCppTargetMachine;
 import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.TargetMachine;
@@ -30,6 +31,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 
@@ -57,17 +60,29 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         // TODO - don't select again here, as the selection is already performed to select the toolchain
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetPlatform);
 
-        // TODO - use a better name for the platforms, rather than "host"
-
         final T targetMachine;
         if (CppTargetMachine.class.isAssignableFrom(platformType)) {
             targetMachine = platformType.cast(new DefaultCppTargetMachine(requestedTargetMachine));
         } else if (SwiftTargetMachine.class.isAssignableFrom(platformType)) {
-            targetMachine = platformType.cast(new DefaultSwiftTargetMachine(requestedTargetMachine));
+            SwiftVersion sourceCompatibility = ((SwiftTargetMachine) requestedTargetMachine).getSourceCompatibility();
+            if (sourceCompatibility == null && toolProvider.isAvailable()) {
+                sourceCompatibility = toSwiftVersion(toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
+            }
+            targetMachine = platformType.cast(new DefaultSwiftTargetMachine(requestedTargetMachine, sourceCompatibility));
         } else {
             throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
         return new DefaultResult<T>(toolChain, toolProvider, targetPlatform, targetMachine);
+    }
+
+    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 3) {
+            return SwiftVersion.SWIFT3;
+        } else if (swiftCompilerVersion.getMajor() == 4) {
+            return SwiftVersion.SWIFT4;
+        } else {
+            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+        }
     }
 
     class DefaultResult<T extends TargetMachine> implements Result<T> {

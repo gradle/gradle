@@ -30,6 +30,7 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftTargetMachine;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
+import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -104,7 +105,8 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<SwiftTargetMachine> result = toolChainSelector.select(SwiftTargetMachine.class, variantIdentity.getTargetMachine());
+                            application.getSourceCompatibility().finalizeValue();
+                            ToolChainSelector.Result<SwiftTargetMachine> result = toolChainSelector.select(SwiftTargetMachine.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
                             application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());
                         }
                     });

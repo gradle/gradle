@@ -41,7 +41,6 @@ import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftTargetMachine;
-import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
@@ -71,7 +70,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final SwiftTargetMachine targetMachine;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
-    private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
     public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftTargetMachine targetMachine) {
@@ -83,7 +81,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
-        this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
 
         // TODO - reduce duplication with C++ binary
         importPathConfiguration = configurations.create(names.withPrefix("swiftCompile"));
@@ -194,11 +191,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
-    }
-
-    @Override
-    public Property<SwiftVersion> getSourceCompatibility() {
-        return sourceCompatibility;
     }
 
     @Inject

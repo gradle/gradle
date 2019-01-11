@@ -25,7 +25,7 @@ public interface ToolChainSelector {
     /**
      * Selects a platform of the given type that can run on the host machine, and a toolchain to build for this platform.
      */
-    <T extends TargetMachine> Result<T> select(Class<T> platformType, TargetMachine targetMachine);
+    <T extends TargetMachine> Result<T> select(Class<T> platformType, TargetMachine requestedTargetMachine);
 
     interface Result<T extends TargetMachine> {
         NativeToolChainInternal getToolChain();

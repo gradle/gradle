@@ -16,13 +16,13 @@
 
 package org.gradle.language.cpp.internal
 
-import org.gradle.api.artifacts.Configuration
+
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.CppTargetMachine
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -82,12 +82,13 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     def "can add shared library"() {
+        def targetPlatform = Stub(NativePlatform)
         def targetMachine = Stub(CppTargetMachine)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary(identity, targetMachine, toolChain, platformToolProvider)
+        def binary = library.addSharedLibrary(identity, targetPlatform, toolChain, platformToolProvider, targetMachine)
         binary.name == 'mainDebug'
         binary.debuggable
         !binary.optimized
@@ -100,12 +101,13 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     def "can add static library"() {
+        def targetPlatform = Stub(NativePlatform)
         def targetMachine = Stub(CppTargetMachine)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary(identity, targetMachine, toolChain, platformToolProvider)
+        def binary = library.addStaticLibrary(identity, targetPlatform, toolChain, platformToolProvider, targetMachine)
         binary.name == 'mainDebug'
         binary.debuggable
         !binary.optimized
@@ -126,7 +128,7 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        def binary = library.addSharedLibrary(identity, Stub(CppTargetMachine), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def binary = library.addSharedLibrary(identity, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(CppTargetMachine))
         binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
@@ -198,8 +200,5 @@ class DefaultCppLibraryTest extends Specification {
             getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
             getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
         }
-    }
-
-    interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

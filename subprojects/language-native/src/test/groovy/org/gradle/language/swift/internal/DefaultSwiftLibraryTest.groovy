@@ -16,14 +16,14 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.FileCollectionInternal
+
 import org.gradle.language.cpp.internal.DefaultUsageContext
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftTargetMachine
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -59,12 +59,13 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     def "can create static binary"() {
+        def targetPlatform = Stub(NativePlatform)
         def targetMachine = Stub(SwiftTargetMachine)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary(identity, true, targetMachine, toolChain, platformToolProvider)
+        def binary = library.addStaticLibrary(identity, true, targetPlatform, toolChain, platformToolProvider, targetMachine)
         binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
@@ -78,12 +79,13 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     def "can create shared binary"() {
+        def targetPlatform = Stub(NativePlatform)
         def targetMachine = Stub(SwiftTargetMachine)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary(identity, true, targetMachine, toolChain, platformToolProvider)
+        def binary = library.addSharedLibrary(identity, true, targetPlatform, toolChain, platformToolProvider, targetMachine)
         binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
@@ -121,8 +123,5 @@ class DefaultSwiftLibraryTest extends Specification {
             getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
             getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
         }
-    }
-
-    interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

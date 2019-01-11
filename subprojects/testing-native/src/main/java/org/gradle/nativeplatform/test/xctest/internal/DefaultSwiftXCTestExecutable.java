@@ -49,7 +49,7 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
 
     @Inject
     public DefaultSwiftXCTestExecutable(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftTargetMachine targetMachine) {
-        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity, targetMachine;
+        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         debuggerExecutableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         linkTask = objectFactory.property(LinkExecutable.class);

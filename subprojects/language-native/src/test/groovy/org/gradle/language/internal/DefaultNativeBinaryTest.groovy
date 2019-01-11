@@ -22,6 +22,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.nativeplatform.TargetMachine
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -38,7 +39,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "has implementation dependencies"() {
         given:
-        def binary = new TestBinary("binary", project.objects, implementation)
+        def binary = new TestBinary("binary", project.objects, implementation, Stub(NativePlatform))
 
         expect:
         binary.implementationDependencies == project.configurations.binaryImplementation
@@ -47,7 +48,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "can add implementation dependency"() {
         given:
-        def binary = new TestBinary("binary", project.objects, implementation)
+        def binary = new TestBinary("binary", project.objects, implementation, Stub(NativePlatform))
         binary.dependencies.implementation("a:b:c:")
 
         expect:
@@ -56,8 +57,8 @@ class DefaultNativeBinaryTest extends Specification {
 
     class TestBinary extends DefaultNativeBinary {
         @Inject
-        TestBinary(String name, ObjectFactory objectFactory, Configuration componentImplementation) {
-            super(Names.of(name), objectFactory, componentImplementation)
+        TestBinary(String name, ObjectFactory objectFactory, Configuration componentImplementation, NativePlatform nativePlatform) {
+            super(Names.of(name), objectFactory, componentImplementation, nativePlatform)
         }
 
         @Override
