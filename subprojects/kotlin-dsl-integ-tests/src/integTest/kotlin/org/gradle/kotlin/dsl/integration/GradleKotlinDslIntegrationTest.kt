@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -776,6 +778,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             """))
     }
 
+    @LeaksFileHandles // TODO:kotlin-dsl investigate
     @Test
     fun `given generic extension types they can be accessed and configured`() {
 

@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
@@ -80,6 +82,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @LeaksFileHandles // TODO:kotlin-dsl investigate
     @Test
     fun `accepts lambda as SAM argument to Kotlin function`() {
 
