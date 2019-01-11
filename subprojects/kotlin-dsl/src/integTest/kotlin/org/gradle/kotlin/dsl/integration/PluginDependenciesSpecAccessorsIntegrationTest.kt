@@ -17,9 +17,9 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 
@@ -28,7 +28,7 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
     @Test
     fun `can use accessors for plugins in the buildSrc classpath`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        executer.requireIsolatedDaemons()
 
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my/plugin-a.gradle.kts", """

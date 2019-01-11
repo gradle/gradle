@@ -91,6 +91,8 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
 
         executer.withGradleUserHomeDir(guh)
+        executer.requireIsolatedDaemons()
+
         assertThat(
             build().output,
             containsString("*test-repository*"))

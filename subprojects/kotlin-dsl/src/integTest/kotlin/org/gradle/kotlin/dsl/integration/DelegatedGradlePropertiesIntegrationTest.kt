@@ -64,8 +64,11 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             projectMutatedUserHomeProperty=user home value
         """.trimIndent())
 
-        // and: gradle command line with properties
+        // and: isolated gradle user home
         executer.withGradleUserHomeDir(existing("gradle-user-home"))
+        executer.requireIsolatedDaemons()
+
+        // and: gradle command line with properties
         val buildArguments = arrayOf(
             "-PsetCliProperty=cli value",
             "-PemptyCliProperty=",

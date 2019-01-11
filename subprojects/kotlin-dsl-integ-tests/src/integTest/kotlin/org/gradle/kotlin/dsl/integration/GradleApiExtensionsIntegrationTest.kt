@@ -194,6 +194,8 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript("")
 
         executer.withGradleUserHomeDir(guh)
+        executer.requireIsolatedDaemons()
+
         build("help")
 
         val generatedJar = generatedExtensionsJarFromGradleUserHome(guh)
