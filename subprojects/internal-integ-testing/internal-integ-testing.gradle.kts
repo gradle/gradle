@@ -71,11 +71,6 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 
 sourceSets.main { output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir) }
 
-ideConfiguration {
-    makeAllSourceDirsTestSourceDirsInIdeaModule()
-}
-
-
 @CacheableTask
 open class PrepareVersionsInfo : DefaultTask() {
 

@@ -74,7 +74,3 @@ testFixtures {
     from(":core", "main")
     from(":toolingApi", "main")
 }
-
-ideConfiguration {
-    makeAllSourceDirsTestSourceDirsInIdeaModule()
-}

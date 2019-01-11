@@ -9,7 +9,6 @@ import org.gradle.kotlin.dsl.*
 
 import accessors.eclipse
 import accessors.groovy
-import accessors.idea
 import accessors.java
 
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
@@ -126,7 +125,7 @@ fun Project.configureIde(testType: TestType) {
 
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
-        idea {
+        with(model) {
             module {
                 testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
                 testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs

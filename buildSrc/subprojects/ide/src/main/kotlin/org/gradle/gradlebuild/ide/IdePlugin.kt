@@ -17,7 +17,6 @@ package org.gradle.gradlebuild.ide
 
 import accessors.base
 import accessors.eclipse
-import accessors.idea
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
@@ -34,6 +33,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaProject
@@ -100,15 +100,9 @@ limitations under the License."""
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        configureExtensionForAllProjects()
         configureEclipseForAllProjects()
         configureIdeaForAllProjects()
         configureIdeaForRootProject()
-    }
-
-    private
-    fun Project.configureExtensionForAllProjects() = allprojects {
-        extensions.create<IdeExtension>(ideConfigurationBaseName, this)
     }
 
     private
@@ -140,18 +134,18 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureIdeaForAllProjects() = allprojects {
-        apply(plugin = "idea")
-        apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
-        idea {
-            module {
-                configureLanguageLevel(this)
-                iml {
-                    whenMerged(Action<Module> {
-                        removeGradleBuildOutputDirectories(this)
-                    })
-                    withXml {
-                        withJsoup {
-                            configureSourceFolders(it)
+        plugins.withType<IdeaPlugin> {
+            with(model) {
+                module {
+                    configureLanguageLevel(this)
+                    iml {
+                        whenMerged(Action<Module> {
+                            removeGradleBuildOutputDirectories(this)
+                        })
+                        withXml {
+                            withJsoup {
+                                configureSourceFolders(it)
+                            }
                         }
                     }
                 }
@@ -162,68 +156,71 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureIdeaForRootProject() {
         val rootProject = this
-        idea {
-            module {
-                excludeDirs = excludeDirs + rootExcludeDirs
-            }
-
-            project {
-                jdkName = "9.0"
-                wildcards.add("?*.gradle")
-                vcs = "Git"
-                ipr {
-                    withXml {
-                        withJsoup { document ->
-                            val projectElement = document.getElementsByTag("project").first()
-                            configureCompilerConfiguration(projectElement)
-                            configureCopyright(projectElement)
-
-                            // We are using an extension method instead of appending a fixed XML String,
-                            // since jsoup `append` method converts all xml tags to lower case.
-                            // In doing so, tags in the code style settings are ignored.
-                            projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
-                                .configureCodeStyleSettings()
-                            projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
-                                .configureInspectionSettings()
-
-                            configureFrameworkDetectionExcludes(projectElement)
-                            configureBuildSrc(projectElement)
-                        }
-                        // TODO replace this hack by trying out with kotlinx.dom
-                        val xmlStringBuilder = asString()
-                        val toReplace = "{newline}"
-                        var startIndex = xmlStringBuilder.indexOf(toReplace)
-                        while (startIndex > -1) {
-                            xmlStringBuilder.replace(startIndex, startIndex + toReplace.length, "&#10;")
-                            startIndex = xmlStringBuilder.indexOf(toReplace)
-                        }
-                    }
+        plugins.withType<IdeaPlugin> {
+            apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
+            with(model) {
+                module {
+                    excludeDirs = excludeDirs + rootExcludeDirs
                 }
-                workspace {
-                    iws {
+
+                project {
+                    jdkName = "9.0"
+                    wildcards.add("?*.gradle")
+                    vcs = "Git"
+                    ipr {
                         withXml {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
-                                projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
-                                val runManagerComponent = projectElement.select("component[name=RunManager]")
-                                    .first()
-                                updateJUnitRunConfigurationsOf(runManagerComponent)
-                                configureGradleRunConfigurations(runManagerComponent)
+                                configureCompilerConfiguration(projectElement)
+                                configureCopyright(projectElement)
+
+                                // We are using an extension method instead of appending a fixed XML String,
+                                // since jsoup `append` method converts all xml tags to lower case.
+                                // In doing so, tags in the code style settings are ignored.
+                                projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
+                                    .configureCodeStyleSettings()
+                                projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
+                                    .configureInspectionSettings()
+
+                                configureFrameworkDetectionExcludes(projectElement)
+                                configureBuildSrc(projectElement)
+                            }
+                            // TODO replace this hack by trying out with kotlinx.dom
+                            val xmlStringBuilder = asString()
+                            val toReplace = "{newline}"
+                            var startIndex = xmlStringBuilder.indexOf(toReplace)
+                            while (startIndex > -1) {
+                                xmlStringBuilder.replace(startIndex, startIndex + toReplace.length, "&#10;")
+                                startIndex = xmlStringBuilder.indexOf(toReplace)
                             }
                         }
                     }
-                }
+                    workspace {
+                        iws {
+                            withXml {
+                                withJsoup { document ->
+                                    val projectElement = document.getElementsByTag("project").first()
+                                    projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
+                                        .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
+                                    val runManagerComponent = projectElement.select("component[name=RunManager]")
+                                        .first()
+                                    updateJUnitRunConfigurationsOf(runManagerComponent)
+                                    configureGradleRunConfigurations(runManagerComponent)
+                                }
+                            }
+                        }
+                    }
 
-                settings {
-                    configureCompilerSettings(rootProject)
-                    configureCopyright()
-                    // TODO The idea-ext plugin does not yet support customizing inspections.
-                    // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
-                    // configureInspections()
-                    configureRunConfigurations(rootProject)
-                    doNotDetectFrameworks("android", "web")
-                    configureSyncTasks(subprojects)
+                    settings {
+                        configureCompilerSettings(rootProject)
+                        configureCopyright()
+                        // TODO The idea-ext plugin does not yet support customizing inspections.
+                        // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
+                        // configureInspections()
+                        configureRunConfigurations(rootProject)
+                        doNotDetectFrameworks("android", "web")
+                        configureSyncTasks(subprojects)
+                    }
                 }
             }
         }
@@ -278,30 +275,16 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
-        // Remove the `isExecutingIdeaTask` variant of run configurations once we completely migrated to the native IDEA import
-        // See: https://github.com/gradle/gradle-private/issues/1675
-        val isExecutingIdeaTask = rootProject.gradle.startParameter.taskNames.contains("idea")
         runConfigurations {
-            val gradleRunners = if (isExecutingIdeaTask) {
-                mapOf(
-                    "Regenerate IDEA metadata" to "idea",
-                    "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-                )
-            } else {
-                mapOf(
-                    "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-                )
-            }
+            val gradleRunners = mapOf(
+                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
+            )
             gradleRunners.forEach { (name, tasks) ->
                 create<Application>(name) {
                     mainClass = "org.gradle.testing.internal.util.GradlewRunner"
                     programParameters = tasks
                     workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = if (isExecutingIdeaTask) {
-                        "internalTesting"
-                    } else {
-                        "org.gradle.internalTesting.main"
-                    }
+                    moduleName = "org.gradle.internalTesting.main"
                     envs = mapOf("TERM" to "xterm")
                     beforeRun {
                         create<Make>("make") {
@@ -314,11 +297,7 @@ open class IdePlugin : Plugin<Project> {
                 mainClass = "org.gradle.debug.GradleRunConfiguration"
                 programParameters = "help"
                 workingDirectory = rootProject.projectDir.absolutePath
-                moduleName = if (isExecutingIdeaTask) {
-                    "integTest"
-                } else {
-                    "org.gradle.integTest.integTest"
-                }
+                moduleName = "org.gradle.integTest.integTest"
                 jvmArgs = "-Dorg.gradle.daemon=false"
                 beforeRun {
                     create<Make>("make") {
@@ -369,14 +348,16 @@ open class IdePlugin : Plugin<Project> {
         val rootProject = this
         val docsProject = docsProject()
         docsProject.afterEvaluate {
-            rootProject.idea {
-                project {
-                    settings {
-                        runConfigurations {
-                            create<JUnit>("defaults") {
-                                defaults = true
-                                vmParameters = getDefaultJunitVmParameters(docsProject)
-                                envs = mapOf("LANG" to lang)
+            rootProject.plugins.withType<IdeaPlugin> {
+                with(model) {
+                    project {
+                        settings {
+                            runConfigurations {
+                                create<JUnit>("defaults") {
+                                    defaults = true
+                                    vmParameters = getDefaultJunitVmParameters(docsProject)
+                                    envs = mapOf("LANG" to lang)
+                                }
                             }
                         }
                     }
