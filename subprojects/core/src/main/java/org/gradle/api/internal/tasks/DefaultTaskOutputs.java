@@ -49,7 +49,6 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
-    private final PropertySpecFactory specFactory;
     private final FileResolver fileResolver;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -59,12 +58,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory, FileResolver fileResolver) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileResolver fileResolver) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
         this.propertyWalker = propertyWalker;
-        this.specFactory = specFactory;
         this.fileResolver = fileResolver;
     }
 
@@ -168,7 +166,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
+                DeclaredTaskOutputFileProperty outputFileSpec = createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
                 return outputFileSpec;
             }
@@ -182,7 +180,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
+                DeclaredTaskOutputFileProperty outputDirSpec = createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);
                 return outputDirSpec;
             }
@@ -195,7 +193,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                DeclaredTaskOutputFileProperty outputFilesSpec = specFactory.createOutputFilesSpec(value);
+                DeclaredTaskOutputFileProperty outputFilesSpec = createOutputFilesSpec(value);
                 registeredFileProperties.add(outputFilesSpec);
                 return outputFilesSpec;
             }
@@ -208,7 +206,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                DeclaredTaskOutputFileProperty outputDirsSpec = specFactory.createOutputDirsSpec(value);
+                DeclaredTaskOutputFileProperty outputDirsSpec = createOutputDirsSpec(value);
                 registeredFileProperties.add(outputDirsSpec);
                 return outputDirsSpec;
             }
@@ -218,6 +216,26 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Nullable
     private static Object resolveSingleArray(@Nullable Object[] paths) {
         return (paths != null && paths.length == 1) ? paths[0] : paths;
+    }
+
+    private DeclaredTaskOutputFileProperty createOutputFileSpec(ValidatingValue path) {
+        return createOutputFilePropertySpec(path, TreeType.FILE, ValidationActions.OUTPUT_FILE_VALIDATOR);
+    }
+
+    private DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue path) {
+        return createOutputFilePropertySpec(path, TreeType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths) {
+        return new CompositeTaskOutputPropertySpec(task.toString(), fileResolver, TreeType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
+    }
+
+    private DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths) {
+        return new CompositeTaskOutputPropertySpec(task.toString(), fileResolver, TreeType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
+    }
+
+    private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, TreeType type, ValidationAction outputFileValidator) {
+        return new DefaultCacheableTaskOutputFilePropertySpec(task.toString(), fileResolver, type, path, outputFileValidator);
     }
 
     @Override

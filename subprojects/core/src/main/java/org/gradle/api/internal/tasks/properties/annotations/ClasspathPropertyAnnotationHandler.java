@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.FilePropertyType;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
@@ -61,7 +61,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
             ClasspathNormalizer.class,
             value,
-            FilePropertyType.FILES
+            InputFilePropertyType.FILES
         );
     }
 }

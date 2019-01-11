@@ -40,8 +40,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, FilePropertyType filePropertyType) {
-        ValidatingValue actualValue = filePropertyType == FilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
+        ValidatingValue actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
         specs.add(new DefaultTaskInputFilePropertySpec(ownerDisplayName, propertyName, resolver, actualValue, filePropertyType.getValidationAction(), skipWhenEmpty, optional, fileNormalizer));
         if (skipWhenEmpty) {
             hasSourceFiles = true;

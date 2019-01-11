@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.PropertyWalker
-import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -51,7 +50,6 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
     final resolver = Mock(FileResolver)
     final propertyWalker = Mock(PropertyWalker)
     final project = Mock(ProjectInternal)
-    final serviceRegistry = Mock(ServiceRegistry)
     final Action<Task> action = Mock(Action)
 
     final executer = new ResolveTaskExecutionModeExecuter(repository, resolver, propertyWalker, delegate)
@@ -71,7 +69,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * outputs.setPreviousOutputFiles(_)
         1 * task.getProject() >> project
         1 * project.getFileResolver() >> resolver
-        1 * propertyWalker.visitProperties(_, _, task, _)
+        1 * propertyWalker.visitProperties(_, task, _)
         1 * inputs.visitRegisteredProperties(_)
         1 * outputs.visitRegisteredProperties(_)
 

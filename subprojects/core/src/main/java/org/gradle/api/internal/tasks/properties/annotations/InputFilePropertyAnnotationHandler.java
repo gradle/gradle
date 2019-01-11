@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.properties.FilePropertyType;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.InputFile;
 
 import java.lang.annotation.Annotation;
@@ -26,7 +26,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropert
     }
 
     @Override
-    protected FilePropertyType getFilePropertyType() {
-        return FilePropertyType.FILE;
+    protected InputFilePropertyType getFilePropertyType() {
+        return InputFilePropertyType.FILE;
     }
 }

@@ -37,8 +37,7 @@ public class TaskPropertyUtils {
      */
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
         FileResolver fileResolver = ((ProjectInternal) task.getProject()).getFileResolver();
-        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, fileResolver);
-        propertyWalker.visitProperties(specFactory, visitor, task, fileResolver);
+        propertyWalker.visitProperties(visitor, task, fileResolver);
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);
         }

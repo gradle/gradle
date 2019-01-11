@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -51,11 +50,11 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty('myProperty', { it.call() == 'myValue' }, false)
-        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, FilePropertyType.FILE)
-        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, FilePropertyType.FILES)
+        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, InputFilePropertyType.FILE)
+        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, InputFilePropertyType.FILES)
         1 * visitor.visitInputProperty('bean', { it.call() == NestedBean }, false)
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
-        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, FilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, InputFilePropertyType.DIRECTORY)
 
         1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
         1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
@@ -193,7 +192,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty("nested" , _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
-        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, FilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, InputFilePropertyType.DIRECTORY)
         1 * visitor.visitOutputFileProperty("nested.outputDir", false, _, OutputFilePropertyType.DIRECTORY)
 
         0 * _
@@ -226,7 +225,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
-        def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task, TestFiles.resolver())
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task, TestFiles.resolver())
     }
 }

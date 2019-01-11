@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.FilePropertyType;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -48,5 +48,5 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         visitor.visitInputFileProperty(propertyName, isOptional(propertyMetadata), propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class), AbstractInputFilePropertySpec.determineNormalizerForPathSensitivity(pathSensitivity), value, getFilePropertyType());
     }
 
-    protected abstract FilePropertyType getFilePropertyType();
+    protected abstract InputFilePropertyType getFilePropertyType();
 }

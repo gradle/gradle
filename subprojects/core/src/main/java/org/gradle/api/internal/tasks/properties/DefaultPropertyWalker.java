@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
 
@@ -34,12 +33,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
     }
 
     @Override
-    public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean, FileResolver resolver) {
+    public void visitProperties(PropertyVisitor visitor, Object bean, FileResolver resolver) {
         Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<RuntimeBeanNode<?>>();
         queue.add(nodeFactory.createRoot(bean));
         while (!queue.isEmpty()) {
             RuntimeBeanNode<?> node = queue.remove();
-            node.visitNode(visitor, specFactory, queue, nodeFactory);
+            node.visitNode(visitor, queue, nodeFactory);
         }
     }
 }
