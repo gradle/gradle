@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskInputPropertyBuilder;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.tasks.FileNormalizer;
 
-public interface DeclaredTaskInputProperty extends TaskInputPropertySpec, TaskInputPropertyBuilder, ValidatingTaskPropertySpec {
-    ValidatingValue getValidatingValue();
-    boolean isOptional();
+public interface RegisteredTaskInputFileProperty extends TaskFilePropertySpec, TaskInputFilePropertyBuilderInternal {
+    Class<? extends FileNormalizer> getNormalizer();
+    InputFilePropertyType getFilePropertyType();
+    boolean isSkipWhenEmpty();
 }

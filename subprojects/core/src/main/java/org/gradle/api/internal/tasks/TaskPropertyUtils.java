@@ -22,6 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 
@@ -58,7 +59,7 @@ public class TaskPropertyUtils {
      *
      * @throws IllegalArgumentException if there are multiple properties declared with the same name.
      */
-    public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
+    public static <T extends FilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
         while (fileProperties.hasNext()) {

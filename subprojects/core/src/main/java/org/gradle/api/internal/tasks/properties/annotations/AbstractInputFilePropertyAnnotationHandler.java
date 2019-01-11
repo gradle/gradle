@@ -17,13 +17,17 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
+import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
@@ -45,7 +49,22 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         } else {
             pathSensitivity = pathSensitive.value();
         }
-        visitor.visitInputFileProperty(propertyName, isOptional(propertyMetadata), propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class), AbstractInputFilePropertySpec.determineNormalizerForPathSensitivity(pathSensitivity), value, getFilePropertyType());
+        visitor.visitInputFileProperty(propertyName, isOptional(propertyMetadata), propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class), determineNormalizerForPathSensitivity(pathSensitivity), value, getFilePropertyType());
+    }
+
+    public static Class<? extends FileNormalizer> determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
+        switch (pathSensitivity) {
+            case NONE:
+                return IgnoredPathInputNormalizer.class;
+            case NAME_ONLY:
+                return NameOnlyInputNormalizer.class;
+            case RELATIVE:
+                return RelativePathInputNormalizer.class;
+            case ABSOLUTE:
+                return AbsolutePathInputNormalizer.class;
+            default:
+                throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
+        }
     }
 
     protected abstract InputFilePropertyType getFilePropertyType();

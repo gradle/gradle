@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-public interface TaskFilePropertySpec extends TaskPropertySpec {
+import javax.annotation.Nullable;
+import java.io.File;
+
+public interface SingleOutputFilePropertySpec extends OutputFilePropertySpec {
+    @Nullable
+    File getOutputFile();
 }

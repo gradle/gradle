@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskPropertySpec extends Comparable<TaskPropertySpec>, LifecycleAwareTaskProperty {
+public interface TaskPropertySpec {
     String getPropertyName();
+    ValidatingValue getValue();
+    boolean isOptional();
 }

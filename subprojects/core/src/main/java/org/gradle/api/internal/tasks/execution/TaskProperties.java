@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
 
@@ -55,9 +55,9 @@ public interface TaskProperties {
     /**
      * Input file properties.
      *
-     * It is guaranteed that all the {@link TaskInputFilePropertySpec}s have a name and that the names are unique.
+     * It is guaranteed that all the {@link InputFilePropertySpec}s have a name and that the names are unique.
      */
-    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
+    ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties();
 
     /**
      * The input files.
@@ -67,7 +67,7 @@ public interface TaskProperties {
     /**
      * Whether there are source files.
      *
-     * Source files are {@link TaskInputFilePropertySpec}s where {@link TaskInputFilePropertySpec#isSkipWhenEmpty()} returns true.
+     * Source files are {@link InputFilePropertySpec}s where {@link InputFilePropertySpec#isSkipWhenEmpty()} returns true.
      */
     boolean hasSourceFiles();
 
@@ -79,9 +79,9 @@ public interface TaskProperties {
     /**
      * Output file properties.
      *
-     * It is guaranteed that all the {@link TaskOutputFilePropertySpec}s have a name and that the names are unique.
+     * It is guaranteed that all the {@link OutputFilePropertySpec}s have a name and that the names are unique.
      */
-    ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
+    ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
 
     /**
      * The output files.

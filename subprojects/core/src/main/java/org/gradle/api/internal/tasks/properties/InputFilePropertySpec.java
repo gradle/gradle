@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-import javax.annotation.Nullable;
-import java.io.File;
-
-public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec {
-    @Nullable
-    File getOutputFile();
+public interface InputFilePropertySpec extends FilePropertySpec {
+    boolean isSkipWhenEmpty();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, LifecycleAwareTaskProperty {
-    boolean isSkipWhenEmpty();
-    ValidatingValue getValue();
+import org.gradle.api.tasks.TaskInputPropertyBuilder;
+
+public interface RegisteredTaskInputProperty extends TaskPropertySpec, TaskInputPropertyBuilder {
 }

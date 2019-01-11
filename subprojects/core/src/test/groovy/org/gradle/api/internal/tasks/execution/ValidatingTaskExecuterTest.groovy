@@ -20,8 +20,6 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -52,9 +50,6 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * target.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
         0 * _
     }
-
-    def outputFile = Mock(DeclaredTaskOutputFileProperty)
-    def inputFile = Mock(DeclaredTaskInputFileProperty)
 
     def "fails task when there is a violation"() {
         when:

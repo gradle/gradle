@@ -49,8 +49,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
     private final FileResolver fileResolver;
-    private final List<DeclaredTaskInputProperty> registeredProperties = Lists.newArrayList();
-    private final FilePropertyContainer<DeclaredTaskInputFileProperty> registeredFileProperties = FilePropertyContainer.create();
+    private final List<RegisteredTaskInputProperty> registeredProperties = Lists.newArrayList();
+    private final FilePropertyContainer<RegisteredTaskInputFileProperty> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
     public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileResolver fileResolver) {
@@ -73,7 +73,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
-        for (DeclaredTaskInputFileProperty fileProperty : registeredFileProperties) {
+        for (RegisteredTaskInputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitInputFileProperty(
                 fileProperty.getPropertyName(),
                 fileProperty.isOptional(),
@@ -82,8 +82,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 fileProperty.getValue(),
                 fileProperty.getFilePropertyType());
         }
-        for (DeclaredTaskInputProperty inputProperty : registeredProperties) {
-            visitor.visitInputProperty(inputProperty.getPropertyName(), inputProperty.getValidatingValue(), inputProperty.isOptional());
+        for (RegisteredTaskInputProperty inputProperty : registeredProperties) {
+            visitor.visitInputProperty(inputProperty.getPropertyName(), inputProperty.getValue(), inputProperty.isOptional());
         }
     }
 
@@ -98,7 +98,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = createDeclaredTaskInputFilePropertySpec(value, InputFilePropertyType.FILES);
+                RegisteredTaskInputFileProperty fileSpec = new DefaultRegisteredTaskInputFileProperty(value, InputFilePropertyType.FILES);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -118,7 +118,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(path);
-                DeclaredTaskInputFileProperty fileSpec = createDeclaredTaskInputFilePropertySpec(value, InputFilePropertyType.FILE);
+                RegisteredTaskInputFileProperty fileSpec = new DefaultRegisteredTaskInputFileProperty(value, InputFilePropertyType.FILE);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -131,15 +131,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(dirPath);
-                DeclaredTaskInputFileProperty dirSpec = createDeclaredTaskInputFilePropertySpec(value, InputFilePropertyType.DIRECTORY);
+                RegisteredTaskInputFileProperty dirSpec = new DefaultRegisteredTaskInputFileProperty(value, InputFilePropertyType.DIRECTORY);
                 registeredFileProperties.add(dirSpec);
                 return dirSpec;
             }
         });
-    }
-
-    private DeclaredTaskInputFileProperty createDeclaredTaskInputFilePropertySpec(StaticValue value, InputFilePropertyType filePropertyType) {
-        return new DefaultDeclaredTaskInputFileProperty(task.toString(), fileResolver, value, filePropertyType);
     }
 
     @Override
@@ -168,7 +164,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputPropertyBuilder call() {
                 StaticValue staticValue = new StaticValue(value);
-                DeclaredTaskInputProperty inputPropertySpec = createDeclaredTaskInputProperty(name, staticValue);
+                RegisteredTaskInputProperty inputPropertySpec = new DefaultRegisteredTaskInputProperty(name, staticValue);
                 registeredProperties.add(inputPropertySpec);
                 return inputPropertySpec;
             }
@@ -183,15 +179,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 for (Map.Entry<String, ?> entry : newProps.entrySet()) {
                     StaticValue staticValue = new StaticValue(entry.getValue());
                     String name = entry.getKey();
-                    registeredProperties.add(createDeclaredTaskInputProperty(name, staticValue));
+                    registeredProperties.add(new DefaultRegisteredTaskInputProperty(name, staticValue));
                 }
             }
         });
         return deprecatedThis;
-    }
-
-    private DeclaredTaskInputProperty createDeclaredTaskInputProperty(String propertyName, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(propertyName, value);
     }
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {

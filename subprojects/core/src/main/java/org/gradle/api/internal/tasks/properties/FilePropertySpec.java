@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.file.TreeType;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.FileNormalizer;
 
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
-    TreeType getOutputType();
+public interface FilePropertySpec extends PropertySpec {
+    Class<? extends FileNormalizer> getNormalizer();
+    FileCollection getPropertyFiles();
 }

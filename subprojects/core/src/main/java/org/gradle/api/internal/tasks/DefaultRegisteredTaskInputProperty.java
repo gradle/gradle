@@ -19,16 +19,14 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
-import javax.annotation.Nullable;
-
 @NonNullApi
-public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
+public class DefaultRegisteredTaskInputProperty extends TaskInputsDeprecationSupport implements RegisteredTaskInputProperty {
 
     private final String propertyName;
     private final ValidatingValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertySpec(String propertyName, ValidatingValue value) {
+    public DefaultRegisteredTaskInputProperty(String propertyName, ValidatingValue value) {
         this.propertyName = propertyName;
         this.value = value;
     }
@@ -49,38 +47,13 @@ public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport i
         return this;
     }
 
-    @Nullable
     @Override
-    public Object getValue() {
-        return value.call();
-    }
-
-    @Override
-    public void prepareValue() {
-        value.maybeFinalizeValue();
-    }
-
-    @Override
-    public void cleanupValue() {
-    }
-
-    @Override
-    public void validate(TaskValidationContext context) {
-        value.validate(getPropertyName(), optional, ValidationActions.NO_OP, context);
-    }
-
-    @Override
-    public int compareTo(TaskPropertySpec o) {
-        return getPropertyName().compareTo(o.getPropertyName());
+    public ValidatingValue getValue() {
+        return value;
     }
 
     @Override
     public String toString() {
         return propertyName;
-    }
-
-    @Override
-    public ValidatingValue getValidatingValue() {
-        return value;
     }
 }

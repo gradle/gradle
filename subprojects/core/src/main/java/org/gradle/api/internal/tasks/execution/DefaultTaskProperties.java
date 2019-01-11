@@ -27,9 +27,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -38,10 +35,13 @@ import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -58,8 +58,8 @@ import java.util.Map;
 public class DefaultTaskProperties implements TaskProperties {
 
     private final Factory<Map<String, Object>> inputPropertyValues;
-    private final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties;
-    private final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties;
+    private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
+    private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
     private final FileCollection inputFiles;
     private final boolean hasSourceFiles;
     private final FileCollection sourceFiles;
@@ -101,7 +101,7 @@ public class DefaultTaskProperties implements TaskProperties {
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
+    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
         this.validatingPropertySpecs = validatingPropertySpecs;
 
         this.inputPropertyValues = inputPropertyValues;
@@ -117,7 +117,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (TaskInputFilePropertySpec filePropertySpec : inputFileProperties) {
+                for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
                     context.add(filePropertySpec.getPropertyFiles());
                 }
             }
@@ -130,17 +130,17 @@ public class DefaultTaskProperties implements TaskProperties {
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (TaskInputFilePropertySpec filePropertySpec : inputFileProperties) {
+                for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
                     if (filePropertySpec.isSkipWhenEmpty()) {
                         context.add(filePropertySpec.getPropertyFiles());
                     }
                 }
             }
         };
-        this.hasSourceFiles = Iterables.any(inputFileProperties, new Predicate<TaskInputFilePropertySpec>() {
+        this.hasSourceFiles = Iterables.any(inputFileProperties, new Predicate<InputFilePropertySpec>() {
             @Override
             @SuppressWarnings("NullableProblems")
-            public boolean apply(TaskInputFilePropertySpec property) {
+            public boolean apply(InputFilePropertySpec property) {
                 return property.isSkipWhenEmpty();
             }
         });
@@ -152,7 +152,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (TaskFilePropertySpec propertySpec : outputFileProperties) {
+                for (FilePropertySpec propertySpec : outputFileProperties) {
                     context.add(propertySpec.getPropertyFiles());
                 }
             }
@@ -167,7 +167,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties() {
+    public ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties() {
         return outputFileProperties;
     }
 
@@ -192,7 +192,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties() {
+    public ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties() {
         return inputFileProperties;
     }
 
@@ -310,7 +310,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class DefaultValidatingTaskPropertySpec implements ValidatingTaskPropertySpec {
+    private static class DefaultValidatingTaskPropertySpec implements ValidatingTaskPropertySpec, LifecycleAwareTaskProperty {
         private final String propertyName;
         private final ValidatingValue value;
         private final boolean optional;
@@ -328,7 +328,7 @@ public class DefaultTaskProperties implements TaskProperties {
             return propertyName;
         }
 
-        protected boolean isOptional() {
+        public boolean isOptional() {
             return optional;
         }
 
@@ -338,17 +338,17 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public int compareTo(TaskPropertySpec o) {
-            return getPropertyName().compareTo(o.getPropertyName());
-        }
-
-        @Override
         public void prepareValue() {
             value.maybeFinalizeValue();
         }
 
         @Override
         public void cleanupValue() {
+        }
+
+        @Override
+        public ValidatingValue getValue() {
+            return value;
         }
     }
 }

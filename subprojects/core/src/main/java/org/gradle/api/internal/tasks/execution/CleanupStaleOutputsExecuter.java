@@ -21,8 +21,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -61,7 +61,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Set<File> filesToDelete = new HashSet<File>();
         TaskProperties taskProperties = context.getTaskProperties();
-        for (TaskOutputFilePropertySpec outputFileSpec : taskProperties.getOutputFileProperties()) {
+        for (FilePropertySpec outputFileSpec : taskProperties.getOutputFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
                 if (cleanupRegistry.isOutputOwnedByBuild(file) && !outputFilesRepository.isGeneratedByGradle(file) && file.exists()) {

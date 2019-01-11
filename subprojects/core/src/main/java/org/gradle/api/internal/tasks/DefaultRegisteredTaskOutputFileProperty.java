@@ -16,31 +16,24 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.fingerprint.OutputNormalizer;
 
-@NonNullApi
-abstract class AbstractTaskOutputPropertySpec implements TaskOutputFilePropertySpec, TaskOutputFilePropertyBuilder {
-
-    private String propertyName;
+public class DefaultRegisteredTaskOutputFileProperty implements RegisteredTaskOutputFileProperty {
+    private final ValidatingValue value;
     private boolean optional;
+    private String propertyName;
+    private final OutputFilePropertyType outputFilePropertyType;
+
+    public DefaultRegisteredTaskOutputFileProperty(ValidatingValue value, OutputFilePropertyType outputFilePropertyType) {
+        this.value = value;
+        this.outputFilePropertyType = outputFilePropertyType;
+    }
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
+        this.propertyName = propertyName;
         return this;
-    }
-
-    @Override
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return optional;
     }
 
     @Override
@@ -55,16 +48,25 @@ abstract class AbstractTaskOutputPropertySpec implements TaskOutputFilePropertyS
     }
 
     @Override
-    public String toString() {
-        return getPropertyName() + " (Output)";
-    }
-
-    public Class<? extends FileNormalizer> getNormalizer() {
-        return OutputNormalizer.class;
+    public ValidatingValue getValue() {
+        return value;
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
-        return getPropertyName().compareTo(o.getPropertyName());
+    public boolean isOptional() {
+        return optional;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public OutputFilePropertyType getPropertyType() {
+        return outputFilePropertyType;
+    }
+
+    @Override
+    public String toString() {
+        return getPropertyName() + " (Output)";
     }
 }

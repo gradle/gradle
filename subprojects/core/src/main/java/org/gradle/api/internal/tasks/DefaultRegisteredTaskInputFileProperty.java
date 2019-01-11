@@ -17,25 +17,30 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 
 @NonNullApi
-public class DefaultDeclaredTaskInputFileProperty extends AbstractInputFilePropertySpec implements DeclaredTaskInputFileProperty {
+public class DefaultRegisteredTaskInputFileProperty implements RegisteredTaskInputFileProperty {
 
     private final InputFilePropertyType filePropertyType;
+    private final ValidatingValue value;
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
-    public DefaultDeclaredTaskInputFileProperty(String taskDisplayName, FileResolver resolver, ValidatingValue value, InputFilePropertyType filePropertyType) {
-        super(taskDisplayName, resolver, value, filePropertyType.getValidationAction());
+    public DefaultRegisteredTaskInputFileProperty(ValidatingValue value, InputFilePropertyType filePropertyType) {
+        this.value = value;
         this.filePropertyType = filePropertyType;
+    }
+
+    @Override
+    public ValidatingValue getValue() {
+        return value;
     }
 
     @Override
@@ -70,6 +75,7 @@ public class DefaultDeclaredTaskInputFileProperty extends AbstractInputFilePrope
         return skipWhenEmpty(true);
     }
 
+    @Override
     public boolean isOptional() {
         return optional;
     }
@@ -87,7 +93,7 @@ public class DefaultDeclaredTaskInputFileProperty extends AbstractInputFilePrope
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withNormalizer(determineNormalizerForPathSensitivity(sensitivity));
+        return withNormalizer(AbstractInputFilePropertyAnnotationHandler.determineNormalizerForPathSensitivity(sensitivity));
     }
 
     @Override
@@ -99,5 +105,10 @@ public class DefaultDeclaredTaskInputFileProperty extends AbstractInputFilePrope
     @Override
     public Class<? extends FileNormalizer> getNormalizer() {
         return normalizer;
+    }
+
+    @Override
+    public String toString() {
+        return getPropertyName() + " (" + getNormalizer().getSimpleName().replace("Normalizer", "") + ")";
     }
 }
