@@ -39,7 +39,11 @@ public abstract class AttributeConfigurationSelector {
         }
         List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
         if (matches.size() == 1) {
-            return matches.get(0);
+            ConfigurationMetadata match = matches.get(0);
+            if (variantsForGraphTraversal.isPresent()) {
+                return SelectedByVariantMatchingConfigurationMetadata.of(match);
+            }
+            return match;
         } else if (!matches.isEmpty()) {
             throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent());
         } else {
