@@ -101,7 +101,7 @@ tasks.check { dependsOn(integrationTest) }
 
 // tag::defining-sources-jar-task[]
 tasks.register<Jar>("sourcesJar") {
-    classifier = "sources"
+    archiveClassifier.set("sources")
     from(sourceSets.main.get().allJava)
 }
 // end::defining-sources-jar-task[]

@@ -292,7 +292,8 @@ include::sample[dir="userguide/files/sampleJavaProject/kotlin",files="build.grad
 
 See how we're using the `compileJava` task as the source of the files to package and we've created a project property `archivesDirPath` to store the location where we put archives, on the basis we're likely to use it elsewhere in the build.
 
-Using a task directly as an argument like this relies on it having <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible. In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDir` rather than overriding it, but it does demonstrate the use of project properties.
+Using a task directly as an argument like this relies on it having <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible.
+In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDirectory` rather than overriding it, but it does demonstrate the use of project properties.
 
 [[sec:single_file_paths]]
 === Single files and directories
@@ -758,7 +759,7 @@ Gradle does of course allow you create as many archive tasks as you want, but it
 
 Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<base_plugin.adoc#base_plugin,Base Plugin>>, which defaults to creating archives in the `$buildDir/distributions` directory and typically uses archive names of the form _[projectName]-[version].[type]_.
 
-The following example comes from a project named 'zipProject', hence the `myZip` task creates an archive named 'zipProject-1.0.zip':
+The following example comes from a project named `zipProject`, hence the `myZip` task creates an archive named `zipProject-1.0.zip`:
 
 .Creation of ZIP archive
 ====
@@ -774,11 +775,15 @@ include::{samplesPath}/userguide/files/archiveNaming/archiveNaming.out[]
 
 Note that the name of the archive does _not_ derive from the name of the task that creates it.
 
-If you want to change the name and location of a generated archive file, you can provide values for the `archiveName` and `destinationDir` properties of the corresponding task. These override any conventions that would otherwise apply.
+If you want to change the name and location of a generated archive file, you can provide values for the `archiveFileName` and `destinationDirectory` properties of the corresponding task.
+These override any conventions that would otherwise apply.
 
-Alternatively, you can make use of the default archive name pattern provided by link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName[AbstractArchiveTask.getArchiveName()]: _[baseName]-[appendix]-[version]-[classifier].[extension]_. You can set each of these properties on the task separately if you wish. Note that the Base Plugin uses the convention of project name for _baseName_, project version for _version_ and the archive type for _extension_. It does not provide values for the other properties.
+Alternatively, you can make use of the default archive name pattern provided by link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveFileName[AbstractArchiveTask.getArchiveFileName()]: _[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]_.
+You can set each of these properties on the task separately if you wish.
+Note that the Base Plugin uses the convention of project name for _archiveBaseName_, project version for _archiveVersion_ and the archive type for _archiveExtension_.
+It does not provide values for the other properties.
 
-This example — from the same project as the one above — configures just the `baseName` property, overriding the default value of the project name:
+This example — from the same project as the one above — configures just the `archiveBaseName` property, overriding the default value of the project name:
 
 .Configuration of archive task - custom archive name
 ====
@@ -792,7 +797,7 @@ include::sample[dir="userguide/files/archiveNaming/kotlin",files="build.gradle.k
 include::{samplesPath}/userguide/files/archiveNaming/zipWithCustomName.out[]
 ----
 
-You can also override the default `baseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
+You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
 
 .Configuration of archive task - appendix &amp; classifier
 ====
@@ -808,28 +813,28 @@ include::{samplesPath}/userguide/files/archivesChangedBaseName/zipWithArchivesBa
 
 You can find all the possible archive task properties in the API documentation for link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask], but we have also summarized the main ones here:
 
-`archiveName` — `String`, default: `__baseName__-__appendix__-__version__-__classifier__.__extension__`::
+`archiveFileName` — `Property<String>`, default: `__archiveBaseName__-__archiveAppendix__-__archiveVersion__-__archiveClassifier__.__archiveExtension__`::
 The complete file name of the generated archive. If any of the properties in the default value are empty, their '-' separator is dropped.
 
-`archivePath` — `File`, _read-only_, default: `__destinationDir__/__archiveName__`::
+`archiveFile` — `Provider<RegularFile>`, _read-only_, default: `__destinationDirectory__/__archiveFileName__`::
 The absolute file path of the generated archive.
 
-`destinationDir` — `File`, default: depends on archive type::
+`destinationDirectory` — `DirectoryProperty`, default: depends on archive type::
 The target directory in which to put the generated archive. By default, JARs and WARs go into `$buildDir/libs`. ZIPs and TARs go into `$buildDir/distributions`.
 
-`baseName` — `String`, default: `__project.name__`::
+`archiveBaseName` — `Property<String>`, default: `__project.name__`::
 The base name portion of the archive file name, typically a project name or some other descriptive name for what it contains.
 
-`appendix` — `String`, default: `null`::
+`archiveAppendix` — `Property<String>`, default: `null`::
 The appendix portion of the archive file name that comes immediately after the base name. It is typically used to distinguish between different forms of content, such as code and docs, or a minimal distribution versus a full or complete one.
 
-`version` — `String`, default: `__project.version__`::
+`archiveVersion` — `Property<String>`, default: `__project.version__`::
 The version portion of the archive file name, typically in the form of a normal project or product version.
 
-`classifier` — `String`, default: `null`::
+`archiveClassifier` — `Property<String>`, default: `null`::
 The classifier portion of the archive file name. Often used to distinguish between archives that target different platforms.
 
-`extension` — `String`, default: depends on archive type and compression type::
+`archiveExtension` — `Property<String>`, default: depends on archive type and compression type::
 The filename extension for the archive. By default, this is set based on the archive task type and the compression type (if you're creating a TAR). Will be one of: `zip`, `jar`, `war`, `tar`, `tgz` or `tbz2`. You can of course set this to a custom extension if you wish.
 
 [[sec:sharing_content_between_multiple_archives]]

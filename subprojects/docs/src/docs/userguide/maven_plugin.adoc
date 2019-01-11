@@ -191,21 +191,23 @@ When deploying an artifact to a Maven repository, Gradle automatically generates
 | project.group
 
 | artifactId
-| uploadTask.repositories.mavenDeployer.pom.artifactId (if set) or archiveTask.baseName.
+| uploadTask.repositories.mavenDeployer.pom.artifactId (if set) or archiveTask.archiveBaseName.
 
 | version
 | project.version
 
 | packaging
-| archiveTask.extension
+| archiveTask.archiveExtension
 |===
 
-Here, `uploadTask` and `archiveTask` refer to the tasks used for uploading and generating the archive, respectively (for example `uploadArchives` and `jar`). `archiveTask.baseName` defaults to `project.archivesBaseName` which in turn defaults to `project.name`.
+Here, `uploadTask` and `archiveTask` refer to the tasks used for uploading and generating the archive, respectively (for example `uploadArchives` and `jar`).
+`archiveTask.archiveBaseName` defaults to `project.archivesBaseName` which in turn defaults to `project.name`.
 
 [NOTE]
 ====
 
-When you set the “`archiveTask.baseName`” property to a value other than the default, you'll also have to set `uploadTask.repositories.mavenDeployer.pom.artifactId` to the same value. Otherwise, the project at hand may be referenced with the wrong artifact ID from generated POMs for other projects in the same build.
+When you set the “`archiveTask.archiveBaseName`” property to a value other than the default, you'll also have to set `uploadTask.repositories.mavenDeployer.pom.artifactId` to the same value.
+Otherwise, the project at hand may be referenced with the wrong artifact ID from generated POMs for other projects in the same build.
 
 ====
 

@@ -101,7 +101,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
      * @return the archive name.
      * @deprecated Use {@link #getArchiveFileName()}
@@ -125,7 +125,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
+     * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
      * @return the archive name.
      * @since 5.1
@@ -136,7 +136,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * The path where the archive is constructed. The path is simply the {@code destinationDir} plus the {@code archiveName}.
+     * The path where the archive is constructed. The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
      *
      * @return a File object with the path to the archive
      * @deprecated Use {@link #getArchiveFile()}
@@ -149,7 +149,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * The {@link RegularFile} where the archive is constructed.
-     * The path is simply the {@code destinationDir} plus the {@code archiveName}.
+     * The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
      *
      * @return a {@link RegularFile} object with the path to the archive
      * @since 5.1

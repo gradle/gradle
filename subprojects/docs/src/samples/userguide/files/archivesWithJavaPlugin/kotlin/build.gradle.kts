@@ -14,7 +14,7 @@ dependencies {
 }
 
 tasks.register<Jar>("uberJar") {
-    appendix = "uber"
+    archiveAppendix.set("uber")
 
     from(sourceSets.main.get().output)
 
