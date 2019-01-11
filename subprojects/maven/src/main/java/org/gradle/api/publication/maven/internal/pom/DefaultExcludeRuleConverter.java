@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 
 class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public Exclusion convert(ExcludeRule excludeRule) {
-        if (isConvertable(excludeRule)) {
+        if (isConvertible(excludeRule)) {
             Exclusion exclusion = new Exclusion();
             exclusion.setGroupId(determineExclusionExpression(excludeRule.getGroup()));
             exclusion.setArtifactId(determineExclusionExpression(excludeRule.getModule()));
@@ -29,7 +29,7 @@ class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         return null;
     }
 
-    private boolean isConvertable(ExcludeRule excludeRule) {
+    private boolean isConvertible(ExcludeRule excludeRule) {
         return excludeRule.getGroup()!= null || excludeRule.getModule()!= null;
     }
 

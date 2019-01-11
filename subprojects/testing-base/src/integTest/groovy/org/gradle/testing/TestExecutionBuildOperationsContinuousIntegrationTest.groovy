@@ -27,7 +27,7 @@ import org.junit.Rule
 
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertJunit
 
-class TestExecutionBuildOperationsContinousIntegrationTest extends AbstractContinuousIntegrationTest {
+class TestExecutionBuildOperationsContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     final List<Action<GradleExecuter>> afterExecute = []
 

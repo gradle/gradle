@@ -58,8 +58,8 @@ import java.util.Set;
  */
 public class TaskOrderSpecs {
 
-    public static TaskOrderSpec any(Object[] contraints) {
-        return new AnyOrderSpec(Arrays.asList(contraints));
+    public static TaskOrderSpec any(Object[] constraints) {
+        return new AnyOrderSpec(Arrays.asList(constraints));
     }
 
     public static TaskOrderSpec exact(Object[] constraints) {

@@ -69,7 +69,7 @@ open class MinifyPlugin : Plugin<Project> {
                     /*
                      * Some of our projects still depend on matching the default
                      * configuration. As soon as any attribute is added, the default
-                     * configuraiton is no longer a valid match. To work around this
+                     * configuration is no longer a valid match. To work around this
                      * we only add the "minified" attribute in places where we already
                      * use other attributes.
                      */

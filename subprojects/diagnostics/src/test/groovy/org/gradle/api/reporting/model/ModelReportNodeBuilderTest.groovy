@@ -34,7 +34,7 @@ class ModelReportNodeBuilderTest extends Specification {
         node.'**'.childTwo.@anotherValue[0] == 'somethingElse'
     }
 
-    def "can accept an empty closue"() {
+    def "can accept an empty closure"() {
         def node = ModelReportNodeBuilder.fromDsl {}.get()
         expect:
         node == null

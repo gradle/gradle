@@ -44,7 +44,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         this.internalJvmTestRequests = internalJvmTestRequests;
     }
 
-    // Unpacks the request to serialize across to the daemon and craetes instance of
+    // Unpacks the request to serialize across to the daemon and creates instance of
     // TestExecutionRequestAction
     public static TestExecutionRequestAction create(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
         final Collection<String> testClassNames = testExecutionRequest.getTestClassNames();
