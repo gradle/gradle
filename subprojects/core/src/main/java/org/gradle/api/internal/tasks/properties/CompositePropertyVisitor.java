@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.tasks.FileNormalizer;
 
@@ -66,7 +65,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+    public void visitLocalStateProperty(Object localStateProperty) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitLocalStateProperty(localStateProperty);
         }

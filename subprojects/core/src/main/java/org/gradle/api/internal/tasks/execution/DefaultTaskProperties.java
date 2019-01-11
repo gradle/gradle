@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
@@ -235,8 +234,8 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
-            localState.add(localStateProperty.getValue());
+        public void visitLocalStateProperty(Object value) {
+            localState.add(value);
         }
 
         public FileCollection getFiles() {

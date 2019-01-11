@@ -62,7 +62,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         1 * visitor.visitDestroyableProperty({ it.call().path == 'destroyed' })
 
-        1 * visitor.visitLocalStateProperty({ it.propertyName == 'someLocalState' && it.value.call().path == 'localState' })
+        1 * visitor.visitLocalStateProperty({ it.call().path == 'localState' })
 
         0 * _
     }

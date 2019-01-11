@@ -19,7 +19,6 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.FilePropertyType;
@@ -78,7 +77,7 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+        public void visitLocalStateProperty(Object localStateProperty) {
             throw new UnsupportedOperationException();
         }
 

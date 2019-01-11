@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.tasks.FileNormalizer;
 
@@ -43,7 +42,7 @@ public interface PropertyVisitor {
 
     void visitDestroyableProperty(Object value);
 
-    void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty);
+    void visitLocalStateProperty(Object localStateProperty);
 
     class Adapter implements PropertyVisitor {
         @Override
@@ -68,7 +67,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+        public void visitLocalStateProperty(Object value) {
         }
     }
 }

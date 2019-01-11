@@ -54,7 +54,6 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.PropertyWalker
             import org.gradle.internal.file.PathToFileResolver
             import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-            import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
             import org.gradle.api.internal.tasks.TaskPropertyUtils
             
             task clean(type: Delete) {

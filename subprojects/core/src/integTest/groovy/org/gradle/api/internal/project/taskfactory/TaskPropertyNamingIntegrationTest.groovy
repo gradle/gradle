@@ -413,8 +413,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
-                            println "Local state: '\${localStateProperty.value.call()}'"
+                        void visitLocalStateProperty(Object value) {
+                            println "Local state: '\${value.call()}'"
                         }
                     })
                 }
