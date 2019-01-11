@@ -38,6 +38,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ public class NodeState implements DependencyGraphNode {
     private final ConfigurationMetadata metaData;
     private final ResolveState resolveState;
     private final boolean isTransitive;
+    private final boolean selectedByVariantAwareResolution;
 
     ModuleExclusion previousTraversalExclusions;
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
@@ -84,6 +86,7 @@ public class NodeState implements DependencyGraphNode {
         this.resolveState = resolveState;
         this.metaData = md;
         this.isTransitive = metaData.isTransitive();
+        this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         component.addConfiguration(this);
     }
 
@@ -516,14 +519,21 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void forEachCapability(Action<? super Capability> action) {
-        // check conflict for each target node
         List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
-        // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
-        // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
-        // so just adding this check has a significant impact because most components do not declare any capability
-        if (!capabilities.isEmpty()) {
-            for (Capability capability : capabilities) {
-                action.execute(capability);
+        // If there's more than one node selected for the same component, we need to add
+        // the implicit capability to the list, in order to make sure we can discover conflicts
+        // between variants of the same module. Note that the fact the implicit capability is
+        // in general not included is not a bug but a performance optimization
+        if (capabilities.isEmpty() && component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+            action.execute(component.getImplicitCapability());
+        } else {
+            // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
+            // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
+            // so just adding this check has a significant impact because most components do not declare any capability
+            if (!capabilities.isEmpty()) {
+                for (Capability capability : capabilities) {
+                    action.execute(capability);
+                }
             }
         }
     }
@@ -544,4 +554,17 @@ public class NodeState implements DependencyGraphNode {
         return null;
     }
 
+    public boolean isAttachedToVirtualPlatform() {
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (incomingEdge.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean isSelectedByVariantAwareResolution() {
+        // the order is strange logically but here for performance optimization
+        return selectedByVariantAwareResolution && isSelected();
+    }
 }

@@ -48,6 +48,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'test-fixtures'))
                     }
+                    outgoing.capability('org:lib-fixtures:1.0')
                 }
             }
 

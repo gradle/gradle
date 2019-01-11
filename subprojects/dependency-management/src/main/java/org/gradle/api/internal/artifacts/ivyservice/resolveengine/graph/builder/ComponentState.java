@@ -389,11 +389,28 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
+    Capability getImplicitCapability() {
+        return implicitCapability;
+    }
+
     Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
             return implicitCapability;
         }
         return null;
+    }
+
+    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+        int count = 0;
+        for (NodeState node : nodes) {
+            if (node.isSelectedByVariantAwareResolution()) {
+                count++;
+                if (count == 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

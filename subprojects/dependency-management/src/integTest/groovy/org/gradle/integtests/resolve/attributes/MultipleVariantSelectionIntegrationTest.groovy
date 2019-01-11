@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
+@RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+)
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
@@ -31,18 +34,17 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         """
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
-    void "can select distinct variants of the same component by using different attributes"() {
+    void "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
         given:
         repository {
             'org:test:1.0' {
                 variant('api') {
                     attribute('custom', 'c1')
+                    capability('cap1')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
+                    capability('cap2')
                 }
             }
         }
@@ -83,9 +85,46 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c1')
+                    }
+                }
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org:test:1.0")
+    }
+
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
         given:
@@ -152,29 +191,30 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         conflict << [true, false]
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
-    def "selects 2 variants of the same component when transitive dependency"() {
+    def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
         given:
         repository {
             'org:foo:1.0' {
                 variant('api') {
                     attribute('custom', 'c1')
+                    capability('cap1')
                     artifact('c1')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
+                    capability('cap2')
                     artifact('c2')
                 }
             }
             'org:foo:1.1' {
                 variant('api') {
                     attribute('custom', 'c1')
+                    capability('cap1')
                     artifact('c1')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
+                    capability('cap2')
                     artifact('c2')
                 }
             }
@@ -238,9 +278,73 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    def "cannot select 2 variants of the same component with transitive dependency if they use the same capability"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    artifact('c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    artifact('c2')
+                }
+            }
+            'org:foo:1.1' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    artifact('c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    artifact('c2')
+                }
+            }
+            'org:bar:1.0' {
+                variant('api') {
+                    dependsOn('org:foo:1.1') {
+                        attributes.custom = 'c1'
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:foo:1.1') {
+                        attributes.custom = 'c1'
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                }
+                conf('org:bar:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:foo:1.1' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot choose between org:foo:1.1 variant api and org:foo:1.1 variant runtime because they provide the same capability: org:foo:1.1")
+
+    }
+
     def "selects a single variant of the same component when asking for a consumer specific attribute"() {
         given:
         repository {
@@ -319,9 +423,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures(
-            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
     def "can select both main variant and test fixtures of a single component"() {
         given:
         repository {
@@ -331,6 +432,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 variant('test-fixtures') {
                     attribute('test-fixtures', 'true')
                     artifact('test-fixtures')
+                    capability('org', 'foo-testfixtures', '1.0')
                 }
             }
         }

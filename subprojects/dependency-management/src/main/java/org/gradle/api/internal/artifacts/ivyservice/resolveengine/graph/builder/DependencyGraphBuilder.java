@@ -196,7 +196,7 @@ public class DependencyGraphBuilder {
                         for (ComponentState version : versions) {
                             List<NodeState> nodes = version.getNodes();
                             for (NodeState nodeState : nodes) {
-                                if (nodeState.isSelected()) {
+                                if (nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
                                     implicitProvidersForCapability.add(nodeState);
                                 }
                             }
@@ -210,6 +210,10 @@ public class DependencyGraphBuilder {
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
                 }
+            }
+
+            private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
+                return nodeState.getMetadata().getCapabilities().getCapabilities().isEmpty();
             }
         });
     }

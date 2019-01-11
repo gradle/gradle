@@ -50,16 +50,33 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         String group = capability.getGroup();
         String name = capability.getName();
         final Set<NodeState> nodes = findNodesFor(capability);
-        nodes.addAll(candidate.getImplicitCapabilityProviders());
-        if (nodes.add(candidate.getNode()) && nodes.size() > 1) {
+        Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
+        nodes.addAll(implicitCapabilityProviders);
+        NodeState node = candidate.getNode();
+        if ((nodes.add(node) || implicitCapabilityProviders.contains(node)) && nodes.size() > 1) {
             // The registered nodes may contain nodes which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.
+            ModuleIdentifier rootId = null;
             final List<NodeState> candidatesForConflict = Lists.newArrayListWithCapacity(nodes.size());
-            for (NodeState node : nodes) {
-                if (node.isSelected()) {
-                    candidatesForConflict.add(node);
+            for (NodeState ns : nodes) {
+                // TODO: CC the special casing of virtual platform should go away if we can implement
+                // disambiguation of variants for a _single_ component
+                if (ns.isSelected() && !ns.isAttachedToVirtualPlatform()) {
+                    candidatesForConflict.add(ns);
+                    if (ns.isRoot()) {
+                        rootId = ns.getComponent().getId().getModule();
+                    }
                 }
+            }
+            if (rootId != null && candidatesForConflict.size() > 1) {
+                // This is a special case for backwards compatibility: it is possible to have
+                // a cycle where the root component depends on a library which transitively
+                // depends on a different version of the root module. In this case, we effectively
+                // allow 2 modules to have the same capability, so we filter the nodes coming
+                // from transitive dependencies
+                ModuleIdentifier rootModuleId = rootId;
+                candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
             }
             if (candidatesForConflict.size() > 1) {
                 PotentialConflict conflict = new PotentialConflict() {
