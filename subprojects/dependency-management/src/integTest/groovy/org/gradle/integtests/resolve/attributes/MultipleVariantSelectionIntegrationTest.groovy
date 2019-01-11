@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Unroll
 
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -80,6 +81,75 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 }
             }
         }
+    }
+
+    @RequiredFeatures(
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
+    void "can select distinct variants of the same component by using different attributes with capabilities"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    capability('org.test', 'cap', '1.0')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    capability('org.test', 'cap', conflict?'1.0':'1.1')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c1')
+                    }
+                }
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+                if (!conflict) {
+                    expectGetArtifact()
+                }
+            }
+        }
+        if (conflict) {
+            fails 'checkDeps'
+        } else {
+            succeeds 'checkDeps'
+        }
+
+        then:
+        if (conflict) {
+            failure.assertHasCause("Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org.test:cap:1.0")
+        } else {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge('org:test:1.0', 'org:test:1.0') {
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
+                    }
+                    module('org:test:1.0') {
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
+                    }
+                }
+            }
+        }
+
+        where:
+        conflict << [true, false]
     }
 
     @RequiredFeatures(

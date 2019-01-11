@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
@@ -50,7 +52,7 @@ import java.util.Set;
 /**
  * Represents a node in the dependency graph.
  */
-class NodeState implements DependencyGraphNode {
+public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private static final Spec<EdgeState> TRANSITIVE_EDGES = new Spec<EdgeState>() {
         @Override
@@ -73,8 +75,9 @@ class NodeState implements DependencyGraphNode {
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private List<EdgeState> virtualEdges;
     private boolean queued;
+    private boolean excluded;
 
-    NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
         this.id = id;
         this.component = component;
@@ -99,7 +102,7 @@ class NodeState implements DependencyGraphNode {
         return this;
     }
 
-    ComponentState getComponent() {
+    public ComponentState getComponent() {
         return component;
     }
 
@@ -154,6 +157,14 @@ class NodeState implements DependencyGraphNode {
     @Override
     public String toString() {
         return String.format("%s(%s)", component, id.getConfiguration());
+    }
+
+    public String getSimpleName() {
+        return component.getId().toString();
+    }
+
+    public String getNameWithVariant() {
+        return component.getId() + " variant " + id.getConfiguration();
     }
 
     public boolean isTransitive() {
@@ -375,6 +386,11 @@ class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
+    public void exclude() {
+        excluded = true;
+        restartIncomingEdges();
+    }
+
     public boolean shouldIncludedInGraphResult() {
         return isSelected() && !component.getModule().isVirtualPlatform();
     }
@@ -445,7 +461,9 @@ class NodeState implements DependencyGraphNode {
         // If this configuration belongs to the select version, queue ourselves up for traversal.
         // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
         if (component == selected) {
-            resolveState.onMoreSelected(this);
+            if (!excluded) {
+                resolveState.onMoreSelected(this);
+            }
         } else {
             if (!incomingEdges.isEmpty()) {
                 restartIncomingEdges();
@@ -485,7 +503,6 @@ class NodeState implements DependencyGraphNode {
     /**
      * Invoked when this node is back to being a pending dependency.
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
-     * @param pendingDependencies
      */
     public void clearConstraintEdges(PendingDependencies pendingDependencies) {
         for (EdgeState incomingEdge : incomingEdges) {
@@ -497,4 +514,34 @@ class NodeState implements DependencyGraphNode {
         }
         incomingEdges.clear();
     }
+
+    void forEachCapability(Action<? super Capability> action) {
+        // check conflict for each target node
+        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
+        // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
+        // so just adding this check has a significant impact because most components do not declare any capability
+        if (!capabilities.isEmpty()) {
+            for (Capability capability : capabilities) {
+                action.execute(capability);
+            }
+        }
+    }
+
+    public Capability findCapability(String group, String name) {
+        Capability onComponent = component.findCapability(group, name);
+        if (onComponent != null) {
+            return onComponent;
+        }
+        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
+            for (Capability capability : capabilities) {
+                if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
+                    return capability;
+                }
+            }
+        }
+        return null;
+    }
+
 }
