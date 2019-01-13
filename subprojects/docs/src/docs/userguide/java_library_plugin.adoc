@@ -237,14 +237,13 @@ The role of each configuration is described in the following tables:
 [[sec:java_library_known_issues_compat]]
 === Compatibility with other plugins
 
-At the moment the Java Library plugin is only wired to behave correctly with the `java` plugin. Other plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
+At the moment, the Java Library plugin is wired to behave correctly with the `java`, `groovy` and `kotlin` plugins. In Gradle 5.3 or early, some plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
 
-.Configuring the Groovy plugin to work with Java Library
+.Configuring the Groovy plugin to work with Java Library in Gradle 5.3 or earlier
 ====
 include::sample[dir="java-library/with-groovy/groovy",files="a/build.gradle[tags=configure-groovy]"]
 include::sample[dir="java-library/with-groovy/kotlin",files="a/build.gradle.kts[tags=configure-groovy]"]
 ====
-
 
 [[sec:java_library_known_issues_memory]]
 === Increased memory usage for consumers
