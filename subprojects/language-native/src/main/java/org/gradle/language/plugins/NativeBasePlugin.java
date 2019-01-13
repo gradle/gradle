@@ -42,6 +42,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.ComponentWithTargetMachines;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
@@ -55,6 +56,7 @@ import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -161,10 +163,15 @@ public class NativeBasePlugin implements Plugin<Project> {
                         tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> task.dependsOn(outputs));
                     }
                 });
+            }
 
+            if (component instanceof ComponentWithTargetMachines) {
+                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines)component;
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> {
                     task.dependsOn((Callable) () -> {
-                        if (component.getBinaries().get().isEmpty()) {
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
+                        boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
+                        if (!targetsCurrentMachine) {
                             throw new IllegalArgumentException("The " + component.getName() + " component does not target this operating system.");
                         }
                         return null;
