@@ -23,6 +23,8 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "binaries have the right Swift version"() {
@@ -172,7 +174,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "assemble fails when current operating system family is excluded"() {
+    def "assemble task fails when current operating system family is excluded"() {
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)
@@ -186,6 +188,22 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         and:
         failure.assertHasDescription("Could not determine the dependencies of task ':${taskNameToAssembleDevelopmentBinary}'")
         failure.assertHasCause("The ${componentName} component does not target this operating system.")
+    }
+
+    def "build task fails when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        fails "build"
+
+        and:
+        failure.assertHasDescription("Could not determine the dependencies of task")
+        failure.assertThatCause(matchesRegexp("The \\w+ component does not target this operating system."))
     }
 
     def "does not fail when current operating system family is excluded but assemble is not invoked"() {
