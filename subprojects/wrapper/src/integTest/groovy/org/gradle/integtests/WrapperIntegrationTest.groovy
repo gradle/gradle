@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class NonInteractiveLaunchIntegrationTest extends AbstractWrapperIntegrationSpec {
+class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Requires(TestPrecondition.MAC_OS_X)
     def "can execute from Finder"() {
         given:
