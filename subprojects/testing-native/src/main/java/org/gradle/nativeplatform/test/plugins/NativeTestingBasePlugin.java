@@ -32,6 +32,7 @@ import org.gradle.nativeplatform.test.TestSuiteComponent;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -85,9 +86,9 @@ public class NativeTestingBasePlugin implements Plugin<Project> {
                         TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
                         boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
-                            throw new IllegalArgumentException("The " + testSuiteComponent.getName() + " component does not target this operating system.");
+                            task.getLogger().warn("The " + testSuiteComponent.getName() + " component does not target this operating system.");
                         }
-                        return null;
+                        return Collections.emptyList();
                     }));
                 }
             }

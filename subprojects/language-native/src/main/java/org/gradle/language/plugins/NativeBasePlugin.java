@@ -69,6 +69,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -172,9 +173,9 @@ public class NativeBasePlugin implements Plugin<Project> {
                         TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
                         boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
-                            throw new IllegalArgumentException("The " + component.getName() + " component does not target this operating system.");
+                            task.getLogger().warn("The " + component.getName() + " component does not target this operating system.");
                         }
-                        return null;
+                        return Collections.emptyList();
                     });
                 });
             }
