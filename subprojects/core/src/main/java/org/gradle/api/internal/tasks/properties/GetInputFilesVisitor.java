@@ -18,14 +18,11 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.FileNormalizer;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
@@ -43,7 +40,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     @Override
     public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-        PropertyValue actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
+        Object actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? resolver.resolveFilesAsTree(value) : value;
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,
@@ -63,36 +60,5 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     public boolean hasSourceFiles() {
         return hasSourceFiles;
-    }
-
-    private static class FileTreeValue implements PropertyValue {
-        private final PropertyValue delegate;
-        private final FileTreeInternal fileTree;
-
-        public static FileTreeValue create(FileResolver fileResolver, PropertyValue value) {
-            FileTreeInternal fileTree = fileResolver.resolveFilesAsTree(value);
-            return new FileTreeValue(value, fileTree);
-        }
-
-        public FileTreeValue(PropertyValue delegate, FileTreeInternal fileTree) {
-            this.delegate = delegate;
-            this.fileTree = fileTree;
-        }
-
-        @Nullable
-        @Override
-        public Object call() {
-            return fileTree;
-        }
-
-        @Override
-        public void attachProducer(Task producer) {
-            delegate.attachProducer(producer);
-        }
-
-        @Override
-        public void maybeFinalizeValue() {
-            delegate.maybeFinalizeValue();
-        }
     }
 }
