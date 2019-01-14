@@ -21,11 +21,11 @@ import org.gradle.util.DeferredUtil;
 
 public class DefaultValidatingProperty implements ValidatingProperty {
     private final String propertyName;
-    private final ValidatingValue value;
+    private final PropertyValue value;
     private final boolean optional;
     private final ValidationAction validationAction;
 
-    public DefaultValidatingProperty(String propertyName, ValidatingValue value, boolean optional, ValidationAction validationAction) {
+    public DefaultValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         this.propertyName = propertyName;
         this.value = value;
         this.optional = optional;

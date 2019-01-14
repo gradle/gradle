@@ -250,17 +250,17 @@ public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<ValidatingProperty>();
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             taskPropertySpecs.add(new DefaultValidatingInputFileProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 
         @Override
-        public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+        public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 

@@ -32,9 +32,9 @@ import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -210,7 +210,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return (paths != null && paths.length == 1) ? paths[0] : paths;
     }
 
-    private RegisteredTaskOutputFileProperty createOutputFilePropertySpec(ValidatingValue value, OutputFilePropertyType propertyType) {
+    private RegisteredTaskOutputFileProperty createOutputFilePropertySpec(PropertyValue value, OutputFilePropertyType propertyType) {
         return new DefaultRegisteredTaskOutputFileProperty(value, propertyType);
     }
 
@@ -231,7 +231,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
             hasDeclaredOutputs = true;
         }
 

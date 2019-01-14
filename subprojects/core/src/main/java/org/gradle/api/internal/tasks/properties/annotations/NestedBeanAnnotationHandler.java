@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;
@@ -43,7 +43,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, ValidatingValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         Object nested;
         try {
             nested = unpackProvider(value.call());
@@ -67,7 +67,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         return value;
     }
 
-    private static class InvalidValue implements ValidatingValue {
+    private static class InvalidValue implements PropertyValue {
         private final Exception exception;
 
         public InvalidValue(Exception exception) {
@@ -91,7 +91,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
     }
 
-    private static class AbsentValue implements ValidatingValue {
+    private static class AbsentValue implements PropertyValue {
         @Nullable
         @Override
         public Object call() {

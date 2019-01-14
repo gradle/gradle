@@ -17,17 +17,17 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 @NonNullApi
 public class DefaultRegisteredTaskInputProperty extends TaskInputsDeprecationSupport implements RegisteredTaskInputProperty {
 
     private final String propertyName;
-    private final ValidatingValue value;
+    private final PropertyValue value;
     private boolean optional;
 
-    public DefaultRegisteredTaskInputProperty(String propertyName, ValidatingValue value) {
+    public DefaultRegisteredTaskInputProperty(String propertyName, PropertyValue value) {
         this.propertyName = propertyName;
         this.value = value;
     }
@@ -49,7 +49,7 @@ public class DefaultRegisteredTaskInputProperty extends TaskInputsDeprecationSup
     }
 
     @Override
-    public ValidatingValue getValue() {
+    public PropertyValue getValue() {
         return value;
     }
 

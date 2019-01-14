@@ -54,7 +54,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
             Iterators.addAll(specs, resolveToOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType.getOutputType(), fileResolver));
@@ -69,7 +69,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Nullable
-    private File unpackOutputFileValue(ValidatingValue value) {
+    private File unpackOutputFileValue(PropertyValue value) {
         Object unpackedOutput = DeferredUtil.unpack(value.call());
         if (unpackedOutput == null) {
             return null;
@@ -89,7 +89,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
         return hasDeclaredOutputs;
     }
 
-    private static Iterator<OutputFilePropertySpec> resolveToOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, ValidatingValue value, final TreeType outputType, final FileResolver resolver) {
+    private static Iterator<OutputFilePropertySpec> resolveToOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, PropertyValue value, final TreeType outputType, final FileResolver resolver) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return Collections.emptyIterator();

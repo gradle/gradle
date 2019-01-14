@@ -36,21 +36,21 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(propertyName, optional, skipWhenEmpty, fileNormalizer, value, filePropertyType);
         }
     }
 
     @Override
-    public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+    public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputProperty(propertyName, value, optional);
         }
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitOutputFileProperty(propertyName, optional, value, filePropertyType);
         }

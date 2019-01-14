@@ -21,8 +21,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
 import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
+import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
-import org.gradle.api.internal.tasks.properties.ValidatingValue
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class NestedBeanAnnotationHandlerTest extends Specification {
 
-    def value = Mock(ValidatingValue)
+    def value = Mock(PropertyValue)
     def propertyVisitor = Mock(PropertyVisitor)
     def task = Stub(TaskInternal)
     def resolver = Mock(FileResolver)
@@ -38,7 +38,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def propertyMetadata = Mock(PropertyMetadata)
 
     def "absent nested property is reported as error"() {
-        ValidatingValue validatingValue = null
+        PropertyValue validatingValue = null
         def validationContext = Mock(TaskValidationContext)
 
         when:
@@ -73,7 +73,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     }
 
     def "exception thrown by nested property is propagated"() {
-        ValidatingValue validatingValue = null
+        PropertyValue validatingValue = null
         def exception = new RuntimeException("BOOM!")
 
         when:

@@ -33,11 +33,11 @@ public interface PropertyVisitor {
      */
     boolean visitOutputFilePropertiesOnly();
 
-    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType);
+    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
-    void visitInputProperty(String propertyName, ValidatingValue value, boolean optional);
+    void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
 
-    void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType);
+    void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType);
 
     void visitDestroyableProperty(Object value);
 
@@ -50,15 +50,15 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
         @Override
-        public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+        public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
         }
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         }
 
         @Override

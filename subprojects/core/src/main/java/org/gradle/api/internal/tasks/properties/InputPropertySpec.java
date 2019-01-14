@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.properties;
 
 public class InputPropertySpec implements PropertySpec {
     private final String propertyName;
-    private final ValidatingValue value;
+    private final PropertyValue value;
 
     private final boolean optional;
 
-    public InputPropertySpec(String propertyName, ValidatingValue value, boolean optional) {
+    public InputPropertySpec(String propertyName, PropertyValue value, boolean optional) {
         this.propertyName = propertyName;
         this.value = value;
         this.optional = optional;
@@ -33,7 +33,7 @@ public class InputPropertySpec implements PropertySpec {
         return propertyName;
     }
 
-    public ValidatingValue getValue() {
+    public PropertyValue getValue() {
         return value;
     }
 

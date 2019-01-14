@@ -23,9 +23,9 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
@@ -49,7 +49,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
                 String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-                ValidatingValue value = new PropertyValue(getBean(), propertyMetadata.getGetterMethod());
+                PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
                 annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
                     @Override
                     public void addNested(String propertyName, Object bean) {
@@ -60,7 +60,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         }
     }
 
-    private static class PropertyValue implements ValidatingValue {
+    private static class BeanPropertyValue implements PropertyValue {
         private final Method method;
         private final Object bean;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
@@ -81,7 +81,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public PropertyValue(Object bean, Method method) {
+        public BeanPropertyValue(Object bean, Method method) {
             this.bean = bean;
             this.method = method;
             method.setAccessible(true);
@@ -117,7 +117,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             Object value = valueSupplier.get();
             // Replace absent Provider with null.
             // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
-            // Returning null from a Callable is ignored, and ValidatingValue is a callable.
+            // Returning null from a Callable is ignored, and PropertyValue is a callable.
             if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
                 return null;
             }

@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.properties;
 
 public class DefaultValidatingInputFileProperty extends DefaultValidatingProperty {
-    private final ValidatingValue value;
+    private final PropertyValue value;
     private LifecycleAwareProperty lifecycleAware;
 
-    public DefaultValidatingInputFileProperty(String propertyName, ValidatingValue value, boolean optional, ValidationAction validationAction) {
+    public DefaultValidatingInputFileProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         super(propertyName, value, optional, validationAction);
         this.value = value;
     }
@@ -29,7 +29,7 @@ public class DefaultValidatingInputFileProperty extends DefaultValidatingPropert
     public void prepareValue() {
         super.prepareValue();
         Object obj = value.call();
-        // TODO - move this to ValidatingValue instead
+        // TODO - move this to PropertyValue instead
         if (obj instanceof LifecycleAwareProperty) {
             lifecycleAware = (LifecycleAwareProperty) obj;
             lifecycleAware.prepareValue();

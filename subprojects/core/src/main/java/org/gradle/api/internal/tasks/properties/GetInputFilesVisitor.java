@@ -42,8 +42,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
-        ValidatingValue actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
+    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        PropertyValue actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? FileTreeValue.create(resolver, value) : value;
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,
@@ -65,16 +65,16 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         return hasSourceFiles;
     }
 
-    private static class FileTreeValue implements ValidatingValue {
-        private final ValidatingValue delegate;
+    private static class FileTreeValue implements PropertyValue {
+        private final PropertyValue delegate;
         private final FileTreeInternal fileTree;
 
-        public static FileTreeValue create(FileResolver fileResolver, ValidatingValue value) {
+        public static FileTreeValue create(FileResolver fileResolver, PropertyValue value) {
             FileTreeInternal fileTree = fileResolver.resolveFilesAsTree(value);
             return new FileTreeValue(value, fileTree);
         }
 
-        public FileTreeValue(ValidatingValue delegate, FileTreeInternal fileTree) {
+        public FileTreeValue(PropertyValue delegate, FileTreeInternal fileTree) {
             this.delegate = delegate;
             this.fileTree = fileTree;
         }

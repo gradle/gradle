@@ -39,7 +39,7 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
+    public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
         InputPropertySpec spec = new InputPropertySpec(propertyName, value, optional);
         inputProperties.add(spec);
     }

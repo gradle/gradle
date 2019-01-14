@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 
 public interface TaskPropertySpec {
     String getPropertyName();
-    ValidatingValue getValue();
+    PropertyValue getValue();
     boolean isOptional();
 }

@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
-public interface ValidatingValue extends Callable<Object> {
+public interface PropertyValue extends Callable<Object> {
     @Nullable
     @Override
     Object call();
