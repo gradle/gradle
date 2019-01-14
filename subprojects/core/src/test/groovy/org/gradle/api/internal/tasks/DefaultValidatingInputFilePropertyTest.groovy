@@ -18,13 +18,14 @@ package org.gradle.api.internal.tasks
 
 
 import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty
+import org.gradle.api.internal.tasks.properties.LifecycleAwareProperty
 import org.gradle.api.internal.tasks.properties.ValidatingValue
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import spock.lang.Specification
 
 class DefaultValidatingInputFilePropertyTest extends Specification {
     def "notifies property value of start and end of execution when it implements lifecycle interface"() {
-        def value = Mock(LifecycleAwareTaskProperty)
+        def value = Mock(LifecycleAwareProperty)
         def valueWrapper = Stub(ValidatingValue)
         def property = new DefaultValidatingInputFileProperty("name", valueWrapper, false, ValidationActions.NO_OP)
 

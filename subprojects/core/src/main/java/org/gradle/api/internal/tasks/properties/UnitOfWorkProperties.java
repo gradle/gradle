@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
 
 import java.util.Map;
@@ -36,14 +32,14 @@ import java.util.Map;
  *
  * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
  *
- * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, org.gradle.api.internal.file.FileResolver, TaskInternal)}.
+ * Created by {@link DefaultUnitOfWorkProperties#resolve(PropertyWalker, org.gradle.api.internal.file.FileResolver, TaskInternal)}.
  */
 @NonNullApi
-public interface TaskProperties {
+public interface UnitOfWorkProperties {
     /**
      * The lifecycle aware properties.
      */
-    Iterable<? extends LifecycleAwareTaskProperty> getLifecycleAwareProperties();
+    Iterable<? extends LifecycleAwareProperty> getLifecycleAwareProperties();
 
     /**
      * A factory for the input properties.

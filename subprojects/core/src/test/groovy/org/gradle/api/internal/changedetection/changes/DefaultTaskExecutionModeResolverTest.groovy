@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
     def repository = new DefaultTaskExecutionModeResolver(startParameter)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def taskProperties = Mock(TaskProperties)
+    def taskProperties = Mock(UnitOfWorkProperties)
     def task = Mock(TaskInternal)
     def upToDateSpec = Mock(AndSpec)
 

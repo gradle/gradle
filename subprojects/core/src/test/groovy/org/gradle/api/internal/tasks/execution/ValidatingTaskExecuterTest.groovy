@@ -25,13 +25,14 @@ import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.TaskValidationContext
+import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties
 import org.gradle.api.tasks.TaskValidationException
 import spock.lang.Specification
 
 class ValidatingTaskExecuterTest extends Specification {
     def target = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
-    def taskProperties = Mock(TaskProperties)
+    def taskProperties = Mock(UnitOfWorkProperties)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
     def inputs = Mock(TaskInputsInternal)

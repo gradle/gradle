@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSortedSet;
@@ -26,25 +26,8 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
-import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty;
-import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
-import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
-import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
-import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.ValidatingProperty;
-import org.gradle.api.internal.tasks.properties.ValidatingValue;
-import org.gradle.api.internal.tasks.properties.ValidationActions;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Factory;
@@ -55,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultTaskProperties implements TaskProperties {
+public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
 
     private final Factory<Map<String, Object>> inputPropertyValues;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
@@ -69,7 +52,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingProperty> validatingProperties;
 
-    public static TaskProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
+    public static UnitOfWorkProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, resolver);
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver);
@@ -90,7 +73,7 @@ public class DefaultTaskProperties implements TaskProperties {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultTaskProperties(
+        return new DefaultUnitOfWorkProperties(
             task.toString(),
             inputPropertiesVisitor.getPropertyValuesFactory(),
             inputFilesVisitor.getFileProperties(),
@@ -101,7 +84,7 @@ public class DefaultTaskProperties implements TaskProperties {
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
+    private DefaultUnitOfWorkProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
         this.validatingProperties = validatingProperties;
 
         this.inputPropertyValues = inputPropertyValues;
@@ -162,7 +145,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public Iterable<? extends LifecycleAwareTaskProperty> getLifecycleAwareProperties() {
+    public Iterable<? extends LifecycleAwareProperty> getLifecycleAwareProperties() {
         return validatingProperties;
     }
 

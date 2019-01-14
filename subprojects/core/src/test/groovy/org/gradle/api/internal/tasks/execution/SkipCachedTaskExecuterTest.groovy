@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
@@ -42,7 +43,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def projectDir = Mock(File)
     def taskOutputCaching = Mock(TaskOutputCachingState)
     def localStateFiles = Stub(FileCollection)
-    def taskProperties = Mock(TaskProperties)
+    def taskProperties = Mock(UnitOfWorkProperties)
     def task = Stub(TaskInternal)
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)

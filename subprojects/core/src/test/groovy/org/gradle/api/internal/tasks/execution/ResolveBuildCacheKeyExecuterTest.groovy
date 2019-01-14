@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
@@ -39,7 +40,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
     def beforeExecution = Mock(BeforeExecutionState)
-    def taskProperties = Mock(TaskProperties)
+    def taskProperties = Mock(UnitOfWorkProperties)
     def delegate = Mock(TaskExecuter)
     def calculator = Mock(TaskCacheKeyCalculator)
     def executer = new ResolveBuildCacheKeyExecuter(calculator, false, delegate)
@@ -92,7 +93,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskProperties() >> taskProperties
         _ * taskContext.getBeforeExecutionState() >> Optional.empty()
-        0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as TaskProperties, _ as boolean)
+        0 * calculator.calculate(_ as TaskInternal, _ as BeforeExecutionState, _ as UnitOfWorkProperties, _ as boolean)
 
         then:
         1 * taskContext.setBuildCacheKey({ TaskOutputCachingBuildCacheKey key -> !key.valid } as TaskOutputCachingBuildCacheKey)

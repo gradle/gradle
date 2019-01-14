@@ -22,9 +22,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultUnitOfWorkProperties
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
@@ -630,7 +630,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultUnitOfWorkProperties.resolve(propertyWalker, project.fileResolver, task)
 
         then:
         taskProperties.inputPropertyValues.create().keySet() == inputs as Set
@@ -676,7 +676,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithLocalState, localState)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultUnitOfWorkProperties.resolve(propertyWalker, project.fileResolver, task)
 
         then:
         taskProperties.localStateFiles.files as List == [localState]
@@ -692,7 +692,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithDestroyable, destroyable)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultUnitOfWorkProperties.resolve(propertyWalker, project.fileResolver, task)
 
         then:
         taskProperties.destroyableFiles.files as List == [destroyable]
