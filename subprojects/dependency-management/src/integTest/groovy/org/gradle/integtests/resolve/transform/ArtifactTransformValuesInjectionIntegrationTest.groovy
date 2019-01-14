@@ -48,8 +48,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             @TransformAction(MakeGreenAction)
-            class MakeGreen implements Serializable {
-                String extension
+            interface MakeGreen extends Serializable {
+                String getExtension()
+                void setExtension(String value)
             }
             
             class MakeGreenAction extends ArtifactTransform {
@@ -104,8 +105,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             @TransformAction(MakeGreenAction)
-            class MakeGreen implements Serializable {
-                String extension
+            interface MakeGreen extends Serializable {
+                String getExtension()
+                void setExtension(String value)
             }
             
             abstract class MakeGreenAction extends ArtifactTransform {
@@ -157,8 +159,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             @TransformAction(MakeGreenAction)
-            class MakeGreen implements Serializable {
-                String extension
+            interface MakeGreen extends Serializable {
+                String getExtension()
+                void setExtension(String value)
             }
             
             abstract class MakeGreenAction extends ArtifactTransform {

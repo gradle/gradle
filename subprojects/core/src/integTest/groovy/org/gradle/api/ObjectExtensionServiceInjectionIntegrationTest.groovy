@@ -34,8 +34,8 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            def one = extensions.create("one", Thing, "a")
-            def two = extensions.create("two", Thing, "a", "b")
+            extensions.create("one", Thing, "a")
+            extensions.create("two", Thing, "a", "b")
             
             assert one.a == "a"
             assert one.b == "a"
@@ -55,7 +55,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a")
+            extensions.create("thing", Thing, "a")
         """
 
         expect:
@@ -64,27 +64,13 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of class java.lang.String, or no service of type class java.lang.String")
     }
 
-    def "fails when interface provided"() {
-        buildFile << """
-            interface Thing {
-            }
-            
-            extensions.create("one", Thing, "a")
-        """
-
-        expect:
-        fails()
-        failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Interface Thing is not a class.")
-    }
-
     def "fails when non-static inner class provided"() {
         buildFile << """
             class Things {
                 class Thing { }
             }
             
-            extensions.create("one", Things.Thing, "a")
+            extensions.create("thing", Things.Thing, "a")
         """
 
         expect:
@@ -100,7 +86,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a", 12)
+            extensions.create("thing", Thing, "a", 12)
         """
 
         expect:
@@ -118,7 +104,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a", 12)
+            extensions.create("thing", Thing, "a", 12)
         """
 
         expect:
@@ -136,7 +122,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a", "b")
+            extensions.create("thing", Thing, "a", "b")
         """
 
         expect:
@@ -152,7 +138,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a", "b", "c")
+            extensions.create("thing", Thing, "a", "b", "c")
         """
 
         expect:
@@ -172,7 +158,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 }
             }
             
-            extensions.create("one", Thing, "a", 12)
+            extensions.create("thing", Thing, "a", 12)
         """
 
         expect:
@@ -191,8 +177,8 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 ObjectFactory getObjects() { }
             }
             
-            def e = extensions.create("one", Thing, "a")
-            assert e.objects != null
+            extensions.create("thing", Thing, "a")
+            assert thing.objects != null
         """
 
         expect:
@@ -211,8 +197,8 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 abstract ObjectFactory getObjects()
             }
             
-            def e = extensions.create("one", Thing, "a")
-            assert e.objects != null
+            extensions.create("thing", Thing, "a")
+            assert thing.objects != null
         """
 
         expect:
@@ -232,11 +218,42 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
                 ObjectFactory getObjects() { }
             }
             
-            def e = extensions.create("one", Thing, "a")
-            assert e.objects != null
+            extensions.create("thing", Thing, "a")
+            assert thing.objects != null
         """
 
         expect:
         succeeds()
+    }
+
+    def "can inject service using getter on interface"() {
+        buildFile << """
+            import ${Inject.name}
+
+            interface Thing {
+                @Inject
+                ObjectFactory getObjects()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.objects != null
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "fails when construction parameters provided for interface"() {
+        buildFile << """
+            interface Thing {
+            }
+
+            extensions.create("thing", Thing, "a")
+        """
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Too many parameters provided for constructor for interface Thing. Expected 0, received 1.")
     }
 }
