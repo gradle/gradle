@@ -21,9 +21,6 @@ import org.gradle.internal.reflect.PropertyMetadata;
 
 public class InputPropertyAnnotationHandlerUtils {
 
-    private InputPropertyAnnotationHandlerUtils() {
-    }
-
     public static boolean isOptional(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(Optional.class);
     }

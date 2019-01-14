@@ -25,7 +25,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.properties.FileTreeValue;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
@@ -40,7 +39,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
@@ -141,7 +139,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(fileResolver, task.toString());
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), fileResolver);
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.hasSourceFiles();
     }
@@ -215,13 +213,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 @Override
                 public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
-                        ValidatingValue actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? FileTreeValue.create(fileResolver, value) : value;
-                        context.add(new PropertyFileCollection(task.toString(), new Supplier<String>() {
-                            @Override
-                            public String get() {
-                                return propertyName;
-                            }
-                        }, "input", fileResolver, actualValue));
+                        Object actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? fileResolver.resolveFilesAsTree(value) : value;
+                        context.add(new PropertyFileCollection(task.toString(), propertyName, "input", fileResolver, actualValue));
                     }
                 }
             });

@@ -77,7 +77,7 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitLocalStateProperty(Object localStateProperty) {
+        public void visitLocalStateProperty(Object value) {
             throw new UnsupportedOperationException();
         }
 

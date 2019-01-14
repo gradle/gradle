@@ -26,8 +26,8 @@ import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
-import org.gradle.api.internal.tasks.properties.SingleOutputFilePropertySpec
 import org.gradle.api.specs.Spec
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
@@ -41,7 +41,7 @@ import javax.annotation.Nullable
 class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
     def task = Stub(TaskInternal)
-    def cacheableOutputProperty = Mock(SingleOutputFilePropertySpec)
+    def cacheableOutputProperty = Mock(CacheableOutputFilePropertySpec)
     def cacheKey = Stub(TaskOutputCachingBuildCacheKey) {
         isValid() >> true
     }

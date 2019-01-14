@@ -18,8 +18,8 @@ package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.SingleOutputFilePropertySpec;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -58,10 +58,10 @@ public class DefaultTaskCacheKeyCalculator implements TaskCacheKeyCalculator {
         }
 
         for (OutputFilePropertySpec propertySpec : taskProperties.getOutputFileProperties()) {
-            if (!(propertySpec instanceof SingleOutputFilePropertySpec)) {
+            if (!(propertySpec instanceof CacheableOutputFilePropertySpec)) {
                 continue;
             }
-            if (((SingleOutputFilePropertySpec) propertySpec).getOutputFile() != null) {
+            if (((CacheableOutputFilePropertySpec) propertySpec).getOutputFile() != null) {
                 builder.appendOutputPropertyName(propertySpec.getPropertyName());
             }
         }

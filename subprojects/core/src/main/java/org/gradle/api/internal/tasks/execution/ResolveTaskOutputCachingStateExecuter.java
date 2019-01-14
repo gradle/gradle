@@ -29,8 +29,8 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.SingleOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -118,7 +118,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         }
 
         for (OutputFilePropertySpec spec : outputFileProperties) {
-            if (!(spec instanceof SingleOutputFilePropertySpec)) {
+            if (!(spec instanceof CacheableOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
                     NON_CACHEABLE_TREE_OUTPUT,
                     "Output property '"

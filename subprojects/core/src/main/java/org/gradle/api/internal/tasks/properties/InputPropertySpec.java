@@ -45,4 +45,9 @@ public class InputPropertySpec implements PropertySpec {
     public int compareTo(PropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }
+
+    @Override
+    public String toString() {
+        return propertyName;
+    }
 }

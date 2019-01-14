@@ -22,12 +22,12 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
-import org.gradle.api.internal.tasks.properties.SingleOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.ValidatingValue
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.util.DeferredUtil
@@ -73,7 +73,7 @@ class DefaultTaskOutputsTest extends Specification {
         hasDeclaredOutputs() >> true
     }
     def taskPropertiesWithCacheableOutput = Mock(TaskProperties) {
-        getOutputFileProperties() >> ImmutableSortedSet.of(Mock(SingleOutputFilePropertySpec) {
+        getOutputFileProperties() >> ImmutableSortedSet.of(Mock(CacheableOutputFilePropertySpec) {
             getPropertyName() >> "prop"
         })
         hasDeclaredOutputs() >> true

@@ -64,9 +64,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitLocalStateProperty(Object localStateProperty) {
+    public void visitLocalStateProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitLocalStateProperty(localStateProperty);
+            visitor.visitLocalStateProperty(value);
         }
     }
 }

@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
@@ -64,7 +63,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
             if (outputFile == null) {
                 return;
             }
-            DefaultSingleOutputFilePropertySpec filePropertySpec = new DefaultSingleOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
             specs.add(filePropertySpec);
         }
     }
@@ -107,7 +106,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
                         }
                         String id = key.toString();
                         File file = resolver.resolve(entry.getValue());
-                        return new DefaultSingleOutputFilePropertySpec(propertyName, "." + id, file, outputType);
+                        return new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, file, outputType);
                     }
                     return endOfData();
                 }
@@ -138,12 +137,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
             if (nonFileRoot.get()) {
                 return Iterators.<OutputFilePropertySpec>singletonIterator(new CompositeOutputFilePropertySpec(
                     propertyName,
-                    new PropertyFileCollection(ownerDisplayName, new Supplier<String>() {
-                        @Override
-                        public String get() {
-                            return propertyName;
-                        }
-                    }, "output", resolver, value),
+                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", resolver, value),
                     outputType)
                 );
             } else {
@@ -156,7 +150,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
                         if (!iterator.hasNext()) {
                             return endOfData();
                         }
-                        return new DefaultSingleOutputFilePropertySpec(propertyName, "$" + (++index), iterator.next(), outputType);
+                        return new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), iterator.next(), outputType);
                     }
                 };
             }

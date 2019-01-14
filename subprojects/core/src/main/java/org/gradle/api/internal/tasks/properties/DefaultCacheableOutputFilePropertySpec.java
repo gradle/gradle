@@ -23,12 +23,12 @@ import org.gradle.internal.fingerprint.OutputNormalizer;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultSingleOutputFilePropertySpec extends DefaultFilePropertySpec implements SingleOutputFilePropertySpec {
+public class DefaultCacheableOutputFilePropertySpec extends DefaultFilePropertySpec implements CacheableOutputFilePropertySpec {
     private final String propertySuffix;
     private final File outputFile;
     private final TreeType outputType;
 
-    public DefaultSingleOutputFilePropertySpec(String propertyName, @Nullable String propertySuffix, File outputFile, TreeType outputType) {
+    public DefaultCacheableOutputFilePropertySpec(String propertyName, @Nullable String propertySuffix, File outputFile, TreeType outputType) {
         super(propertyName, OutputNormalizer.class, ImmutableFileCollection.of(outputFile));
         this.propertySuffix = propertySuffix;
         this.outputFile = outputFile;

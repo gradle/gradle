@@ -18,13 +18,15 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<InputFilePropertySpec> specs = Lists.newArrayList();
@@ -34,7 +36,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     private ImmutableSortedSet<InputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor(FileResolver fileResolver, String ownerDisplayName) {
+    public GetInputFilesVisitor(String ownerDisplayName, FileResolver fileResolver) {
         this.resolver = fileResolver;
         this.ownerDisplayName = ownerDisplayName;
     }
@@ -45,12 +47,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,
-            new PropertyFileCollection(ownerDisplayName, new Supplier<String>() {
-                @Override
-                public String get() {
-                    return propertyName;
-                }
-            }, "input", resolver, actualValue),
+            new PropertyFileCollection(ownerDisplayName, propertyName, "input", resolver, actualValue),
             skipWhenEmpty));
         if (skipWhenEmpty) {
             hasSourceFiles = true;
@@ -66,5 +63,36 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     public boolean hasSourceFiles() {
         return hasSourceFiles;
+    }
+
+    private static class FileTreeValue implements ValidatingValue {
+        private final ValidatingValue delegate;
+        private final FileTreeInternal fileTree;
+
+        public static FileTreeValue create(FileResolver fileResolver, ValidatingValue value) {
+            FileTreeInternal fileTree = fileResolver.resolveFilesAsTree(value);
+            return new FileTreeValue(value, fileTree);
+        }
+
+        public FileTreeValue(ValidatingValue delegate, FileTreeInternal fileTree) {
+            this.delegate = delegate;
+            this.fileTree = fileTree;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return fileTree;
+        }
+
+        @Override
+        public void attachProducer(Task producer) {
+            delegate.attachProducer(producer);
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            delegate.maybeFinalizeValue();
+        }
     }
 }

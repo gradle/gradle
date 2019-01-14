@@ -41,7 +41,7 @@ class TaskPropertyTestUtils {
 
     static FileCollection getInputFiles(AbstractTask task) {
         def resolver = task.getServices().get(PathToFileResolver)
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(resolver, task.toString())
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), resolver)
         def walker = task.getServices().get(PropertyWalker)
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return new CompositeFileCollection() {

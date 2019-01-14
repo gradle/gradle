@@ -41,7 +41,7 @@ public interface PropertyVisitor {
 
     void visitDestroyableProperty(Object value);
 
-    void visitLocalStateProperty(Object localStateProperty);
+    void visitLocalStateProperty(Object value);
 
     class Adapter implements PropertyVisitor {
         @Override

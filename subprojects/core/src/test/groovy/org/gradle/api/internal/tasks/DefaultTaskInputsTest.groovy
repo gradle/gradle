@@ -320,7 +320,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def inputFileProperties() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(resolver, task.toString())
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), resolver)
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return visitor.getFileProperties()
     }
