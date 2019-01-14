@@ -104,14 +104,14 @@ $fileSizer
             
             @TransformAction(FileSizerAction)
             class FileSizer {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputFiles
                 FileCollection additionalInputs
             }
             
             abstract class FileSizerAction implements Callable<List<File>> {
                 
-                @PathSensitive(PathSensitivity.NAME_ONLY)
-                @InputFiles
-                final Iterable<File> additionalInputs
+                private final Iterable<File> additionalInputs
             
                 @Inject
                 FileSizerAction(FileSizer configuration) {
@@ -223,7 +223,7 @@ $fileSizer
                 registerTransform(FileSizer) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
-                    parameters {
+                    configuration {
                         additionalInputs = files("my-input.txt")
                     }
                 }

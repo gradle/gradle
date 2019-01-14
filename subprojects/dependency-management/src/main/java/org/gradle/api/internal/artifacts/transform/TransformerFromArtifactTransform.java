@@ -32,6 +32,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class TransformerFromArtifactTransform extends AbstractTransformer<Artifa
     private static final String PRIMARY_INPUT_PROPERTY_NAME = "primaryInput";
     private static final String DEPENDENCIES_PROPERTY_NAME = "dependencies";
 
-    public TransformerFromArtifactTransform(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public TransformerFromArtifactTransform(Class<? extends ArtifactTransform> implementationClass, @Nullable Object config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         super(implementationClass, config, parameters, inputsHash, instantiatorFactory, fromAttributes);
     }
 

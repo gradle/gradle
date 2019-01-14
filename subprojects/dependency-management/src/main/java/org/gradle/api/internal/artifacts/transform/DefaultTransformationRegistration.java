@@ -51,12 +51,10 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
-        Isolatable<Object> configSnapshot = isolatableFactory.isolate(config);
 
         paramsSnapshot.appendToHasher(hasher);
-        configSnapshot.appendToHasher(hasher);
 
-        Transformer transformer = ArtifactTransform.class.isAssignableFrom(implementation) ? new TransformerFromArtifactTransform(Cast.uncheckedNonnullCast(implementation), configSnapshot, paramsSnapshot, hasher.hash(), instantiatorFactory, from) : new TransformerFromCallable(Cast.uncheckedNonnullCast(implementation), configSnapshot, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = ArtifactTransform.class.isAssignableFrom(implementation) ? new TransformerFromArtifactTransform(Cast.uncheckedNonnullCast(implementation), config, paramsSnapshot, hasher.hash(), instantiatorFactory, from) : new TransformerFromCallable(Cast.uncheckedNonnullCast(implementation), config, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 

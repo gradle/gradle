@@ -17,27 +17,34 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
-import org.gradle.api.internal.tasks.properties.DefaultUnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 public class TransformerFromCallable extends AbstractTransformer<Callable<List<File>>> {
 
-    public TransformerFromCallable(Class<? extends Callable<List<File>>> implementationClass, Isolatable<Object> configSnapshot, Isolatable<Object[]> paramsSnapshot, HashCode secondaryInputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes from) {
-        super(implementationClass, configSnapshot, paramsSnapshot, secondaryInputsHash, instantiatorFactory, from);
+    public TransformerFromCallable(Class<? extends Callable<List<File>>> implementationClass, @Nullable Object config, Isolatable<Object[]> paramsSnapshot, HashCode secondaryInputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes from) {
+        super(implementationClass, config, paramsSnapshot, secondaryInputsHash, instantiatorFactory, from);
     }
 
     @Override
@@ -53,10 +60,36 @@ public class TransformerFromCallable extends AbstractTransformer<Callable<List<F
     }
 
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints(TaskFingerprinter taskFingerprinter, File primaryInput, PropertyWalker propertyWalker, FileResolver pathToFileResolver, Object owner, ArtifactTransformDependencies artifactTransformDependencies) {
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints(TaskFingerprinter taskFingerprinter, File primaryInput, PropertyWalker propertyWalker, FileResolver fileResolver, Object owner, ArtifactTransformDependencies artifactTransformDependencies) {
         Callable<List<File>> transformerInstance = newTransformer(primaryInput, null, artifactTransformDependencies);
 
-        UnitOfWorkProperties properties = DefaultUnitOfWorkProperties.resolve(propertyWalker, pathToFileResolver, owner.toString(), transformerInstance);
-        return taskFingerprinter.fingerprintTaskFiles(owner.toString(), properties.getInputFileProperties());
+        ImmutableSortedSet.Builder<InputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+
+        propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "action."), transformerInstance, fileResolver);
+        Object config = getConfig();
+        if (config != null) {
+            propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "configuration."), config, fileResolver);
+        }
+        return taskFingerprinter.fingerprintTaskFiles(owner.toString(), builder.build());
+    }
+
+    private static class InputFilePropertySpecsVisitor extends PropertyVisitor.Adapter {
+
+        private final FileResolver fileResolver;
+        private final ImmutableSortedSet.Builder<InputFilePropertySpec> builder;
+        @Nullable
+        private final String prefix;
+
+        public InputFilePropertySpecsVisitor(FileResolver fileResolver, ImmutableSortedSet.Builder<InputFilePropertySpec> builder, String prefix) {
+            this.fileResolver = fileResolver;
+            this.builder = builder;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            FileCollection files = filePropertyType == InputFilePropertyType.DIRECTORY ? fileResolver.resolveFilesAsTree(value) : fileResolver.resolveFiles(value);
+            builder.add(new DefaultInputFilePropertySpec(prefix + propertyName, fileNormalizer, files, skipWhenEmpty));
+        }
     }
 }

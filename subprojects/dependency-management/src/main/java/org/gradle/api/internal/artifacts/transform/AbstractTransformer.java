@@ -40,13 +40,13 @@ public abstract class AbstractTransformer<T> implements Transformer {
 
     private final Class<? extends T> implementationClass;
     private final boolean requiresDependencies;
-    private final Isolatable<Object> config;
+    private final Object config;
     private final Isolatable<Object[]> parameters;
     private final InstanceFactory<? extends T> instanceFactory;
     private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
 
-    public AbstractTransformer(Class<? extends T> implementationClass, Isolatable<Object> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public AbstractTransformer(Class<? extends T> implementationClass, @Nullable Object config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
         this.config = config;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class)).forType(implementationClass);
@@ -90,8 +90,13 @@ public abstract class AbstractTransformer<T> implements Transformer {
     }
 
     protected T newTransformer(File inputFile, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, config.isolate(), requiresDependencies ? artifactTransformDependencies : null);
+        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, config, requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services, parameters.isolate());
+    }
+
+    @Nullable
+    protected Object getConfig() {
+        return config;
     }
 
     @Override
