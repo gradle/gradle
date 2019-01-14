@@ -124,7 +124,7 @@ public class NativeBasePlugin implements Plugin<Project> {
 
         final SoftwareComponentContainer components = project.getComponents();
 
-        addLifecycleTasks(tasks, components);
+        addLifecycleTasks(project, tasks, components);
 
         // Add tasks to build various kinds of components
 
@@ -147,7 +147,7 @@ public class NativeBasePlugin implements Plugin<Project> {
         extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
     }
 
-    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
+    private void addLifecycleTasks(final Project project, final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, component -> {
             // Register each child of each component
             component.getBinaries().whenElementKnown(binary -> components.add(binary));
@@ -173,7 +173,7 @@ public class NativeBasePlugin implements Plugin<Project> {
                         TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
                         boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
-                            task.getLogger().warn("The " + component.getName() + " component does not target this operating system.");
+                            task.getLogger().warn("'" + component.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");
                         }
                         return Collections.emptyList();
                     });
