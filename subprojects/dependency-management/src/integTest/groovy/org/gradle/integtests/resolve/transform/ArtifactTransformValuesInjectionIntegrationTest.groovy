@@ -33,7 +33,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        actionClass = MakeGreenAction
                         configuration {
                             extension = 'green'
                         }
@@ -48,6 +47,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
+            @TransformAction(MakeGreenAction)
             class MakeGreen implements Serializable {
                 String extension
             }
@@ -89,7 +89,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        actionClass = MakeGreenAction
                         configuration {
                             extension = 'green'
                         }
@@ -104,6 +103,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
+            @TransformAction(MakeGreenAction)
             class MakeGreen implements Serializable {
                 String extension
             }
@@ -141,7 +141,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        actionClass = MakeGreenAction
                         configuration {
                             extension = 'green'
                         }
@@ -157,6 +156,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
+            @TransformAction(MakeGreenAction)
             class MakeGreen implements Serializable {
                 String extension
             }

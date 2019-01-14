@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
@@ -108,12 +109,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !(config instanceof ExtensionAware)
     }
 
-    def "creates registration with config object and without parameters"() {
+    def "creates registration with annotated config object and without parameters"() {
         when:
         registry.registerTransform(TestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.actionClass = TestArtifactTransform
+            assert it.actionClass == TestArtifactTransform
         }
 
         then:
@@ -126,7 +127,25 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.transformationStep.transformer.parameters.isolate() == []
     }
 
-    def "creates registration with config object and parameters"() {
+    def "creates registration with unannotated config object and without parameters"() {
+        when:
+        registry.registerTransform(UnAnnotatedTestTransformConfig) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.actionClass = TestArtifactTransform
+        }
+
+        then:
+        registry.transforms.size() == 1
+        def registration = registry.transforms[0]
+        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
+        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.config.isolate() instanceof UnAnnotatedTestTransformConfig
+        registration.transformationStep.transformer.parameters.isolate() == []
+    }
+
+    def "creates registration with annotated config object and parameters"() {
         when:
         registry.registerTransform(TestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -244,7 +263,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
+    @TransformAction(TestArtifactTransform)
     static class TestTransformConfig {
+        String value
+    }
+
+    static class UnAnnotatedTestTransformConfig {
         String value
     }
 

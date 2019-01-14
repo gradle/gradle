@@ -26,6 +26,7 @@ import java.util.List;
  *
  * <ul>
  * <li>{@link ArtifactTransformDependencies} parameter to receive the dependencies of the file to be transformed.</li>
+ * <li>The object provided by {@link ArtifactTransformSpec#getConfiguration()}.</li>
  * <li>The objects provided to {@link org.gradle.api.ActionConfiguration#setParams(Object...)}.</li>
  * </ul>
  *
@@ -40,6 +41,9 @@ import java.util.List;
 public abstract class ArtifactTransform {
     private File outputDirectory;
 
+    /**
+     * Returns the <em>workspace</em> location for this transform, which is the directory that the transform should write its output files to.
+     */
     public File getOutputDirectory() {
         return outputDirectory;
     }
@@ -48,5 +52,11 @@ public abstract class ArtifactTransform {
         this.outputDirectory = outputDirectory;
     }
 
+    /**
+     * Transforms the given <em>primary input</em> file or directory and returns the result.
+     *
+     * @param input The primary input file or directory.
+     * @return The output files or directories. Can return an empty list.
+     */
     public abstract List<File> transform(File input);
 }

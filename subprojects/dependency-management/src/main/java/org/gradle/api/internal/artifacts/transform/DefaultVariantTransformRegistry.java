@@ -22,6 +22,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
@@ -169,6 +170,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         public TypedRegistration(T config, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
             this.config = config;
+            TransformAction transformAction = config.getClass().getAnnotation(TransformAction.class);
+            if (transformAction != null) {
+                actionType = transformAction.value();
+            }
         }
 
         @Override
