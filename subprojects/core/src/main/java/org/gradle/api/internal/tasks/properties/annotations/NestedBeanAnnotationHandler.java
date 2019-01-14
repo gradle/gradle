@@ -17,9 +17,7 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.provider.Provider;
@@ -79,7 +77,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Nullable
         @Override
         public Object call() {
-            return null;
+            throw UncheckedException.throwAsUncheckedException(exception);
         }
 
         @Override
@@ -90,11 +88,6 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Override
         public void maybeFinalizeValue() {
             // Ignore
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            throw UncheckedException.throwAsUncheckedException(exception);
         }
     }
 
@@ -114,11 +107,5 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         public void maybeFinalizeValue() {
             // Ignore
         }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-        }
-
     }
 }

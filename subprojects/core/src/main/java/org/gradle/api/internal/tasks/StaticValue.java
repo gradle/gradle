@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 
@@ -55,17 +54,5 @@ public class StaticValue implements ValidatingValue {
             return null;
         }
         return value;
-    }
-
-    @Override
-    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpack(call());
-        if (unpacked == null) {
-            if (!optional) {
-                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-            }
-        } else {
-            valueValidator.validate(propertyName, unpacked, context);
-        }
     }
 }

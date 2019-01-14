@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.ValidatingValue
 import org.gradle.api.internal.tasks.ValidationActions
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
+import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
@@ -53,7 +54,8 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         validatingValue.call() == null
 
         when:
-        validatingValue.validate("name", false, ValidationActions.NO_OP, validationContext)
+        def validatingSpec = new DefaultValidatingProperty("name", validatingValue, false, ValidationActions.NO_OP)
+        validatingSpec.validate(validationContext)
 
         then:
         1 * validationContext.recordValidationMessage("No value has been specified for property 'name'.")
@@ -72,7 +74,6 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def "exception thrown by nested property is propagated"() {
         ValidatingValue validatingValue = null
-        def validationContext = Mock(TaskValidationContext)
         def exception = new RuntimeException("BOOM!")
 
         when:
@@ -88,7 +89,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         0 * _
 
         when:
-        validatingValue.validate("name", false, ValidationActions.NO_OP, validationContext)
+        validatingValue.call()
 
         then:
         0 * _

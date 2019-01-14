@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 
 import javax.annotation.Nullable;
 
@@ -53,10 +51,5 @@ public class FileTreeValue implements ValidatingValue {
     @Override
     public void maybeFinalizeValue() {
         delegate.maybeFinalizeValue();
-    }
-
-    @Override
-    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        delegate.validate(propertyName, optional, valueValidator, context);
     }
 }

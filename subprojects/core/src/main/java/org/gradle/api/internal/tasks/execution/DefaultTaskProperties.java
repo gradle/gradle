@@ -27,14 +27,14 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
-import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
+import org.gradle.api.internal.tasks.ValidatingProperty;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty;
+import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty;
 import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
@@ -67,7 +67,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection outputFiles;
     private final FileCollection localStateFiles;
     private FileCollection destroyableFiles;
-    private List<ValidatingTaskPropertySpec> validatingPropertySpecs;
+    private List<ValidatingProperty> validatingProperties;
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
@@ -101,8 +101,8 @@ public class DefaultTaskProperties implements TaskProperties {
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
-        this.validatingPropertySpecs = validatingPropertySpecs;
+    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
+        this.validatingProperties = validatingProperties;
 
         this.inputPropertyValues = inputPropertyValues;
         this.inputFileProperties = inputFileProperties;
@@ -162,8 +162,8 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public Iterable<? extends TaskPropertySpec> getProperties() {
-        return validatingPropertySpecs;
+    public Iterable<? extends LifecycleAwareTaskProperty> getLifecycleAwareProperties() {
+        return validatingProperties;
     }
 
     @Override
@@ -198,8 +198,8 @@ public class DefaultTaskProperties implements TaskProperties {
 
     @Override
     public void validate(TaskValidationContext validationContext) {
-        for (ValidatingTaskPropertySpec validatingTaskPropertySpec : validatingPropertySpecs) {
-            validatingTaskPropertySpec.validate(validationContext);
+        for (ValidatingProperty validatingProperty : validatingProperties) {
+            validatingProperty.validate(validationContext);
         }
     }
 
@@ -264,91 +264,25 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     private static class ValidationVisitor extends PropertyVisitor.Adapter {
-        private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
+        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<ValidatingProperty>();
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, ValidatingValue value, InputFilePropertyType filePropertyType) {
-            taskPropertySpecs.add(createFilePropertySpec(propertyName, optional, value, filePropertyType.getValidationAction()));
-        }
-
-        private ValidatingTaskPropertySpec createFilePropertySpec(String propertyName, boolean optional, final ValidatingValue value, ValidationAction validationAction) {
-            return new DefaultValidatingTaskPropertySpec(propertyName, value, optional, validationAction) {
-                private LifecycleAwareTaskProperty lifecycleAware;
-
-                @Override
-                public void prepareValue() {
-                    super.prepareValue();
-                    Object obj = value.call();
-                    // TODO - move this to ValidatingValue instead
-                    if (obj instanceof LifecycleAwareTaskProperty) {
-                        lifecycleAware = (LifecycleAwareTaskProperty) obj;
-                        lifecycleAware.prepareValue();
-                    }
-                }
-
-                @Override
-                public void cleanupValue() {
-                    if (lifecycleAware != null) {
-                        lifecycleAware.cleanupValue();
-                    }
-                }
-            };
+            taskPropertySpecs.add(new DefaultValidatingInputFileProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 
         @Override
         public void visitInputProperty(String propertyName, ValidatingValue value, boolean optional) {
-            taskPropertySpecs.add(new DefaultValidatingTaskPropertySpec(propertyName, value, optional, ValidationActions.NO_OP));
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
         @Override
         public void visitOutputFileProperty(String propertyName, boolean optional, ValidatingValue value, OutputFilePropertyType filePropertyType) {
-            taskPropertySpecs.add(new DefaultValidatingTaskPropertySpec(propertyName, value, optional, filePropertyType.getValidationAction()));
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 
-        public List<ValidatingTaskPropertySpec> getTaskPropertySpecs() {
+        public List<ValidatingProperty> getTaskPropertySpecs() {
             return taskPropertySpecs;
-        }
-    }
-
-    private static class DefaultValidatingTaskPropertySpec implements ValidatingTaskPropertySpec, LifecycleAwareTaskProperty {
-        private final String propertyName;
-        private final ValidatingValue value;
-        private final boolean optional;
-        private final ValidationAction validationAction;
-
-        public DefaultValidatingTaskPropertySpec(String propertyName, ValidatingValue value, boolean optional, ValidationAction validationAction) {
-            this.propertyName = propertyName;
-            this.value = value;
-            this.optional = optional;
-            this.validationAction = validationAction;
-        }
-
-        @Override
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        public boolean isOptional() {
-            return optional;
-        }
-
-        @Override
-        public void validate(TaskValidationContext context) {
-            value.validate(getPropertyName(), optional, validationAction, context);
-        }
-
-        @Override
-        public void prepareValue() {
-            value.maybeFinalizeValue();
-        }
-
-        @Override
-        public void cleanupValue() {
-        }
-
-        @Override
-        public ValidatingValue getValue() {
-            return value;
         }
     }
 }

@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface ValidatingTaskPropertySpec extends TaskPropertySpec {
+public interface ValidatingProperty extends LifecycleAwareTaskProperty {
     void validate(TaskValidationContext context);
 }

@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.util.ClosureBackedAction;
@@ -95,10 +93,5 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         public void maybeFinalizeValue() {
             // Ignore
         }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        }
-
     }
 }

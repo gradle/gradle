@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskPropertySpec;
+import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
@@ -41,9 +41,9 @@ import java.util.Map;
 @NonNullApi
 public interface TaskProperties {
     /**
-     * Returns all properties.
+     * The lifecycle aware properties.
      */
-    Iterable<? extends TaskPropertySpec> getProperties();
+    Iterable<? extends LifecycleAwareTaskProperty> getLifecycleAwareProperties();
 
     /**
      * A factory for the input properties.

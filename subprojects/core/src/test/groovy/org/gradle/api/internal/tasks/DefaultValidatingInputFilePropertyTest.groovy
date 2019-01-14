@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType
+
+import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty
 import spock.lang.Specification
 
-
-class DefaultDeclaredTaskInputFilePropertyTest extends Specification {
-    def "notifies property value of start and end of task execution when it implements lifecycle interface"() {
+class DefaultValidatingInputFilePropertyTest extends Specification {
+    def "notifies property value of start and end of execution when it implements lifecycle interface"() {
         def value = Mock(LifecycleAwareTaskProperty)
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, InputFilePropertyType.FILES)
+        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, false, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> value
@@ -47,7 +46,7 @@ class DefaultDeclaredTaskInputFilePropertyTest extends Specification {
 
     def "does not notify null property value"() {
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, InputFilePropertyType.FILES)
+        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, true, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> null
@@ -62,7 +61,7 @@ class DefaultDeclaredTaskInputFilePropertyTest extends Specification {
 
     def "does not notify property value that does not implement lifecycle interface"() {
         def valueWrapper = Stub(ValidatingValue)
-        def property = new DefaultDeclaredTaskInputFileProperty("task", Stub(FileResolver), valueWrapper, InputFilePropertyType.FILES)
+        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, false, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> "thing"

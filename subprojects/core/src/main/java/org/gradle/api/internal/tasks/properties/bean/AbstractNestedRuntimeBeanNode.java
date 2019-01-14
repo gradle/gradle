@@ -22,9 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -33,7 +31,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -125,18 +122,6 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 return null;
             }
             return value;
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            Object unpacked = DeferredUtil.unpack(call());
-            if (unpacked == null) {
-                if (!optional) {
-                    context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-                }
-            } else {
-                valueValidator.validate(propertyName, unpacked, context);
-            }
         }
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
-public interface ValidatingValue extends Callable<Object>  {
+public interface ValidatingValue extends Callable<Object> {
     @Nullable
     @Override
     Object call();
@@ -29,6 +29,4 @@ public interface ValidatingValue extends Callable<Object>  {
     void attachProducer(Task producer);
 
     void maybeFinalizeValue();
-
-    void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context);
 }
