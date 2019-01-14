@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
@@ -392,16 +391,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void cannotCreateInstanceOfInterface() throws Exception {
-        try {
-            newInstance(Named.class);
-            fail();
-        } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Interface " + Named.class.getName() + " is not a class."));
-        }
-    }
-
-    @Test
     public void cannotCreateInstanceOfClassWithAbstractMethod() throws Exception {
         try {
             newInstance(AbstractMethodBean.class);
@@ -442,6 +431,31 @@ public class AsmBackedClassGeneratorTest {
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetMethodBean.class.getName() + "."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing()."));
+        }
+    }
+
+    @Test
+    public void canConstructInstanceOfInterfaceWithPropertyGetterAndSetter() throws Exception {
+        InterfaceBean bean = newInstance(InterfaceBean.class);
+        assertThat(bean.getName(), nullValue());
+        bean.setName("name");
+        assertThat(bean.getName(), equalTo("name"));
+    }
+
+    @Test
+    public void canConstructInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertThat(bean.getName(), equalTo("name"));
+    }
+
+    @Test
+    public void cannotCreateInstanceOfInterfaceWithAbstractGetterAndNoSetter() throws Exception {
+        try {
+            newInstance(GetterBeanInterface.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + GetterBeanInterface.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing()."));
         }
     }
 
@@ -1551,6 +1565,10 @@ public class AsmBackedClassGeneratorTest {
         abstract void thing(String value);
     }
 
+    public interface GetterBeanInterface {
+        String getThing();
+    }
+
     public enum AnnotationEnum {
         A, B
     }
@@ -1685,6 +1703,19 @@ public class AsmBackedClassGeneratorTest {
         @Override
         public final Long getTypedProp() {
             return 12L;
+        }
+    }
+
+    public interface InterfaceBean {
+        String getName();
+
+        void setName(String value);
+    }
+
+    public interface InterfaceWithDefaultMethods {
+        default
+        String getName() {
+            return "name";
         }
     }
 }
