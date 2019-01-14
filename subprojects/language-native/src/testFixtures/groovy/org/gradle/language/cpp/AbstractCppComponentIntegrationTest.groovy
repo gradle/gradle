@@ -25,6 +25,8 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "can build on current operating system family and architecture when explicitly specified"() {
         given:
@@ -39,7 +41,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "ignores compile and link tasks when current operating system family is excluded"() {
+    def "assemble task fails when current operating system family is excluded"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -48,9 +50,39 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         buildFile << configureTargetMachines("machines.os('some-other-family')")
 
         expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
+        fails taskNameToAssembleDevelopmentBinary
+
+        and:
+        failure.assertHasDescription("Could not determine the dependencies of task ':${taskNameToAssembleDevelopmentBinary}'")
+        failure.assertHasCause("The ${componentName} component does not target this operating system.")
+    }
+
+    def "build task fails when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        fails "build"
+
+        and:
+        failure.assertHasDescription("Could not determine the dependencies of task")
+        failure.assertThatCause(matchesRegexp("The \\w+ component does not target this operating system."))
+    }
+
+    def "does not fail when current operating system family is excluded but assemble is not invoked"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "help"
     }
 
     def "fails configuration when no target machine is configured"() {
@@ -152,6 +184,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
 
     protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
+
+    protected abstract String getComponentName()
 
     protected configureTargetMachines(String targetMachines) {
         return """

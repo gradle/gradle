@@ -166,6 +166,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     }
 
     @Override
+    String getComponentName() {
+        return "main"
+    }
+
+    @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return getTasksToAssembleDevelopmentBinary()
     }

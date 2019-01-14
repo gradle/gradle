@@ -30,6 +30,22 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
     }
 
+    def "check task fails when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        fails "check"
+
+        and:
+        failure.assertHasDescription("Could not determine the dependencies of task ':${taskNameToAssembleDevelopmentBinary}'")
+        failure.assertHasCause("The ${componentName} component does not target this operating system.")
+    }
+
     @Override
     protected String getComponentUnderTestDsl() {
         return "xctest"
@@ -58,5 +74,10 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
+    }
+
+    @Override
+    String getComponentName() {
+        return "test"
     }
 }
