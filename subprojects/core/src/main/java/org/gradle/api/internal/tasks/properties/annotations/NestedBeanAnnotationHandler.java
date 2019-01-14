@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;

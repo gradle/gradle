@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 
 public class DefaultValidatingInputFileProperty extends DefaultValidatingProperty {
     private final ValidatingValue value;

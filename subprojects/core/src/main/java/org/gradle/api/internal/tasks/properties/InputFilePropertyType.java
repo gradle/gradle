@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.ValidationActions;
-
 public enum InputFilePropertyType {
     FILE(ValidationActions.INPUT_FILE_VALIDATOR), DIRECTORY(ValidationActions.INPUT_DIRECTORY_VALIDATOR), FILES(ValidationActions.NO_OP);
 

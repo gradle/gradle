@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.tasks.ValidatingValue;
 
 import javax.annotation.Nullable;
 

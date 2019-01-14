@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.ValidatingValue
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.util.UsesNativeServices

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 @NonNullApi

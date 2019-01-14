@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.tasks.properties.ValidatingValue;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;

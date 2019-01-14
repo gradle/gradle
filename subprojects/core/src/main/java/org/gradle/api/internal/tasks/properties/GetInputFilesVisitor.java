@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.tasks.FileNormalizer;
 
 import java.util.List;

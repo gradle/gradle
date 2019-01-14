@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.internal.file.TreeType;
 
 public enum  OutputFilePropertyType {
-    FILE(TreeType.FILE, org.gradle.api.internal.tasks.ValidationActions.OUTPUT_FILE_VALIDATOR),
+    FILE(TreeType.FILE, ValidationActions.OUTPUT_FILE_VALIDATOR),
     DIRECTORY(TreeType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR),
     FILES(TreeType.FILE, ValidationActions.OUTPUT_FILES_VALIDATOR),
     DIRECTORIES(TreeType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);

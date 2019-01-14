@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
 
-public interface ValidationAction {
-    void validate(String propertyName, Object value, TaskValidationContext context);
+package org.gradle.api.internal.tasks.properties;
+
+import org.gradle.api.Task;
+
+import javax.annotation.Nullable;
+import java.util.concurrent.Callable;
+
+public interface ValidatingValue extends Callable<Object> {
+    @Nullable
+    @Override
+    Object call();
+
+    void attachProducer(Task producer);
+
+    void maybeFinalizeValue();
 }

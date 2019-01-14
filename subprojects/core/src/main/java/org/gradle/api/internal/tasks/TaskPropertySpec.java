@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.tasks.properties.ValidatingValue;
+
 public interface TaskPropertySpec {
     String getPropertyName();
     ValidatingValue getValue();

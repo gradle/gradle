@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;

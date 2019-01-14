@@ -19,11 +19,11 @@ package org.gradle.api.internal.tasks.properties.annotations
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskValidationContext
-import org.gradle.api.internal.tasks.ValidatingValue
-import org.gradle.api.internal.tasks.ValidationActions
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
 import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.ValidatingValue
+import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
 import spock.lang.Specification

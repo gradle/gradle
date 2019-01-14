@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 public interface PropertyValueVisitor {

@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.properties;
 
-package org.gradle.api.internal.tasks;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 
-import org.gradle.api.Task;
-
-import javax.annotation.Nullable;
-import java.util.concurrent.Callable;
-
-public interface ValidatingValue extends Callable<Object> {
-    @Nullable
-    @Override
-    Object call();
-
-    void attachProducer(Task producer);
-
-    void maybeFinalizeValue();
+public interface ValidationAction {
+    void validate(String propertyName, Object value, TaskValidationContext context);
 }

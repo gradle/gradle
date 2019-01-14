@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks
 
 
 import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty
+import org.gradle.api.internal.tasks.properties.ValidatingValue
+import org.gradle.api.internal.tasks.properties.ValidationActions
 import spock.lang.Specification
 
 class DefaultValidatingInputFilePropertyTest extends Specification {

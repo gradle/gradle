@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.ValidatingValue;
-
 public class InputPropertySpec implements PropertySpec {
     private final String propertyName;
     private final ValidatingValue value;

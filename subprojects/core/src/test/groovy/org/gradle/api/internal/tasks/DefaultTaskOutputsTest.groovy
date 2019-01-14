@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.SingleOutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.ValidatingValue
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.util.DeferredUtil
 import org.gradle.util.UsesNativeServices
