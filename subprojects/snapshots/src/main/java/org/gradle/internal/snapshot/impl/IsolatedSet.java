@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,40 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.hash.Hasher;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
-    public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
-
-    private NullValueSnapshot() {
-    }
-
-    @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (value == null) {
-            return this;
-        }
-        return snapshotter.snapshot(value);
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putNull();
+public class IsolatedSet extends AbstractSetSnapshot<Isolatable<?>> implements Isolatable<Set<Object>> {
+    public IsolatedSet(ImmutableSet<Isolatable<?>> elements) {
+        super(elements);
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return this;
+        ImmutableSet.Builder<ValueSnapshot> builder = ImmutableSet.builderWithExpectedSize(elements.size());
+        for (Isolatable<?> element : elements) {
+            builder.add(element.asSnapshot());
+        }
+        return new SetValueSnapshot(builder.build());
     }
 
     @Override
-    public Object isolate() {
-        return null;
+    public Set<Object> isolate() {
+        Set<Object> set = new LinkedHashSet<>(elements.size());
+        for (Isolatable<?> element : elements) {
+            set.add(element.isolate());
+        }
+        return set;
     }
 
     @Nullable
     @Override
     public <S> Isolatable<S> coerce(Class<S> type) {
-        return Cast.uncheckedCast(this);
+        return null;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +31,11 @@ public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Is
     public IsolatableEnumValueSnapshot(Enum<?> value) {
         super(value);
         this.value = value;
+    }
+
+    @Override
+    public ValueSnapshot asSnapshot() {
+        return new EnumValueSnapshot(value);
     }
 
     @Override

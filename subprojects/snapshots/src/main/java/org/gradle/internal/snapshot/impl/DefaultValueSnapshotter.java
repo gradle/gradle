@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
@@ -25,8 +24,10 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -41,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultValueSnapshotter implements ValueSnapshotter {
+public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFactory {
     private final ValueVisitor<ValueSnapshot> valueSnapshotValueVisitor;
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
@@ -121,9 +122,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
         }
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
-            ImmutableMap.Builder<T, T> builder = ImmutableMap.builderWithExpectedSize(map.size());
+            ImmutableList.Builder<Pair<T, T>> builder = ImmutableList.builderWithExpectedSize(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.put(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor));
+                builder.add(Pair.of(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
             return visitor.map(builder.build());
         }
@@ -150,6 +151,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
         }
         if (value instanceof NamedObjectInstantiator.Managed) {
             return visitor.namedValue((Named) value);
+        }
+        if (value instanceof Isolatable) {
+            return visitor.fromIsolatable((Isolatable<?>) value);
         }
 
         // Fall back to serialization
@@ -193,6 +197,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
 
         T namedValue(Named value);
 
+        T fromIsolatable(Isolatable<?> value);
+
         T emptyArray();
 
         T array(ImmutableList<T> elements);
@@ -203,7 +209,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
 
         T set(ImmutableSet<T> elements);
 
-        T map(ImmutableMap<T, T> elements);
+        T map(ImmutableList<Pair<T, T>> elements);
 
         T provider(Object value, T snapshot);
 
@@ -273,6 +279,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
         }
 
         @Override
+        public ValueSnapshot fromIsolatable(Isolatable<?> value) {
+            return value.asSnapshot();
+        }
+
+        @Override
         public ValueSnapshot serialized(Object value, byte[] serializedValue) {
             return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
@@ -303,7 +314,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
         }
 
         @Override
-        public ValueSnapshot map(ImmutableMap<ValueSnapshot, ValueSnapshot> elements) {
+        public ValueSnapshot map(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> elements) {
             return new MapValueSnapshot(elements);
         }
 
@@ -378,6 +389,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
         }
 
         @Override
+        public Isolatable<?> fromIsolatable(Isolatable<?> value) {
+            return value;
+        }
+
+        @Override
         public Isolatable<?> serialized(Object value, byte[] serializedValue) {
             return new IsolatableSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
         }
@@ -389,32 +405,32 @@ public class DefaultValueSnapshotter implements ValueSnapshotter {
 
         @Override
         public Isolatable<?> emptyArray() {
-            return ArrayValueSnapshot.EMPTY;
+            return IsolatedArray.EMPTY;
         }
 
         @Override
         public Isolatable<?> array(ImmutableList<Isolatable<?>> elements) {
-            return new ArrayValueSnapshot(Cast.uncheckedCast(elements));
+            return new IsolatedArray(elements);
         }
 
         @Override
         public Isolatable<?> emptyList() {
-            return ListValueSnapshot.EMPTY;
+            return IsolatedList.EMPTY;
         }
 
         @Override
         public Isolatable<?> list(ImmutableList<Isolatable<?>> elements) {
-            return new ListValueSnapshot(Cast.uncheckedCast(elements));
+            return new IsolatedList(elements);
         }
 
         @Override
         public Isolatable<?> set(ImmutableSet<Isolatable<?>> elements) {
-            return new SetValueSnapshot(Cast.uncheckedCast(elements));
+            return new IsolatedSet(elements);
         }
 
         @Override
-        public Isolatable<?> map(ImmutableMap<Isolatable<?>, Isolatable<?>> elements) {
-            return new MapValueSnapshot(Cast.uncheckedCast(elements));
+        public Isolatable<?> map(ImmutableList<Pair<Isolatable<?>, Isolatable<?>>> elements) {
+            return new IsolatedMap(elements);
         }
     }
 }

@@ -17,34 +17,14 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
-public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
+public class ArrayValueSnapshot extends AbstractArraySnapshot<ValueSnapshot> implements ValueSnapshot {
     public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(ImmutableList.of());
-    private final ImmutableList<ValueSnapshot> elements;
 
     public ArrayValueSnapshot(ImmutableList<ValueSnapshot> elements) {
-        this.elements = elements;
-    }
-
-    public List<ValueSnapshot> getElements() {
-        return elements;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString("Array");
-        hasher.putInt(elements.size());
-        for (ValueSnapshot element : elements) {
-            element.appendToHasher(hasher);
-        }
+        super(elements);
     }
 
     @Override
@@ -64,42 +44,5 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ArrayValueSnapshot other = (ArrayValueSnapshot) obj;
-        return elements.equals(other.elements);
-    }
-
-    @Override
-    public int hashCode() {
-        return elements.hashCode();
-    }
-
-    @Override
-    public Object[] isolate() {
-        Object[] toReturn = new Object[elements.size()];
-        for (int i = 0; i < elements.size(); i++) {
-            ValueSnapshot snapshot = elements.get(i);
-            if (snapshot instanceof Isolatable) {
-                toReturn[i] = ((Isolatable) snapshot).isolate();
-            } else {
-                throw new IsolationException(snapshot);
-            }
-        }
-        return toReturn;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
     }
 }

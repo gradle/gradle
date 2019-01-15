@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -31,6 +32,11 @@ public class IsolatableSerializedValueSnapshot extends SerializedValueSnapshot i
     public IsolatableSerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
         super(implementationHash, serializedValue);
         this.originalClass = originalClass;
+    }
+
+    @Override
+    public ValueSnapshot asSnapshot() {
+        return new SerializedValueSnapshot(getImplementationHash(), getValue());
     }
 
     @Override

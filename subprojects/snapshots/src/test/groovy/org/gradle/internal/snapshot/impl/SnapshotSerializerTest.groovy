@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,49 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.snapshot.impl
 
-import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Named
+import org.gradle.internal.Pair
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
-import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
-import org.gradle.internal.snapshot.impl.EnumValueSnapshot
-import org.gradle.internal.snapshot.impl.FileValueSnapshot
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
-import org.gradle.internal.snapshot.impl.ListValueSnapshot
-import org.gradle.internal.snapshot.impl.LongValueSnapshot
-import org.gradle.internal.snapshot.impl.ManagedNamedTypeSnapshot
-import org.gradle.internal.snapshot.impl.MapValueSnapshot
-import org.gradle.internal.snapshot.impl.NullValueSnapshot
-import org.gradle.internal.snapshot.impl.ProviderSnapshot
-import org.gradle.internal.snapshot.impl.SerializedValueSnapshot
-import org.gradle.internal.snapshot.impl.SetValueSnapshot
-import org.gradle.internal.snapshot.impl.ShortValueSnapshot
-import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import spock.lang.Specification
 import spock.lang.Subject
 
-class InputPropertiesSerializerTest extends Specification {
+class SnapshotSerializerTest extends Specification {
 
     def output = new ByteArrayOutputStream()
     def encoder = new OutputStreamBackedEncoder(output)
 
-    @Subject serializer = new InputPropertiesSerializer()
+    @Subject
+            serializer = new SnapshotSerializer()
 
-    def "serializes empty properties"() {
-        write [:]
-        expect:
-        [:] == written
-    }
-
-    def "serializes properties"() {
-        def original = [a: snapshot("x".bytes), b: snapshot("y".bytes)]
+    def "serializes serialized properties"() {
+        def original = snapshot("x".bytes)
         write(original)
 
         expect:
@@ -64,7 +44,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes string properties"() {
-        def original = [a: string("x"), b: string("y")]
+        def original = string("x")
         write(original)
 
         expect:
@@ -72,20 +52,25 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes number properties"() {
-        def original = [a: a, b: b]
-        write(original)
+        write(value)
 
         expect:
-        original == written
+        value == written
 
         where:
-        a                                       | b
-        integer(123)                            | integer(-123)
-        integer(Integer.MAX_VALUE)              | integer(Integer.MIN_VALUE)
-        new LongValueSnapshot(123L)             | new LongValueSnapshot(0L)
-        new LongValueSnapshot(Long.MAX_VALUE)   | new LongValueSnapshot(Long.MIN_VALUE)
-        new ShortValueSnapshot(123 as short)    | new ShortValueSnapshot(0 as short)
-        new ShortValueSnapshot(Short.MAX_VALUE) | new ShortValueSnapshot(Short.MIN_VALUE)
+        value                                   | _
+        integer(123)                            | _
+        integer(-123)                           | _
+        integer(Integer.MAX_VALUE)              | _
+        integer(Integer.MIN_VALUE)              | _
+        new LongValueSnapshot(123L)             | _
+        new LongValueSnapshot(0L)               | _
+        new LongValueSnapshot(Long.MAX_VALUE)   | _
+        new LongValueSnapshot(Long.MIN_VALUE)   | _
+        new ShortValueSnapshot(123 as short)    | _
+        new ShortValueSnapshot(0 as short)      | _
+        new ShortValueSnapshot(Short.MAX_VALUE) | _
+        new ShortValueSnapshot(Short.MIN_VALUE) | _
     }
 
     enum Thing {
@@ -93,7 +78,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes enum properties"() {
-        def original = [a: new EnumValueSnapshot(Thing.THING_1), b: new EnumValueSnapshot(Thing.THING_2)]
+        def original = new EnumValueSnapshot(Thing.THING_1)
         write(original)
 
         expect:
@@ -101,7 +86,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes file properties"() {
-        def original = [a: new FileValueSnapshot(new File("abc")), b: new FileValueSnapshot(new File("123").getAbsoluteFile())]
+        def original = new FileValueSnapshot(new File("abc"))
         write(original)
 
         expect:
@@ -109,7 +94,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes null properties"() {
-        def original = [a: NullValueSnapshot.INSTANCE, b: NullValueSnapshot.INSTANCE]
+        def original = NullValueSnapshot.INSTANCE
         write(original)
 
         expect:
@@ -117,15 +102,19 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes boolean properties"() {
-        def original = [a: BooleanValueSnapshot.TRUE, b: BooleanValueSnapshot.FALSE]
-        write(original)
+        write(value)
 
         expect:
-        original == written
+        value == written
+
+        where:
+        value                      | _
+        BooleanValueSnapshot.TRUE  | _
+        BooleanValueSnapshot.FALSE | _
     }
 
     def "serializes array properties"() {
-        def original = [a: array(string("123"), string("456")), b: array(array(string("123")))]
+        def original = array(string("123"), array(string("456")))
         write(original)
 
         expect:
@@ -133,7 +122,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes empty array properties"() {
-        def original = [a: array(), b: array()]
+        def original = array()
         write(original)
 
         expect:
@@ -141,7 +130,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes list properties"() {
-        def original = [a: list(string("123"), string("456")), b: list(list(string("123")))]
+        def original = list(string("123"), list(string("456")))
         write(original)
 
         expect:
@@ -149,7 +138,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes empty list properties"() {
-        def original = [a: list(), b: list()]
+        def original = list()
         write(original)
 
         expect:
@@ -157,7 +146,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes set properties"() {
-        def original = [a: set(string("123"), string("456")), b: set(set(string("123"))), c: set()]
+        def original = set(string("123"), set(string("456")))
         write(original)
 
         expect:
@@ -165,10 +154,10 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes map properties"() {
-        def builder = ImmutableMap.builder()
-        def empty = builder.build()
-        builder.put(string("123"), integer(123))
-        def original = [a: new MapValueSnapshot(builder.build()), b: new MapValueSnapshot(empty)]
+        def builder = ImmutableList.builder()
+        builder.add(Pair.of(string("123"), integer(123)))
+        builder.add(Pair.of(string("456"), list(integer(-12), integer(12))))
+        def original = new MapValueSnapshot(builder.build())
         write(original)
 
         expect:
@@ -176,7 +165,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes provider properties"() {
-        def original = [a: new ProviderSnapshot(new StringValueSnapshot("123"))]
+        def original = new ProviderSnapshot(string("123"))
         write(original)
 
         expect:
@@ -186,7 +175,7 @@ class InputPropertiesSerializerTest extends Specification {
     def "serializes managed named properties"() {
         def value = Stub(Named)
         value.name >> "123"
-        def original = [a: new ManagedNamedTypeSnapshot(value)]
+        def original = new ManagedNamedTypeSnapshot(value)
         write(original)
 
         expect:
@@ -194,7 +183,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties"() {
-        def original = [a: ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))]
+        def original = ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))
         write(original)
 
         expect:
@@ -203,11 +192,10 @@ class InputPropertiesSerializerTest extends Specification {
 
     def "serializes implementation properties with unknown classloader"() {
         def original = ImplementationSnapshot.of("someClassName", null)
-        def originalMap = [a: original]
-        write(originalMap)
+        write(original)
 
         expect:
-        ImplementationSnapshot copy = written.a
+        ImplementationSnapshot copy = written
         copy.typeName == original.typeName
         copy.classLoaderHash == null
         copy.unknown
@@ -216,11 +204,10 @@ class InputPropertiesSerializerTest extends Specification {
 
     def "serializes implementation properties with lambda"() {
         def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
-        def originalMap = [a: original]
-        write(originalMap)
+        write(original)
 
         expect:
-        ImplementationSnapshot copy = written.a
+        ImplementationSnapshot copy = written
         copy.typeName == original.typeName
         copy.classLoaderHash == null
         copy.isUnknown()
@@ -228,11 +215,11 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {
-        return new ArrayValueSnapshot(elements)
+        return new ArrayValueSnapshot(ImmutableList.copyOf(elements))
     }
 
     private ListValueSnapshot list(ValueSnapshot... elements) {
-        return new ListValueSnapshot(elements)
+        return new ListValueSnapshot(ImmutableList.copyOf(elements))
     }
 
     private SetValueSnapshot set(ValueSnapshot... elements) {
@@ -251,11 +238,11 @@ class InputPropertiesSerializerTest extends Specification {
         return new SerializedValueSnapshot(HashCode.fromInt(123), value)
     }
 
-    private Map<String, ValueSnapshot> getWritten() {
+    private ValueSnapshot getWritten() {
         serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(output.toByteArray())))
     }
 
-    private void write(Map<String, ValueSnapshot> map) {
-        serializer.write(encoder, ImmutableMap.copyOf(map))
+    private void write(ValueSnapshot snapshot) {
+        serializer.write(encoder, snapshot)
     }
 }

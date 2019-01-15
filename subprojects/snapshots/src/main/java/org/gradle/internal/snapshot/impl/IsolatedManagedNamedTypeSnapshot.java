@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -31,6 +32,11 @@ public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot i
         super(value);
         this.value = value;
         this.instantiator = instantiator;
+    }
+
+    @Override
+    public ValueSnapshot asSnapshot() {
+        return new ManagedNamedTypeSnapshot(value);
     }
 
     @Override
